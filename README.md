@@ -21,14 +21,14 @@ _Screenshots coming soon_
 
 ### Prerequisites
 
-- Node.js 18+
-- pnpm (recommended) or npm
+- Node.js 22+ (see `.nvmrc`)
+- pnpm 11+ (enforced via `packageManager` field)
 
 ### Installation
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/visaflow.git
+git clone https://github.com/fvarli/visaflow.git
 cd visaflow
 
 # Install dependencies

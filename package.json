@@ -4,6 +4,10 @@
   "version": "0.1.0",
   "type": "module",
   "description": "Privacy-first visa application dossier and document checklist manager",
+  "packageManager": "pnpm@11.15.1",
+  "engines": {
+    "node": ">=22.0.0"
+  },
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
