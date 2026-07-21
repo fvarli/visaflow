@@ -1,0 +1,307 @@
+{
+  "schemaVersion": "1.0.0",
+  "exportedAt": "2025-01-15T10:00:00.000Z",
+  "applicant": {
+    "id": "applicant-001",
+    "firstName": "Maria",
+    "lastName": "Kowalski",
+    "dateOfBirth": "1990-05-15",
+    "nationality": "PL",
+    "countryOfResidence": "PL",
+    "maritalStatus": "single",
+    "occupation": "Software Engineer",
+    "email": "maria.kowalski@example.com",
+    "phone": "+48 123 456 789",
+    "address": {
+      "street": "ul. Przykładowa 123",
+      "city": "Warsaw",
+      "postalCode": "00-001",
+      "country": "PL"
+    },
+    "passport": {
+      "number": "AB1234567",
+      "issueDate": "2020-03-10",
+      "expiryDate": "2030-03-09",
+      "issuingCountry": "PL",
+      "passportType": "ordinary"
+    },
+    "previousPassports": [],
+    "previousVisas": [
+      {
+        "country": "DE",
+        "visaType": "Schengen Type C",
+        "issueDate": "2023-06-01",
+        "expiryDate": "2023-12-01",
+        "status": "used"
+      }
+    ],
+    "travelHistory": [
+      {
+        "country": "DE",
+        "entryDate": "2023-07-15",
+        "exitDate": "2023-07-22",
+        "purpose": "Tourism"
+      }
+    ]
+  },
+  "application": {
+    "applicationId": "app-001",
+    "applicantId": "applicant-001",
+    "destinationCountry": "GR",
+    "visaType": "short_stay_tourism",
+    "status": "preparing",
+    "createdAt": "2025-01-10T08:00:00.000Z",
+    "appointment": {
+      "date": "2025-02-15",
+      "time": "10:30",
+      "location": "VFS Global Warsaw",
+      "type": "vfs"
+    },
+    "trip": {
+      "entryDate": "2025-04-01",
+      "exitDate": "2025-04-10",
+      "firstEntryCountry": "GR",
+      "mainDestinationCountry": "GR",
+      "entryCity": "Athens",
+      "exitCity": "Athens",
+      "route": [
+        {
+          "city": "Athens",
+          "country": "GR",
+          "arrivalDate": "2025-04-01",
+          "departureDate": "2025-04-05",
+          "nights": 4,
+          "purpose": "Sightseeing"
+        },
+        {
+          "city": "Santorini",
+          "country": "GR",
+          "arrivalDate": "2025-04-05",
+          "departureDate": "2025-04-10",
+          "nights": 5,
+          "purpose": "Beach vacation"
+        }
+      ],
+      "transportReservations": [
+        {
+          "type": "flight",
+          "carrier": "Aegean Airlines",
+          "reservationNumber": "ABC123",
+          "departureDate": "2025-04-01",
+          "departureTime": "08:00",
+          "departureCity": "Warsaw",
+          "departureCountry": "PL",
+          "arrivalDate": "2025-04-01",
+          "arrivalTime": "11:30",
+          "arrivalCity": "Athens",
+          "arrivalCountry": "GR",
+          "passengerName": "Maria Kowalski",
+          "status": "confirmed"
+        },
+        {
+          "type": "flight",
+          "carrier": "Aegean Airlines",
+          "reservationNumber": "ABC456",
+          "departureDate": "2025-04-10",
+          "departureTime": "14:00",
+          "departureCity": "Athens",
+          "departureCountry": "GR",
+          "arrivalDate": "2025-04-10",
+          "arrivalTime": "16:30",
+          "arrivalCity": "Warsaw",
+          "arrivalCountry": "PL",
+          "passengerName": "Maria Kowalski",
+          "status": "confirmed"
+        }
+      ],
+      "accommodationReservations": [
+        {
+          "type": "hotel",
+          "name": "Athens Central Hotel",
+          "address": "Syntagma Square 1",
+          "city": "Athens",
+          "country": "GR",
+          "checkInDate": "2025-04-01",
+          "checkOutDate": "2025-04-05",
+          "reservationNumber": "HTL001",
+          "guestName": "Maria Kowalski",
+          "status": "confirmed"
+        },
+        {
+          "type": "hotel",
+          "name": "Santorini Sunset Resort",
+          "address": "Oia Main Street",
+          "city": "Santorini",
+          "country": "GR",
+          "checkInDate": "2025-04-05",
+          "checkOutDate": "2025-04-10",
+          "reservationNumber": "HTL002",
+          "guestName": "Maria Kowalski",
+          "status": "confirmed"
+        }
+      ],
+      "insurance": {
+        "provider": "Allianz Travel",
+        "policyNumber": "INS-2025-001",
+        "coverageStartDate": "2025-04-01",
+        "coverageEndDate": "2025-04-10",
+        "coverageAmount": 50000,
+        "currency": "EUR",
+        "medicalCoverage": true,
+        "repatriationCoverage": true,
+        "insuredName": "Maria Kowalski"
+      },
+      "tripPurpose": "Tourism and vacation in Greece",
+      "estimatedBudget": 2500,
+      "budgetCurrency": "EUR"
+    },
+    "employment": {
+      "employmentStatus": "employed",
+      "employerName": "Tech Solutions Sp. z o.o.",
+      "employerAddress": "ul. Marszałkowska 100, Warsaw",
+      "jobTitle": "Senior Software Engineer",
+      "department": "Engineering",
+      "startDate": "2019-03-01",
+      "monthlyNetIncome": 8000,
+      "currency": "EUR",
+      "salaryBank": "PKO Bank Polski",
+      "approvedLeaveStart": "2025-04-01",
+      "approvedLeaveEnd": "2025-04-10"
+    },
+    "financing": {
+      "source": "self",
+      "selfFundedAmount": 2500,
+      "currency": "EUR",
+      "bankName": "PKO Bank Polski",
+      "accountBalance": 15000,
+      "statementDate": "2025-01-10"
+    },
+    "sponsorIds": [],
+    "documentIds": [],
+    "notes": [
+      {
+        "id": "note-001",
+        "createdAt": "2025-01-10T08:30:00.000Z",
+        "title": "Appointment booked",
+        "content": "Visa appointment scheduled for February 15th at VFS Global Warsaw. Need to arrive 15 minutes early.",
+        "category": "appointment"
+      }
+    ]
+  },
+  "documents": [
+    {
+      "id": "doc-001",
+      "code": "APPLICATION_FORM",
+      "name": "Visa Application Form",
+      "category": "application_form",
+      "ownerType": "applicant",
+      "ownerId": "applicant-001",
+      "required": true,
+      "status": "ready",
+      "verified": true
+    },
+    {
+      "id": "doc-002",
+      "code": "PASSPORT_CURRENT",
+      "name": "Current Passport",
+      "category": "passport",
+      "ownerType": "applicant",
+      "ownerId": "applicant-001",
+      "required": true,
+      "status": "ready",
+      "validUntil": "2030-03-09",
+      "verified": true
+    },
+    {
+      "id": "doc-003",
+      "code": "PHOTOS",
+      "name": "Biometric Photos",
+      "category": "identity",
+      "ownerType": "applicant",
+      "ownerId": "applicant-001",
+      "required": true,
+      "status": "ready",
+      "issuedAt": "2025-01-08",
+      "verified": true
+    },
+    {
+      "id": "doc-004",
+      "code": "TRAVEL_INSURANCE",
+      "name": "Travel Medical Insurance",
+      "category": "insurance",
+      "ownerType": "applicant",
+      "ownerId": "applicant-001",
+      "required": true,
+      "status": "ready",
+      "validUntil": "2025-04-10",
+      "verified": true
+    },
+    {
+      "id": "doc-005",
+      "code": "TRANSPORT_RESERVATION",
+      "name": "Round-trip Transport Reservation",
+      "category": "travel",
+      "ownerType": "applicant",
+      "ownerId": "applicant-001",
+      "required": true,
+      "status": "ready",
+      "verified": true
+    },
+    {
+      "id": "doc-006",
+      "code": "ACCOMMODATION",
+      "name": "Accommodation Reservation",
+      "category": "accommodation",
+      "ownerType": "applicant",
+      "ownerId": "applicant-001",
+      "required": true,
+      "status": "ready",
+      "verified": true
+    },
+    {
+      "id": "doc-007",
+      "code": "EMPLOYMENT_LETTER",
+      "name": "Employment Letter",
+      "category": "employment",
+      "ownerType": "applicant",
+      "ownerId": "applicant-001",
+      "required": true,
+      "status": "requested",
+      "requestedAt": "2025-01-10",
+      "notes": "Requested from HR, expected by Jan 20"
+    },
+    {
+      "id": "doc-008",
+      "code": "PAYSLIPS",
+      "name": "Recent Payslips",
+      "category": "employment",
+      "ownerType": "applicant",
+      "ownerId": "applicant-001",
+      "required": true,
+      "status": "received",
+      "receivedAt": "2025-01-12"
+    },
+    {
+      "id": "doc-009",
+      "code": "BANK_STATEMENTS",
+      "name": "Bank Statements",
+      "category": "financial",
+      "ownerType": "applicant",
+      "ownerId": "applicant-001",
+      "required": true,
+      "status": "not_started"
+    },
+    {
+      "id": "doc-010",
+      "code": "ID_CARD_COPY",
+      "name": "National ID Card Copy",
+      "category": "identity",
+      "ownerType": "applicant",
+      "ownerId": "applicant-001",
+      "required": true,
+      "status": "ready",
+      "verified": true
+    }
+  ],
+  "sponsors": []
+}
