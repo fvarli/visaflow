@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
-import { differenceInDays, parseISO, format } from 'date-fns'
+import { differenceInDays, parseISO } from 'date-fns'
 import { useDossier } from '@/app/providers/DossierProvider'
 import { runValidation } from '@/domain/rules/runner'
 import type { Dossier } from '@/domain/schemas/dossier.schema'
@@ -26,9 +27,20 @@ import {
   Plus,
 } from 'lucide-react'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import { useFormatters } from '@/lib/format'
+import { useFindingText } from '@/lib/finding-text'
+import { dynamicT } from '@/lib/i18n-dynamic'
 
 export default function DashboardPage() {
   const { state, hasData, initializeEmpty } = useDossier()
+  const { t } = useTranslation([
+    'dashboard',
+    'common',
+    'validation',
+    'navigation',
+  ])
+  const format = useFormatters()
+  const findingText = useFindingText()
 
   const stats = useMemo(() => {
     if (!hasData || !state.applicant || !state.application) {
@@ -98,27 +110,23 @@ export default function DashboardPage() {
     return (
       <div className="space-y-6">
         <div>
-          <h1 className="text-2xl font-bold">Welcome to VisaFlow</h1>
+          <h1 className="text-2xl font-bold">{t('dashboard:welcome')}</h1>
           <p className="text-muted-foreground">
-            Organize your visa application dossier with confidence.
+            {t('dashboard:welcomeDescription')}
           </p>
         </div>
 
         <Alert>
           <AlertCircle className="h-4 w-4" />
-          <AlertTitle>Privacy Notice</AlertTitle>
-          <AlertDescription>
-            Your data remains in browser memory only. No information is sent to
-            any server. Export your dossier regularly to save your progress.
-          </AlertDescription>
+          <AlertTitle>{t('common:privacy.title')}</AlertTitle>
+          <AlertDescription>{t('common:privacy.body')}</AlertDescription>
         </Alert>
 
         <Card>
           <CardHeader>
-            <CardTitle>Get Started</CardTitle>
+            <CardTitle>{t('dashboard:getStarted.title')}</CardTitle>
             <CardDescription>
-              Choose how you would like to begin organizing your visa
-              application.
+              {t('dashboard:getStarted.description')}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -127,10 +135,10 @@ export default function DashboardPage() {
               className="w-full justify-start"
             >
               <Plus className="mr-2 h-4 w-4" />
-              Start New Greece Application
+              {t('dashboard:getStarted.startGreece')}
             </Button>
             <p className="text-sm text-muted-foreground">
-              Or use the Import button in the sidebar to load existing data.
+              {t('dashboard:getStarted.orImportPlain')}
             </p>
           </CardContent>
         </Card>
@@ -145,10 +153,16 @@ export default function DashboardPage() {
       {/* Header */}
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
-          <h1 className="text-2xl font-bold">Dashboard</h1>
+          <h1 className="text-2xl font-bold">{t('dashboard:title')}</h1>
           <p className="text-muted-foreground">
-            {state.application?.destinationCountry ?? 'No destination'} -{' '}
-            {state.application?.visaType.replace(/_/g, ' ')}
+            {state.application?.destinationCountry
+              ? dynamicT(t)(
+                  `visa-domain:countries.${state.application.destinationCountry}`,
+                  { defaultValue: state.application.destinationCountry }
+                )
+              : t('common:states.notSet')}
+            {state.application?.visaType &&
+              ` · ${dynamicT(t)(`visa-domain:visaTypes.${state.application.visaType}`)}`}
           </p>
         </div>
         <div className="flex gap-2">
@@ -171,47 +185,59 @@ export default function DashboardPage() {
       <div className="grid gap-4 md:grid-cols-2">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Appointment</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              {t('dashboard:cards.appointment')}
+            </CardTitle>
             <Calendar className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             {stats.appointmentDate ? (
               <>
                 <div className="text-2xl font-bold">
-                  {format(stats.appointmentDate, 'MMM d, yyyy')}
+                  {format.dateShort(stats.appointmentDate)}
                 </div>
                 <p className="text-xs text-muted-foreground">
                   {stats.daysUntilAppointment !== null &&
                   stats.daysUntilAppointment >= 0
-                    ? `${stats.daysUntilAppointment} days remaining`
-                    : 'Past date'}
+                    ? t('common:time.daysRemaining', {
+                        count: stats.daysUntilAppointment,
+                      })
+                    : t('common:time.datePassed')}
                 </p>
               </>
             ) : (
-              <p className="text-muted-foreground">No appointment set</p>
+              <p className="text-muted-foreground">
+                {t('common:states.notSet')}
+              </p>
             )}
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Trip Start</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              {t('dashboard:cards.tripStart')}
+            </CardTitle>
             <Plane className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             {stats.tripStartDate ? (
               <>
                 <div className="text-2xl font-bold">
-                  {format(stats.tripStartDate, 'MMM d, yyyy')}
+                  {format.dateShort(stats.tripStartDate)}
                 </div>
                 <p className="text-xs text-muted-foreground">
                   {stats.daysUntilTravel !== null && stats.daysUntilTravel >= 0
-                    ? `${stats.daysUntilTravel} days until travel`
-                    : 'Past date'}
+                    ? t('dashboard:cards.daysUntilTravel', {
+                        count: stats.daysUntilTravel,
+                      })
+                    : t('common:time.datePassed')}
                 </p>
               </>
             ) : (
-              <p className="text-muted-foreground">No trip dates set</p>
+              <p className="text-muted-foreground">
+                {t('common:states.notSet')}
+              </p>
             )}
           </CardContent>
         </Card>
@@ -221,10 +247,12 @@ export default function DashboardPage() {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center justify-between">
-            <span>Document Completion</span>
+            <span>{t('dashboard:completion.title')}</span>
             <span className="text-sm font-normal text-muted-foreground">
-              {stats.totalReady} / {stats.totalRequired} required documents
-              ready
+              {t('dashboard:completion.description', {
+                ready: stats.totalReady,
+                total: stats.totalRequired,
+              })}
             </span>
           </CardTitle>
         </CardHeader>
@@ -234,18 +262,21 @@ export default function DashboardPage() {
           <div className="grid gap-4 md:grid-cols-3">
             <div className="flex items-center gap-2">
               <CheckCircle className="h-4 w-4 text-green-500" />
-              <span className="text-sm">{stats.totalReady} ready</span>
+              <span className="text-sm">
+                {stats.totalReady} {t('dashboard:completion.ready')}
+              </span>
             </div>
             <div className="flex items-center gap-2">
               <Clock className="h-4 w-4 text-amber-500" />
               <span className="text-sm">
-                {stats.missingDocs.length} pending
+                {stats.missingDocs.length} {t('dashboard:completion.pending')}
               </span>
             </div>
             <div className="flex items-center gap-2">
               <AlertCircle className="h-4 w-4 text-red-500" />
               <span className="text-sm">
-                {stats.needsUpdateDocs.length} need update
+                {stats.needsUpdateDocs.length}{' '}
+                {t('dashboard:completion.needUpdate')}
               </span>
             </div>
           </div>
@@ -255,17 +286,16 @@ export default function DashboardPage() {
       {/* Validation Summary */}
       <Card>
         <CardHeader>
-          <CardTitle>Consistency Checks</CardTitle>
-          <CardDescription>
-            Automated checks for common issues in your dossier
-          </CardDescription>
+          <CardTitle>{t('dashboard:checks.title')}</CardTitle>
+          <CardDescription>{t('dashboard:checks.description')}</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex flex-wrap gap-2">
             {stats.validationResult.errorCount > 0 && (
               <Badge variant="destructive">
-                {stats.validationResult.errorCount} error
-                {stats.validationResult.errorCount !== 1 ? 's' : ''}
+                {t('validation:summary.errorCount', {
+                  count: stats.validationResult.errorCount,
+                })}
               </Badge>
             )}
             {stats.validationResult.warningCount > 0 && (
@@ -273,8 +303,9 @@ export default function DashboardPage() {
                 variant="secondary"
                 className="bg-amber-100 text-amber-800"
               >
-                {stats.validationResult.warningCount} warning
-                {stats.validationResult.warningCount !== 1 ? 's' : ''}
+                {t('validation:summary.warningCount', {
+                  count: stats.validationResult.warningCount,
+                })}
               </Badge>
             )}
             {stats.validationResult.errorCount === 0 &&
@@ -283,34 +314,38 @@ export default function DashboardPage() {
                   variant="secondary"
                   className="bg-green-100 text-green-800"
                 >
-                  No issues found
+                  {t('dashboard:checks.noIssues')}
                 </Badge>
               )}
           </div>
 
           {stats.validationResult.findings.length > 0 && (
             <div className="mt-4 space-y-2">
-              {stats.validationResult.findings.slice(0, 3).map((finding) => (
-                <div
-                  key={finding.id}
-                  className="flex items-start gap-2 text-sm"
-                >
-                  {finding.severity === 'error' ? (
-                    <AlertCircle className="h-4 w-4 mt-0.5 text-red-500" />
-                  ) : finding.severity === 'warning' ? (
-                    <AlertTriangle className="h-4 w-4 mt-0.5 text-amber-500" />
-                  ) : (
-                    <AlertCircle className="h-4 w-4 mt-0.5 text-blue-500" />
-                  )}
-                  <span>{finding.title}</span>
-                </div>
-              ))}
+              {stats.validationResult.findings
+                .slice(0, 3)
+                .map((finding, index) => (
+                  <div
+                    key={`${finding.id}-${index}`}
+                    className="flex items-start gap-2 text-sm"
+                  >
+                    {finding.severity === 'error' ? (
+                      <AlertCircle className="h-4 w-4 mt-0.5 text-red-500" />
+                    ) : finding.severity === 'warning' ? (
+                      <AlertTriangle className="h-4 w-4 mt-0.5 text-amber-500" />
+                    ) : (
+                      <AlertCircle className="h-4 w-4 mt-0.5 text-blue-500" />
+                    )}
+                    <span>{findingText(finding).title}</span>
+                  </div>
+                ))}
               {stats.validationResult.findings.length > 3 && (
                 <Link
                   to="/consistency-checks"
                   className="inline-flex items-center text-sm text-primary hover:underline"
                 >
-                  View all {stats.validationResult.findings.length} findings
+                  {t('dashboard:checks.viewAllFindings', {
+                    count: stats.validationResult.findings.length,
+                  })}
                   <ArrowRight className="ml-1 h-3 w-3" />
                 </Link>
               )}
@@ -322,7 +357,7 @@ export default function DashboardPage() {
       {/* Quick Actions */}
       <Card>
         <CardHeader>
-          <CardTitle>Next Steps</CardTitle>
+          <CardTitle>{t('dashboard:nextSteps.title')}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid gap-2 md:grid-cols-2">
@@ -330,8 +365,9 @@ export default function DashboardPage() {
               <Link to="/documents" className="block">
                 <Button variant="outline" className="w-full justify-start">
                   <FileText className="mr-2 h-4 w-4" />
-                  Complete {stats.missingDocs.length} missing document
-                  {stats.missingDocs.length !== 1 ? 's' : ''}
+                  {t('dashboard:nextSteps.completeMissingDocs', {
+                    count: stats.missingDocs.length,
+                  })}
                 </Button>
               </Link>
             )}
@@ -339,7 +375,7 @@ export default function DashboardPage() {
               <Link to="/trip" className="block">
                 <Button variant="outline" className="w-full justify-start">
                   <Calendar className="mr-2 h-4 w-4" />
-                  Set appointment date
+                  {t('dashboard:nextSteps.setAppointment')}
                 </Button>
               </Link>
             )}
@@ -347,7 +383,7 @@ export default function DashboardPage() {
               <Link to="/trip" className="block">
                 <Button variant="outline" className="w-full justify-start">
                   <Plane className="mr-2 h-4 w-4" />
-                  Add trip details
+                  {t('dashboard:nextSteps.addTrip')}
                 </Button>
               </Link>
             )}
@@ -355,8 +391,9 @@ export default function DashboardPage() {
               <Link to="/consistency-checks" className="block">
                 <Button variant="outline" className="w-full justify-start">
                   <AlertTriangle className="mr-2 h-4 w-4" />
-                  Resolve {stats.validationResult.errorCount} error
-                  {stats.validationResult.errorCount !== 1 ? 's' : ''}
+                  {t('dashboard:nextSteps.resolveErrors', {
+                    count: stats.validationResult.errorCount,
+                  })}
                 </Button>
               </Link>
             )}

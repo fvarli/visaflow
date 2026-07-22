@@ -1,0 +1,40 @@
+{
+  "title": "Belgeler",
+  "description": "Bu başvurunun gerektirdiği tüm belgeleri ve her birinin durumunu takip edin.",
+  "shortDescription": "Vize başvuru belgelerinizi takip edin",
+  "readyCount": "{{total}} belgeden {{ready}} tanesi hazır",
+  "filters": {
+    "search": "Belge ara...",
+    "searchLabel": "Belgelerde ara",
+    "category": "Kategori",
+    "categoryLabel": "Kategoriye göre filtrele",
+    "allCategories": "Tüm kategoriler",
+    "status": "Durum",
+    "statusLabel": "Duruma göre filtrele",
+    "allStatuses": "Tüm durumlar",
+    "requiredOnly": "Yalnızca zorunlu"
+  },
+  "table": {
+    "document": "Belge",
+    "category": "Kategori",
+    "status": "Durum",
+    "required": "Zorunluluk",
+    "actions": "İşlemler",
+    "statusFor": "{{document}} belgesinin durumu"
+  },
+  "empty": {
+    "title": "Eşleşen belge yok",
+    "description": "Aramayı temizlemeyi veya filtreleri gevşetmeyi deneyin."
+  },
+  "edit": {
+    "title": "Belgeyi düzenle",
+    "issuedDate": "Düzenlenme tarihi",
+    "validUntil": "Geçerlilik bitişi",
+    "fileReference": "Dosya referansı",
+    "fileReferenceHint": "Bu belgenin nerede olduğunu hatırlatan bir yol veya not. Hiçbir zaman yüklenmez.",
+    "fileReferencePlaceholder": "Yerel dosya yolu veya referans",
+    "notes": "Notlar",
+    "notesPlaceholder": "Ek notlar...",
+    "verified": "Doğrulandı / gözden geçirildi"
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "title": "Finansman",
+  "description": "Bu seyahatin nasıl finanse edileceği",
+  "shortDescription": "Seyahatinizi nasıl finanse edeceğiniz",
+  "source": {
+    "title": "Finansman kaynağı",
+    "description": "Bu seyahatin masraflarını kim karşılayacak?",
+    "label": "Birincil finansman kaynağı",
+    "placeholder": "Kaynak seçin",
+    "required": "Finansman kaynağı zorunludur"
+  },
+  "personal": {
+    "title": "Kişisel mali durum",
+    "description": "Bu seyahat için kullanabileceğiniz kendi kaynaklarınız",
+    "bankName": "Banka adı",
+    "bankNamePlaceholder": "Birincil bankanız",
+    "statementDate": "Döküm tarihi",
+    "accountBalance": "Hesap bakiyesi",
+    "currency": "Para birimi"
+  }
+}

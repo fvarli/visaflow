@@ -1,0 +1,23 @@
+{
+  "title": "Sponsorlar",
+  "description": "Seyahatinizi mali olarak destekleyecek kişiler",
+  "add": "Sponsor ekle",
+  "edit": "Sponsoru düzenle",
+  "dialogDescription": "Sponsorun bilgilerini girin",
+  "fields": {
+    "firstName": "Ad",
+    "lastName": "Soyad",
+    "relationship": "Yakınlık",
+    "relationshipPlaceholder": "Yakınlık seçin",
+    "monthlyIncome": "Aylık gelir",
+    "currency": "Para birimi"
+  },
+  "empty": {
+    "title": "Henüz sponsor eklenmedi",
+    "description": "Seyahatinizin tamamını veya bir kısmını başkası finanse edecekse sponsor ekleyin."
+  },
+  "card": {
+    "monthlyIncome": "Aylık gelir",
+    "removeLabel": "{{name}} kişisini kaldır"
+  }
+}

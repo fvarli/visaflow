@@ -4,6 +4,14 @@ A privacy-first visa application dossier and document checklist manager.
 
 **VisaFlow is an organizational tool. It does not provide legal advice, represent any embassy or visa center, or guarantee a visa decision. Always verify requirements using current official sources.**
 
+## Languages
+
+VisaFlow is bilingual: **Turkish** (default) and **English**. The language
+picker is in the header and in Settings. Your choice is remembered in this
+browser (`visaflow-locale`) — it is a non-personal interface preference and the
+only thing besides the theme that VisaFlow stores. Dossier data never leaves
+memory, and exported JSON is identical regardless of the selected language.
+
 ## Features
 
 - **Document Checklist** - Track all required documents for your visa application

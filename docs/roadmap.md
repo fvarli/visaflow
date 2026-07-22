@@ -2,6 +2,21 @@
 
 This document outlines planned features for future phases.
 
+## Delivered
+
+- **Visual foundation** — design tokens, theming, reusable UI primitives.
+- **Internationalization** — Turkish/English UI, Turkish default (ADR-011).
+- **Country → visa type → requirement** configuration with source metadata
+  (ADR-014/ADR-015).
+
+## Near-term follow-ups
+
+- Add more visa types per country (business, visit) using the new hierarchy.
+- Surface `SourceNote` inside the real Documents detail view (currently in the
+  playground and ready to adopt during the Documents redesign).
+- Verify the Greece template against a current official source and record real
+  `lastVerifiedAt` dates, raising `reviewStatus` honestly.
+
 ## Phase 2: Enhanced Data Management
 
 ### Local File Adapter

@@ -14,6 +14,15 @@ VisaFlow is an organizational tool for managing Schengen visa applications. It h
 - Submit applications to embassies
 - Store data on any server
 - Guarantee visa approval
+- Estimate any approval probability or refusal-risk score (see ADR-016)
+
+**What VisaFlow measures** is organization and internal consistency only:
+dossier readiness, application completeness, missing required documents,
+documents needing updates, and consistency findings. In Turkish: *dosya
+hazırlık düzeyi, başvuru tamamlanma durumu, eksik zorunlu belgeler,
+güncellenmesi gereken belgeler, tutarlılık bulguları*.
+
+**Languages:** the UI is bilingual (Turkish and English), Turkish by default.
 
 ## Target Users
 

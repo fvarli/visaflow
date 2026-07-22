@@ -1,0 +1,128 @@
+{
+  "app": {
+    "name": "VisaFlow",
+    "tagline": "Vize başvuru dosyası ve belge kontrol listesi yöneticisi",
+    "titleSuffix": "VisaFlow"
+  },
+  "actions": {
+    "add": "Ekle",
+    "back": "Geri",
+    "cancel": "Vazgeç",
+    "clearFilters": "Filtreleri temizle",
+    "close": "Kapat",
+    "continue": "Devam et",
+    "delete": "Sil",
+    "edit": "Düzenle",
+    "export": "Dışa aktar",
+    "goToDashboard": "Genel bakışa git",
+    "import": "İçe aktar",
+    "remove": "Kaldır",
+    "save": "Kaydet",
+    "saveChanges": "Değişiklikleri kaydet",
+    "search": "Ara",
+    "viewAll": "Tümünü gör"
+  },
+  "states": {
+    "all": "Tümü",
+    "loading": "Yükleniyor",
+    "no": "Hayır",
+    "none": "Yok",
+    "notProvided": "Belirtilmedi",
+    "notSet": "Belirlenmedi",
+    "optional": "İsteğe bağlı",
+    "required": "Zorunlu",
+    "yes": "Evet"
+  },
+  "units": {
+    "days_one": "{{count}} gün",
+    "days_other": "{{count}} gün",
+    "nights_one": "{{count}} gece",
+    "nights_other": "{{count}} gece"
+  },
+  "time": {
+    "justNow": "az önce",
+    "minutesAgo": "{{count}} dk önce",
+    "hoursAgo": "{{count}} sa önce",
+    "daysAgo": "{{count}} gün önce",
+    "today": "Bugün",
+    "inDays": "{{count}} gün sonra",
+    "daysRemaining": "{{count}} gün kaldı",
+    "datePassed": "Tarih geçti"
+  },
+  "saveState": {
+    "unsaved": "Kaydedilmedi",
+    "noChanges": "Değişiklik yok",
+    "savedAt": "{{when}} kaydedildi"
+  },
+  "footer": {
+    "disclaimer": "VisaFlow bir organizasyon aracıdır. Hukuki danışmanlık vermez, hiçbir konsolosluğu veya vize merkezini temsil etmez ve vize sonucunu garanti etmez. Gereklilikleri her zaman güncel resmî kaynaklardan doğrulayın."
+  },
+  "privacy": {
+    "title": "Verileriniz bu tarayıcıdan çıkmaz",
+    "body": "Her şey yalnızca bellekte tutulur; hiçbir veri sunucuya gönderilmez ve diske yazılmaz. Sekmeyi kapatmadan önce ilerlemenizi kaydetmek için dosyanızı dışa aktarın.",
+    "memoryOnly": "İçe aktarılan veriler yalnızca tarayıcı belleğinde tutulur. Yaptığınız değişiklikleri kaydetmek için tekrar dışa aktarın."
+  },
+  "theme": {
+    "label": "Tema",
+    "change": "Temayı değiştir",
+    "light": "Açık",
+    "dark": "Koyu",
+    "system": "Sistem"
+  },
+  "language": {
+    "label": "Dil",
+    "change": "Dili değiştir",
+    "tr": "Türkçe",
+    "en": "English"
+  },
+  "a11y": {
+    "skipToContent": "İçeriğe geç",
+    "openNavigation": "Menüyü aç",
+    "mainNavigation": "Ana menü",
+    "homeLink": "VisaFlow ana sayfa",
+    "loadingPage": "Sayfa yükleniyor"
+  },
+  "importDialog": {
+    "title": "Veri içe aktar",
+    "description": "Daha önce dışa aktardığınız bir JSON dosyasından başvuru dosyasını yükleyin.",
+    "chooseFile": "JSON dosyası seç",
+    "or": "veya",
+    "loadExample": "Örnek veriyi yükle",
+    "failedToRead": "Dosya okunamadı",
+    "failedExample": "Örnek veri yüklenemedi"
+  },
+  "noDossier": {
+    "title": "Yüklü başvuru yok",
+    "description": "Devam etmek için yeni bir başvuru oluşturun veya mevcut bir dosyayı içe aktarın.",
+    "descriptionFor": "{{section}} bölümünde çalışmak için yeni bir başvuru oluşturun veya mevcut bir dosyayı içe aktarın."
+  },
+  "sources": {
+    "heading": "Kaynak",
+    "lastVerified": "Son doğrulama",
+    "authority": "Kurum",
+    "retrieved": "Erişim tarihi",
+    "jurisdiction": "Yetki alanı",
+    "documentLanguage": "Belge dili",
+    "viewSource": "Kaynağı aç",
+    "showDetails": "Kaynak bilgileri",
+    "sourceType": {
+      "embassy": "Büyükelçilik",
+      "consulate": "Konsolosluk",
+      "authorized_visa_center": "Yetkili vize merkezi",
+      "government": "Devlet kurumu",
+      "regulation": "Mevzuat",
+      "other": "Diğer"
+    },
+    "reviewStatus": {
+      "label": "Doğrulama durumu",
+      "unverified": "Doğrulanmadı",
+      "partially_verified": "Kısmen doğrulandı",
+      "verified": "Doğrulandı",
+      "needs_review": "Gözden geçirilmeli"
+    },
+    "unverifiedNotice": "Bu gereklilik henüz güncel bir resmî kaynakla doğrulanmamıştır. Başvurudan önce yetkili kurumun güncel belge listesini kontrol edin.",
+    "notLegalGuarantee": "Doğrulama durumu, bu şablonun bir sorumlu tarafından en son ne zaman kontrol edildiğini belirtir. Hukuki bir garanti değildir; VisaFlow bir büyükelçilik veya yetkili vize merkezi değildir.",
+    "type": "Kaynak türü",
+    "notes": "Notlar"
+  }
+}

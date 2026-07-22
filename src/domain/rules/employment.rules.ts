@@ -20,15 +20,13 @@ export const leaveCoversTrip: ValidationRule = (
     return [
       {
         id: 'no-approved-leave',
+        ruleId: 'employment.leaveCoversTrip',
         severity: 'warning',
-        title: 'No approved leave dates',
-        description:
-          'Employed applicants typically need to show approved leave from their employer.',
+        messageKey: 'findings.noApprovedLeave',
         relatedFields: [
           'employment.approvedLeaveStart',
           'employment.approvedLeaveEnd',
         ],
-        suggestedAction: 'Enter your approved leave dates from your employer.',
       },
     ]
   }
@@ -43,11 +41,16 @@ export const leaveCoversTrip: ValidationRule = (
   if (isAfter(leaveStart, tripStart)) {
     findings.push({
       id: 'leave-starts-late',
+      ruleId: 'employment.leaveCoversTrip',
       severity: 'warning',
-      title: 'Approved leave starts after trip begins',
-      description: `Approved leave starts on ${employment.approvedLeaveStart}, but trip starts on ${trip.entryDate}.`,
+      messageKey: 'findings.leaveStartsLate',
+      messageParams: {
+        dates: {
+          leaveStart: employment.approvedLeaveStart,
+          tripStart: trip.entryDate,
+        },
+      },
       relatedFields: ['employment.approvedLeaveStart', 'trip.entryDate'],
-      suggestedAction: 'Ensure your approved leave covers your entire trip.',
     })
   }
 
@@ -55,12 +58,16 @@ export const leaveCoversTrip: ValidationRule = (
   if (isBefore(leaveEnd, tripEnd)) {
     findings.push({
       id: 'leave-ends-early',
+      ruleId: 'employment.leaveCoversTrip',
       severity: 'warning',
-      title: 'Approved leave ends before trip ends',
-      description: `Approved leave ends on ${employment.approvedLeaveEnd}, but trip ends on ${trip.exitDate}.`,
+      messageKey: 'findings.leaveEndsEarly',
+      messageParams: {
+        dates: {
+          leaveEnd: employment.approvedLeaveEnd,
+          tripEnd: trip.exitDate,
+        },
+      },
       relatedFields: ['employment.approvedLeaveEnd', 'trip.exitDate'],
-      suggestedAction:
-        'Ensure your approved leave extends to cover your return.',
     })
   }
 

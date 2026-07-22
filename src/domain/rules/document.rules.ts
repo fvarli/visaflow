@@ -14,15 +14,14 @@ export const requiredDocumentsNotSkipped: ValidationRule = (
     if (doc.required && doc.status === 'not_applicable' && !doc.notes) {
       findings.push({
         id: `required-doc-skipped-${doc.id}`,
+        ruleId: 'document.requiredNotSkipped',
         severity: 'warning',
-        title: 'Required document marked as not applicable',
-        description: `"${doc.name}" is marked as required but set to "not applicable" without an explanation.`,
+        messageKey: 'findings.requiredDocSkipped',
+        messageParams: { documentCodes: { document: [doc.code] } },
         relatedFields: [
           `documents.${doc.id}.status`,
           `documents.${doc.id}.notes`,
         ],
-        suggestedAction:
-          'Add a note explaining why this required document does not apply.',
       })
     }
   }
@@ -53,12 +52,17 @@ export const documentsNotExpiredBeforeAppointment: ValidationRule = (
       if (isBefore(validUntil, appointmentDate)) {
         findings.push({
           id: `doc-expires-before-appointment-${doc.id}`,
+          ruleId: 'document.validUntilBeforeAppointment',
           severity: 'error',
-          title: 'Document expires before appointment',
-          description: `"${doc.name}" expires on ${doc.validUntil}, before your appointment on ${appointment.date}.`,
+          messageKey: 'findings.docExpiresBeforeAppointment',
+          messageParams: {
+            documentCodes: { document: [doc.code] },
+            dates: {
+              validUntil: doc.validUntil,
+              appointmentDate: appointment.date,
+            },
+          },
           relatedFields: [`documents.${doc.id}.validUntil`, 'appointment.date'],
-          suggestedAction:
-            'Obtain an updated version of this document or mark it as "needs update".',
         })
       }
     }
@@ -80,14 +84,18 @@ export const missingRequiredDocuments: ValidationRule = (
   )
 
   if (notStartedRequired.length > 0) {
-    const docNames = notStartedRequired.map((d) => d.name).join(', ')
     findings.push({
       id: 'missing-required-docs',
+      ruleId: 'document.requiredNotStarted',
       severity: 'warning',
-      title: 'Required documents not started',
-      description: `${notStartedRequired.length} required document(s) have not been started: ${docNames}`,
+      messageKey: 'findings.missingRequiredDocs',
+      messageParams: {
+        values: { count: notStartedRequired.length },
+        documentCodes: {
+          documents: notStartedRequired.map((d) => d.code),
+        },
+      },
       relatedFields: notStartedRequired.map((d) => `documents.${d.id}`),
-      suggestedAction: 'Begin collecting the required documents.',
     })
   }
 
@@ -105,15 +113,17 @@ export const documentsNeedingUpdate: ValidationRule = (
   )
 
   if (needsUpdate.length > 0) {
-    const docNames = needsUpdate.map((d) => d.name).join(', ')
     return [
       {
         id: 'docs-need-update',
+        ruleId: 'document.needingUpdate',
         severity: 'warning',
-        title: 'Documents need updating',
-        description: `${needsUpdate.length} document(s) need updating: ${docNames}`,
+        messageKey: 'findings.docsNeedUpdate',
+        messageParams: {
+          values: { count: needsUpdate.length },
+          documentCodes: { documents: needsUpdate.map((d) => d.code) },
+        },
         relatedFields: needsUpdate.map((d) => `documents.${d.id}`),
-        suggestedAction: 'Obtain updated versions of these documents.',
       },
     ]
   }

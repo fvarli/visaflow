@@ -1,0 +1,43 @@
+{
+  "title": "Başvuru sahibi",
+  "description": "Başvuru sahibinin pasaportta yer aldığı şekliyle kişisel bilgileri",
+  "shortDescription": "Vize başvuru sahibinin kişisel bilgileri",
+  "personal": {
+    "title": "Kişisel bilgiler",
+    "description": "Bilgilerinizi pasaportunuzda yazdığı şekilde girin"
+  },
+  "passport": {
+    "title": "Güncel pasaport",
+    "description": "Kullanımdaki geçerli pasaportunuzun bilgileri"
+  },
+  "fields": {
+    "firstName": "Ad",
+    "lastName": "Soyad",
+    "dateOfBirth": "Doğum tarihi",
+    "nationality": "Uyruk",
+    "maritalStatus": "Medenî durum",
+    "occupation": "Meslek",
+    "email": "E-posta",
+    "phone": "Telefon",
+    "passportNumber": "Pasaport numarası",
+    "passportIssuingCountry": "Veren ülke",
+    "passportIssueDate": "Veriliş tarihi",
+    "passportExpiry": "Geçerlilik bitişi"
+  },
+  "hints": {
+    "countryCode": "İki harfli ülke kodu",
+    "asOnPassport": "Pasaporttaki gibi",
+    "selectStatus": "Durum seçin"
+  },
+  "errors": {
+    "firstNameRequired": "Ad zorunludur",
+    "lastNameRequired": "Soyad zorunludur",
+    "dateOfBirthRequired": "Doğum tarihi zorunludur",
+    "nationalityRequired": "Uyruk zorunludur",
+    "passportNumberRequired": "Pasaport numarası zorunludur",
+    "issueDateRequired": "Veriliş tarihi zorunludur",
+    "expiryDateRequired": "Geçerlilik bitiş tarihi zorunludur",
+    "issuingCountryRequired": "Veren ülke zorunludur",
+    "invalidEmail": "Geçerli bir e-posta adresi girin"
+  }
+}

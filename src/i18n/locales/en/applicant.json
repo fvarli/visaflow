@@ -1,0 +1,43 @@
+{
+  "title": "Applicant",
+  "description": "Personal details of the visa applicant, exactly as they appear on the passport",
+  "shortDescription": "Personal details of the visa applicant",
+  "personal": {
+    "title": "Personal details",
+    "description": "Enter your personal information as it appears on your passport"
+  },
+  "passport": {
+    "title": "Current passport",
+    "description": "Details of your current valid passport"
+  },
+  "fields": {
+    "firstName": "First name",
+    "lastName": "Last name",
+    "dateOfBirth": "Date of birth",
+    "nationality": "Nationality",
+    "maritalStatus": "Marital status",
+    "occupation": "Occupation",
+    "email": "Email",
+    "phone": "Phone",
+    "passportNumber": "Passport number",
+    "passportIssuingCountry": "Issuing country",
+    "passportIssueDate": "Issue date",
+    "passportExpiry": "Expiry date"
+  },
+  "hints": {
+    "countryCode": "Two-letter country code",
+    "asOnPassport": "As on passport",
+    "selectStatus": "Select status"
+  },
+  "errors": {
+    "firstNameRequired": "First name is required",
+    "lastNameRequired": "Last name is required",
+    "dateOfBirthRequired": "Date of birth is required",
+    "nationalityRequired": "Nationality is required",
+    "passportNumberRequired": "Passport number is required",
+    "issueDateRequired": "Issue date is required",
+    "expiryDateRequired": "Expiry date is required",
+    "issuingCountryRequired": "Issuing country is required",
+    "invalidEmail": "Enter a valid email address"
+  }
+}

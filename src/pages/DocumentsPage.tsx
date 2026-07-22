@@ -1,6 +1,7 @@
 import { useState, useMemo, useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useDossier } from '@/app/providers/DossierProvider'
-import { getCountryConfig } from '@/config/countries'
+import { resolveVisaTemplate } from '@/config/countries'
 import { isRequirementApplicable } from '@/config/types'
 import type { Document } from '@/domain/schemas/document.schema'
 import { createDocumentId } from '@/domain/types/common'
@@ -33,8 +34,20 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import { Alert, AlertDescription } from '@/components/ui/alert'
-import { AlertCircle, FileText, Search, Filter } from 'lucide-react'
+import { FileText, Search, Filter } from 'lucide-react'
+import { NoDossierState } from '@/components/NoDossierState'
+import { documentLabel } from '@/lib/document-label'
+import { dynamicT } from '@/lib/i18n-dynamic'
+
+/** Single source for the status options rendered in both selects. */
+const DOCUMENT_STATUSES: Document['status'][] = [
+  'not_started',
+  'requested',
+  'received',
+  'needs_update',
+  'ready',
+  'not_applicable',
+]
 
 const statusColors: Record<string, string> = {
   not_started: 'bg-gray-100 text-gray-800',
@@ -47,6 +60,8 @@ const statusColors: Record<string, string> = {
 
 export default function DocumentsPage() {
   const { state, setDocuments, updateDocument, hasData } = useDossier()
+  const { t } = useTranslation(['documents', 'common', 'visa-domain'])
+  const td = dynamicT(t)
   const [searchTerm, setSearchTerm] = useState('')
   const [categoryFilter, setCategoryFilter] = useState<string>('all')
   const [statusFilter, setStatusFilter] = useState<string>('all')
@@ -60,19 +75,23 @@ export default function DocumentsPage() {
       state.documents.length === 0 &&
       state.application?.destinationCountry
     ) {
-      const config = getCountryConfig(state.application.destinationCountry)
-      if (config) {
+      const template = resolveVisaTemplate(
+        state.application.destinationCountry,
+        state.application.visaType
+      )
+      if (template) {
         const context = {
           employment: state.application.employment,
           financing: state.application.financing,
         }
 
-        const docs: Document[] = config.documentRequirements
+        const docs: Document[] = template.documentRequirements
           .filter((req) => isRequirementApplicable(req, context))
           .map((req) => ({
             id: createDocumentId(),
+            // `code` is the identity. No display name is stored: a stored
+            // label would make exported JSON depend on the UI language.
             code: req.code,
-            name: req.name,
             category: req.category,
             ownerType: req.ownerType,
             ownerId: state.applicant?.id ?? '',
@@ -96,7 +115,9 @@ export default function DocumentsPage() {
     return state.documents.filter((doc) => {
       if (
         searchTerm &&
-        !doc.name.toLowerCase().includes(searchTerm.toLowerCase())
+        !documentLabel(t, doc.code, doc.name)
+          .toLocaleLowerCase()
+          .includes(searchTerm.toLocaleLowerCase())
       ) {
         return false
       }
@@ -111,7 +132,14 @@ export default function DocumentsPage() {
       }
       return true
     })
-  }, [state.documents, searchTerm, categoryFilter, statusFilter, requiredOnly])
+  }, [
+    state.documents,
+    searchTerm,
+    categoryFilter,
+    statusFilter,
+    requiredOnly,
+    t,
+  ])
 
   const categories = useMemo(() => {
     const cats = new Set(state.documents.map((d) => d.category))
@@ -130,30 +158,24 @@ export default function DocumentsPage() {
   }
 
   if (!hasData) {
-    return (
-      <Alert>
-        <AlertCircle className="h-4 w-4" />
-        <AlertDescription>
-          No application data loaded. Go to Dashboard to start a new
-          application.
-        </AlertDescription>
-      </Alert>
-    )
+    return <NoDossierState section={t('documents:title')} />
   }
 
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
-          <h1 className="text-2xl font-bold">Documents</h1>
+          <h1 className="text-2xl font-bold">{t('documents:title')}</h1>
           <p className="text-muted-foreground">
-            Track your visa application documents
+            {t('documents:shortDescription')}
           </p>
         </div>
         <div className="flex items-center gap-2">
           <Badge variant="outline">
-            {filteredDocs.filter((d) => d.status === 'ready').length} /{' '}
-            {filteredDocs.filter((d) => d.required).length} Ready
+            {t('documents:readyCount', {
+              ready: filteredDocs.filter((d) => d.status === 'ready').length,
+              total: filteredDocs.filter((d) => d.required).length,
+            })}
           </Badge>
         </div>
       </div>
@@ -165,7 +187,8 @@ export default function DocumentsPage() {
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
-                placeholder="Search documents..."
+                placeholder={t('documents:filters.search')}
+                aria-label={t('documents:filters.searchLabel')}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10"
@@ -173,32 +196,41 @@ export default function DocumentsPage() {
             </div>
 
             <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-              <SelectTrigger className="w-40">
+              <SelectTrigger
+                className="w-40"
+                aria-label={t('documents:filters.categoryLabel')}
+              >
                 <Filter className="mr-2 h-4 w-4" />
-                <SelectValue placeholder="Category" />
+                <SelectValue placeholder={t('documents:filters.category')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Categories</SelectItem>
+                <SelectItem value="all">
+                  {t('documents:filters.allCategories')}
+                </SelectItem>
                 {categories.map((cat) => (
                   <SelectItem key={cat} value={cat}>
-                    {cat.replace(/_/g, ' ')}
+                    {td(`visa-domain:documentCategory.${cat}`)}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
 
             <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-40">
-                <SelectValue placeholder="Status" />
+              <SelectTrigger
+                className="w-40"
+                aria-label={t('documents:filters.statusLabel')}
+              >
+                <SelectValue placeholder={t('documents:filters.status')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Statuses</SelectItem>
-                <SelectItem value="not_started">Not Started</SelectItem>
-                <SelectItem value="requested">Requested</SelectItem>
-                <SelectItem value="received">Received</SelectItem>
-                <SelectItem value="needs_update">Needs Update</SelectItem>
-                <SelectItem value="ready">Ready</SelectItem>
-                <SelectItem value="not_applicable">N/A</SelectItem>
+                <SelectItem value="all">
+                  {t('documents:filters.allStatuses')}
+                </SelectItem>
+                {DOCUMENT_STATUSES.map((status) => (
+                  <SelectItem key={status} value={status}>
+                    {td(`visa-domain:documentStatus.${status}`)}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
 
@@ -209,7 +241,7 @@ export default function DocumentsPage() {
                 onCheckedChange={(checked) => setRequiredOnly(checked === true)}
               />
               <Label htmlFor="required-only" className="text-sm">
-                Required only
+                {t('documents:filters.requiredOnly')}
               </Label>
             </div>
           </div>
@@ -222,11 +254,13 @@ export default function DocumentsPage() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Document</TableHead>
-                <TableHead>Category</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Required</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
+                <TableHead>{t('documents:table.document')}</TableHead>
+                <TableHead>{t('documents:table.category')}</TableHead>
+                <TableHead>{t('documents:table.status')}</TableHead>
+                <TableHead>{t('documents:table.required')}</TableHead>
+                <TableHead className="text-right">
+                  {t('documents:table.actions')}
+                </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -234,7 +268,9 @@ export default function DocumentsPage() {
                 <TableRow>
                   <TableCell colSpan={5} className="text-center py-8">
                     <FileText className="mx-auto h-8 w-8 text-muted-foreground mb-2" />
-                    <p className="text-muted-foreground">No documents found</p>
+                    <p className="text-muted-foreground">
+                      {t('documents:empty.title')}
+                    </p>
                   </TableCell>
                 </TableRow>
               ) : (
@@ -242,15 +278,17 @@ export default function DocumentsPage() {
                   <TableRow key={doc.id}>
                     <TableCell>
                       <div>
-                        <p className="font-medium">{doc.name}</p>
+                        <p className="font-medium">
+                          {documentLabel(t, doc.code, doc.name)}
+                        </p>
                         <p className="text-xs text-muted-foreground">
                           {doc.code}
                         </p>
                       </div>
                     </TableCell>
                     <TableCell>
-                      <span className="text-sm capitalize">
-                        {doc.category.replace(/_/g, ' ')}
+                      <span className="text-sm">
+                        {td(`visa-domain:documentCategory.${doc.category}`)}
                       </span>
                     </TableCell>
                     <TableCell>
@@ -263,33 +301,37 @@ export default function DocumentsPage() {
                           )
                         }
                       >
-                        <SelectTrigger className="w-32">
+                        <SelectTrigger
+                          className="w-36"
+                          aria-label={t('documents:table.statusFor', {
+                            document: documentLabel(t, doc.code, doc.name),
+                          })}
+                        >
                           <Badge
                             variant="secondary"
                             className={statusColors[doc.status]}
                           >
-                            {doc.status.replace(/_/g, ' ')}
+                            {td(`visa-domain:documentStatus.${doc.status}`)}
                           </Badge>
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="not_started">
-                            Not Started
-                          </SelectItem>
-                          <SelectItem value="requested">Requested</SelectItem>
-                          <SelectItem value="received">Received</SelectItem>
-                          <SelectItem value="needs_update">
-                            Needs Update
-                          </SelectItem>
-                          <SelectItem value="ready">Ready</SelectItem>
-                          <SelectItem value="not_applicable">N/A</SelectItem>
+                          {DOCUMENT_STATUSES.map((status) => (
+                            <SelectItem key={status} value={status}>
+                              {td(`visa-domain:documentStatus.${status}`)}
+                            </SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
                     </TableCell>
                     <TableCell>
                       {doc.required ? (
-                        <Badge variant="destructive">Required</Badge>
+                        <Badge variant="destructive">
+                          {t('common:states.required')}
+                        </Badge>
                       ) : (
-                        <Badge variant="outline">Optional</Badge>
+                        <Badge variant="outline">
+                          {t('common:states.optional')}
+                        </Badge>
                       )}
                     </TableCell>
                     <TableCell className="text-right">
@@ -298,7 +340,7 @@ export default function DocumentsPage() {
                         size="sm"
                         onClick={() => setEditingDoc(doc)}
                       >
-                        Edit
+                        {t('common:actions.edit')}
                       </Button>
                     </TableCell>
                   </TableRow>
@@ -316,15 +358,19 @@ export default function DocumentsPage() {
       >
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Edit Document</DialogTitle>
-            <DialogDescription>{editingDoc?.name}</DialogDescription>
+            <DialogTitle>{t('documents:edit.title')}</DialogTitle>
+            <DialogDescription>
+              {editingDoc
+                ? documentLabel(t, editingDoc.code, editingDoc.name)
+                : ''}
+            </DialogDescription>
           </DialogHeader>
 
           {editingDoc && (
             <div className="space-y-4">
               <div className="grid gap-4 grid-cols-2">
                 <div className="space-y-2">
-                  <Label>Issued Date</Label>
+                  <Label>{t('documents:edit.issuedDate')}</Label>
                   <Input
                     type="date"
                     value={editingDoc.issuedAt ?? ''}
@@ -334,7 +380,7 @@ export default function DocumentsPage() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label>Valid Until</Label>
+                  <Label>{t('documents:edit.validUntil')}</Label>
                   <Input
                     type="date"
                     value={editingDoc.validUntil ?? ''}
@@ -349,7 +395,7 @@ export default function DocumentsPage() {
               </div>
 
               <div className="space-y-2">
-                <Label>File Reference</Label>
+                <Label>{t('documents:edit.fileReference')}</Label>
                 <Input
                   value={editingDoc.fileReference ?? ''}
                   onChange={(e) =>
@@ -358,18 +404,18 @@ export default function DocumentsPage() {
                       fileReference: e.target.value,
                     })
                   }
-                  placeholder="Local file path or reference"
+                  placeholder={t('documents:edit.fileReferencePlaceholder')}
                 />
               </div>
 
               <div className="space-y-2">
-                <Label>Notes</Label>
+                <Label>{t('documents:edit.notes')}</Label>
                 <Textarea
                   value={editingDoc.notes ?? ''}
                   onChange={(e) =>
                     setEditingDoc({ ...editingDoc, notes: e.target.value })
                   }
-                  placeholder="Additional notes..."
+                  placeholder={t('documents:edit.notesPlaceholder')}
                   rows={3}
                 />
               </div>
@@ -382,14 +428,16 @@ export default function DocumentsPage() {
                     setEditingDoc({ ...editingDoc, verified: checked === true })
                   }
                 />
-                <Label htmlFor="verified">Verified / Reviewed</Label>
+                <Label htmlFor="verified">{t('documents:edit.verified')}</Label>
               </div>
 
               <div className="flex justify-end gap-2">
                 <Button variant="outline" onClick={() => setEditingDoc(null)}>
-                  Cancel
+                  {t('common:actions.cancel')}
                 </Button>
-                <Button onClick={handleSaveEdit}>Save Changes</Button>
+                <Button onClick={handleSaveEdit}>
+                  {t('common:actions.saveChanges')}
+                </Button>
               </div>
             </div>
           )}

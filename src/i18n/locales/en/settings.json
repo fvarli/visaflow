@@ -1,0 +1,46 @@
+{
+  "title": "Settings",
+  "description": "Application preferences and dossier data management",
+  "appearance": {
+    "title": "Language and appearance",
+    "description": "These two preferences are the only things VisaFlow stores on your device.",
+    "languageLabel": "Interface language",
+    "languageHint": "Document codes and exported JSON never change with language.",
+    "themeLabel": "Theme",
+    "themeHint": "System follows your operating system setting."
+  },
+  "preferencePrivacy": {
+    "title": "Why these are stored",
+    "body": "Language and theme are non-personal interface preferences, so they are remembered in this browser. No dossier, applicant, passport or financial data is ever stored — that lives in memory only and is lost when you close the tab."
+  },
+  "country": {
+    "title": "Destination country",
+    "description": "Select the country you are applying to visit",
+    "hint": "Changing the country will update the document checklist"
+  },
+  "data": {
+    "title": "Data management",
+    "description": "Import, export, or reset your application data"
+  },
+  "reset": {
+    "action": "Reset all data",
+    "confirmTitle": "Reset all data?",
+    "confirmBody": "This clears the dossier from browser memory. Anything you have not exported will be lost. This cannot be undone.",
+    "confirm": "Reset everything"
+  },
+  "disclaimer": {
+    "title": "Disclaimer",
+    "p1": "VisaFlow is an organizational tool. It does not provide legal advice, represent any embassy or visa center, or guarantee a visa decision. Always verify requirements using current official sources.",
+    "p2": "The document checklists and consistency checks are general organizational guidance only. Requirements may vary based on your nationality, the specific embassy processing your application, and current regulations which may change without notice.",
+    "p3": "Before submitting your visa application, always confirm the requirements with the official embassy, consulate, or authorized visa center.",
+    "noPrediction": "VisaFlow does not and will not estimate the likelihood of a visa being granted or refused. It measures how complete and internally consistent your dossier is — nothing more."
+  },
+  "about": {
+    "title": "About VisaFlow",
+    "version": "Version",
+    "schemaVersion": "Schema version",
+    "summary": "Open-source visa application dossier manager.",
+    "license": "Licensed under the MIT License."
+  },
+  "dangerZone": "Danger zone"
+}

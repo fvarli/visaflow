@@ -1,0 +1,251 @@
+{
+  "countries": {
+    "GR": "Yunanistan"
+  },
+  "visaTypes": {
+    "schengen-short-stay-tourism": "Schengen Kısa Süreli — Turistik (Tip C)",
+    "short_stay_tourism": "Kısa süreli turistik",
+    "short_stay_business": "Kısa süreli ticari",
+    "short_stay_visit": "Kısa süreli aile veya arkadaş ziyareti",
+    "transit": "Transit",
+    "other": "Diğer"
+  },
+  "documentStatus": {
+    "not_started": "Başlanmadı",
+    "requested": "Talep edildi",
+    "received": "Teslim alındı",
+    "needs_update": "Güncellenmeli",
+    "ready": "Hazır",
+    "not_applicable": "Uygulanamaz"
+  },
+  "documentCategory": {
+    "identity": "Kimlik",
+    "passport": "Pasaport",
+    "employment": "Çalışma durumu",
+    "financial": "Mali belgeler",
+    "sponsor": "Sponsor",
+    "travel": "Seyahat",
+    "accommodation": "Konaklama",
+    "insurance": "Sigorta",
+    "application_form": "Başvuru formu",
+    "civil_registry": "Nüfus kayıtları",
+    "previous_travel": "Seyahat geçmişi",
+    "supporting": "Destekleyici belgeler"
+  },
+  "ownerType": {
+    "applicant": "Başvuru sahibi",
+    "sponsor": "Sponsor",
+    "employer": "İşveren"
+  },
+  "sponsorRelationship": {
+    "spouse": "Eş",
+    "parent": "Anne veya baba",
+    "child": "Çocuk",
+    "sibling": "Kardeş",
+    "grandparent": "Büyükanne veya büyükbaba",
+    "grandchild": "Torun",
+    "aunt_uncle": "Hala, teyze, amca veya dayı",
+    "cousin": "Kuzen",
+    "in_law": "Kayın hısımı",
+    "friend": "Arkadaş",
+    "employer": "İşveren",
+    "business_partner": "İş ortağı",
+    "other": "Diğer"
+  },
+  "financingSource": {
+    "self": "Kendi imkânlarıyla",
+    "sponsor": "Sponsor tarafından",
+    "employer": "İşveren tarafından",
+    "mixed": "Karma"
+  },
+  "employmentStatus": {
+    "employed": "Ücretli çalışan",
+    "self_employed": "Serbest çalışan",
+    "unemployed": "Çalışmıyor",
+    "retired": "Emekli",
+    "student": "Öğrenci",
+    "homemaker": "Ev hanımı veya ev erkeği",
+    "other": "Diğer"
+  },
+  "maritalStatus": {
+    "single": "Bekâr",
+    "married": "Evli",
+    "divorced": "Boşanmış",
+    "widowed": "Dul",
+    "separated": "Ayrı yaşıyor",
+    "civil_partnership": "Medenî birliktelik"
+  },
+  "expenseType": {
+    "accommodation": "Konaklama",
+    "transport": "Ulaşım",
+    "food": "Yeme içme",
+    "insurance": "Sigorta",
+    "pocket_money": "Harçlık",
+    "all": "Tüm masraflar"
+  },
+  "requirements": {
+    "APPLICATION_FORM": {
+      "name": "Vize Başvuru Formu",
+      "description": "Eksiksiz doldurulmuş ve imzalanmış Schengen vize başvuru formu",
+      "notes": "İki ayrı yerde imzalanmalıdır"
+    },
+    "PASSPORT_CURRENT": {
+      "name": "Güncel Pasaport",
+      "description": "Dönüş tarihinden sonra en az 3 ay geçerliliği olan pasaport",
+      "notes": "En az 2 boş sayfa bulunmalıdır"
+    },
+    "PASSPORT_PREVIOUS": {
+      "name": "Eski Pasaportlar",
+      "description": "Varsa Schengen vizesi bulunan eski pasaportlar"
+    },
+    "PHOTOS": {
+      "name": "Biyometrik Fotoğraf",
+      "description": "Son döneme ait 2 adet biyometrik vesikalık fotoğraf (35x45 mm)",
+      "notes": "Beyaz fon, son 6 ay içinde çekilmiş olmalıdır"
+    },
+    "ID_CARD_COPY": {
+      "name": "Kimlik Fotokopisi",
+      "description": "Nüfus cüzdanının veya kimlik kartının ön ve arka yüz fotokopisi"
+    },
+    "TRAVEL_INSURANCE": {
+      "name": "Seyahat Sağlık Sigortası",
+      "description": "En az 30.000 EUR teminatlı seyahat sağlık sigortası",
+      "notes": "Tedavi, hastane masrafları ve ülkeye geri gönderimi kapsamalıdır"
+    },
+    "TRANSPORT_RESERVATION": {
+      "name": "Gidiş Dönüş Ulaşım Rezervasyonu",
+      "description": "Giriş ve çıkışı gösteren uçak veya diğer ulaşım rezervasyonu",
+      "notes": "Rezervasyon yeterlidir; başvuru sırasında ödenmiş bilet istenmez"
+    },
+    "ACCOMMODATION": {
+      "name": "Konaklama Rezervasyonu",
+      "description": "Tüm konaklama süresini kapsayan otel rezervasyonu veya konaklama belgesi"
+    },
+    "ITINERARY": {
+      "name": "Seyahat Planı (Travel Itinerary)",
+      "description": "Birden fazla yer ziyaret edilecekse gün gün seyahat planı"
+    },
+    "EMPLOYMENT_LETTER": {
+      "name": "İşveren Yazısı (Employment Letter)",
+      "description": "Görev, maaş ve işe giriş tarihini belirten işveren yazısı"
+    },
+    "APPROVED_LEAVE": {
+      "name": "İzin Yazısı",
+      "description": "İşveren tarafından onaylanmış resmî izin belgesi"
+    },
+    "PAYSLIPS": {
+      "name": "Maaş Bordroları",
+      "description": "Son 3-6 aya ait maaş bordroları",
+      "notes": "Düzenli gelir göstermelidir"
+    },
+    "SOCIAL_SECURITY": {
+      "name": "SGK Hizmet Dökümü",
+      "description": "Sosyal güvenlik kurumundan alınan çalışma geçmişi dökümü"
+    },
+    "BANK_STATEMENTS": {
+      "name": "Banka Hesap Dökümü (Bank Statement)",
+      "description": "Son 3-6 aya ait banka hesap dökümü",
+      "notes": "Seyahat için yeterli bakiyeyi göstermelidir"
+    },
+    "SPONSOR_LETTER": {
+      "name": "Sponsor Dilekçesi",
+      "description": "Sponsorun mali desteği üstlendiğini beyan eden dilekçe"
+    },
+    "SPONSOR_BANK_STATEMENTS": {
+      "name": "Sponsor Banka Hesap Dökümü",
+      "description": "Sponsora ait son 3-6 aylık banka hesap dökümü"
+    },
+    "SPONSOR_INCOME_PROOF": {
+      "name": "Sponsor Gelir Belgeleri",
+      "description": "Sponsorun gelirini gösteren belgeler (bordro, vergi beyannamesi)"
+    },
+    "RELATIONSHIP_PROOF": {
+      "name": "Yakınlık Belgesi",
+      "description": "Sponsor ile yakınlığınızı kanıtlayan belgeler",
+      "notes": "Doğum belgesi, evlilik cüzdanı, vukuatlı nüfus kayıt örneği vb."
+    },
+    "PREVIOUS_VISAS": {
+      "name": "Önceki Vize Fotokopileri",
+      "description": "Varsa daha önce alınmış Schengen vizelerinin fotokopileri"
+    },
+    "EMPLOYER_TAX_PLATE": {
+      "name": "İşveren Vergi Levhası",
+      "description": "Şirkete ait güncel vergi levhası",
+      "notes": "Uyruğa bağlı olarak istenebilir"
+    },
+    "EMPLOYER_TRADE_REGISTRY": {
+      "name": "İşveren Ticaret Sicil Gazetesi",
+      "description": "Şirketin ticaret sicil kaydı",
+      "notes": "Uyruğa bağlı olarak istenebilir"
+    },
+    "EMPLOYER_SIGNATURE_CIRCULAR": {
+      "name": "İşveren İmza Sirküleri",
+      "description": "Şirket imza yetkisi belgesi",
+      "notes": "Uyruğa bağlı olarak istenebilir"
+    },
+    "PROPERTY_DEED": {
+      "name": "Tapu Belgesi",
+      "description": "Varsa gayrimenkul sahipliğini gösteren belge",
+      "notes": "Ülkenizle bağınızı güçlendirebilir"
+    },
+    "BUSINESS_LICENSE": {
+      "name": "İşletme Belgesi",
+      "description": "Şirket kaydı veya faaliyet belgesi"
+    },
+    "TAX_RETURNS": {
+      "name": "Vergi Beyannameleri",
+      "description": "Serbest çalışanlar için güncel vergi beyannameleri"
+    },
+    "STUDENT_CERTIFICATE": {
+      "name": "Öğrenci Belgesi",
+      "description": "Okulunuzdan veya üniversitenizden alınmış öğrenci belgesi"
+    },
+    "PENSION_STATEMENT": {
+      "name": "Emekli Maaşı Dökümü",
+      "description": "Güncel emekli maaşı ödeme dökümleri"
+    }
+  },
+  "milestones": {
+    "request-employer-docs": {
+      "name": "İşveren belgelerini talep edin",
+      "description": "İnsan kaynaklarından işveren yazısı, izin onayı ve maaş bordrolarını isteyin"
+    },
+    "obtain-bank-statements": {
+      "name": "Banka hesap dökümünü alın",
+      "description": "Bankanızdan güncel hesap dökümünüzü temin edin"
+    },
+    "purchase-insurance": {
+      "name": "Seyahat sigortası yaptırın",
+      "description": "Schengen şartlarını karşılayan seyahat sağlık sigortası satın alın"
+    },
+    "confirm-reservations": {
+      "name": "Rezervasyonları kesinleştirin",
+      "description": "Ulaşım ve konaklama rezervasyonlarını kesinleştirip yazdırın"
+    },
+    "take-photos": {
+      "name": "Biyometrik fotoğraf çektirin",
+      "description": "Profesyonel biyometrik fotoğraf çektirin"
+    },
+    "final-review": {
+      "name": "Son dosya kontrolü",
+      "description": "Tüm belgeleri gözden geçirin, fotokopilerini alın ve dosyayı düzenleyin"
+    },
+    "request-employer-company-docs": {
+      "name": "İşveren şirket belgelerini talep edin",
+      "description": "Gerekiyorsa vergi levhası, ticaret sicil gazetesi ve imza sirkülerini isteyin"
+    }
+  },
+  "sources": {
+    "gr-mfa-general": {
+      "title": "Dışişleri Bakanlığı — vize bilgileri",
+      "notes": "Bu şablonun önceki sürümünden devralınan genel bakanlık bağlantısı. Güncel bir belge listesiyle karşılaştırılmamıştır."
+    }
+  },
+  "templateNotes": {
+    "greece": {
+      "nationalityVaries": "Gereklilikler uyruğunuza ve başvurunuzu işleyen vize merkezine göre değişebilir.",
+      "visaCentre": "Yunanistan başvuruları birçok ülkede yetkili bir vize merkezi tarafından alınmaktadır.",
+      "peakSeason": "Yoğun seyahat dönemlerinde randevu kontenjanları sınırlı olabilir."
+    }
+  }
+}

@@ -242,3 +242,31 @@ Using shadcn/ui provides:
 ### Adding Document Types
 1. Update country configuration
 2. Add to DocumentCategory enum if new category
+
+## Internationalization (added iteration 3)
+
+VisaFlow is bilingual (Turkish default, English). See ADR-011 through ADR-013.
+
+- `src/i18n/` — i18next init and 15 translation namespaces per locale. Both
+  locales are bundled; no network request, no browser language detection.
+- `src/app/providers/LocaleProvider.tsx` — resolves the locale (stored
+  preference → Turkish), syncs `<html lang>`, persists only `visaflow-locale`.
+- `src/lib/format.ts` — the single home for `Intl`-based date/number/currency
+  formatting. Pages never call `Intl` directly.
+- Domain data stays language-independent; UI text is resolved from keys. See
+  `src/lib/document-label.ts` (document labels) and `src/lib/finding-text.ts`
+  (validation findings resolved from `messageKey` + `messageParams`).
+- `src/lib/i18n-dynamic.ts` — a typed escape hatch for keys computed at
+  runtime; coverage for those keys comes from the i18n parity tests.
+
+## Configuration layer (restructured iteration 3)
+
+`country → visa type → requirements`, see ADR-014 / ADR-015.
+
+- `src/config/types.ts` — `CountryConfig`, `VisaTypeTemplate`,
+  `DocumentRequirement` (keys not prose), `RequirementSource`, `ReviewStatus`.
+- `src/config/countries/<country>/` — one folder per country;
+  `resolveVisaTemplate(countryCode, visaType)` maps the persisted dossier enum
+  to a template.
+- `src/config/sources/` — manually maintained source citations. Absent
+  sources/dates are meaningful; nothing is scraped or invented.

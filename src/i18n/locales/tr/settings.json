@@ -1,0 +1,46 @@
+{
+  "title": "Ayarlar",
+  "description": "Uygulama tercihleri ve başvuru dosyası veri yönetimi",
+  "appearance": {
+    "title": "Dil ve görünüm",
+    "description": "VisaFlow'un cihazınızda sakladığı tek şey bu iki tercihtir.",
+    "languageLabel": "Arayüz dili",
+    "languageHint": "Belge kodları ve dışa aktarılan JSON dile göre değişmez.",
+    "themeLabel": "Tema",
+    "themeHint": "Sistem seçeneği işletim sisteminizin ayarını izler."
+  },
+  "preferencePrivacy": {
+    "title": "Bunlar neden saklanıyor?",
+    "body": "Dil ve tema, kişisel olmayan arayüz tercihleridir; bu nedenle bu tarayıcıda hatırlanır. Başvuru dosyası, başvuru sahibi, pasaport veya finansal veriler hiçbir zaman saklanmaz; bunlar yalnızca bellekte tutulur ve sekmeyi kapattığınızda silinir."
+  },
+  "country": {
+    "title": "Gidilecek ülke",
+    "description": "Başvuru yapacağınız ülkeyi seçin",
+    "hint": "Ülkeyi değiştirmek belge kontrol listesini güncelleyecektir"
+  },
+  "data": {
+    "title": "Veri yönetimi",
+    "description": "Başvuru verilerinizi içe aktarın, dışa aktarın veya sıfırlayın"
+  },
+  "reset": {
+    "action": "Tüm verileri sıfırla",
+    "confirmTitle": "Tüm veriler sıfırlansın mı?",
+    "confirmBody": "Bu işlem başvuru dosyasını tarayıcı belleğinden siler. Dışa aktarmadığınız her şey kaybolur. Bu işlem geri alınamaz.",
+    "confirm": "Her şeyi sıfırla"
+  },
+  "disclaimer": {
+    "title": "Yasal uyarı",
+    "p1": "VisaFlow bir organizasyon aracıdır. Hukuki danışmanlık vermez, hiçbir konsolosluğu veya vize merkezini temsil etmez ve vize sonucunu garanti etmez. Gereklilikleri her zaman güncel resmî kaynaklardan doğrulayın.",
+    "p2": "Belge kontrol listeleri ve tutarlılık kontrolleri yalnızca genel düzenleme rehberidir. Gereklilikler uyruğunuza, başvurunuzu işleyen konsolosluğa ve önceden haber verilmeksizin değişebilen güncel mevzuata göre farklılık gösterebilir.",
+    "p3": "Vize başvurunuzu teslim etmeden önce gereklilikleri mutlaka yetkili büyükelçilik, konsolosluk veya vize merkezinden teyit edin.",
+    "noPrediction": "VisaFlow, vizenin verilme veya reddedilme olasılığını tahmin etmez ve etmeyecektir. Yalnızca başvuru dosyanızın ne kadar eksiksiz ve kendi içinde tutarlı olduğunu ölçer."
+  },
+  "about": {
+    "title": "VisaFlow hakkında",
+    "version": "Sürüm",
+    "schemaVersion": "Şema sürümü",
+    "summary": "Açık kaynaklı vize başvuru dosyası yöneticisi.",
+    "license": "MIT Lisansı ile lisanslanmıştır."
+  },
+  "dangerZone": "Riskli işlemler"
+}

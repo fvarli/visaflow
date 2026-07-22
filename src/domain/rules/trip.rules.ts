@@ -18,11 +18,13 @@ export const tripDatesValid: ValidationRule = (
     return [
       {
         id: 'trip-dates-invalid',
+        ruleId: 'trip.datesValid',
         severity: 'error',
-        title: 'Invalid trip dates',
-        description: `Trip entry date (${trip.entryDate}) must be before exit date (${trip.exitDate}).`,
+        messageKey: 'findings.tripDatesInvalid',
+        messageParams: {
+          dates: { entryDate: trip.entryDate, exitDate: trip.exitDate },
+        },
         relatedFields: ['trip.entryDate', 'trip.exitDate'],
-        suggestedAction: 'Correct the trip dates so entry comes before exit.',
       },
     ]
   }
@@ -48,12 +50,16 @@ export const appointmentBeforeTrip: ValidationRule = (
     return [
       {
         id: 'appointment-after-trip',
+        ruleId: 'trip.appointmentBeforeTrip',
         severity: 'error',
-        title: 'Appointment after trip start',
-        description: `Visa appointment (${appointment.date}) must be before trip entry date (${trip.entryDate}).`,
+        messageKey: 'findings.appointmentAfterTrip',
+        messageParams: {
+          dates: {
+            appointmentDate: appointment.date,
+            entryDate: trip.entryDate,
+          },
+        },
         relatedFields: ['appointment.date', 'trip.entryDate'],
-        suggestedAction:
-          'Schedule the visa appointment before your planned trip start date.',
       },
     ]
   }
@@ -78,11 +84,11 @@ export const tripNotInPast: ValidationRule = (
     return [
       {
         id: 'trip-in-past',
+        ruleId: 'trip.notInPast',
         severity: 'error',
-        title: 'Trip date is in the past',
-        description: `Trip entry date (${trip.entryDate}) is in the past.`,
+        messageKey: 'findings.tripInPast',
+        messageParams: { dates: { entryDate: trip.entryDate } },
         relatedFields: ['trip.entryDate'],
-        suggestedAction: 'Update the trip dates to a future date.',
       },
     ]
   }
@@ -109,12 +115,11 @@ export const routeNightsMatchTotal: ValidationRule = (
     return [
       {
         id: 'route-nights-mismatch',
+        ruleId: 'trip.routeNightsMatchTotal',
         severity: 'warning',
-        title: 'Route nights do not match trip duration',
-        description: `Route total (${routeNights} nights) does not match trip duration (${totalNights} nights).`,
+        messageKey: 'findings.routeNightsMismatch',
+        messageParams: { values: { routeNights, totalNights } },
         relatedFields: ['trip.route', 'trip.entryDate', 'trip.exitDate'],
-        suggestedAction:
-          'Adjust route stop durations to match the total trip length.',
       },
     ]
   }
@@ -157,12 +162,17 @@ export const mainDestinationMatchesLongestStay: ValidationRule = (
     return [
       {
         id: 'main-destination-mismatch',
+        ruleId: 'trip.mainDestinationMatchesLongestStay',
         severity: 'warning',
-        title: 'Main destination may be incorrect',
-        description: `Declared main destination (${trip.mainDestinationCountry}) differs from longest stay country (${longestStayCountry} with ${maxNights} nights).`,
+        messageKey: 'findings.mainDestinationMismatch',
+        messageParams: {
+          values: {
+            declared: trip.mainDestinationCountry,
+            longest: longestStayCountry,
+            nights: maxNights,
+          },
+        },
         relatedFields: ['trip.mainDestinationCountry', 'trip.route'],
-        suggestedAction:
-          'Verify that the main destination is the country where you will spend the most time.',
       },
     ]
   }
@@ -194,15 +204,19 @@ export const firstEntryMatchesRoute: ValidationRule = (
       return [
         {
           id: 'first-entry-transport-mismatch',
+          ruleId: 'trip.firstEntryMatchesRoute',
           severity: 'warning',
-          title: 'First entry country may not match transport',
-          description: `Declared first entry country (${trip.firstEntryCountry}) does not match first transport arrival (${firstArrival.arrivalCountry}).`,
+          messageKey: 'findings.firstEntryTransportMismatch',
+          messageParams: {
+            values: {
+              declared: trip.firstEntryCountry,
+              actual: firstArrival.arrivalCountry,
+            },
+          },
           relatedFields: [
             'trip.firstEntryCountry',
             'trip.transportReservations',
           ],
-          suggestedAction:
-            'Verify the first entry country matches your transport reservations.',
         },
       ]
     }

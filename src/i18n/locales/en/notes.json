@@ -1,0 +1,28 @@
+{
+  "title": "Notes",
+  "description": "Keep track of anything worth remembering about this application",
+  "shortDescription": "Keep track of important information",
+  "add": "Add note",
+  "edit": "Edit note",
+  "dialogDescription": "Add a note to your visa application dossier",
+  "fields": {
+    "title": "Title (optional)",
+    "titlePlaceholder": "Note title",
+    "category": "Category",
+    "content": "Content",
+    "contentPlaceholder": "Write your note..."
+  },
+  "categories": {
+    "general": "General",
+    "document": "Document",
+    "timeline": "Timeline",
+    "appointment": "Appointment",
+    "other": "Other"
+  },
+  "untitled": "Untitled note",
+  "edited": "edited",
+  "empty": {
+    "title": "No notes yet",
+    "description": "Jot down embassy instructions, phone numbers, or anything you want to remember."
+  }
+}

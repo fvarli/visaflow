@@ -2,6 +2,9 @@ import { parseISO, isBefore, isAfter } from 'date-fns'
 import type { Dossier } from '../schemas/dossier.schema'
 import type { ValidationFinding, ValidationRule } from './types'
 
+/** Schengen minimum travel medical insurance coverage, in EUR. */
+const SCHENGEN_MINIMUM_COVERAGE = 30000
+
 /**
  * Rule 5: Insurance must cover the complete trip
  */
@@ -17,13 +20,10 @@ export const insuranceCoversTrip: ValidationRule = (
     return [
       {
         id: 'no-insurance',
+        ruleId: 'insurance.coversTrip',
         severity: 'error',
-        title: 'No travel insurance',
-        description:
-          'Travel medical insurance is required for Schengen visa applications.',
+        messageKey: 'findings.noInsurance',
         relatedFields: ['trip.insurance'],
-        suggestedAction:
-          'Purchase travel medical insurance covering your entire trip.',
       },
     ]
   }
@@ -32,14 +32,13 @@ export const insuranceCoversTrip: ValidationRule = (
     return [
       {
         id: 'insurance-dates-missing',
+        ruleId: 'insurance.coversTrip',
         severity: 'error',
-        title: 'Insurance dates missing',
-        description: 'Insurance coverage start and end dates are required.',
+        messageKey: 'findings.insuranceDatesMissing',
         relatedFields: [
           'trip.insurance.coverageStartDate',
           'trip.insurance.coverageEndDate',
         ],
-        suggestedAction: 'Enter the insurance coverage dates.',
       },
     ]
   }
@@ -54,12 +53,16 @@ export const insuranceCoversTrip: ValidationRule = (
   if (isAfter(coverageStart, tripStart)) {
     findings.push({
       id: 'insurance-starts-late',
+      ruleId: 'insurance.coversTrip',
       severity: 'error',
-      title: 'Insurance starts after trip begins',
-      description: `Insurance coverage starts on ${insurance.coverageStartDate}, but trip starts on ${trip.entryDate}.`,
+      messageKey: 'findings.insuranceStartsLate',
+      messageParams: {
+        dates: {
+          coverageStart: insurance.coverageStartDate,
+          tripStart: trip.entryDate,
+        },
+      },
       relatedFields: ['trip.insurance.coverageStartDate', 'trip.entryDate'],
-      suggestedAction:
-        'Ensure insurance coverage starts on or before your trip start date.',
     })
   }
 
@@ -67,28 +70,39 @@ export const insuranceCoversTrip: ValidationRule = (
   if (isBefore(coverageEnd, tripEnd)) {
     findings.push({
       id: 'insurance-ends-early',
+      ruleId: 'insurance.coversTrip',
       severity: 'error',
-      title: 'Insurance ends before trip ends',
-      description: `Insurance coverage ends on ${insurance.coverageEndDate}, but trip ends on ${trip.exitDate}.`,
+      messageKey: 'findings.insuranceEndsEarly',
+      messageParams: {
+        dates: {
+          coverageEnd: insurance.coverageEndDate,
+          tripEnd: trip.exitDate,
+        },
+      },
       relatedFields: ['trip.insurance.coverageEndDate', 'trip.exitDate'],
-      suggestedAction:
-        'Ensure insurance coverage extends to or beyond your trip end date.',
     })
   }
 
   // Check minimum coverage amount (Schengen requires 30,000 EUR)
   if (
     insurance.coverageAmount !== undefined &&
-    insurance.coverageAmount < 30000
+    insurance.coverageAmount < SCHENGEN_MINIMUM_COVERAGE
   ) {
     findings.push({
       id: 'insurance-coverage-low',
+      ruleId: 'insurance.coversTrip',
       severity: 'warning',
-      title: 'Insurance coverage may be insufficient',
-      description: `Insurance coverage amount (${insurance.coverageAmount} ${insurance.currency}) may be below the Schengen minimum of 30,000 EUR.`,
+      messageKey: 'findings.insuranceCoverageLow',
+      messageParams: {
+        money: {
+          amount: {
+            amount: insurance.coverageAmount,
+            currency: insurance.currency ?? 'EUR',
+          },
+          minimum: { amount: SCHENGEN_MINIMUM_COVERAGE, currency: 'EUR' },
+        },
+      },
       relatedFields: ['trip.insurance.coverageAmount'],
-      suggestedAction:
-        'Verify your insurance meets the minimum coverage requirement of 30,000 EUR.',
     })
   }
 

@@ -1,0 +1,23 @@
+{
+  "title": "Sponsors",
+  "description": "People who will sponsor your trip financially",
+  "add": "Add sponsor",
+  "edit": "Edit sponsor",
+  "dialogDescription": "Enter the sponsor's information",
+  "fields": {
+    "firstName": "First name",
+    "lastName": "Last name",
+    "relationship": "Relationship",
+    "relationshipPlaceholder": "Select relationship",
+    "monthlyIncome": "Monthly income",
+    "currency": "Currency"
+  },
+  "empty": {
+    "title": "No sponsors added yet",
+    "description": "Add a sponsor if someone else will fund part or all of your trip."
+  },
+  "card": {
+    "monthlyIncome": "Monthly income",
+    "removeLabel": "Remove {{name}}"
+  }
+}

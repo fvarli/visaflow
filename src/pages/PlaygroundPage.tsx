@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import {
   AlertCircle,
   ArrowRight,
@@ -82,6 +83,12 @@ import {
 import { NoDossierState } from '@/components/NoDossierState'
 import { BrandMark } from '@/components/layout/BrandMark'
 import { useTheme } from '@/app/providers/ThemeProvider'
+import { useLocale } from '@/app/providers/LocaleProvider'
+import { LanguageSelect } from '@/components/ui/language-select'
+import { SourceNote } from '@/components/ui/source-note'
+import { useFormatters } from '@/lib/format'
+import { dynamicT } from '@/lib/i18n-dynamic'
+import type { RequirementSource } from '@/config/types'
 
 /**
  * Design system playground.
@@ -94,24 +101,28 @@ import { useTheme } from '@/app/providers/ThemeProvider'
  */
 export default function PlaygroundPage() {
   const { theme, resolvedTheme } = useTheme()
+  const { locale } = useLocale()
+  const { t } = useTranslation(['playground', 'common', 'visa-domain'])
 
   return (
     <PageBody>
       <PageHeader
-        eyebrow="Internal"
-        title="Design system playground"
-        description="Every reusable primitive, in every state. Use this to iterate on the visual language before applying it to real pages."
+        eyebrow={t('playground:eyebrow')}
+        title={t('playground:title')}
+        description={t('playground:description')}
         actions={
           <div className="flex items-center gap-2">
             <StatusBadge tone="neutral" size="md" dot>
-              {theme} → {resolvedTheme}
+              {locale} · {theme} → {resolvedTheme}
             </StatusBadge>
+            <LanguageSelect />
             <ThemeToggle />
           </div>
         }
       />
 
       <Nav />
+      <Internationalization />
       <Foundations />
       <Typography />
       <Buttons />
@@ -130,30 +141,168 @@ export default function PlaygroundPage() {
  * ---------------------------------------------------------------------- */
 
 const SECTIONS = [
-  ['foundations', 'Foundations'],
-  ['typography', 'Typography'],
-  ['buttons', 'Buttons'],
-  ['badges', 'Badges & status'],
-  ['forms', 'Forms'],
-  ['feedback', 'Feedback'],
-  ['data', 'Data display'],
-  ['overlays', 'Overlays'],
-  ['composition', 'Composition'],
+  'i18n',
+  'foundations',
+  'typography',
+  'buttons',
+  'badges',
+  'forms',
+  'feedback',
+  'data',
+  'overlays',
+  'composition',
 ] as const
 
 function Nav() {
+  const { t } = useTranslation(['playground'])
+  const td = dynamicT(t)
+
   return (
-    <nav aria-label="Playground sections" className="flex flex-wrap gap-2">
-      {SECTIONS.map(([id, label]) => (
+    <nav aria-label={td('playground:title')} className="flex flex-wrap gap-2">
+      {SECTIONS.map((id) => (
         <a
           key={id}
           href={`#${id}`}
           className="bg-card text-body hover:border-border-strong hover:bg-accent rounded-full border px-3 py-1 transition-colors"
         >
-          {label}
+          {td(`playground:sections.${id}`)}
         </a>
       ))}
     </nav>
+  )
+}
+
+/* -------------------------------------------------------------------------
+ * Internationalization
+ * ---------------------------------------------------------------------- */
+
+/**
+ * Fictional demo records. These exist only to exercise the SourceNote
+ * component — they are NOT real requirement sources and must never be copied
+ * into a country template.
+ */
+const DEMO_VERIFIED_SOURCE: RequirementSource[] = [
+  {
+    id: 'demo-verified',
+    authority: 'Örnek Konsolosluk / Example Consulate',
+    titleKey: 'playground:i18n.demoSourceTitle',
+    url: 'https://example.invalid/visa',
+    sourceType: 'consulate',
+    jurisdiction: 'GR',
+    language: 'tr',
+    lastVerifiedAt: '2026-07-15',
+    retrievedAt: '2026-07-15',
+  },
+]
+
+const DEMO_UNVERIFIED_SOURCE: RequirementSource[] = [
+  {
+    id: 'demo-unverified',
+    authority: 'Örnek Bakanlık / Example Ministry',
+    titleKey: 'playground:i18n.demoSourceTitle',
+    sourceType: 'government',
+    jurisdiction: 'GR',
+    // No lastVerifiedAt — this is exactly the honest "not checked" case.
+  },
+]
+
+/** The longest real labels in each language, for wrapping checks. */
+const LONG_LABEL_KEYS = [
+  'navigation:items.consistencyChecks',
+  'visa-domain:requirements.TRAVEL_INSURANCE.name',
+  'visa-domain:requirements.SPONSOR_BANK_STATEMENTS.name',
+  'visa-domain:documentStatus.not_applicable',
+  'visa-domain:sponsorRelationship.grandparent',
+]
+
+function Internationalization() {
+  const { t } = useTranslation(['playground', 'common', 'visa-domain'])
+  const td = dynamicT(t)
+  const { locale, intlLocale } = useLocale()
+  const format = useFormatters()
+
+  return (
+    <Block
+      id="i18n"
+      title={t('playground:sections.i18n')}
+      description={t('playground:i18n.description')}
+    >
+      <Row label={t('playground:rows.languageSelector')}>
+        <LanguageSelect />
+        <StatusBadge tone="neutral" size="md">
+          {t('playground:i18n.activeLocale')}: {locale} · {intlLocale}
+        </StatusBadge>
+      </Row>
+
+      <Row
+        label={t('playground:rows.longLabels')}
+        hint={t('playground:i18n.longLabelNote')}
+        align="start"
+      >
+        <div className="flex max-w-md flex-wrap gap-2">
+          {LONG_LABEL_KEYS.map((key) => (
+            <StatusBadge key={key} tone="neutral" size="md">
+              {td(key)}
+            </StatusBadge>
+          ))}
+        </div>
+      </Row>
+
+      <Row label={t('playground:rows.dates')} align="start">
+        <div className="space-y-1" data-numeric>
+          <p className="text-body">{format.date('2026-08-12')}</p>
+          <p className="text-body">{format.dateShort('2026-08-12')}</p>
+          <p className="text-body">{format.dateTime('2026-08-12T09:30:00Z')}</p>
+        </div>
+      </Row>
+
+      <Row label={t('playground:rows.currency')} align="start">
+        <div className="space-y-1" data-numeric>
+          <p className="text-body">{format.currency(98000, 'TRY')}</p>
+          <p className="text-body">{format.currency(30000, 'EUR')}</p>
+          <p className="text-body">{format.currency(2450.5, 'USD')}</p>
+        </div>
+      </Row>
+
+      <Row label={t('playground:rows.numbers')} align="start">
+        <div className="space-y-1" data-numeric>
+          <p className="text-body">{format.number(1234567.89)}</p>
+          <p className="text-body">{format.percent(72)}</p>
+        </div>
+      </Row>
+
+      <Row label={t('playground:rows.documentStatus')}>
+        {Object.keys(DOCUMENT_STATUS_TONE).map((status) => (
+          <StatusBadge
+            key={status}
+            tone={DOCUMENT_STATUS_TONE[status]}
+            size="md"
+            dot
+          >
+            {td(`visa-domain:documentStatus.${status}`)}
+          </StatusBadge>
+        ))}
+      </Row>
+
+      <Row label={t('playground:rows.sourceVerified')} align="start">
+        <div className="w-full max-w-2xl">
+          <SourceNote
+            sources={DEMO_VERIFIED_SOURCE}
+            reviewStatus="verified"
+            lastReviewedAt="2026-07-15"
+          />
+        </div>
+      </Row>
+
+      <Row label={t('playground:rows.sourceUnverified')} align="start">
+        <div className="w-full max-w-2xl">
+          <SourceNote
+            sources={DEMO_UNVERIFIED_SOURCE}
+            reviewStatus="unverified"
+          />
+        </div>
+      </Row>
+    </Block>
   )
 }
 
@@ -230,46 +379,83 @@ function Swatch({
 }
 
 function Foundations() {
+  const { t } = useTranslation(['playground', 'common', 'visa-domain'])
   return (
     <Block
       id="foundations"
-      title="Foundations"
-      description="Surfaces, accent and status tokens. Every swatch is a live CSS variable — it follows the theme."
+      title={t('playground:sections.foundations')}
+      description={t('playground:blurbs.foundations')}
     >
-      <Row label="Surfaces" align="start">
-        <Swatch name="background" className="bg-background" note="canvas" />
-        <Swatch name="card" className="bg-card" note="raised" />
-        <Swatch name="popover" className="bg-popover" note="overlay" />
-        <Swatch name="muted" className="bg-muted" note="recessed" />
+      <Row label={t('playground:rows.surfaces')} align="start">
+        <Swatch
+          name="background"
+          className="bg-background"
+          note={t('playground:hints.canvas')}
+        />
+        <Swatch
+          name="card"
+          className="bg-card"
+          note={t('playground:hints.raised')}
+        />
+        <Swatch
+          name="popover"
+          className="bg-popover"
+          note={t('playground:hints.overlay')}
+        />
+        <Swatch
+          name="muted"
+          className="bg-muted"
+          note={t('playground:hints.recessed')}
+        />
         <Swatch name="sidebar" className="bg-sidebar" />
       </Row>
 
-      <Row label="Accent" hint="Cobalt Indigo" align="start">
-        <Swatch name="primary" className="bg-primary" note="actions" />
+      <Row
+        label={t('playground:rows.accent')}
+        hint={t('playground:hints.cobaltIndigo')}
+        align="start"
+      >
+        <Swatch
+          name="primary"
+          className="bg-primary"
+          note={t('playground:hints.actions')}
+        />
         <Swatch name="primary-hover" className="bg-primary-hover" />
         <Swatch
           name="brand-subtle"
           className="bg-brand-subtle"
-          note="active nav"
+          note={t('playground:hints.activeNav')}
         />
-        <Swatch name="ring" className="bg-ring" note="focus" />
+        <Swatch
+          name="ring"
+          className="bg-ring"
+          note={t('playground:hints.focus')}
+        />
       </Row>
 
-      <Row label="Status" hint="solid / muted" align="start">
+      <Row
+        label={t('playground:rows.status')}
+        hint={t('playground:hints.solidMuted')}
+        align="start"
+      >
         <Swatch name="success" className="bg-success" />
         <Swatch name="warning" className="bg-warning" />
         <Swatch name="danger" className="bg-danger" />
-        <Swatch name="info" className="bg-info" note="low chroma" />
+        <Swatch
+          name="info"
+          className="bg-info"
+          note={t('playground:hints.lowChroma')}
+        />
       </Row>
 
-      <Row label="Status muted" align="start">
+      <Row label={t('playground:rows.statusMuted')} align="start">
         <Swatch name="success-muted" className="bg-success-muted" />
         <Swatch name="warning-muted" className="bg-warning-muted" />
         <Swatch name="danger-muted" className="bg-danger-muted" />
         <Swatch name="info-muted" className="bg-info-muted" />
       </Row>
 
-      <Row label="Text" align="start">
+      <Row label={t('playground:rows.text')} align="start">
         <div className="space-y-1">
           <p className="text-foreground text-body">text-foreground</p>
           <p className="text-muted-foreground text-body">
@@ -283,7 +469,7 @@ function Foundations() {
 
       {/* Class names are spelled out in full: Tailwind scans source text, so
           an interpolated `rounded-${r}` would never be generated. */}
-      <Row label="Radius" align="start">
+      <Row label={t('playground:rows.radius')} align="start">
         {(
           [
             ['sm', 'rounded-sm'],
@@ -302,7 +488,11 @@ function Foundations() {
         ))}
       </Row>
 
-      <Row label="Elevation" hint="hue-tinted, faint" align="start">
+      <Row
+        label={t('playground:rows.elevation')}
+        hint={t('playground:hints.hueTinted')}
+        align="start"
+      >
         {(
           [
             ['xs', 'shadow-xs'],
@@ -328,6 +518,7 @@ function Foundations() {
  * ---------------------------------------------------------------------- */
 
 function Typography() {
+  const { t } = useTranslation(['playground', 'common', 'visa-domain'])
   const scale = [
     ['text-display', 'Display — 30/36, -0.021em', 'text-display'],
     ['text-title', 'Title — 24/32, -0.017em', 'text-title'],
@@ -341,8 +532,8 @@ function Typography() {
   return (
     <Block
       id="typography"
-      title="Typography"
-      description="Inter Variable, self-hosted. Each size carries its own line-height, tracking and weight."
+      title={t('playground:sections.typography')}
+      description={t('playground:blurbs.typography')}
     >
       <div className="divide-border divide-y">
         {scale.map(([token, sample, cls]) => (
@@ -360,7 +551,11 @@ function Typography() {
 
       <Separator />
 
-      <Row label="Numerals" hint="tabular via data-numeric" align="start">
+      <Row
+        label={t('playground:rows.numerals')}
+        hint={t('playground:hints.tabular')}
+        align="start"
+      >
         <div className="space-y-1">
           <p className="text-body">Proportional: 1,480.00 · 2026-07-22</p>
           <p data-numeric className="text-body">
@@ -369,7 +564,11 @@ function Typography() {
         </div>
       </Row>
 
-      <Row label="Mono" hint="JetBrains Mono" align="start">
+      <Row
+        label={t('playground:rows.mono')}
+        hint={t('playground:hints.jetbrains')}
+        align="start"
+      >
         <p className="text-body font-mono">U12345678 · DOC-PASSPORT-01</p>
       </Row>
     </Block>
@@ -381,13 +580,14 @@ function Typography() {
  * ---------------------------------------------------------------------- */
 
 function Buttons() {
+  const { t } = useTranslation(['playground', 'common', 'visa-domain'])
   return (
     <Block
       id="buttons"
-      title="Buttons"
-      description="Focus rings come from the global :focus-visible rule — tab through these to check consistency."
+      title={t('playground:sections.buttons')}
+      description={t('playground:blurbs.buttons')}
     >
-      <Row label="Variants">
+      <Row label={t('playground:rows.variants')}>
         <Button>Default</Button>
         <Button variant="secondary">Secondary</Button>
         <Button variant="outline">Outline</Button>
@@ -396,14 +596,14 @@ function Buttons() {
         <Button variant="link">Link</Button>
       </Row>
 
-      <Row label="Sizes">
+      <Row label={t('playground:rows.sizes')}>
         <Button size="xs">Extra small</Button>
         <Button size="sm">Small</Button>
         <Button>Default</Button>
         <Button size="lg">Large</Button>
       </Row>
 
-      <Row label="With icons">
+      <Row label={t('playground:rows.withIcons')}>
         <Button>
           <Plus />
           Add sponsor
@@ -418,22 +618,38 @@ function Buttons() {
         </Button>
       </Row>
 
-      <Row label="Icon only">
-        <Button size="icon-xs" variant="outline" aria-label="Delete">
+      <Row label={t('playground:rows.iconOnly')}>
+        <Button
+          size="icon-xs"
+          variant="outline"
+          aria-label={t('common:actions.delete')}
+        >
           <Trash2 />
         </Button>
-        <Button size="icon-sm" variant="outline" aria-label="Delete">
+        <Button
+          size="icon-sm"
+          variant="outline"
+          aria-label={t('common:actions.delete')}
+        >
           <Trash2 />
         </Button>
-        <Button size="icon" variant="outline" aria-label="Delete">
+        <Button
+          size="icon"
+          variant="outline"
+          aria-label={t('common:actions.delete')}
+        >
           <Trash2 />
         </Button>
-        <Button size="icon-lg" variant="outline" aria-label="Delete">
+        <Button
+          size="icon-lg"
+          variant="outline"
+          aria-label={t('common:actions.delete')}
+        >
           <Trash2 />
         </Button>
       </Row>
 
-      <Row label="Disabled">
+      <Row label={t('playground:rows.disabled')}>
         <Button disabled>Default</Button>
         <Button variant="outline" disabled>
           Outline
@@ -443,7 +659,7 @@ function Buttons() {
         </Button>
       </Row>
 
-      <Row label="Keyboard">
+      <Row label={t('playground:rows.keyboard')}>
         <span className="text-body text-muted-foreground inline-flex items-center gap-1.5">
           Press <Kbd>⌘</Kbd> <Kbd>K</Kbd> to search
         </span>
@@ -466,13 +682,14 @@ const TONES: StatusTone[] = [
 ]
 
 function Badges() {
+  const { t } = useTranslation(['playground', 'common', 'visa-domain'])
   return (
     <Block
       id="badges"
-      title="Badges & status"
-      description="StatusBadge is the token-driven one — prefer it for anything that carries state."
+      title={t('playground:sections.badges')}
+      description={t('playground:blurbs.badges')}
     >
-      <Row label="StatusBadge" hint="tone">
+      <Row label={t('playground:rows.statusBadge')} hint="tone">
         {TONES.map((tone) => (
           <StatusBadge key={tone} tone={tone}>
             {humanizeStatus(tone)}
@@ -480,7 +697,10 @@ function Badges() {
         ))}
       </Row>
 
-      <Row label="With dot" hint="reads faster in tables">
+      <Row
+        label={t('playground:rows.withDot')}
+        hint={t('playground:hints.readsFaster')}
+      >
         {TONES.map((tone) => (
           <StatusBadge key={tone} tone={tone} dot>
             {humanizeStatus(tone)}
@@ -488,7 +708,7 @@ function Badges() {
         ))}
       </Row>
 
-      <Row label="Size md">
+      <Row label={t('playground:rows.sizeMd')}>
         {TONES.map((tone) => (
           <StatusBadge key={tone} tone={tone} size="md" dot>
             {humanizeStatus(tone)}
@@ -496,7 +716,10 @@ function Badges() {
         ))}
       </Row>
 
-      <Row label="Document status" hint="live domain mapping">
+      <Row
+        label={t('playground:rows.documentStatus')}
+        hint={t('playground:hints.liveMapping')}
+      >
         {Object.keys(DOCUMENT_STATUS_TONE).map((status) => (
           <StatusBadge
             key={status}
@@ -511,7 +734,10 @@ function Badges() {
 
       <Separator />
 
-      <Row label="Badge" hint="legacy variants">
+      <Row
+        label={t('playground:rows.badge')}
+        hint={t('playground:hints.legacyVariants')}
+      >
         <Badge>Default</Badge>
         <Badge variant="secondary">Secondary</Badge>
         <Badge variant="outline">Outline</Badge>
@@ -527,27 +753,34 @@ function Badges() {
  * ---------------------------------------------------------------------- */
 
 function Forms() {
+  const { t } = useTranslation([
+    'playground',
+    'common',
+    'applicant',
+    'trip',
+    'documents',
+  ])
   const [checked, setChecked] = useState(true)
 
   return (
     <Block
       id="forms"
-      title="Forms"
-      description="Field wires label, description and error to the control. Inspect the DOM here to confirm aria-describedby and aria-invalid."
+      title={t('playground:sections.forms')}
+      description={t('playground:blurbs.forms')}
     >
       <div className="grid gap-5 md:grid-cols-2">
-        <Field label="First name">
+        <Field label={t('applicant:fields.firstName')}>
           <Input placeholder="As on passport" />
         </Field>
 
-        <Field label="Passport number" required>
+        <Field label={t('applicant:fields.passportNumber')} required>
           <Input placeholder="U12345678" className="font-mono" />
         </Field>
 
         <Field
-          label="Nationality"
+          label={t('applicant:fields.nationality')}
           required
-          description="Two-letter country code"
+          description={t('applicant:hints.countryCode')}
         >
           <Input
             placeholder="TR"
@@ -557,14 +790,14 @@ function Forms() {
         </Field>
 
         <Field
-          label="Entry date"
+          label={t('trip:dates.entryDate')}
           required
-          error="Entry date must be before the exit date"
+          error={t('trip:errors.entryDateRequired')}
         >
           <Input type="date" />
         </Field>
 
-        <Field label="Marital status" htmlFor="pg-marital">
+        <Field label={t('applicant:fields.maritalStatus')} htmlFor="pg-marital">
           <Select>
             <SelectTrigger id="pg-marital" className="w-full">
               <SelectValue placeholder="Select status" />
@@ -577,16 +810,19 @@ function Forms() {
           </Select>
         </Field>
 
-        <Field label="Disabled">
+        <Field label={t('playground:rows.disabled')}>
           <Input placeholder="Not editable" disabled />
         </Field>
       </div>
 
-      <Field label="Notes" description="Supports multiple lines">
+      <Field
+        label={t('documents:edit.notes')}
+        description={t('playground:demo.multiline')}
+      >
         <Textarea placeholder="Anything worth remembering…" rows={3} />
       </Field>
 
-      <Row label="Checkbox">
+      <Row label={t('playground:rows.checkbox')}>
         <div className="flex items-center gap-2">
           <Checkbox
             id="pg-check"
@@ -605,11 +841,17 @@ function Forms() {
         </div>
       </Row>
 
-      <Row label="Toolbar" align="start">
+      <Row label={t('playground:rows.toolbar')} align="start">
         <Toolbar className="w-full">
-          <SearchInput placeholder="Search documents..." aria-label="Search" />
+          <SearchInput
+            placeholder={t('documents:filters.search')}
+            aria-label={t('documents:filters.searchLabel')}
+          />
           <Select>
-            <SelectTrigger className="w-full sm:w-44" aria-label="Category">
+            <SelectTrigger
+              className="w-full sm:w-44"
+              aria-label={t('documents:filters.categoryLabel')}
+            >
               <SelectValue placeholder="Category" />
             </SelectTrigger>
             <SelectContent>
@@ -628,11 +870,12 @@ function Forms() {
  * ---------------------------------------------------------------------- */
 
 function Feedback() {
+  const { t } = useTranslation(['playground', 'common', 'visa-domain'])
   return (
     <Block
       id="feedback"
-      title="Feedback"
-      description="Alerts, progress and loading. Tints are low chroma — a change in paper stock, not a colored box."
+      title={t('playground:sections.feedback')}
+      description={t('playground:blurbs.feedback')}
     >
       <div className="flex flex-col gap-3">
         <Alert>
@@ -672,7 +915,7 @@ function Feedback() {
 
       <Separator />
 
-      <Row label="Progress" align="start">
+      <Row label={t('playground:rows.progress')} align="start">
         <div className="w-full max-w-md space-y-3">
           <Progress value={0} aria-label="0 percent" />
           <Progress value={35} aria-label="35 percent" />
@@ -681,7 +924,7 @@ function Feedback() {
         </div>
       </Row>
 
-      <Row label="Skeleton" align="start">
+      <Row label={t('playground:rows.skeleton')} align="start">
         <div className="w-full max-w-md space-y-2.5">
           <Skeleton className="h-7 w-56" />
           <Skeleton className="h-4 w-80" />
@@ -691,7 +934,7 @@ function Feedback() {
 
       <Separator />
 
-      <Row label="EmptyState" align="start">
+      <Row label={t('playground:rows.emptyState')} align="start">
         <div className="w-full">
           <EmptyState
             icon={FileText}
@@ -702,7 +945,7 @@ function Feedback() {
         </div>
       </Row>
 
-      <Row label="Inline variant" align="start">
+      <Row label={t('playground:rows.inlineVariant')} align="start">
         <div className="w-full">
           <EmptyState
             variant="inline"
@@ -713,9 +956,13 @@ function Feedback() {
         </div>
       </Row>
 
-      <Row label="NoDossierState" hint="app-specific" align="start">
+      <Row
+        label={t('playground:rows.noDossier')}
+        hint={t('playground:hints.appSpecific')}
+        align="start"
+      >
         <div className="w-full">
-          <NoDossierState label="documents" />
+          <NoDossierState section="Belgeler" />
         </div>
       </Row>
     </Block>
@@ -749,22 +996,34 @@ const DEMO_ROWS = [
 ]
 
 function DataDisplay() {
+  const { t } = useTranslation([
+    'playground',
+    'common',
+    'dashboard',
+    'validation',
+    'visa-domain',
+  ])
   return (
     <Block
       id="data"
-      title="Data display"
-      description="Metrics, tables and label/value pairs. Numbers use tabular figures so columns align."
+      title={t('playground:sections.data')}
+      description={t('playground:blurbs.data')}
     >
       <div className="grid gap-4 sm:grid-cols-3">
         <StatCard
-          label="Appointment"
+          label={t('dashboard:cards.appointment')}
           icon={Calendar}
           value="12 Aug 2026"
           hint="21 days remaining"
         />
-        <StatCard label="Trip start" icon={Plane} value="Not set" muted />
         <StatCard
-          label="Open findings"
+          label={t('dashboard:cards.tripStart')}
+          icon={Plane}
+          value={t('common:states.notSet')}
+          muted
+        />
+        <StatCard
+          label={t('validation:summary.findings')}
           icon={AlertCircle}
           value={3}
           hint="1 error · 2 warnings"
@@ -819,7 +1078,7 @@ function DataDisplay() {
 
       <Separator />
 
-      <Row label="DataList" align="start">
+      <Row label={t('playground:rows.dataList')} align="start">
         <div className="w-full max-w-2xl">
           <DataList>
             <DataListItem label="Full name" value="Ferzender Varli" />
@@ -839,13 +1098,14 @@ function DataDisplay() {
  * ---------------------------------------------------------------------- */
 
 function Overlays() {
+  const { t } = useTranslation(['playground', 'common', 'visa-domain'])
   return (
     <Block
       id="overlays"
-      title="Overlays"
-      description="Dialog, tooltip and accordion. Check focus trapping and escape handling here."
+      title={t('playground:sections.overlays')}
+      description={t('playground:blurbs.overlays')}
     >
-      <Row label="Dialog">
+      <Row label={t('playground:rows.dialog')}>
         <Dialog>
           <DialogTrigger asChild>
             <Button variant="outline">Open dialog</Button>
@@ -873,7 +1133,7 @@ function Overlays() {
         </Dialog>
       </Row>
 
-      <Row label="Tooltip">
+      <Row label={t('playground:rows.tooltip')}>
         <Tooltip>
           <TooltipTrigger asChild>
             <Button variant="outline">Hover me</Button>
@@ -882,7 +1142,7 @@ function Overlays() {
         </Tooltip>
       </Row>
 
-      <Row label="Accordion" align="start">
+      <Row label={t('playground:rows.accordion')} align="start">
         <Accordion type="multiple" className="w-full max-w-2xl">
           <AccordionItem value="one">
             <AccordionTrigger className="hover:no-underline">
@@ -938,13 +1198,14 @@ function Overlays() {
  * ---------------------------------------------------------------------- */
 
 function Composition() {
+  const { t } = useTranslation(['playground', 'common', 'visa-domain'])
   return (
     <Block
       id="composition"
-      title="Composition"
-      description="How the page-level pieces sit together. This is the rhythm every redesigned page should inherit."
+      title={t('playground:sections.composition')}
+      description={t('playground:blurbs.composition')}
     >
-      <Row label="BrandMark" align="start">
+      <Row label={t('playground:rows.brandMark')} align="start">
         <BrandMark />
         <BrandMark showWordmark={false} />
       </Row>
@@ -984,7 +1245,7 @@ function Composition() {
 
       <Separator />
 
-      <Row label="Card anatomy" align="start">
+      <Row label={t('playground:rows.cardAnatomy')} align="start">
         <Card className="w-full max-w-md">
           <CardHeader className="border-b">
             <CardTitle>Card title</CardTitle>

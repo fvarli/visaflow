@@ -1,4 +1,5 @@
 import { FileDown, FileUp } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import {
   Sheet,
   SheetContent,
@@ -29,6 +30,7 @@ export function MobileNav({
   onExportClick,
   counts,
 }: MobileNavProps) {
+  const { t } = useTranslation(['common', 'navigation'])
   const close = () => onOpenChange(false)
 
   return (
@@ -44,7 +46,7 @@ export function MobileNav({
         </SheetHeader>
 
         <nav
-          aria-label="Main"
+          aria-label={t('a11y.mainNavigation')}
           className="scrollbar-subtle flex-1 overflow-y-auto px-3 pt-4 pb-4"
         >
           <NavList groups={navGroups} counts={counts} onNavigate={close} />
@@ -69,7 +71,7 @@ export function MobileNav({
             }}
           >
             <FileUp />
-            Import
+            {t('navigation:actions.importData')}
           </Button>
           <Button
             variant="outline"
@@ -81,7 +83,7 @@ export function MobileNav({
             }}
           >
             <FileDown />
-            Export
+            {t('navigation:actions.exportDossier')}
           </Button>
         </div>
       </SheetContent>

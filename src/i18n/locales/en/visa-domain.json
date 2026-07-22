@@ -1,0 +1,251 @@
+{
+  "countries": {
+    "GR": "Greece"
+  },
+  "visaTypes": {
+    "schengen-short-stay-tourism": "Schengen Short-Stay — Tourism (Type C)",
+    "short_stay_tourism": "Short-stay tourism",
+    "short_stay_business": "Short-stay business",
+    "short_stay_visit": "Short-stay family or friend visit",
+    "transit": "Transit",
+    "other": "Other"
+  },
+  "documentStatus": {
+    "not_started": "Not started",
+    "requested": "Requested",
+    "received": "Received",
+    "needs_update": "Needs update",
+    "ready": "Ready",
+    "not_applicable": "Not applicable"
+  },
+  "documentCategory": {
+    "identity": "Identity",
+    "passport": "Passport",
+    "employment": "Employment",
+    "financial": "Financial",
+    "sponsor": "Sponsor",
+    "travel": "Travel",
+    "accommodation": "Accommodation",
+    "insurance": "Insurance",
+    "application_form": "Application form",
+    "civil_registry": "Civil registry",
+    "previous_travel": "Previous travel",
+    "supporting": "Supporting"
+  },
+  "ownerType": {
+    "applicant": "Applicant",
+    "sponsor": "Sponsor",
+    "employer": "Employer"
+  },
+  "sponsorRelationship": {
+    "spouse": "Spouse",
+    "parent": "Parent",
+    "child": "Child",
+    "sibling": "Sibling",
+    "grandparent": "Grandparent",
+    "grandchild": "Grandchild",
+    "aunt_uncle": "Aunt or uncle",
+    "cousin": "Cousin",
+    "in_law": "In-law",
+    "friend": "Friend",
+    "employer": "Employer",
+    "business_partner": "Business partner",
+    "other": "Other"
+  },
+  "financingSource": {
+    "self": "Self-funded",
+    "sponsor": "Sponsor-funded",
+    "employer": "Employer-funded",
+    "mixed": "Mixed"
+  },
+  "employmentStatus": {
+    "employed": "Employed",
+    "self_employed": "Self-employed",
+    "unemployed": "Unemployed",
+    "retired": "Retired",
+    "student": "Student",
+    "homemaker": "Homemaker",
+    "other": "Other"
+  },
+  "maritalStatus": {
+    "single": "Single",
+    "married": "Married",
+    "divorced": "Divorced",
+    "widowed": "Widowed",
+    "separated": "Separated",
+    "civil_partnership": "Civil partnership"
+  },
+  "expenseType": {
+    "accommodation": "Accommodation",
+    "transport": "Transport",
+    "food": "Food",
+    "insurance": "Insurance",
+    "pocket_money": "Pocket money",
+    "all": "All expenses"
+  },
+  "requirements": {
+    "APPLICATION_FORM": {
+      "name": "Visa Application Form",
+      "description": "Completed and signed Schengen visa application form",
+      "notes": "Must be signed in two places"
+    },
+    "PASSPORT_CURRENT": {
+      "name": "Current Passport",
+      "description": "Valid passport with at least 3 months validity beyond return date",
+      "notes": "Must have at least 2 blank pages"
+    },
+    "PASSPORT_PREVIOUS": {
+      "name": "Previous Passports",
+      "description": "Previous passports with Schengen visas if applicable"
+    },
+    "PHOTOS": {
+      "name": "Biometric Photos",
+      "description": "2 recent biometric passport photos (35x45mm)",
+      "notes": "White background, taken within last 6 months"
+    },
+    "ID_CARD_COPY": {
+      "name": "National ID Card Copy",
+      "description": "Copy of national identity card (both sides)"
+    },
+    "TRAVEL_INSURANCE": {
+      "name": "Travel Medical Insurance",
+      "description": "Travel insurance with minimum 30,000 EUR coverage",
+      "notes": "Must cover medical expenses, hospitalization, and repatriation"
+    },
+    "TRANSPORT_RESERVATION": {
+      "name": "Round-trip Transport Reservation",
+      "description": "Flight or other transport booking showing entry and exit",
+      "notes": "Reservation is sufficient; paid tickets are not required at application"
+    },
+    "ACCOMMODATION": {
+      "name": "Accommodation Reservation",
+      "description": "Hotel bookings or proof of accommodation for entire stay"
+    },
+    "ITINERARY": {
+      "name": "Travel Itinerary",
+      "description": "Day-by-day travel plan if visiting multiple locations"
+    },
+    "EMPLOYMENT_LETTER": {
+      "name": "Employment Letter",
+      "description": "Letter from employer stating position, salary, and start date"
+    },
+    "APPROVED_LEAVE": {
+      "name": "Approved Leave Letter",
+      "description": "Official approval of leave from employer"
+    },
+    "PAYSLIPS": {
+      "name": "Recent Payslips",
+      "description": "Last 3-6 months payslips",
+      "notes": "Should show consistent income"
+    },
+    "SOCIAL_SECURITY": {
+      "name": "Social Security Record",
+      "description": "Employment history from social security authority"
+    },
+    "BANK_STATEMENTS": {
+      "name": "Bank Statements",
+      "description": "Bank statements for last 3-6 months",
+      "notes": "Should show sufficient funds for the trip"
+    },
+    "SPONSOR_LETTER": {
+      "name": "Sponsorship Letter",
+      "description": "Letter from sponsor declaring financial support"
+    },
+    "SPONSOR_BANK_STATEMENTS": {
+      "name": "Sponsor Bank Statements",
+      "description": "Sponsor bank statements for last 3-6 months"
+    },
+    "SPONSOR_INCOME_PROOF": {
+      "name": "Sponsor Income Documents",
+      "description": "Proof of sponsor income (payslips, tax returns)"
+    },
+    "RELATIONSHIP_PROOF": {
+      "name": "Proof of Relationship",
+      "description": "Documents proving relationship with sponsor",
+      "notes": "Birth certificate, marriage certificate, etc."
+    },
+    "PREVIOUS_VISAS": {
+      "name": "Previous Schengen Visa Copies",
+      "description": "Copies of previous Schengen visas if applicable"
+    },
+    "EMPLOYER_TAX_PLATE": {
+      "name": "Employer Tax Registration",
+      "description": "Company tax registration certificate",
+      "notes": "May be required depending on nationality"
+    },
+    "EMPLOYER_TRADE_REGISTRY": {
+      "name": "Employer Trade Registry Record",
+      "description": "Company registration from trade registry",
+      "notes": "May be required depending on nationality"
+    },
+    "EMPLOYER_SIGNATURE_CIRCULAR": {
+      "name": "Employer Signature Circular",
+      "description": "Company signature authorization document",
+      "notes": "May be required depending on nationality"
+    },
+    "PROPERTY_DEED": {
+      "name": "Property Ownership Documents",
+      "description": "Proof of property ownership if applicable",
+      "notes": "Can strengthen ties to home country"
+    },
+    "BUSINESS_LICENSE": {
+      "name": "Business License",
+      "description": "Business registration or license"
+    },
+    "TAX_RETURNS": {
+      "name": "Tax Returns",
+      "description": "Recent tax returns for self-employed applicants"
+    },
+    "STUDENT_CERTIFICATE": {
+      "name": "Student Certificate",
+      "description": "Enrolment certificate from your school or university"
+    },
+    "PENSION_STATEMENT": {
+      "name": "Pension Statement",
+      "description": "Recent pension payment statements"
+    }
+  },
+  "milestones": {
+    "request-employer-docs": {
+      "name": "Request employer documents",
+      "description": "Request employment letter, leave approval, and payslips from HR"
+    },
+    "obtain-bank-statements": {
+      "name": "Obtain bank statements",
+      "description": "Get recent bank statements from your bank"
+    },
+    "purchase-insurance": {
+      "name": "Purchase travel insurance",
+      "description": "Buy travel medical insurance meeting Schengen requirements"
+    },
+    "confirm-reservations": {
+      "name": "Confirm reservations",
+      "description": "Finalize and print transport and accommodation reservations"
+    },
+    "take-photos": {
+      "name": "Take biometric photos",
+      "description": "Get professional biometric photos taken"
+    },
+    "final-review": {
+      "name": "Final dossier review",
+      "description": "Review all documents, make copies, organize dossier"
+    },
+    "request-employer-company-docs": {
+      "name": "Request employer company documents",
+      "description": "Request company tax plate, trade registry, and signature circular if required"
+    }
+  },
+  "sources": {
+    "gr-mfa-general": {
+      "title": "Ministry of Foreign Affairs — visa information",
+      "notes": "General ministry entry point carried over from an earlier version of this template. It has not been checked against a current document list."
+    }
+  },
+  "templateNotes": {
+    "greece": {
+      "nationalityVaries": "Requirements may vary based on your nationality and the visa centre processing your application.",
+      "visaCentre": "Applications for Greece are handled by an authorized visa centre in many countries.",
+      "peakSeason": "Appointment slots may be limited during peak travel seasons."
+    }
+  }
+}

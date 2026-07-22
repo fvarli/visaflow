@@ -146,3 +146,81 @@ const passportValidAfterTrip = (dossier: Dossier): ValidationFinding[] => {
 - Clear compatibility signals
 
 **Current version:** `1.0.0`
+
+## ADR-011: Turkish-First Bilingual UI
+
+**Decision:** Ship the UI in Turkish and English, with Turkish as the default for a first-time user.
+
+**Context:** The initial audience applies for Schengen visas from within Türkiye. Browser language cannot be trusted to pick Turkish — many users run English-configured devices.
+
+**Rationale:**
+- Meets users in their language by default
+- Language resolution is: stored preference → Turkish. The browser language is never consulted, so `i18next-browser-languagedetector` is intentionally *not* used.
+- `i18next` + `react-i18next`, both locales bundled statically (no network request, no flash of untranslated text).
+
+**Implementation:** `src/i18n/`, `src/app/providers/LocaleProvider.tsx`.
+
+## ADR-012: Stable, Language-Independent Domain Values
+
+**Decision:** All identifiers persisted in a dossier — enum values, document `code`, `countryCode`, `visaType`, validation finding `id`/`ruleId` — remain language-independent. User-facing text is resolved from translation keys at the UI boundary.
+
+**Context:** Exported JSON must be valid and identical regardless of the UI language, and old exports must keep importing.
+
+**Rationale:**
+- A dossier created in Turkish and one created in English produce identical JSON.
+- Wording can change without altering data or breaking imports.
+- Document instances stop storing a display `name`; `code` is the identity and the label is derived via `documentLabel()`. `Document.name` is retained as an optional, deprecated field so existing 1.0.0 exports still import (`schemaVersion` unchanged).
+
+**Implementation:** `src/lib/document-label.ts`, `src/domain/rules/types.ts`, `src/domain/schemas/document.schema.ts`.
+
+## ADR-013: Locale Preference May Persist (Non-Sensitive)
+
+**Decision:** Persist the language choice in `localStorage` under `visaflow-locale`.
+
+**Context:** ADR-006 forbids `localStorage` for personal data but carves out non-personal interface preferences (as already done for theme).
+
+**Rationale:**
+- A language choice reveals nothing about the applicant or their dossier.
+- It is the only key the i18n layer writes; no dossier data ever passes through it.
+
+**Implementation:** `src/app/providers/LocaleProvider.tsx`, pre-paint script in `index.html`.
+
+## ADR-014: Country → Visa Type → Requirement Hierarchy
+
+**Decision:** Restructure country templates from a flat country config into `country → visa type → requirements`.
+
+**Context:** Requirements differ by visa type, not just by country. The previous model conflated the two.
+
+**Rationale:**
+- `CountryConfig` holds one or more `VisaTypeTemplate`s, each keyed by a stable `id` (e.g. `schengen-short-stay-tourism`).
+- `resolveVisaTemplate(countryCode, visaType)` maps the persisted dossier enum onto a template without changing the enum.
+- Conditional-requirement evaluation (`isRequirementApplicable`) is reused unchanged.
+- The unused, duplicated `DocumentTemplateSchema` was removed; `DocumentRequirement` is the single template type.
+
+**Implementation:** `src/config/types.ts`, `src/config/countries/`.
+
+## ADR-015: Official-Source Verification Metadata
+
+**Decision:** Templates and requirements may carry source citations and a content-maintenance review status.
+
+**Context:** Visa requirements change. VisaFlow must not imply a requirement is official merely because it appears in the app.
+
+**Rationale:**
+- `RequirementSource` records a citation a maintainer actually consulted; `reviewStatus` is one of `unverified | partially_verified | verified | needs_review`.
+- These are **content-maintenance** signals, not legal guarantees. VisaFlow is never represented as an embassy or authorized visa centre.
+- No scraping, no external calls, no invented dates. Absent sources and absent verification dates are meaningful, not gaps to fill.
+- The Greece template is honestly marked `unverified`: the only repository evidence is a prior `lastUpdated` date and a general ministry link, so no `lastVerifiedAt` is set.
+
+**Implementation:** `src/config/types.ts`, `src/config/sources/`, `src/components/ui/source-note.tsx`.
+
+## ADR-016: No Visa Approval or Refusal Prediction
+
+**Decision:** VisaFlow will not compute a visa-approval probability or a rejection-risk score, in any form.
+
+**Context:** Such a number would be misleading, unfalsifiable, and would misrepresent an organizational tool as a legal predictor.
+
+**Rationale:**
+- The product measures **organization and internal consistency** only: dossier readiness, application completeness, missing required documents, documents needing updates, consistency findings.
+- Recorded here so future contributors do not introduce approval/refusal predictions.
+
+**Implementation:** enforced by convention and by the Settings disclaimer (`settings:disclaimer.noPrediction`).

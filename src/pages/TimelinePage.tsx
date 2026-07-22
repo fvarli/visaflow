@@ -1,7 +1,8 @@
 import { useMemo } from 'react'
-import { differenceInDays, parseISO, format, isBefore, addDays } from 'date-fns'
+import { useTranslation } from 'react-i18next'
+import { differenceInDays, parseISO, isBefore, addDays } from 'date-fns'
 import { useDossier } from '@/app/providers/DossierProvider'
-import { getCountryConfig } from '@/config/countries'
+import { resolveVisaTemplate } from '@/config/countries'
 import {
   Card,
   CardContent,
@@ -10,16 +11,12 @@ import {
   CardTitle,
 } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Alert, AlertDescription } from '@/components/ui/alert'
-import {
-  AlertCircle,
-  Calendar,
-  CheckCircle,
-  Clock,
-  Plane,
-  FileText,
-} from 'lucide-react'
+import { Calendar, CheckCircle, Clock, Plane, FileText } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { NoDossierState } from '@/components/NoDossierState'
+import { useFormatters } from '@/lib/format'
+import { documentLabel } from '@/lib/document-label'
+import { dynamicT } from '@/lib/i18n-dynamic'
 
 interface TimelineItem {
   id: string
@@ -33,6 +30,9 @@ interface TimelineItem {
 
 export default function TimelinePage() {
   const { state, hasData } = useDossier()
+  const { t } = useTranslation(['timeline', 'common'])
+  const td = dynamicT(t)
+  const format = useFormatters()
 
   const timelineItems = useMemo(() => {
     if (!hasData || !state.application) return []
@@ -47,24 +47,28 @@ export default function TimelinePage() {
       items.push({
         id: 'appointment',
         date,
-        title: 'Visa Appointment',
+        title: t('timeline:events.appointment'),
         description:
-          state.application.appointment.location ?? 'Location not set',
+          state.application.appointment.location ??
+          t('timeline:events.appointmentNoLocation'),
         type: 'appointment',
         status: getStatus(date, today),
         icon: Calendar,
       })
 
       // Add preparation milestones based on appointment
-      const config = getCountryConfig(state.application.destinationCountry)
-      if (config) {
-        config.preparationMilestones.forEach((milestone) => {
+      const template = resolveVisaTemplate(
+        state.application.destinationCountry,
+        state.application.visaType
+      )
+      if (template) {
+        template.preparationMilestones.forEach((milestone) => {
           const milestoneDate = addDays(date, -milestone.daysBeforeAppointment)
           items.push({
             id: milestone.id,
             date: milestoneDate,
-            title: milestone.name,
-            description: milestone.description,
+            title: td(milestone.nameKey),
+            description: td(milestone.descriptionKey),
             type: 'milestone',
             status: getStatus(milestoneDate, today),
             icon: FileText,
@@ -79,8 +83,12 @@ export default function TimelinePage() {
       items.push({
         id: 'trip-start',
         date: entryDate,
-        title: 'Trip Begins',
-        description: `Enter ${state.application.trip.firstEntryCountry || 'Schengen area'}`,
+        title: t('timeline:events.tripBegins'),
+        description: t('timeline:events.tripBeginsDescription', {
+          country:
+            state.application.trip.firstEntryCountry ||
+            t('timeline:events.schengenArea'),
+        }),
         type: 'trip',
         status: getStatus(entryDate, today),
         icon: Plane,
@@ -92,8 +100,8 @@ export default function TimelinePage() {
       items.push({
         id: 'trip-end',
         date: exitDate,
-        title: 'Trip Ends',
-        description: 'Return home',
+        title: t('timeline:events.tripEnds'),
+        description: t('timeline:events.tripEndsDescription'),
         type: 'trip',
         status: getStatus(exitDate, today),
         icon: Plane,
@@ -112,8 +120,10 @@ export default function TimelinePage() {
           items.push({
             id: `doc-expiry-${doc.id}`,
             date: expiryDate,
-            title: `${doc.name} Expires`,
-            description: 'Document validity ends',
+            title: t('timeline:events.documentExpires', {
+              document: documentLabel(t, doc.code, doc.name),
+            }),
+            description: t('timeline:events.documentExpiresDescription'),
             type: 'document',
             status: getStatus(expiryDate, today),
             icon: FileText,
@@ -125,36 +135,28 @@ export default function TimelinePage() {
     items.sort((a, b) => a.date.getTime() - b.date.getTime())
 
     return items
-  }, [state, hasData])
+  }, [state, hasData, t, td])
 
   if (!hasData) {
-    return (
-      <Alert>
-        <AlertCircle className="h-4 w-4" />
-        <AlertDescription>
-          No application data loaded. Go to Dashboard to start a new
-          application.
-        </AlertDescription>
-      </Alert>
-    )
+    return <NoDossierState section={t('timeline:title')} />
   }
 
   if (timelineItems.length === 0) {
     return (
       <div className="space-y-6">
         <div>
-          <h1 className="text-2xl font-bold">Timeline</h1>
+          <h1 className="text-2xl font-bold">{t('timeline:title')}</h1>
           <p className="text-muted-foreground">
-            Your visa application timeline
+            {t('timeline:shortDescription')}
           </p>
         </div>
 
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-12">
             <Calendar className="h-12 w-12 text-muted-foreground mb-4" />
-            <p className="text-muted-foreground">No timeline events yet</p>
+            <p className="text-muted-foreground">{t('timeline:empty.title')}</p>
             <p className="text-sm text-muted-foreground">
-              Add appointment and trip dates to see your timeline
+              {t('timeline:empty.description')}
             </p>
           </CardContent>
         </Card>
@@ -165,10 +167,8 @@ export default function TimelinePage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold">Timeline</h1>
-        <p className="text-muted-foreground">
-          Key dates and milestones for your visa application
-        </p>
+        <h1 className="text-2xl font-bold">{t('timeline:title')}</h1>
+        <p className="text-muted-foreground">{t('timeline:description')}</p>
       </div>
 
       <div className="space-y-4">
@@ -222,7 +222,7 @@ export default function TimelinePage() {
                             : 'outline'
                       }
                     >
-                      {format(item.date, 'MMM d, yyyy')}
+                      {format.dateShort(item.date)}
                     </Badge>
                   </div>
                   <CardDescription>{item.description}</CardDescription>
@@ -230,10 +230,16 @@ export default function TimelinePage() {
                 <CardContent>
                   <p className="text-sm text-muted-foreground">
                     {item.status === 'past'
-                      ? `${Math.abs(differenceInDays(item.date, new Date()))} days ago`
+                      ? t('common:time.daysAgo', {
+                          count: Math.abs(
+                            differenceInDays(item.date, new Date())
+                          ),
+                        })
                       : item.status === 'today'
-                        ? 'Today'
-                        : `In ${differenceInDays(item.date, new Date())} days`}
+                        ? t('common:time.today')
+                        : t('common:time.inDays', {
+                            count: differenceInDays(item.date, new Date()),
+                          })}
                   </p>
                 </CardContent>
               </Card>

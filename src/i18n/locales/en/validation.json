@@ -1,0 +1,170 @@
+{
+  "title": "Consistency checks",
+  "description": "Automated checks for common issues in your dossier",
+  "severity": {
+    "error": "Error",
+    "warning": "Warning",
+    "info": "Info"
+  },
+  "summary": {
+    "errors": "Errors",
+    "warnings": "Warnings",
+    "info": "Info",
+    "errorsHint": "Must be resolved before submission",
+    "warningsHint": "Should be reviewed",
+    "infoHint": "Informational notes",
+    "errorCount_one": "{{count}} error",
+    "errorCount_other": "{{count}} errors",
+    "warningCount_one": "{{count}} warning",
+    "warningCount_other": "{{count}} warnings",
+    "findingCount_one": "{{count}} finding",
+    "findingCount_other": "{{count}} findings",
+    "allPassed": "All checks passed",
+    "allPassedBody": "No issues found in your dossier. Remember to verify all information is accurate before your appointment.",
+    "disclaimer": "These checks are organizational aids, not official requirements. Always verify requirements with the official embassy or visa center.",
+    "findings": "Findings"
+  },
+  "detail": {
+    "suggestedAction": "Suggested action",
+    "relatedFields": "Related fields"
+  },
+  "findings": {
+    "noAccommodation": {
+      "title": "No accommodation reservations",
+      "description": "No accommodation reservations have been added to the trip.",
+      "action": "Add accommodation reservations covering all nights of your trip."
+    },
+    "accommodationGap": {
+      "title": "Accommodation does not cover entire trip",
+      "description": "The following nights are not covered by accommodation: {{dates}}",
+      "action": "Add accommodation reservations to cover all nights of your trip."
+    },
+    "accommodationNameMismatch": {
+      "title": "Accommodation guest name may not match",
+      "description": "Guest name \"{{guestName}}\" on {{reservationName}} does not clearly match applicant name \"{{applicantName}}\".",
+      "action": "Verify the guest name matches the applicant's passport name."
+    },
+    "requiredDocSkipped": {
+      "title": "Required document marked as not applicable",
+      "description": "\"{{document}}\" is marked as required but set to \"not applicable\" without an explanation.",
+      "action": "Add a note explaining why this required document does not apply."
+    },
+    "docExpiresBeforeAppointment": {
+      "title": "Document expires before appointment",
+      "description": "\"{{document}}\" expires on {{validUntil}}, before your appointment on {{appointmentDate}}.",
+      "action": "Obtain an updated version of this document or mark it as needing an update."
+    },
+    "missingRequiredDocs": {
+      "title": "Required documents not started",
+      "description_one": "{{count}} required document has not been started: {{documents}}",
+      "description_other": "{{count}} required documents have not been started: {{documents}}",
+      "action": "Begin collecting the required documents."
+    },
+    "docsNeedUpdate": {
+      "title": "Documents need updating",
+      "description_one": "{{count}} document needs updating: {{documents}}",
+      "description_other": "{{count}} documents need updating: {{documents}}",
+      "action": "Obtain updated versions of these documents."
+    },
+    "noApprovedLeave": {
+      "title": "No approved leave dates",
+      "description": "Employed applicants typically need to show approved leave from their employer.",
+      "action": "Enter your approved leave dates from your employer."
+    },
+    "leaveStartsLate": {
+      "title": "Approved leave starts after trip begins",
+      "description": "Approved leave starts on {{leaveStart}}, but the trip starts on {{tripStart}}.",
+      "action": "Ensure your approved leave covers your entire trip."
+    },
+    "leaveEndsEarly": {
+      "title": "Approved leave ends before trip ends",
+      "description": "Approved leave ends on {{leaveEnd}}, but the trip ends on {{tripEnd}}.",
+      "action": "Ensure your approved leave extends to cover your return."
+    },
+    "noInsurance": {
+      "title": "No travel insurance",
+      "description": "Travel medical insurance is required for Schengen visa applications.",
+      "action": "Purchase travel medical insurance covering your entire trip."
+    },
+    "insuranceDatesMissing": {
+      "title": "Insurance dates missing",
+      "description": "Insurance coverage start and end dates are required.",
+      "action": "Enter the insurance coverage dates."
+    },
+    "insuranceStartsLate": {
+      "title": "Insurance starts after trip begins",
+      "description": "Insurance coverage starts on {{coverageStart}}, but the trip starts on {{tripStart}}.",
+      "action": "Ensure insurance coverage starts on or before your trip start date."
+    },
+    "insuranceEndsEarly": {
+      "title": "Insurance ends before trip ends",
+      "description": "Insurance coverage ends on {{coverageEnd}}, but the trip ends on {{tripEnd}}.",
+      "action": "Ensure insurance coverage extends to or beyond your trip end date."
+    },
+    "insuranceCoverageLow": {
+      "title": "Insurance coverage may be insufficient",
+      "description": "Insurance coverage of {{amount}} may be below the Schengen minimum of {{minimum}}.",
+      "action": "Verify your insurance meets the minimum coverage requirement."
+    },
+    "passportValidityInsufficient": {
+      "title": "Passport validity insufficient",
+      "description": "Passport expires on {{expiryDate}}, but must be valid for at least 3 months after the trip ends ({{tripEnd}}).",
+      "action": "Renew your passport before applying for the visa."
+    },
+    "passportBlankPages": {
+      "title": "Blank passport pages required",
+      "description": "Most visa applications require at least 2 blank pages in your passport.",
+      "action": "Ensure your passport has at least 2 blank visa pages."
+    },
+    "sponsorNoDocuments": {
+      "title": "Sponsor has no documents linked",
+      "description": "Sponsor \"{{sponsorName}}\" has financial information but no supporting documents linked.",
+      "action": "Add supporting financial documents for this sponsor."
+    },
+    "sponsoredNoSponsor": {
+      "title": "Sponsor required for sponsored funding",
+      "description": "Trip financing indicates sponsor funding, but no sponsors have been added.",
+      "action": "Add at least one sponsor with their financial information."
+    },
+    "sponsorsNoFinanceInfo": {
+      "title": "Sponsors have no financial information",
+      "description": "Sponsors have been added but none have financial information entered.",
+      "action": "Enter financial information for at least one sponsor."
+    },
+    "sponsorRelationshipProof": {
+      "title": "Family sponsor may need relationship proof",
+      "description": "Sponsor \"{{sponsorName}}\" ({{relationship}}) may require proof of family relationship.",
+      "action": "Consider adding documents proving the family relationship."
+    },
+    "tripDatesInvalid": {
+      "title": "Invalid trip dates",
+      "description": "Trip entry date ({{entryDate}}) must be before the exit date ({{exitDate}}).",
+      "action": "Correct the trip dates so entry comes before exit."
+    },
+    "appointmentAfterTrip": {
+      "title": "Appointment after trip start",
+      "description": "Visa appointment ({{appointmentDate}}) must be before the trip entry date ({{entryDate}}).",
+      "action": "Schedule the visa appointment before your planned trip start date."
+    },
+    "tripInPast": {
+      "title": "Trip date is in the past",
+      "description": "Trip entry date ({{entryDate}}) is in the past.",
+      "action": "Update the trip dates to a future date."
+    },
+    "routeNightsMismatch": {
+      "title": "Route nights do not match trip duration",
+      "description": "Route total ({{routeNights}} nights) does not match trip duration ({{totalNights}} nights).",
+      "action": "Adjust route stop durations to match the total trip length."
+    },
+    "mainDestinationMismatch": {
+      "title": "Main destination may be incorrect",
+      "description": "Declared main destination ({{declared}}) differs from the longest stay country ({{longest}} with {{nights}} nights).",
+      "action": "Verify that the main destination is the country where you will spend the most time."
+    },
+    "firstEntryTransportMismatch": {
+      "title": "First entry country may not match transport",
+      "description": "Declared first entry country ({{declared}}) does not match the first transport arrival ({{actual}}).",
+      "action": "Verify the first entry country matches your transport reservations."
+    }
+  }
+}

@@ -15,7 +15,8 @@ import {
 
 export interface NavItem {
   to: string
-  label: string
+  /** Translation key. The route path is the stable identifier, not the label. */
+  labelKey: string
   icon: React.ComponentType<{ className?: string }>
   /**
    * Reserved for live counts (open findings, missing documents). Rendered as
@@ -26,7 +27,7 @@ export interface NavItem {
 
 export interface NavGroup {
   /** Omit for the top group so the primary destination needs no header. */
-  label?: string
+  labelKey?: string
   items: NavItem[]
 }
 
@@ -40,40 +41,54 @@ export interface NavGroup {
  */
 export const navGroups: NavGroup[] = [
   {
-    items: [{ to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard }],
-  },
-  {
-    label: 'Application',
     items: [
-      { to: '/applicant', label: 'Applicant', icon: User },
-      { to: '/trip', label: 'Trip', icon: Plane },
-      { to: '/employment', label: 'Employment', icon: Briefcase },
-      { to: '/finance', label: 'Finance', icon: Wallet },
-      { to: '/sponsors', label: 'Sponsors', icon: Users },
+      {
+        to: '/dashboard',
+        labelKey: 'navigation:items.dashboard',
+        icon: LayoutDashboard,
+      },
     ],
   },
   {
-    label: 'Dossier',
+    labelKey: 'navigation:groups.application',
+    items: [
+      { to: '/applicant', labelKey: 'navigation:items.applicant', icon: User },
+      { to: '/trip', labelKey: 'navigation:items.trip', icon: Plane },
+      {
+        to: '/employment',
+        labelKey: 'navigation:items.employment',
+        icon: Briefcase,
+      },
+      { to: '/finance', labelKey: 'navigation:items.finance', icon: Wallet },
+      { to: '/sponsors', labelKey: 'navigation:items.sponsors', icon: Users },
+    ],
+  },
+  {
+    labelKey: 'navigation:groups.dossier',
     items: [
       {
         to: '/documents',
-        label: 'Documents',
+        labelKey: 'navigation:items.documents',
         icon: FileText,
         badgeKey: 'missingDocuments',
       },
-      { to: '/timeline', label: 'Timeline', icon: Calendar },
+      {
+        to: '/timeline',
+        labelKey: 'navigation:items.timeline',
+        icon: Calendar,
+      },
     ],
   },
   {
-    label: 'Review',
+    labelKey: 'navigation:groups.review',
     items: [
       {
         to: '/consistency-checks',
-        label: 'Consistency Checks',
+        labelKey: 'navigation:items.consistencyChecks',
         icon: ShieldCheck,
         badgeKey: 'openFindings',
       },
-      { to: '/notes', label: 'Notes', icon: StickyNote },
+      { to: '/notes', labelKey: 'navigation:items.notes', icon: StickyNote },
     ],
   },
 ]
@@ -86,9 +101,15 @@ export const navGroups: NavGroup[] = [
  * it just is not advertised in the production sidebar.
  */
 export const secondaryNavItems: NavItem[] = [
-  { to: '/settings', label: 'Settings', icon: Settings },
+  { to: '/settings', labelKey: 'navigation:items.settings', icon: Settings },
   ...(import.meta.env.DEV
-    ? [{ to: '/playground', label: 'Playground', icon: Palette }]
+    ? [
+        {
+          to: '/playground',
+          labelKey: 'navigation:items.playground',
+          icon: Palette,
+        },
+      ]
     : []),
 ]
 

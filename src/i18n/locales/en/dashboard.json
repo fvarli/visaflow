@@ -1,0 +1,43 @@
+{
+  "title": "Dashboard",
+  "welcome": "Welcome to VisaFlow",
+  "welcomeDescription": "Organize your visa application dossier with confidence.",
+  "getStarted": {
+    "title": "Get started",
+    "description": "Choose how you would like to begin organizing your visa application.",
+    "startGreece": "Start new Greece application",
+    "orImport": "Or use <1>Import</1> in the sidebar to load an existing dossier file.",
+    "orImportPlain": "Or use the Import button in the sidebar to load existing data."
+  },
+  "cards": {
+    "appointment": "Appointment",
+    "tripStart": "Trip start",
+    "daysUntilTravel": "{{count}} days until travel"
+  },
+  "completion": {
+    "title": "Dossier readiness",
+    "description": "{{ready}} of {{total}} required documents ready",
+    "progressLabel": "Document completion",
+    "ready": "ready",
+    "pending": "pending",
+    "needUpdate": "need update"
+  },
+  "checks": {
+    "title": "Consistency checks",
+    "description": "Automated checks for common issues in your dossier",
+    "viewAllFindings": "View all {{count}} findings",
+    "noIssues": "No issues found"
+  },
+  "nextSteps": {
+    "title": "Next steps",
+    "description": "The quickest ways to move your application forward",
+    "nothingOutstanding": "Nothing outstanding",
+    "nothingOutstandingBody": "Every tracked item is complete. Export your dossier to save this state.",
+    "completeMissingDocs_one": "Complete {{count}} missing document",
+    "completeMissingDocs_other": "Complete {{count}} missing documents",
+    "setAppointment": "Set appointment date",
+    "addTrip": "Add trip details",
+    "resolveErrors_one": "Resolve {{count}} error",
+    "resolveErrors_other": "Resolve {{count}} errors"
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "title": "Zaman çizelgesi",
+  "description": "Vize başvurunuzun önemli tarihleri ve aşamaları",
+  "shortDescription": "Vize başvuru zaman çizelgeniz",
+  "empty": {
+    "title": "Henüz bir olay yok",
+    "description": "Burada görebilmek için randevu ve seyahat tarihlerini ekleyin.",
+    "action": "Seyahat tarihlerini ekle"
+  },
+  "events": {
+    "appointment": "Vize randevusu",
+    "appointmentNoLocation": "Yer belirtilmedi",
+    "tripBegins": "Seyahat başlıyor",
+    "tripBeginsDescription": "{{country}} ülkesine giriş",
+    "schengenArea": "Schengen bölgesi",
+    "tripEnds": "Seyahat bitiyor",
+    "tripEndsDescription": "Dönüş",
+    "documentExpires": "{{document}} geçerliliği doluyor",
+    "documentExpiresDescription": "Belgenin geçerlilik süresi sona eriyor"
+  }
+}

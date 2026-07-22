@@ -1,11 +1,14 @@
 import { useLocation } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { Menu, Download } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { ThemeToggle } from '@/components/ui/theme-toggle'
+import { LanguageSelect } from '@/components/ui/language-select'
 import { StatusBadge } from '@/components/ui/status-badge'
 import { useDossier } from '@/app/providers/DossierProvider'
 import { getNavItemByPath } from '@/config/navigation'
 import { cn } from '@/lib/utils'
+import { dynamicT } from '@/lib/i18n-dynamic'
 
 interface HeaderProps {
   onMenuClick?: () => void
@@ -17,6 +20,7 @@ interface HeaderProps {
 export function Header({ onMenuClick, onSave, scrolled = false }: HeaderProps) {
   const { state, hasData } = useDossier()
   const { pathname } = useLocation()
+  const { t } = useTranslation()
   const current = getNavItemByPath(pathname)
 
   return (
@@ -34,13 +38,13 @@ export function Header({ onMenuClick, onSave, scrolled = false }: HeaderProps) {
         onClick={onMenuClick}
       >
         <Menu />
-        <span className="sr-only">Open navigation</span>
+        <span className="sr-only">{t('a11y.openNavigation')}</span>
       </Button>
 
       {/* Page context. Doubles as a breadcrumb once more levels exist. */}
       <div className="flex min-w-0 items-center gap-2">
         <span className="text-body text-foreground truncate font-medium">
-          {current?.label ?? 'VisaFlow'}
+          {current ? dynamicT(t)(current.labelKey) : t('app.name')}
         </span>
         {hasData && state.application?.destinationCountry && (
           <>
@@ -48,9 +52,12 @@ export function Header({ onMenuClick, onSave, scrolled = false }: HeaderProps) {
               /
             </span>
             <span className="text-body text-muted-foreground hidden truncate sm:inline">
-              {state.application.destinationCountry}
+              {dynamicT(t)(
+                `visa-domain:countries.${state.application.destinationCountry}`,
+                { defaultValue: state.application.destinationCountry }
+              )}
               {state.application.visaType &&
-                ` · ${state.application.visaType.replace(/_/g, ' ')}`}
+                ` · ${dynamicT(t)(`visa-domain:visaTypes.${state.application.visaType}`)}`}
             </span>
           </>
         )}
@@ -65,10 +72,12 @@ export function Header({ onMenuClick, onSave, scrolled = false }: HeaderProps) {
             className="hidden sm:inline-flex"
           >
             {state.isDirty
-              ? 'Unsaved'
+              ? t('saveState.unsaved')
               : state.lastSaved
-                ? `Saved ${formatRelativeTime(state.lastSaved)}`
-                : 'No changes'}
+                ? t('saveState.savedAt', {
+                    when: formatRelativeTime(state.lastSaved, t),
+                  })
+                : t('saveState.noChanges')}
           </StatusBadge>
         )}
 
@@ -80,25 +89,29 @@ export function Header({ onMenuClick, onSave, scrolled = false }: HeaderProps) {
             disabled={!state.isDirty}
           >
             <Download />
-            Export
+            {t('actions.export')}
           </Button>
         )}
 
+        <LanguageSelect />
         <ThemeToggle />
       </div>
     </header>
   )
 }
 
-function formatRelativeTime(date: Date): string {
+function formatRelativeTime(
+  date: Date,
+  t: ReturnType<typeof useTranslation>['t']
+): string {
   const now = new Date()
   const diffMs = now.getTime() - date.getTime()
   const diffSecs = Math.floor(diffMs / 1000)
   const diffMins = Math.floor(diffSecs / 60)
   const diffHours = Math.floor(diffMins / 60)
 
-  if (diffSecs < 60) return 'just now'
-  if (diffMins < 60) return `${diffMins}m ago`
-  if (diffHours < 24) return `${diffHours}h ago`
+  if (diffSecs < 60) return t('time.justNow')
+  if (diffMins < 60) return t('time.minutesAgo', { count: diffMins })
+  if (diffHours < 24) return t('time.hoursAgo', { count: diffHours })
   return date.toLocaleDateString()
 }

@@ -1,0 +1,39 @@
+{
+  "title": "Seyahat",
+  "description": "Vize randevunuz ve başvuruya konu seyahatiniz",
+  "shortDescription": "Vize randevusu ve seyahat bilgileri",
+  "appointment": {
+    "title": "Vize randevusu",
+    "description": "Planlanmış vize başvuru randevunuz",
+    "date": "Tarih",
+    "time": "Saat",
+    "location": "Yer",
+    "locationPlaceholder": "örn. VFS Global İstanbul"
+  },
+  "dates": {
+    "title": "Seyahat tarihleri",
+    "description": "Schengen bölgesine giriş ve çıkış planınız",
+    "entryDate": "Giriş tarihi",
+    "exitDate": "Çıkış tarihi"
+  },
+  "destinations": {
+    "title": "Varış yerleri",
+    "description": "Ziyaret edeceğiniz ülkeler ve şehirler",
+    "firstEntryCountry": "İlk giriş ülkesi",
+    "mainDestination": "Ana varış ülkesi",
+    "entryCity": "Giriş şehri",
+    "exitCity": "Çıkış şehri",
+    "cityPlaceholder": "örn. Atina",
+    "countryPlaceholder": "örn. GR"
+  },
+  "purpose": {
+    "title": "Seyahat amacı",
+    "placeholder": "Seyahatinizin amacını açıklayın..."
+  },
+  "errors": {
+    "entryDateRequired": "Giriş tarihi zorunludur",
+    "exitDateRequired": "Çıkış tarihi zorunludur",
+    "firstEntryCountryRequired": "İlk giriş ülkesi zorunludur",
+    "mainDestinationRequired": "Ana varış ülkesi zorunludur"
+  }
+}

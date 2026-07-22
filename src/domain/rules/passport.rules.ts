@@ -22,11 +22,16 @@ export const passportValidAfterTrip: ValidationRule = (
     return [
       {
         id: 'passport-validity-insufficient',
+        ruleId: 'passport.validAfterTrip',
         severity: 'error',
-        title: 'Passport validity insufficient',
-        description: `Passport expires on ${passport.expiryDate}, but must be valid for at least 3 months after trip end (${trip.exitDate}).`,
+        messageKey: 'findings.passportValidityInsufficient',
+        messageParams: {
+          dates: {
+            expiryDate: passport.expiryDate,
+            tripEnd: trip.exitDate,
+          },
+        },
         relatedFields: ['applicant.passport.expiryDate', 'trip.exitDate'],
-        suggestedAction: 'Renew your passport before applying for the visa.',
       },
     ]
   }
@@ -44,12 +49,10 @@ export const passportHasBlankPages: ValidationRule = (
   return [
     {
       id: 'passport-blank-pages-reminder',
+      ruleId: 'passport.hasBlankPages',
       severity: 'info',
-      title: 'Blank passport pages required',
-      description:
-        'Most visa applications require at least 2 blank pages in your passport.',
+      messageKey: 'findings.passportBlankPages',
       relatedFields: ['applicant.passport'],
-      suggestedAction: 'Ensure your passport has at least 2 blank visa pages.',
     },
   ]
 }

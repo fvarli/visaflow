@@ -73,16 +73,34 @@ src/
 - NEVER make external API calls
 - NEVER add analytics or tracking
 - Data exists only in browser memory until exported
+- The ONLY permitted localStorage keys are `visaflow-theme` and
+  `visaflow-locale` — non-personal interface preferences (ADR-006/ADR-013)
+
+### Internationalization
+- Bilingual (Turkish default, English). Never hardcode user-visible text —
+  add a key under `src/i18n/locales/{tr,en}/<namespace>.json` and render via
+  `useTranslation()`. `tr` and `en` must carry identical keys (parity test).
+- `t()` is strictly typed; for keys computed at runtime use
+  `dynamicT()` from `src/lib/i18n-dynamic.ts`.
+- Format dates/numbers/currency only through `src/lib/format.ts`
+  (`useFormatters()`), never `Intl` directly. Stored values stay ISO/raw.
+- Domain values (enums, `code`, `visaType`, finding `id`/`ruleId`) are
+  language-independent; only presentation is translated. Exported JSON must
+  not change with language.
+- No visa approval/refusal prediction, ever (ADR-016).
 
 ### Forms
 - Use React Hook Form with `@hookform/resolvers/zod`
 - Form schemas should match or extend domain schemas
 
 ### Country Configurations
-- Document requirements are configuration, not code
-- Located in `src/config/countries/`
+- `country → visa type → requirements`; requirements carry translation keys,
+  not prose (`nameKey`/`descriptionKey`/`notesKey`)
+- Located in `src/config/countries/<country>/`; resolve with
+  `resolveVisaTemplate(countryCode, visaType)`
 - Support conditional requirements (e.g., "required if employed")
-- Currently only Greece Schengen tourism is implemented
+- Source metadata is honest: no scraping, no invented dates; unverified stays
+  `unverified` (ADR-015). Currently only Greece Schengen tourism is implemented.
 
 ## Testing
 

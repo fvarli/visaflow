@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useDossier } from '@/app/providers/DossierProvider'
 import {
   Card,
@@ -25,14 +26,19 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog'
-import { Alert, AlertDescription } from '@/components/ui/alert'
-import { AlertCircle, Plus, Trash2, User } from 'lucide-react'
+import { Plus, Trash2, User } from 'lucide-react'
+import { NoDossierState } from '@/components/NoDossierState'
+import { dynamicT } from '@/lib/i18n-dynamic'
+import { useFormatters } from '@/lib/format'
 import { createSponsorId } from '@/domain/types/common'
 import type { Sponsor } from '@/domain/schemas/sponsor.schema'
 
 export default function SponsorsPage() {
   const { state, addSponsor, updateSponsor, removeSponsor, hasData } =
     useDossier()
+  const { t } = useTranslation(['sponsors', 'common', 'visa-domain'])
+  const td = dynamicT(t)
+  const format = useFormatters()
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editingSponsor, setEditingSponsor] = useState<Sponsor | null>(null)
 
@@ -101,25 +107,15 @@ export default function SponsorsPage() {
   }
 
   if (!hasData) {
-    return (
-      <Alert>
-        <AlertCircle className="h-4 w-4" />
-        <AlertDescription>
-          No application data loaded. Go to Dashboard to start a new
-          application.
-        </AlertDescription>
-      </Alert>
-    )
+    return <NoDossierState section={t('sponsors:title')} />
   }
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold">Sponsors</h1>
-          <p className="text-muted-foreground">
-            People who will sponsor your trip financially
-          </p>
+          <h1 className="text-2xl font-bold">{t('sponsors:title')}</h1>
+          <p className="text-muted-foreground">{t('sponsors:description')}</p>
         </div>
 
         <Dialog
@@ -132,45 +128,45 @@ export default function SponsorsPage() {
           <DialogTrigger asChild>
             <Button>
               <Plus className="mr-2 h-4 w-4" />
-              Add Sponsor
+              {t('sponsors:add')}
             </Button>
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
               <DialogTitle>
-                {editingSponsor ? 'Edit Sponsor' : 'Add Sponsor'}
+                {editingSponsor ? t('sponsors:edit') : t('sponsors:add')}
               </DialogTitle>
               <DialogDescription>
-                Enter the sponsor&apos;s information
+                {t('sponsors:dialogDescription')}
               </DialogDescription>
             </DialogHeader>
 
             <div className="space-y-4">
               <div className="grid gap-4 grid-cols-2">
                 <div className="space-y-2">
-                  <Label>First Name *</Label>
+                  <Label>{t('sponsors:fields.firstName')} *</Label>
                   <Input
                     value={formData.firstName}
                     onChange={(e) =>
                       setFormData({ ...formData, firstName: e.target.value })
                     }
-                    placeholder="First name"
+                    placeholder={t('sponsors:fields.firstName')}
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label>Last Name *</Label>
+                  <Label>{t('sponsors:fields.lastName')} *</Label>
                   <Input
                     value={formData.lastName}
                     onChange={(e) =>
                       setFormData({ ...formData, lastName: e.target.value })
                     }
-                    placeholder="Last name"
+                    placeholder={t('sponsors:fields.lastName')}
                   />
                 </div>
               </div>
 
               <div className="space-y-2">
-                <Label>Relationship *</Label>
+                <Label>{t('sponsors:fields.relationship')} *</Label>
                 <Select
                   value={formData.relationship}
                   onValueChange={(value) =>
@@ -178,24 +174,42 @@ export default function SponsorsPage() {
                   }
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Select relationship" />
+                    <SelectValue
+                      placeholder={t('sponsors:fields.relationshipPlaceholder')}
+                    />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="spouse">Spouse</SelectItem>
-                    <SelectItem value="parent">Parent</SelectItem>
-                    <SelectItem value="child">Child</SelectItem>
-                    <SelectItem value="sibling">Sibling</SelectItem>
-                    <SelectItem value="grandparent">Grandparent</SelectItem>
-                    <SelectItem value="friend">Friend</SelectItem>
-                    <SelectItem value="employer">Employer</SelectItem>
-                    <SelectItem value="other">Other</SelectItem>
+                    <SelectItem value="spouse">
+                      {td('visa-domain:sponsorRelationship.spouse')}
+                    </SelectItem>
+                    <SelectItem value="parent">
+                      {td('visa-domain:sponsorRelationship.parent')}
+                    </SelectItem>
+                    <SelectItem value="child">
+                      {td('visa-domain:sponsorRelationship.child')}
+                    </SelectItem>
+                    <SelectItem value="sibling">
+                      {td('visa-domain:sponsorRelationship.sibling')}
+                    </SelectItem>
+                    <SelectItem value="grandparent">
+                      {td('visa-domain:sponsorRelationship.grandparent')}
+                    </SelectItem>
+                    <SelectItem value="friend">
+                      {td('visa-domain:sponsorRelationship.friend')}
+                    </SelectItem>
+                    <SelectItem value="employer">
+                      {td('visa-domain:sponsorRelationship.employer')}
+                    </SelectItem>
+                    <SelectItem value="other">
+                      {td('visa-domain:sponsorRelationship.other')}
+                    </SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
               <div className="grid gap-4 grid-cols-2">
                 <div className="space-y-2">
-                  <Label>Monthly Income</Label>
+                  <Label>{t('sponsors:fields.monthlyIncome')}</Label>
                   <Input
                     type="number"
                     value={formData.monthlyIncome}
@@ -209,7 +223,7 @@ export default function SponsorsPage() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label>Currency</Label>
+                  <Label>{t('sponsors:fields.currency')}</Label>
                   <Select
                     value={formData.currency}
                     onValueChange={(value) =>
@@ -231,10 +245,12 @@ export default function SponsorsPage() {
 
               <div className="flex justify-end gap-2">
                 <Button variant="outline" onClick={() => setDialogOpen(false)}>
-                  Cancel
+                  {t('common:actions.cancel')}
                 </Button>
                 <Button onClick={handleSubmit}>
-                  {editingSponsor ? 'Save Changes' : 'Add Sponsor'}
+                  {editingSponsor
+                    ? t('common:actions.saveChanges')
+                    : t('sponsors:add')}
                 </Button>
               </div>
             </div>
@@ -246,9 +262,9 @@ export default function SponsorsPage() {
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-12">
             <User className="h-12 w-12 text-muted-foreground mb-4" />
-            <p className="text-muted-foreground">No sponsors added yet</p>
+            <p className="text-muted-foreground">{t('sponsors:empty.title')}</p>
             <p className="text-sm text-muted-foreground">
-              Add sponsors if someone else will fund your trip
+              {t('sponsors:empty.description')}
             </p>
           </CardContent>
         </Card>
@@ -262,8 +278,9 @@ export default function SponsorsPage() {
                     {sponsor.firstName} {sponsor.lastName}
                   </CardTitle>
                   <CardDescription>
-                    {sponsor.relationship.charAt(0).toUpperCase() +
-                      sponsor.relationship.slice(1)}
+                    {td(
+                      `visa-domain:sponsorRelationship.${sponsor.relationship}`
+                    )}
                   </CardDescription>
                 </div>
                 <div className="flex gap-2">
@@ -272,7 +289,7 @@ export default function SponsorsPage() {
                     size="sm"
                     onClick={() => handleEdit(sponsor)}
                   >
-                    Edit
+                    {t('common:actions.edit')}
                   </Button>
                   <Button
                     variant="outline"
@@ -285,9 +302,9 @@ export default function SponsorsPage() {
               </CardHeader>
               <CardContent>
                 {sponsor.monthlyIncome && (
-                  <p className="text-sm">
-                    Monthly Income: {sponsor.monthlyIncome.toLocaleString()}{' '}
-                    {sponsor.currency}
+                  <p className="text-sm" data-numeric>
+                    {t('sponsors:card.monthlyIncome')}:{' '}
+                    {format.currency(sponsor.monthlyIncome, sponsor.currency)}
                   </p>
                 )}
               </CardContent>

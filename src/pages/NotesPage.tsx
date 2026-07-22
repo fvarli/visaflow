@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { format } from 'date-fns'
+import { useTranslation } from 'react-i18next'
 import { useDossier } from '@/app/providers/DossierProvider'
 import type { ApplicationNote } from '@/domain/schemas/application.schema'
 import {
@@ -28,12 +28,17 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog'
-import { Alert, AlertDescription } from '@/components/ui/alert'
-import { AlertCircle, Plus, StickyNote, Trash2 } from 'lucide-react'
+import { Plus, StickyNote, Trash2 } from 'lucide-react'
+import { NoDossierState } from '@/components/NoDossierState'
+import { dynamicT } from '@/lib/i18n-dynamic'
+import { useFormatters } from '@/lib/format'
 import { generateId } from '@/domain/types/common'
 
 export default function NotesPage() {
   const { state, updateApplication, hasData } = useDossier()
+  const { t } = useTranslation(['notes', 'common'])
+  const td = dynamicT(t)
+  const fmt = useFormatters()
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editingNote, setEditingNote] = useState<ApplicationNote | null>(null)
 
@@ -95,25 +100,15 @@ export default function NotesPage() {
   }
 
   if (!hasData) {
-    return (
-      <Alert>
-        <AlertCircle className="h-4 w-4" />
-        <AlertDescription>
-          No application data loaded. Go to Dashboard to start a new
-          application.
-        </AlertDescription>
-      </Alert>
-    )
+    return <NoDossierState section={t('notes:title')} />
   }
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold">Notes</h1>
-          <p className="text-muted-foreground">
-            Keep track of important information
-          </p>
+          <h1 className="text-2xl font-bold">{t('notes:title')}</h1>
+          <p className="text-muted-foreground">{t('notes:shortDescription')}</p>
         </div>
 
         <Dialog
@@ -126,33 +121,33 @@ export default function NotesPage() {
           <DialogTrigger asChild>
             <Button>
               <Plus className="mr-2 h-4 w-4" />
-              Add Note
+              {t('notes:add')}
             </Button>
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
               <DialogTitle>
-                {editingNote ? 'Edit Note' : 'Add Note'}
+                {editingNote ? t('notes:edit') : t('notes:add')}
               </DialogTitle>
               <DialogDescription>
-                Add a note to your visa application dossier
+                {t('notes:dialogDescription')}
               </DialogDescription>
             </DialogHeader>
 
             <div className="space-y-4">
               <div className="space-y-2">
-                <Label>Title (optional)</Label>
+                <Label>{t('notes:fields.title')}</Label>
                 <Input
                   value={formData.title}
                   onChange={(e) =>
                     setFormData({ ...formData, title: e.target.value })
                   }
-                  placeholder="Note title"
+                  placeholder={t('notes:fields.titlePlaceholder')}
                 />
               </div>
 
               <div className="space-y-2">
-                <Label>Category</Label>
+                <Label>{t('notes:fields.category')}</Label>
                 <Select
                   value={formData.category}
                   onValueChange={(value) =>
@@ -166,33 +161,45 @@ export default function NotesPage() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="general">General</SelectItem>
-                    <SelectItem value="document">Document</SelectItem>
-                    <SelectItem value="timeline">Timeline</SelectItem>
-                    <SelectItem value="appointment">Appointment</SelectItem>
-                    <SelectItem value="other">Other</SelectItem>
+                    <SelectItem value="general">
+                      {t('notes:categories.general')}
+                    </SelectItem>
+                    <SelectItem value="document">
+                      {t('notes:categories.document')}
+                    </SelectItem>
+                    <SelectItem value="timeline">
+                      {t('notes:categories.timeline')}
+                    </SelectItem>
+                    <SelectItem value="appointment">
+                      {t('notes:categories.appointment')}
+                    </SelectItem>
+                    <SelectItem value="other">
+                      {t('notes:categories.other')}
+                    </SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
               <div className="space-y-2">
-                <Label>Content *</Label>
+                <Label>{t('notes:fields.content')} *</Label>
                 <Textarea
                   value={formData.content}
                   onChange={(e) =>
                     setFormData({ ...formData, content: e.target.value })
                   }
-                  placeholder="Write your note..."
+                  placeholder={t('notes:fields.contentPlaceholder')}
                   rows={5}
                 />
               </div>
 
               <div className="flex justify-end gap-2">
                 <Button variant="outline" onClick={() => setDialogOpen(false)}>
-                  Cancel
+                  {t('common:actions.cancel')}
                 </Button>
                 <Button onClick={handleSubmit}>
-                  {editingNote ? 'Save Changes' : 'Add Note'}
+                  {editingNote
+                    ? t('common:actions.saveChanges')
+                    : t('notes:add')}
                 </Button>
               </div>
             </div>
@@ -204,9 +211,9 @@ export default function NotesPage() {
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-12">
             <StickyNote className="h-12 w-12 text-muted-foreground mb-4" />
-            <p className="text-muted-foreground">No notes yet</p>
+            <p className="text-muted-foreground">{t('notes:empty.title')}</p>
             <p className="text-sm text-muted-foreground">
-              Add notes to track important information
+              {t('notes:empty.description')}
             </p>
           </CardContent>
         </Card>
@@ -217,13 +224,12 @@ export default function NotesPage() {
               <CardHeader className="flex flex-row items-start justify-between">
                 <div>
                   <CardTitle className="text-base">
-                    {note.title ?? 'Untitled Note'}
+                    {note.title ?? t('notes:untitled')}
                   </CardTitle>
                   <CardDescription>
-                    {note.category.charAt(0).toUpperCase() +
-                      note.category.slice(1)}{' '}
-                    - {format(new Date(note.createdAt), 'MMM d, yyyy')}
-                    {note.updatedAt && ' (edited)'}
+                    {td(`notes:categories.${note.category}`)} ·{' '}
+                    <span data-numeric>{fmt.dateShort(note.createdAt)}</span>
+                    {note.updatedAt && ` (${t('notes:edited')})`}
                   </CardDescription>
                 </div>
                 <div className="flex gap-2">
@@ -232,7 +238,7 @@ export default function NotesPage() {
                     size="sm"
                     onClick={() => handleEdit(note)}
                   >
-                    Edit
+                    {t('common:actions.edit')}
                   </Button>
                   <Button
                     variant="outline"

@@ -1,0 +1,29 @@
+{
+  "title": "Employment",
+  "description": "Your current employment status and the details an embassy will ask for",
+  "shortDescription": "Your current employment status and details",
+  "status": {
+    "title": "Employment status",
+    "description": "Select your current employment situation",
+    "label": "Status",
+    "placeholder": "Select status",
+    "required": "Employment status is required"
+  },
+  "employer": {
+    "title": "Employer details",
+    "description": "Information about your current employer",
+    "name": "Employer name",
+    "namePlaceholder": "Company name",
+    "jobTitle": "Job title",
+    "jobTitlePlaceholder": "Your position",
+    "startDate": "Start date",
+    "monthlyNetIncome": "Monthly net income",
+    "currency": "Currency"
+  },
+  "leave": {
+    "title": "Approved leave",
+    "description": "The leave your employer has approved for this trip",
+    "startDate": "Leave start date",
+    "endDate": "Leave end date"
+  }
+}

@@ -1,7 +1,10 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, beforeEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { ThemeProvider } from '@/app/providers/ThemeProvider'
+import { LocaleProvider } from '@/app/providers/LocaleProvider'
+import i18n, { DEFAULT_LOCALE, LOCALE_STORAGE_KEY } from '@/i18n'
+import { dynamicT } from '@/lib/i18n-dynamic'
 import { DossierProvider } from '@/app/providers/DossierProvider'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import { Sidebar } from '@/components/layout/Sidebar'
@@ -11,16 +14,25 @@ import { Input } from '@/components/ui/input'
 import { PageHeader } from '@/components/ui/page-header'
 import { StatusBadge } from '@/components/ui/status-badge'
 
+// Every test starts from a clean first-use state: no stored preference and
+// the application default locale.
+beforeEach(async () => {
+  window.localStorage.removeItem(LOCALE_STORAGE_KEY)
+  await i18n.changeLanguage(DEFAULT_LOCALE)
+})
+
 /** Mirrors the real provider stack in src/App.tsx. */
 function renderInApp(ui: React.ReactNode, route = '/documents') {
   return render(
-    <ThemeProvider>
-      <DossierProvider>
-        <TooltipProvider>
-          <MemoryRouter initialEntries={[route]}>{ui}</MemoryRouter>
-        </TooltipProvider>
-      </DossierProvider>
-    </ThemeProvider>
+    <LocaleProvider>
+      <ThemeProvider>
+        <DossierProvider>
+          <TooltipProvider>
+            <MemoryRouter initialEntries={[route]}>{ui}</MemoryRouter>
+          </TooltipProvider>
+        </DossierProvider>
+      </ThemeProvider>
+    </LocaleProvider>
   )
 }
 
@@ -76,23 +88,32 @@ describe('Field', () => {
 describe('Navigation', () => {
   it('marks the active route with aria-current', () => {
     renderInApp(<Sidebar />, '/documents')
-    const active = screen.getByRole('link', { name: /documents/i })
+    const active = screen.getByRole('link', {
+      name: i18n.t('navigation:items.documents'),
+    })
     expect(active).toHaveAttribute('aria-current', 'page')
   })
 
   it('renders every destination exactly once (no duplicated nav arrays)', () => {
     renderInApp(<Sidebar />)
-    for (const label of ['Dashboard', 'Applicant', 'Documents', 'Settings']) {
-      expect(screen.getAllByRole('link', { name: label })).toHaveLength(1)
+    for (const key of [
+      'navigation:items.dashboard',
+      'navigation:items.applicant',
+      'navigation:items.documents',
+      'navigation:items.settings',
+    ]) {
+      expect(
+        screen.getAllByRole('link', { name: dynamicT(i18n.t)(key) })
+      ).toHaveLength(1)
     }
   })
 })
 
 describe('SkipLink', () => {
   it('targets the main landmark', () => {
-    render(<SkipLink />)
+    renderInApp(<SkipLink />)
     expect(
-      screen.getByRole('link', { name: /skip to content/i })
+      screen.getByRole('link', { name: i18n.t('a11y.skipToContent') })
     ).toHaveAttribute('href', '#main')
   })
 })
@@ -123,23 +144,27 @@ describe('Playground', () => {
     expect(
       screen.getByRole('heading', {
         level: 1,
-        name: /design system playground/i,
+        name: i18n.t('playground:title'),
       })
     ).toBeInTheDocument()
 
     for (const section of [
-      'Foundations',
-      'Typography',
-      'Buttons',
-      'Badges & status',
-      'Forms',
-      'Feedback',
-      'Data display',
-      'Overlays',
-      'Composition',
+      'i18n',
+      'foundations',
+      'typography',
+      'buttons',
+      'badges',
+      'forms',
+      'feedback',
+      'data',
+      'overlays',
+      'composition',
     ]) {
       expect(
-        screen.getByRole('heading', { level: 2, name: section })
+        screen.getByRole('heading', {
+          level: 2,
+          name: dynamicT(i18n.t)(`playground:sections.${section}`),
+        })
       ).toBeInTheDocument()
     }
   })
@@ -148,7 +173,11 @@ describe('Playground', () => {
     const { default: PlaygroundPage } = await import('@/pages/PlaygroundPage')
     renderInApp(<PlaygroundPage />, '/playground')
 
-    const invalid = screen.getByLabelText(/entry date/i)
+    // The playground renders one Field in its error state; it must carry the
+    // aria wiring in whichever language is active.
+    const invalid = screen.getByLabelText(
+      new RegExp(i18n.t('trip:dates.entryDate'), 'i')
+    )
     expect(invalid).toHaveAttribute('aria-invalid', 'true')
   })
 })

@@ -1,0 +1,39 @@
+{
+  "title": "Trip",
+  "description": "Your visa appointment and the trip you are applying for",
+  "shortDescription": "Visa appointment and travel information",
+  "appointment": {
+    "title": "Visa appointment",
+    "description": "Your scheduled visa application appointment",
+    "date": "Date",
+    "time": "Time",
+    "location": "Location",
+    "locationPlaceholder": "e.g. VFS Global Istanbul"
+  },
+  "dates": {
+    "title": "Travel dates",
+    "description": "When you plan to enter and leave the Schengen area",
+    "entryDate": "Entry date",
+    "exitDate": "Exit date"
+  },
+  "destinations": {
+    "title": "Destinations",
+    "description": "Countries and cities you will visit",
+    "firstEntryCountry": "First entry country",
+    "mainDestination": "Main destination",
+    "entryCity": "Entry city",
+    "exitCity": "Exit city",
+    "cityPlaceholder": "e.g. Athens",
+    "countryPlaceholder": "e.g. GR"
+  },
+  "purpose": {
+    "title": "Trip purpose",
+    "placeholder": "Describe the purpose of your trip..."
+  },
+  "errors": {
+    "entryDateRequired": "Entry date is required",
+    "exitDateRequired": "Exit date is required",
+    "firstEntryCountryRequired": "First entry country is required",
+    "mainDestinationRequired": "Main destination is required"
+  }
+}

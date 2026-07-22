@@ -1,0 +1,25 @@
+{
+  "groups": {
+    "application": "Başvuru",
+    "dossier": "Başvuru dosyası",
+    "review": "Kontrol"
+  },
+  "items": {
+    "dashboard": "Genel bakış",
+    "applicant": "Başvuru sahibi",
+    "trip": "Seyahat",
+    "employment": "Çalışma durumu",
+    "finance": "Finansman",
+    "sponsors": "Sponsorlar",
+    "documents": "Belgeler",
+    "timeline": "Zaman çizelgesi",
+    "consistencyChecks": "Tutarlılık kontrolleri",
+    "notes": "Notlar",
+    "settings": "Ayarlar",
+    "playground": "Bileşen galerisi"
+  },
+  "actions": {
+    "importData": "İçe aktar",
+    "exportDossier": "Dışa aktar"
+  }
+}

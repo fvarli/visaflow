@@ -3,6 +3,7 @@ import { AppLayout } from '@/components/layout/AppLayout'
 
 // Lazy load pages for better performance
 import { lazy, Suspense } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Skeleton } from '@/components/ui/skeleton'
 
 const DashboardPage = lazy(() => import('@/pages/DashboardPage'))
@@ -28,11 +29,13 @@ const PlaygroundPage = lazy(() => import('@/pages/PlaygroundPage'))
  * nothing jumps when the lazy chunk resolves.
  */
 function PageLoader() {
+  const { t } = useTranslation()
+
   return (
     <div
       className="flex flex-col gap-8"
       role="status"
-      aria-label="Loading page"
+      aria-label={t('a11y.loadingPage')}
     >
       <div className="space-y-2.5 pb-2">
         <Skeleton className="h-7 w-56" />
@@ -40,7 +43,7 @@ function PageLoader() {
       </div>
       <Skeleton className="h-40 w-full rounded-xl" />
       <Skeleton className="h-40 w-full rounded-xl" />
-      <span className="sr-only">Loading</span>
+      <span className="sr-only">{t('states.loading')}</span>
     </div>
   )
 }

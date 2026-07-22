@@ -1,0 +1,25 @@
+{
+  "groups": {
+    "application": "Application",
+    "dossier": "Dossier",
+    "review": "Review"
+  },
+  "items": {
+    "dashboard": "Dashboard",
+    "applicant": "Applicant",
+    "trip": "Trip",
+    "employment": "Employment",
+    "finance": "Finance",
+    "sponsors": "Sponsors",
+    "documents": "Documents",
+    "timeline": "Timeline",
+    "consistencyChecks": "Consistency Checks",
+    "notes": "Notes",
+    "settings": "Settings",
+    "playground": "Playground"
+  },
+  "actions": {
+    "importData": "Import",
+    "exportDossier": "Export"
+  }
+}

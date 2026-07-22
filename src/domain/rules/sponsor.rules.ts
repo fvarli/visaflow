@@ -21,12 +21,15 @@ export const sponsorHasDocuments: ValidationRule = (
       if (hasFinancialInfo) {
         findings.push({
           id: `sponsor-no-docs-${sponsor.id}`,
+          ruleId: 'sponsor.hasDocuments',
           severity: 'warning',
-          title: 'Sponsor has no documents linked',
-          description: `Sponsor "${sponsor.firstName} ${sponsor.lastName}" has financial information but no supporting documents linked.`,
+          messageKey: 'findings.sponsorNoDocuments',
+          messageParams: {
+            values: {
+              sponsorName: `${sponsor.firstName} ${sponsor.lastName}`,
+            },
+          },
           relatedFields: [`sponsors.${sponsor.id}.documentIds`],
-          suggestedAction:
-            'Add supporting financial documents for this sponsor.',
         })
       }
     }
@@ -52,13 +55,10 @@ export const sponsorFundingRequiresSponsor: ValidationRule = (
     return [
       {
         id: 'sponsored-no-sponsor',
+        ruleId: 'sponsor.requiredForSponsoredFunding',
         severity: 'error',
-        title: 'Sponsor required for sponsored funding',
-        description:
-          'Trip financing indicates sponsor funding, but no sponsors have been added.',
+        messageKey: 'findings.sponsoredNoSponsor',
         relatedFields: ['financing.source', 'sponsors'],
-        suggestedAction:
-          'Add at least one sponsor with their financial information.',
       },
     ]
   }
@@ -76,13 +76,10 @@ export const sponsorFundingRequiresSponsor: ValidationRule = (
       return [
         {
           id: 'sponsors-no-finance-info',
+          ruleId: 'sponsor.requiredForSponsoredFunding',
           severity: 'warning',
-          title: 'Sponsors have no financial information',
-          description:
-            'Sponsors have been added but none have financial information entered.',
+          messageKey: 'findings.sponsorsNoFinanceInfo',
           relatedFields: ['sponsors'],
-          suggestedAction:
-            'Enter financial information for at least one sponsor.',
         },
       ]
     }
@@ -116,12 +113,18 @@ export const sponsorRelationshipProof: ValidationRule = (
     ) {
       findings.push({
         id: `sponsor-no-relationship-proof-${sponsor.id}`,
+        ruleId: 'sponsor.relationshipProof',
         severity: 'info',
-        title: 'Family sponsor may need relationship proof',
-        description: `Sponsor "${sponsor.firstName} ${sponsor.lastName}" (${sponsor.relationship}) may require proof of family relationship.`,
+        messageKey: 'findings.sponsorRelationshipProof',
+        messageParams: {
+          values: {
+            sponsorName: `${sponsor.firstName} ${sponsor.lastName}`,
+          },
+          enumKeys: {
+            relationship: `visa-domain:sponsorRelationship.${sponsor.relationship}`,
+          },
+        },
         relatedFields: [`sponsors.${sponsor.id}.proofOfRelationship`],
-        suggestedAction:
-          'Consider adding documents proving the family relationship.',
       })
     }
   }

@@ -1,4 +1,5 @@
 import { useForm } from 'react-hook-form'
+import { useTranslation } from 'react-i18next'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useDossier } from '@/app/providers/DossierProvider'
@@ -21,6 +22,8 @@ import {
 } from '@/components/ui/select'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { AlertCircle } from 'lucide-react'
+import { NoDossierState } from '@/components/NoDossierState'
+import { dynamicT } from '@/lib/i18n-dynamic'
 import { useEffect } from 'react'
 
 const formSchema = z.object({
@@ -36,6 +39,8 @@ type FormData = z.infer<typeof formSchema>
 
 export default function FinancePage() {
   const { state, updateFinancing, hasData } = useDossier()
+  const { t } = useTranslation(['finance', 'common', 'visa-domain'])
+  const td = dynamicT(t)
 
   const {
     register,
@@ -98,47 +103,45 @@ export default function FinancePage() {
   }
 
   if (!hasData) {
-    return (
-      <Alert>
-        <AlertCircle className="h-4 w-4" />
-        <AlertDescription>
-          No application data loaded. Go to Dashboard to start a new
-          application.
-        </AlertDescription>
-      </Alert>
-    )
+    return <NoDossierState section={t('finance:title')} />
   }
 
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold">Financial Information</h1>
-        <p className="text-muted-foreground">How you will finance your trip</p>
+        <h1 className="text-2xl font-bold">{t('finance:title')}</h1>
+        <p className="text-muted-foreground">{t('finance:shortDescription')}</p>
       </div>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
         <Card>
           <CardHeader>
-            <CardTitle>Funding Source</CardTitle>
-            <CardDescription>
-              Who will cover the expenses for this trip?
-            </CardDescription>
+            <CardTitle>{t('finance:source.title')}</CardTitle>
+            <CardDescription>{t('finance:source.description')}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="source">Primary Funding Source *</Label>
+              <Label htmlFor="source">{t('finance:source.label')} *</Label>
               <Select
                 value={source}
                 onValueChange={(value) => setValue('source', value)}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Select source" />
+                  <SelectValue placeholder={t('finance:source.placeholder')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="self">Self-funded</SelectItem>
-                  <SelectItem value="sponsor">Sponsor-funded</SelectItem>
-                  <SelectItem value="employer">Employer-funded</SelectItem>
-                  <SelectItem value="mixed">Mixed</SelectItem>
+                  <SelectItem value="self">
+                    {td('visa-domain:financingSource.self')}
+                  </SelectItem>
+                  <SelectItem value="sponsor">
+                    {td('visa-domain:financingSource.sponsor')}
+                  </SelectItem>
+                  <SelectItem value="employer">
+                    {td('visa-domain:financingSource.employer')}
+                  </SelectItem>
+                  <SelectItem value="mixed">
+                    {td('visa-domain:financingSource.mixed')}
+                  </SelectItem>
                 </SelectContent>
               </Select>
               {errors.source && (
@@ -151,7 +154,7 @@ export default function FinancePage() {
         {(source === 'self' || source === 'mixed') && (
           <Card>
             <CardHeader>
-              <CardTitle>Personal Finances</CardTitle>
+              <CardTitle>{t('finance:personal.title')}</CardTitle>
               <CardDescription>
                 Your personal financial information
               </CardDescription>
@@ -159,15 +162,19 @@ export default function FinancePage() {
             <CardContent className="space-y-4">
               <div className="grid gap-4 md:grid-cols-2">
                 <div className="space-y-2">
-                  <Label htmlFor="bankName">Bank Name</Label>
+                  <Label htmlFor="bankName">
+                    {t('finance:personal.bankName')}
+                  </Label>
                   <Input
                     id="bankName"
                     {...register('bankName')}
-                    placeholder="Your primary bank"
+                    placeholder={t('finance:personal.bankNamePlaceholder')}
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="statementDate">Statement Date</Label>
+                  <Label htmlFor="statementDate">
+                    {t('finance:personal.statementDate')}
+                  </Label>
                   <Input
                     id="statementDate"
                     type="date"
@@ -178,7 +185,9 @@ export default function FinancePage() {
 
               <div className="grid gap-4 md:grid-cols-2">
                 <div className="space-y-2">
-                  <Label htmlFor="accountBalance">Account Balance</Label>
+                  <Label htmlFor="accountBalance">
+                    {t('finance:personal.accountBalance')}
+                  </Label>
                   <Input
                     id="accountBalance"
                     type="number"
@@ -187,7 +196,9 @@ export default function FinancePage() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="currency">Currency</Label>
+                  <Label htmlFor="currency">
+                    {t('finance:personal.currency')}
+                  </Label>
                   <Select
                     value={watch('currency')}
                     onValueChange={(value) => setValue('currency', value)}
@@ -219,7 +230,7 @@ export default function FinancePage() {
         )}
 
         <div className="flex justify-end">
-          <Button type="submit">Save Changes</Button>
+          <Button type="submit">{t('common:actions.saveChanges')}</Button>
         </div>
       </form>
     </div>

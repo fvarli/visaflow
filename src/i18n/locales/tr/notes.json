@@ -1,0 +1,28 @@
+{
+  "title": "Notlar",
+  "description": "Bu başvuruyla ilgili hatırlanmaya değer her şeyi kaydedin",
+  "shortDescription": "Önemli bilgileri takip edin",
+  "add": "Not ekle",
+  "edit": "Notu düzenle",
+  "dialogDescription": "Vize başvuru dosyanıza bir not ekleyin",
+  "fields": {
+    "title": "Başlık (isteğe bağlı)",
+    "titlePlaceholder": "Not başlığı",
+    "category": "Kategori",
+    "content": "İçerik",
+    "contentPlaceholder": "Notunuzu yazın..."
+  },
+  "categories": {
+    "general": "Genel",
+    "document": "Belge",
+    "timeline": "Zaman çizelgesi",
+    "appointment": "Randevu",
+    "other": "Diğer"
+  },
+  "untitled": "Başlıksız not",
+  "edited": "düzenlendi",
+  "empty": {
+    "title": "Henüz not yok",
+    "description": "Konsolosluk yönergelerini, telefon numaralarını veya hatırlamak istediğiniz her şeyi not edin."
+  }
+}

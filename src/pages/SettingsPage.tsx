@@ -1,5 +1,7 @@
+import { useTranslation } from 'react-i18next'
 import { useDossier } from '@/app/providers/DossierProvider'
 import { getAllCountryConfigs } from '@/config/countries'
+import { SCHEMA_VERSION } from '@/domain/schemas/dossier.schema'
 import {
   Card,
   CardContent,
@@ -17,14 +19,12 @@ import {
 } from '@/components/ui/select'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Separator } from '@/components/ui/separator'
-import {
-  AlertTriangle,
-  Download,
-  Trash2,
-  Upload,
-  Shield,
-  Globe,
-} from 'lucide-react'
+import { PageHeader } from '@/components/ui/page-header'
+import { PageBody } from '@/components/ui/section'
+import { Field } from '@/components/ui/field'
+import { LanguageSelect } from '@/components/ui/language-select'
+import { ThemeToggle } from '@/components/ui/theme-toggle'
+import { AlertTriangle, Trash2, Shield, Globe, Languages } from 'lucide-react'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -36,9 +36,12 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog'
+import { dynamicT } from '@/lib/i18n-dynamic'
 
 export default function SettingsPage() {
   const { state, reset, updateApplication, hasData } = useDossier()
+  const { t } = useTranslation(['settings', 'common'])
+  const td = dynamicT(t)
   const countries = getAllCountryConfigs()
 
   const handleCountryChange = (countryCode: string) => {
@@ -50,35 +53,64 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold">Settings</h1>
-        <p className="text-muted-foreground">
-          Application settings and data management
-        </p>
-      </div>
+    <PageBody>
+      <PageHeader
+        title={t('settings:title')}
+        description={t('settings:description')}
+      />
 
-      {/* Privacy Notice */}
-      <Alert>
-        <Shield className="h-4 w-4" />
-        <AlertTitle>Privacy</AlertTitle>
+      {/* Language and appearance — the only preferences VisaFlow stores */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Languages aria-hidden className="size-4 opacity-70" />
+            {t('settings:appearance.title')}
+          </CardTitle>
+          <CardDescription>
+            {t('settings:appearance.description')}
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="grid gap-5 sm:grid-cols-2">
+          <Field
+            label={t('settings:appearance.languageLabel')}
+            description={t('settings:appearance.languageHint')}
+            htmlFor="settings-language"
+          >
+            <div>
+              <LanguageSelect />
+            </div>
+          </Field>
+          <Field
+            label={t('settings:appearance.themeLabel')}
+            description={t('settings:appearance.themeHint')}
+            htmlFor="settings-theme"
+          >
+            <div>
+              <ThemeToggle />
+            </div>
+          </Field>
+        </CardContent>
+      </Card>
+
+      {/* Why these two preferences may persist at all */}
+      <Alert variant="info">
+        <Shield />
+        <AlertTitle>{t('settings:preferencePrivacy.title')}</AlertTitle>
         <AlertDescription>
-          Your data is stored only in browser memory. No information is sent to
-          any server. Export your dossier regularly to save your progress. Data
-          is lost when you close the browser or refresh the page.
+          {t('settings:preferencePrivacy.body')}
         </AlertDescription>
       </Alert>
 
-      {/* Destination Country */}
+      {/* Destination country */}
       {hasData && (
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Globe className="h-5 w-5" />
-              Destination Country
+              <Globe aria-hidden className="size-4 opacity-70" />
+              {t('settings:country.title')}
             </CardTitle>
             <CardDescription>
-              Select the country you are applying to visit
+              {t('settings:country.description')}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -86,68 +118,67 @@ export default function SettingsPage() {
               value={state.application?.destinationCountry ?? ''}
               onValueChange={handleCountryChange}
             >
-              <SelectTrigger className="w-full md:w-64">
-                <SelectValue placeholder="Select country" />
+              <SelectTrigger
+                className="w-full md:w-80"
+                aria-label={t('settings:country.title')}
+              >
+                <SelectValue />
               </SelectTrigger>
               <SelectContent>
                 {countries.map((config) => (
-                  <SelectItem key={config.id} value={config.id}>
-                    {config.name} - {config.visaType}
+                  <SelectItem
+                    key={config.countryCode}
+                    value={config.countryCode}
+                  >
+                    {td(config.nameKey)}
+                    {config.visaTypes[0]
+                      ? ` — ${td(config.visaTypes[0].nameKey)}`
+                      : ''}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
-            <p className="mt-2 text-sm text-muted-foreground">
-              Changing the country will update the document checklist
+            <p className="text-caption text-muted-foreground mt-2">
+              {t('settings:country.hint')}
             </p>
           </CardContent>
         </Card>
       )}
 
-      {/* Data Management */}
+      {/* Data management */}
       <Card>
         <CardHeader>
-          <CardTitle>Data Management</CardTitle>
-          <CardDescription>
-            Import, export, or reset your application data
-          </CardDescription>
+          <CardTitle>{t('settings:data.title')}</CardTitle>
+          <CardDescription>{t('settings:data.description')}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="flex flex-wrap gap-2">
-            <Button variant="outline">
-              <Upload className="mr-2 h-4 w-4" />
-              Import Data
-            </Button>
-            <Button variant="outline">
-              <Download className="mr-2 h-4 w-4" />
-              Export Dossier
-            </Button>
-          </div>
-
           <Separator />
-
           <div>
-            <h4 className="text-sm font-medium mb-2">Danger Zone</h4>
+            <h3 className="text-eyebrow text-muted-foreground mb-2 uppercase">
+              {t('settings:dangerZone')}
+            </h3>
             <AlertDialog>
               <AlertDialogTrigger asChild>
                 <Button variant="destructive">
-                  <Trash2 className="mr-2 h-4 w-4" />
-                  Reset All Data
+                  <Trash2 />
+                  {t('settings:reset.action')}
                 </Button>
               </AlertDialogTrigger>
               <AlertDialogContent>
                 <AlertDialogHeader>
-                  <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                  <AlertDialogTitle>
+                    {t('settings:reset.confirmTitle')}
+                  </AlertDialogTitle>
                   <AlertDialogDescription>
-                    This will permanently delete all your application data from
-                    browser memory. This action cannot be undone. Make sure to
-                    export your data first if you want to keep it.
+                    {t('settings:reset.confirmBody')}
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
-                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogCancel>
+                    {t('common:actions.cancel')}
+                  </AlertDialogCancel>
                   <AlertDialogAction onClick={handleReset}>
-                    Yes, Reset Everything
+                    {t('settings:reset.confirm')}
                   </AlertDialogAction>
                 </AlertDialogFooter>
               </AlertDialogContent>
@@ -160,50 +191,42 @@ export default function SettingsPage() {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <AlertTriangle className="h-5 w-5" />
-            Disclaimer
+            <AlertTriangle aria-hidden className="size-4 opacity-70" />
+            {t('settings:disclaimer.title')}
           </CardTitle>
         </CardHeader>
-        <CardContent>
-          <p className="text-sm text-muted-foreground">
-            VisaFlow is an organizational tool. It does not provide legal
-            advice, represent any embassy or visa center, or guarantee a visa
-            decision. Always verify requirements using current official sources.
-          </p>
-          <p className="mt-4 text-sm text-muted-foreground">
-            The document checklists and validation rules are provided as general
-            guidance only. Requirements may vary based on your nationality, the
-            specific embassy processing your application, and current
-            regulations which may change without notice.
-          </p>
-          <p className="mt-4 text-sm text-muted-foreground">
-            Before submitting your visa application, always confirm the
-            requirements with the official embassy, consulate, or authorized
-            visa center.
-          </p>
+        <CardContent className="text-muted-foreground space-y-4">
+          <p className="text-body">{t('settings:disclaimer.p1')}</p>
+          <p className="text-body">{t('settings:disclaimer.p2')}</p>
+          <p className="text-body">{t('settings:disclaimer.p3')}</p>
+          <p className="text-body">{t('settings:disclaimer.noPrediction')}</p>
         </CardContent>
       </Card>
 
       {/* About */}
       <Card>
         <CardHeader>
-          <CardTitle>About VisaFlow</CardTitle>
+          <CardTitle>{t('settings:about.title')}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-2">
-          <p className="text-sm">
-            <strong>Version:</strong> 0.1.0
+          <p className="text-body">
+            <span className="font-medium">{t('settings:about.version')}:</span>{' '}
+            <span data-numeric>0.1.0</span>
           </p>
-          <p className="text-sm">
-            <strong>Schema Version:</strong> 1.0.0
+          <p className="text-body">
+            <span className="font-medium">
+              {t('settings:about.schemaVersion')}:
+            </span>{' '}
+            <span data-numeric>{SCHEMA_VERSION}</span>
           </p>
-          <p className="text-sm text-muted-foreground">
-            Open-source visa application dossier manager.
+          <p className="text-body text-muted-foreground">
+            {t('settings:about.summary')}
           </p>
-          <p className="text-sm text-muted-foreground">
-            Licensed under MIT License.
+          <p className="text-body text-muted-foreground">
+            {t('settings:about.license')}
           </p>
         </CardContent>
       </Card>
-    </div>
+    </PageBody>
   )
 }

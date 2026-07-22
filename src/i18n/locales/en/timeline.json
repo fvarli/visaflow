@@ -1,0 +1,21 @@
+{
+  "title": "Timeline",
+  "description": "Key dates and milestones for your visa application",
+  "shortDescription": "Your visa application timeline",
+  "empty": {
+    "title": "No timeline events yet",
+    "description": "Add appointment and trip dates to see them plotted here.",
+    "action": "Add trip dates"
+  },
+  "events": {
+    "appointment": "Visa appointment",
+    "appointmentNoLocation": "Location not set",
+    "tripBegins": "Trip begins",
+    "tripBeginsDescription": "Enter {{country}}",
+    "schengenArea": "the Schengen area",
+    "tripEnds": "Trip ends",
+    "tripEndsDescription": "Return home",
+    "documentExpires": "{{document}} expires",
+    "documentExpiresDescription": "Document validity ends"
+  }
+}

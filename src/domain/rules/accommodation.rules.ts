@@ -14,13 +14,10 @@ export const accommodationCoversTrip: ValidationRule = (
     return [
       {
         id: 'no-accommodation',
+        ruleId: 'accommodation.coversTrip',
         severity: 'warning',
-        title: 'No accommodation reservations',
-        description:
-          'No accommodation reservations have been added to the trip.',
+        messageKey: 'findings.noAccommodation',
         relatedFields: ['trip.accommodationReservations'],
-        suggestedAction:
-          'Add accommodation reservations covering all nights of your trip.',
       },
     ]
   }
@@ -65,16 +62,15 @@ export const accommodationCoversTrip: ValidationRule = (
     return [
       {
         id: 'accommodation-gap',
+        ruleId: 'accommodation.coversTrip',
         severity: 'error',
-        title: 'Accommodation does not cover entire trip',
-        description: `The following nights are not covered by accommodation: ${uncoveredDates}`,
+        messageKey: 'findings.accommodationGap',
+        messageParams: { values: { dates: uncoveredDates } },
         relatedFields: [
           'trip.accommodationReservations',
           'trip.entryDate',
           'trip.exitDate',
         ],
-        suggestedAction:
-          'Add accommodation reservations to cover all nights of your trip.',
       },
     ]
   }
@@ -110,16 +106,21 @@ export const reservationNamesMatch: ValidationRule = (
       ) {
         findings.push({
           id: `accommodation-name-mismatch-${reservation.reservationNumber ?? reservation.name}`,
+          ruleId: 'accommodation.guestNameMatches',
           severity: 'warning',
-          title: 'Accommodation guest name may not match',
-          description: `Guest name "${reservation.guestName}" on ${reservation.name} does not clearly match applicant name "${applicant.firstName} ${applicant.lastName}".`,
+          messageKey: 'findings.accommodationNameMismatch',
+          messageParams: {
+            values: {
+              guestName: reservation.guestName,
+              reservationName: reservation.name,
+              applicantName: `${applicant.firstName} ${applicant.lastName}`,
+            },
+          },
           relatedFields: [
             'trip.accommodationReservations',
             'applicant.firstName',
             'applicant.lastName',
           ],
-          suggestedAction:
-            "Verify the reservation is in the applicant's name or includes them as a guest.",
         })
       }
     }

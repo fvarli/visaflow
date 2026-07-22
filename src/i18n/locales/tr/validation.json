@@ -1,0 +1,170 @@
+{
+  "title": "Tutarlılık kontrolleri",
+  "description": "Başvuru dosyanızdaki yaygın sorunlar için otomatik kontroller",
+  "severity": {
+    "error": "Hata",
+    "warning": "Uyarı",
+    "info": "Bilgi"
+  },
+  "summary": {
+    "errors": "Hatalar",
+    "warnings": "Uyarılar",
+    "info": "Bilgi",
+    "errorsHint": "Başvurudan önce giderilmelidir",
+    "warningsHint": "Gözden geçirilmelidir",
+    "infoHint": "Bilgilendirici notlar",
+    "errorCount_one": "{{count}} hata",
+    "errorCount_other": "{{count}} hata",
+    "warningCount_one": "{{count}} uyarı",
+    "warningCount_other": "{{count}} uyarı",
+    "findingCount_one": "{{count}} bulgu",
+    "findingCount_other": "{{count}} bulgu",
+    "allPassed": "Tüm kontroller başarılı",
+    "allPassedBody": "Başvuru dosyanızda herhangi bir sorun bulunamadı. Randevunuzdan önce tüm bilgilerin doğruluğunu teyit etmeyi unutmayın.",
+    "disclaimer": "Bu kontroller yalnızca düzenlemeye yardımcı olur, resmî gereklilik değildir. Gereklilikleri her zaman yetkili konsolosluk veya vize merkezinden doğrulayın.",
+    "findings": "Bulgular"
+  },
+  "detail": {
+    "suggestedAction": "Önerilen işlem",
+    "relatedFields": "İlgili alanlar"
+  },
+  "findings": {
+    "noAccommodation": {
+      "title": "Konaklama rezervasyonu yok",
+      "description": "Seyahate henüz hiçbir konaklama rezervasyonu eklenmemiş.",
+      "action": "Seyahatinizin tüm gecelerini kapsayan konaklama rezervasyonları ekleyin."
+    },
+    "accommodationGap": {
+      "title": "Konaklama tüm seyahati kapsamıyor",
+      "description": "Şu geceler konaklama ile kapsanmıyor: {{dates}}",
+      "action": "Seyahatinizin tüm gecelerini kapsayacak konaklama rezervasyonları ekleyin."
+    },
+    "accommodationNameMismatch": {
+      "title": "Konaklamadaki misafir adı eşleşmiyor olabilir",
+      "description": "{{reservationName}} rezervasyonundaki \"{{guestName}}\" misafir adı, başvuru sahibinin adıyla (\"{{applicantName}}\") tam olarak eşleşmiyor.",
+      "action": "Misafir adının pasaporttaki adla aynı olduğunu doğrulayın."
+    },
+    "requiredDocSkipped": {
+      "title": "Zorunlu belge uygulanamaz olarak işaretlendi",
+      "description": "\"{{document}}\" zorunlu olarak tanımlı ancak açıklama girilmeden \"uygulanamaz\" olarak işaretlenmiş.",
+      "action": "Bu zorunlu belgenin neden uygulanmadığını açıklayan bir not ekleyin."
+    },
+    "docExpiresBeforeAppointment": {
+      "title": "Belge randevudan önce geçerliliğini yitiriyor",
+      "description": "\"{{document}}\" belgesinin geçerliliği {{validUntil}} tarihinde doluyor; bu tarih {{appointmentDate}} tarihli randevunuzdan önce.",
+      "action": "Bu belgenin güncel bir sürümünü temin edin veya güncellenmeli olarak işaretleyin."
+    },
+    "missingRequiredDocs": {
+      "title": "Zorunlu belgelere başlanmadı",
+      "description_one": "{{count}} zorunlu belgeye henüz başlanmadı: {{documents}}",
+      "description_other": "{{count}} zorunlu belgeye henüz başlanmadı: {{documents}}",
+      "action": "Zorunlu belgeleri toplamaya başlayın."
+    },
+    "docsNeedUpdate": {
+      "title": "Güncellenmesi gereken belgeler var",
+      "description_one": "{{count}} belge güncellenmeli: {{documents}}",
+      "description_other": "{{count}} belge güncellenmeli: {{documents}}",
+      "action": "Bu belgelerin güncel sürümlerini temin edin."
+    },
+    "noApprovedLeave": {
+      "title": "Onaylı izin tarihleri girilmemiş",
+      "description": "Ücretli çalışan başvuru sahiplerinin genellikle işverenden alınmış onaylı izin belgesi sunması gerekir.",
+      "action": "İşvereninizden aldığınız onaylı izin tarihlerini girin."
+    },
+    "leaveStartsLate": {
+      "title": "Onaylı izin seyahatten sonra başlıyor",
+      "description": "Onaylı izin {{leaveStart}} tarihinde başlıyor ancak seyahat {{tripStart}} tarihinde başlıyor.",
+      "action": "Onaylı izninizin seyahatinizin tamamını kapsadığından emin olun."
+    },
+    "leaveEndsEarly": {
+      "title": "Onaylı izin seyahat bitmeden sona eriyor",
+      "description": "Onaylı izin {{leaveEnd}} tarihinde bitiyor ancak seyahat {{tripEnd}} tarihinde bitiyor.",
+      "action": "Onaylı izninizin dönüşünüzü de kapsadığından emin olun."
+    },
+    "noInsurance": {
+      "title": "Seyahat sağlık sigortası yok",
+      "description": "Schengen vize başvuruları için seyahat sağlık sigortası zorunludur.",
+      "action": "Seyahatinizin tamamını kapsayan bir seyahat sağlık sigortası yaptırın."
+    },
+    "insuranceDatesMissing": {
+      "title": "Sigorta tarihleri eksik",
+      "description": "Sigorta teminatının başlangıç ve bitiş tarihleri gereklidir.",
+      "action": "Sigorta teminat tarihlerini girin."
+    },
+    "insuranceStartsLate": {
+      "title": "Sigorta seyahatten sonra başlıyor",
+      "description": "Sigorta teminatı {{coverageStart}} tarihinde başlıyor ancak seyahat {{tripStart}} tarihinde başlıyor.",
+      "action": "Sigorta teminatının seyahat başlangıcında veya öncesinde başladığından emin olun."
+    },
+    "insuranceEndsEarly": {
+      "title": "Sigorta seyahat bitmeden sona eriyor",
+      "description": "Sigorta teminatı {{coverageEnd}} tarihinde bitiyor ancak seyahat {{tripEnd}} tarihinde bitiyor.",
+      "action": "Sigorta teminatının seyahat bitişine kadar sürdüğünden emin olun."
+    },
+    "insuranceCoverageLow": {
+      "title": "Sigorta teminatı yetersiz olabilir",
+      "description": "{{amount}} tutarındaki sigorta teminatı, {{minimum}} olan Schengen alt sınırının altında kalabilir.",
+      "action": "Sigortanızın asgari teminat şartını karşıladığını doğrulayın."
+    },
+    "passportValidityInsufficient": {
+      "title": "Pasaport geçerlilik süresi yetersiz",
+      "description": "Pasaportunuzun geçerliliği {{expiryDate}} tarihinde doluyor; seyahat bitiminden ({{tripEnd}}) sonra en az 3 ay geçerli olmalıdır.",
+      "action": "Vize başvurusundan önce pasaportunuzu yenileyin."
+    },
+    "passportBlankPages": {
+      "title": "Boş pasaport sayfası gerekiyor",
+      "description": "Çoğu vize başvurusu pasaportunuzda en az 2 boş sayfa bulunmasını gerektirir.",
+      "action": "Pasaportunuzda en az 2 boş vize sayfası bulunduğundan emin olun."
+    },
+    "sponsorNoDocuments": {
+      "title": "Sponsora bağlı belge yok",
+      "description": "\"{{sponsorName}}\" adlı sponsorun mali bilgileri girilmiş ancak destekleyici belge eklenmemiş.",
+      "action": "Bu sponsor için destekleyici mali belgeler ekleyin."
+    },
+    "sponsoredNoSponsor": {
+      "title": "Sponsorlu finansman için sponsor gerekli",
+      "description": "Seyahat finansmanı sponsor destekli görünüyor ancak hiç sponsor eklenmemiş.",
+      "action": "Mali bilgileriyle birlikte en az bir sponsor ekleyin."
+    },
+    "sponsorsNoFinanceInfo": {
+      "title": "Sponsorların mali bilgisi yok",
+      "description": "Sponsor eklenmiş ancak hiçbirinin mali bilgisi girilmemiş.",
+      "action": "En az bir sponsor için mali bilgi girin."
+    },
+    "sponsorRelationshipProof": {
+      "title": "Aile sponsoru için yakınlık belgesi gerekebilir",
+      "description": "\"{{sponsorName}}\" adlı sponsor ({{relationship}}) için yakınlık belgesi istenebilir.",
+      "action": "Yakınlığı kanıtlayan belgeler eklemeyi değerlendirin."
+    },
+    "tripDatesInvalid": {
+      "title": "Seyahat tarihleri geçersiz",
+      "description": "Seyahat giriş tarihi ({{entryDate}}), çıkış tarihinden ({{exitDate}}) önce olmalıdır.",
+      "action": "Giriş tarihi çıkıştan önce gelecek şekilde seyahat tarihlerini düzeltin."
+    },
+    "appointmentAfterTrip": {
+      "title": "Randevu seyahat başlangıcından sonra",
+      "description": "Vize randevusu ({{appointmentDate}}), seyahat giriş tarihinden ({{entryDate}}) önce olmalıdır.",
+      "action": "Vize randevunuzu planlanan seyahat başlangıcından önceye alın."
+    },
+    "tripInPast": {
+      "title": "Seyahat tarihi geçmişte",
+      "description": "Seyahat giriş tarihi ({{entryDate}}) geçmişte kalmış.",
+      "action": "Seyahat tarihlerini gelecek bir tarihle güncelleyin."
+    },
+    "routeNightsMismatch": {
+      "title": "Güzergâh geceleri seyahat süresiyle uyuşmuyor",
+      "description": "Güzergâh toplamı ({{routeNights}} gece), seyahat süresiyle ({{totalNights}} gece) uyuşmuyor.",
+      "action": "Güzergâh duraklarının sürelerini toplam seyahat süresine göre düzenleyin."
+    },
+    "mainDestinationMismatch": {
+      "title": "Ana varış ülkesi hatalı olabilir",
+      "description": "Beyan edilen ana varış ülkesi ({{declared}}), en uzun kalınan ülkeden ({{longest}}, {{nights}} gece) farklı.",
+      "action": "Ana varış ülkesinin en çok vakit geçireceğiniz ülke olduğunu doğrulayın."
+    },
+    "firstEntryTransportMismatch": {
+      "title": "İlk giriş ülkesi ulaşımla uyuşmuyor olabilir",
+      "description": "Beyan edilen ilk giriş ülkesi ({{declared}}), ilk ulaşım varışıyla ({{actual}}) uyuşmuyor.",
+      "action": "İlk giriş ülkesinin ulaşım rezervasyonlarınızla uyumlu olduğunu doğrulayın."
+    }
+  }
+}

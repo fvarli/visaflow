@@ -105,3 +105,46 @@ pnpm test -- --reporter=verbose  # Get detailed output
 ```bash
 pnpm typecheck       # Check for type errors first
 ```
+
+## Iteration 3 handoff (2026-07-23): i18n + config architecture
+
+**Shipped:** Turkish/English UI (Turkish default), and a
+`country → visa type → requirement` config with honest source metadata.
+
+### Gates (all pass)
+`pnpm format:check` · `pnpm lint` (0 errors, 48 acceptable warnings) ·
+`pnpm typecheck` (`tsc -b`) · `pnpm test` (**88/88**) · `pnpm build`.
+
+### Where things live now
+- Translations: `src/i18n/locales/{tr,en}/*.json` (15 namespaces, key parity
+  enforced by `src/tests/i18n/parity.test.ts`). Never hardcode UI text.
+- Locale runtime: `src/app/providers/LocaleProvider.tsx`; picker
+  `src/components/ui/language-select.tsx`.
+- Formatting: `src/lib/format.ts` (`useFormatters()`), never `Intl` directly.
+- Runtime keys: `src/lib/i18n-dynamic.ts` (`dynamicT`).
+- Config: `src/config/types.ts`, `src/config/countries/<country>/`,
+  `src/config/sources/`. Resolve with `resolveVisaTemplate()`.
+- Findings: keys + params in `src/domain/rules/*.rules.ts`, rendered by
+  `src/lib/finding-text.ts`.
+
+### Invariants to preserve
+- Exported JSON must stay language-independent (test:
+  `json-language-independence.test.ts`). `Document.name` is deprecated/optional
+  — never write it for template docs; `code` is the identity.
+- Domain enums, codes, finding `id`/`ruleId`, `schemaVersion` are
+  language-independent. Rule outcomes/severities unchanged.
+- Only `visaflow-theme` and `visaflow-locale` may hit localStorage.
+- No visa approval/refusal prediction (ADR-016).
+
+### Known limitations / next
+- Visual verification was done via render tests, not a browser — the Chrome
+  extension was unavailable. Re-verify visually at 1440/390px, light/dark,
+  tr/en when possible; watch long Turkish labels.
+- `SourceNote` is wired in the playground but not yet in the Documents detail
+  view — adopt it during the Documents redesign.
+- Greece template is honestly `unverified`; verify against a real source and
+  set real `lastVerifiedAt` before raising `reviewStatus`.
+
+### ADRs added
+011 Turkish-first · 012 stable domain values · 013 locale may persist ·
+014 country→visa-type→requirement · 015 source metadata · 016 no prediction.

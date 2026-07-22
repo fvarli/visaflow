@@ -1,4 +1,5 @@
 import { useMemo } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useDossier } from '@/app/providers/DossierProvider'
 import { runValidation } from '@/domain/rules/runner'
 import type { Dossier } from '@/domain/schemas/dossier.schema'
@@ -19,9 +20,13 @@ import {
   AccordionTrigger,
 } from '@/components/ui/accordion'
 import { AlertCircle, AlertTriangle, Info, ShieldCheck } from 'lucide-react'
+import { NoDossierState } from '@/components/NoDossierState'
+import { useFindingText } from '@/lib/finding-text'
 
 export default function ConsistencyChecksPage() {
   const { state, hasData } = useDossier()
+  const { t } = useTranslation(['validation', 'common'])
+  const findingText = useFindingText()
 
   const validationResult = useMemo(() => {
     if (!hasData || !state.applicant || !state.application) return null
@@ -39,15 +44,7 @@ export default function ConsistencyChecksPage() {
   }, [state, hasData])
 
   if (!hasData) {
-    return (
-      <Alert>
-        <AlertCircle className="h-4 w-4" />
-        <AlertDescription>
-          No application data loaded. Go to Dashboard to start a new
-          application.
-        </AlertDescription>
-      </Alert>
-    )
+    return <NoDossierState section={t('validation:title')} />
   }
 
   if (!validationResult) return null
@@ -68,17 +65,19 @@ export default function ConsistencyChecksPage() {
   const getSeverityBadge = (severity: ValidationFinding['severity']) => {
     switch (severity) {
       case 'error':
-        return <Badge variant="destructive">Error</Badge>
+        return (
+          <Badge variant="destructive">{t('validation:severity.error')}</Badge>
+        )
       case 'warning':
         return (
           <Badge variant="secondary" className="bg-amber-100 text-amber-800">
-            Warning
+            {t('validation:severity.warning')}
           </Badge>
         )
       case 'info':
         return (
           <Badge variant="secondary" className="bg-blue-100 text-blue-800">
-            Info
+            {t('validation:severity.info')}
           </Badge>
         )
     }
@@ -87,48 +86,56 @@ export default function ConsistencyChecksPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold">Consistency Checks</h1>
-        <p className="text-muted-foreground">
-          Automated validation of your visa application dossier
-        </p>
+        <h1 className="text-2xl font-bold">{t('validation:title')}</h1>
+        <p className="text-muted-foreground">{t('validation:description')}</p>
       </div>
 
       {/* Summary */}
       <div className="grid gap-4 md:grid-cols-3">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Errors</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              {t('validation:summary.errors')}
+            </CardTitle>
             <AlertCircle className="h-4 w-4 text-red-500" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-red-500">{errorCount}</div>
             <p className="text-xs text-muted-foreground">
-              Must be resolved before submission
+              {t('validation:summary.errorsHint')}
             </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Warnings</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              {t('validation:summary.warnings')}
+            </CardTitle>
             <AlertTriangle className="h-4 w-4 text-amber-500" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-amber-500">
               {warningCount}
             </div>
-            <p className="text-xs text-muted-foreground">Should be reviewed</p>
+            <p className="text-xs text-muted-foreground">
+              {t('validation:summary.warningsHint')}
+            </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Info</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              {t('validation:summary.info')}
+            </CardTitle>
             <Info className="h-4 w-4 text-blue-500" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-blue-500">{infoCount}</div>
-            <p className="text-xs text-muted-foreground">Informational notes</p>
+            <p className="text-xs text-muted-foreground">
+              {t('validation:summary.infoHint')}
+            </p>
           </CardContent>
         </Card>
       </div>
@@ -137,10 +144,11 @@ export default function ConsistencyChecksPage() {
       {findings.length === 0 && (
         <Alert className="border-green-200 bg-green-50">
           <ShieldCheck className="h-4 w-4 text-green-600" />
-          <AlertTitle className="text-green-800">All checks passed</AlertTitle>
+          <AlertTitle className="text-green-800">
+            {t('validation:summary.allPassed')}
+          </AlertTitle>
           <AlertDescription className="text-green-700">
-            No issues found in your dossier. Remember to verify all information
-            is accurate before your appointment.
+            {t('validation:summary.allPassedBody')}
           </AlertDescription>
         </Alert>
       )}
@@ -149,8 +157,7 @@ export default function ConsistencyChecksPage() {
       <Alert>
         <AlertCircle className="h-4 w-4" />
         <AlertDescription>
-          These checks are organizational aids, not official requirements.
-          Always verify requirements with the official embassy or visa center.
+          {t('validation:summary.disclaimer')}
         </AlertDescription>
       </Alert>
 
@@ -158,51 +165,65 @@ export default function ConsistencyChecksPage() {
       {findings.length > 0 && (
         <Card>
           <CardHeader>
-            <CardTitle>Findings</CardTitle>
+            <CardTitle>{t('validation:summary.findings')}</CardTitle>
             <CardDescription>
-              {findings.length} issue{findings.length !== 1 ? 's' : ''} found
+              {t('validation:summary.findingCount', {
+                count: findings.length,
+              })}
             </CardDescription>
           </CardHeader>
           <CardContent>
             <Accordion type="multiple" className="w-full">
-              {findings.map((finding) => (
-                <AccordionItem key={finding.id} value={finding.id}>
-                  <AccordionTrigger className="hover:no-underline">
-                    <div className="flex items-center gap-3 text-left">
-                      {getSeverityIcon(finding.severity)}
-                      <span className="font-medium">{finding.title}</span>
-                      {getSeverityBadge(finding.severity)}
-                    </div>
-                  </AccordionTrigger>
-                  <AccordionContent>
-                    <div className="space-y-4 pl-8">
-                      <p className="text-sm text-muted-foreground">
-                        {finding.description}
-                      </p>
-
-                      <div className="space-y-2">
-                        <p className="text-sm font-medium">Suggested Action:</p>
-                        <p className="text-sm text-muted-foreground">
-                          {finding.suggestedAction}
-                        </p>
+              {findings.map((finding, index) => {
+                const text = findingText(finding)
+                return (
+                  // Index-suffixed: a few rules emit one finding per sponsor
+                  // or document, so ids can repeat within a render.
+                  <AccordionItem
+                    key={`${finding.id}-${index}`}
+                    value={`${finding.id}-${index}`}
+                  >
+                    <AccordionTrigger className="hover:no-underline">
+                      <div className="flex items-center gap-3 text-left">
+                        {getSeverityIcon(finding.severity)}
+                        <span className="font-medium">{text.title}</span>
+                        {getSeverityBadge(finding.severity)}
                       </div>
+                    </AccordionTrigger>
+                    <AccordionContent>
+                      <div className="space-y-4 pl-8">
+                        <p className="text-sm text-muted-foreground">
+                          {text.description}
+                        </p>
 
-                      {finding.relatedFields.length > 0 && (
                         <div className="space-y-2">
-                          <p className="text-sm font-medium">Related Fields:</p>
-                          <div className="flex flex-wrap gap-1">
-                            {finding.relatedFields.map((field) => (
-                              <Badge key={field} variant="outline">
-                                {field}
-                              </Badge>
-                            ))}
-                          </div>
+                          <p className="text-sm font-medium">
+                            {t('validation:detail.suggestedAction')}
+                          </p>
+                          <p className="text-sm text-muted-foreground">
+                            {text.suggestedAction}
+                          </p>
                         </div>
-                      )}
-                    </div>
-                  </AccordionContent>
-                </AccordionItem>
-              ))}
+
+                        {finding.relatedFields.length > 0 && (
+                          <div className="space-y-2">
+                            <p className="text-sm font-medium">
+                              {t('validation:detail.relatedFields')}
+                            </p>
+                            <div className="flex flex-wrap gap-1">
+                              {finding.relatedFields.map((field) => (
+                                <Badge key={field} variant="outline">
+                                  {field}
+                                </Badge>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </AccordionContent>
+                  </AccordionItem>
+                )
+              })}
             </Accordion>
           </CardContent>
         </Card>

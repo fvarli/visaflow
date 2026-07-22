@@ -1,4 +1,5 @@
 import { useForm } from 'react-hook-form'
+import { useTranslation } from 'react-i18next'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useDossier } from '@/app/providers/DossierProvider'
@@ -20,8 +21,8 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Separator } from '@/components/ui/separator'
-import { Alert, AlertDescription } from '@/components/ui/alert'
-import { AlertCircle } from 'lucide-react'
+import { NoDossierState } from '@/components/NoDossierState'
+import { dynamicT } from '@/lib/i18n-dynamic'
 import { useEffect } from 'react'
 
 const formSchema = z.object({
@@ -43,6 +44,8 @@ type FormData = z.infer<typeof formSchema>
 
 export default function ApplicantPage() {
   const { state, updateApplicant, hasData } = useDossier()
+  const { t } = useTranslation(['applicant', 'common', 'visa-domain'])
+  const td = dynamicT(t)
 
   const {
     register,
@@ -129,23 +132,15 @@ export default function ApplicantPage() {
   }, [watch, handleSubmit, isDirty])
 
   if (!hasData) {
-    return (
-      <Alert>
-        <AlertCircle className="h-4 w-4" />
-        <AlertDescription>
-          No application data loaded. Go to Dashboard to start a new application
-          or import existing data.
-        </AlertDescription>
-      </Alert>
-    )
+    return <NoDossierState section={t('applicant:title')} />
   }
 
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold">Applicant Information</h1>
+        <h1 className="text-2xl font-bold">{t('applicant:title')}</h1>
         <p className="text-muted-foreground">
-          Personal details of the visa applicant
+          {t('applicant:shortDescription')}
         </p>
       </div>
 
@@ -153,19 +148,21 @@ export default function ApplicantPage() {
         {/* Personal Information */}
         <Card>
           <CardHeader>
-            <CardTitle>Personal Details</CardTitle>
+            <CardTitle>{t('applicant:personal.title')}</CardTitle>
             <CardDescription>
-              Enter your personal information as it appears on your passport
+              {t('applicant:personal.description')}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid gap-4 md:grid-cols-2">
               <div className="space-y-2">
-                <Label htmlFor="firstName">First Name *</Label>
+                <Label htmlFor="firstName">
+                  {t('applicant:fields.firstName')} *
+                </Label>
                 <Input
                   id="firstName"
                   {...register('firstName')}
-                  placeholder="As on passport"
+                  placeholder={t('applicant:hints.asOnPassport')}
                 />
                 {errors.firstName && (
                   <p className="text-sm text-red-500">
@@ -174,11 +171,13 @@ export default function ApplicantPage() {
                 )}
               </div>
               <div className="space-y-2">
-                <Label htmlFor="lastName">Last Name *</Label>
+                <Label htmlFor="lastName">
+                  {t('applicant:fields.lastName')} *
+                </Label>
                 <Input
                   id="lastName"
                   {...register('lastName')}
-                  placeholder="As on passport"
+                  placeholder={t('applicant:hints.asOnPassport')}
                 />
                 {errors.lastName && (
                   <p className="text-sm text-red-500">
@@ -190,7 +189,9 @@ export default function ApplicantPage() {
 
             <div className="grid gap-4 md:grid-cols-2">
               <div className="space-y-2">
-                <Label htmlFor="dateOfBirth">Date of Birth *</Label>
+                <Label htmlFor="dateOfBirth">
+                  {t('applicant:fields.dateOfBirth')} *
+                </Label>
                 <Input
                   id="dateOfBirth"
                   type="date"
@@ -203,7 +204,9 @@ export default function ApplicantPage() {
                 )}
               </div>
               <div className="space-y-2">
-                <Label htmlFor="nationality">Nationality *</Label>
+                <Label htmlFor="nationality">
+                  {t('applicant:fields.nationality')} *
+                </Label>
                 <Input
                   id="nationality"
                   {...register('nationality')}
@@ -220,28 +223,44 @@ export default function ApplicantPage() {
 
             <div className="grid gap-4 md:grid-cols-2">
               <div className="space-y-2">
-                <Label htmlFor="maritalStatus">Marital Status</Label>
+                <Label htmlFor="maritalStatus">
+                  {t('applicant:fields.maritalStatus')}
+                </Label>
                 <Select
                   value={watchAllFields.maritalStatus}
                   onValueChange={(value) => setValue('maritalStatus', value)}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Select status" />
+                    <SelectValue
+                      placeholder={t('applicant:hints.selectStatus')}
+                    />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="single">Single</SelectItem>
-                    <SelectItem value="married">Married</SelectItem>
-                    <SelectItem value="divorced">Divorced</SelectItem>
-                    <SelectItem value="widowed">Widowed</SelectItem>
-                    <SelectItem value="separated">Separated</SelectItem>
+                    <SelectItem value="single">
+                      {td('visa-domain:maritalStatus.single')}
+                    </SelectItem>
+                    <SelectItem value="married">
+                      {td('visa-domain:maritalStatus.married')}
+                    </SelectItem>
+                    <SelectItem value="divorced">
+                      {td('visa-domain:maritalStatus.divorced')}
+                    </SelectItem>
+                    <SelectItem value="widowed">
+                      {td('visa-domain:maritalStatus.widowed')}
+                    </SelectItem>
+                    <SelectItem value="separated">
+                      {td('visa-domain:maritalStatus.separated')}
+                    </SelectItem>
                     <SelectItem value="civil_partnership">
-                      Civil Partnership
+                      {td('visa-domain:maritalStatus.civil_partnership')}
                     </SelectItem>
                   </SelectContent>
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="occupation">Occupation</Label>
+                <Label htmlFor="occupation">
+                  {t('applicant:fields.occupation')}
+                </Label>
                 <Input
                   id="occupation"
                   {...register('occupation')}
@@ -252,7 +271,7 @@ export default function ApplicantPage() {
 
             <div className="grid gap-4 md:grid-cols-2">
               <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="email">{t('applicant:fields.email')}</Label>
                 <Input
                   id="email"
                   type="email"
@@ -264,7 +283,7 @@ export default function ApplicantPage() {
                 )}
               </div>
               <div className="space-y-2">
-                <Label htmlFor="phone">Phone</Label>
+                <Label htmlFor="phone">{t('applicant:fields.phone')}</Label>
                 <Input
                   id="phone"
                   {...register('phone')}
@@ -280,15 +299,17 @@ export default function ApplicantPage() {
         {/* Passport Information */}
         <Card>
           <CardHeader>
-            <CardTitle>Current Passport</CardTitle>
+            <CardTitle>{t('applicant:passport.title')}</CardTitle>
             <CardDescription>
-              Details of your current valid passport
+              {t('applicant:passport.description')}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid gap-4 md:grid-cols-2">
               <div className="space-y-2">
-                <Label htmlFor="passportNumber">Passport Number *</Label>
+                <Label htmlFor="passportNumber">
+                  {t('applicant:fields.passportNumber')} *
+                </Label>
                 <Input
                   id="passportNumber"
                   {...register('passportNumber')}
@@ -302,7 +323,7 @@ export default function ApplicantPage() {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="passportIssuingCountry">
-                  Issuing Country *
+                  {t('applicant:fields.passportIssuingCountry')} *
                 </Label>
                 <Input
                   id="passportIssuingCountry"
@@ -320,7 +341,9 @@ export default function ApplicantPage() {
 
             <div className="grid gap-4 md:grid-cols-2">
               <div className="space-y-2">
-                <Label htmlFor="passportIssueDate">Issue Date *</Label>
+                <Label htmlFor="passportIssueDate">
+                  {t('applicant:fields.passportIssueDate')} *
+                </Label>
                 <Input
                   id="passportIssueDate"
                   type="date"
@@ -333,7 +356,9 @@ export default function ApplicantPage() {
                 )}
               </div>
               <div className="space-y-2">
-                <Label htmlFor="passportExpiryDate">Expiry Date *</Label>
+                <Label htmlFor="passportExpiryDate">
+                  {t('applicant:fields.passportExpiry')} *
+                </Label>
                 <Input
                   id="passportExpiryDate"
                   type="date"
@@ -350,7 +375,7 @@ export default function ApplicantPage() {
         </Card>
 
         <div className="flex justify-end">
-          <Button type="submit">Save Changes</Button>
+          <Button type="submit">{t('common:actions.saveChanges')}</Button>
         </div>
       </form>
     </div>

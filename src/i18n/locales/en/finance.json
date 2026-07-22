@@ -1,0 +1,21 @@
+{
+  "title": "Finance",
+  "description": "How this trip will be funded",
+  "shortDescription": "How you will finance your trip",
+  "source": {
+    "title": "Funding source",
+    "description": "Who will cover the expenses for this trip?",
+    "label": "Primary funding source",
+    "placeholder": "Select source",
+    "required": "Funding source is required"
+  },
+  "personal": {
+    "title": "Personal finances",
+    "description": "Your own funds available for this trip",
+    "bankName": "Bank name",
+    "bankNamePlaceholder": "Your primary bank",
+    "statementDate": "Statement date",
+    "accountBalance": "Account balance",
+    "currency": "Currency"
+  }
+}

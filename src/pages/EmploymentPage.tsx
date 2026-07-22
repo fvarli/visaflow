@@ -1,4 +1,5 @@
 import { useForm } from 'react-hook-form'
+import { useTranslation } from 'react-i18next'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useDossier } from '@/app/providers/DossierProvider'
@@ -19,8 +20,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Alert, AlertDescription } from '@/components/ui/alert'
-import { AlertCircle } from 'lucide-react'
+import { NoDossierState } from '@/components/NoDossierState'
+import { dynamicT } from '@/lib/i18n-dynamic'
 import { useEffect } from 'react'
 
 const formSchema = z.object({
@@ -38,6 +39,8 @@ type FormData = z.infer<typeof formSchema>
 
 export default function EmploymentPage() {
   const { state, updateEmployment, hasData } = useDossier()
+  const { t } = useTranslation(['employment', 'common', 'visa-domain'])
+  const td = dynamicT(t)
 
   const {
     register,
@@ -111,52 +114,62 @@ export default function EmploymentPage() {
   }
 
   if (!hasData) {
-    return (
-      <Alert>
-        <AlertCircle className="h-4 w-4" />
-        <AlertDescription>
-          No application data loaded. Go to Dashboard to start a new
-          application.
-        </AlertDescription>
-      </Alert>
-    )
+    return <NoDossierState section={t('employment:title')} />
   }
 
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold">Employment Information</h1>
+        <h1 className="text-2xl font-bold">{t('employment:title')}</h1>
         <p className="text-muted-foreground">
-          Your current employment status and details
+          {t('employment:shortDescription')}
         </p>
       </div>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
         <Card>
           <CardHeader>
-            <CardTitle>Employment Status</CardTitle>
+            <CardTitle>{t('employment:status.title')}</CardTitle>
             <CardDescription>
-              Select your current employment situation
+              {t('employment:status.description')}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="employmentStatus">Status *</Label>
+              <Label htmlFor="employmentStatus">
+                {t('employment:status.label')} *
+              </Label>
               <Select
                 value={employmentStatus}
                 onValueChange={(value) => setValue('employmentStatus', value)}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Select status" />
+                  <SelectValue
+                    placeholder={t('employment:status.placeholder')}
+                  />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="employed">Employed</SelectItem>
-                  <SelectItem value="self_employed">Self-Employed</SelectItem>
-                  <SelectItem value="unemployed">Unemployed</SelectItem>
-                  <SelectItem value="retired">Retired</SelectItem>
-                  <SelectItem value="student">Student</SelectItem>
-                  <SelectItem value="homemaker">Homemaker</SelectItem>
-                  <SelectItem value="other">Other</SelectItem>
+                  <SelectItem value="employed">
+                    {td('visa-domain:employmentStatus.employed')}
+                  </SelectItem>
+                  <SelectItem value="self_employed">
+                    {td('visa-domain:employmentStatus.self_employed')}
+                  </SelectItem>
+                  <SelectItem value="unemployed">
+                    {td('visa-domain:employmentStatus.unemployed')}
+                  </SelectItem>
+                  <SelectItem value="retired">
+                    {td('visa-domain:employmentStatus.retired')}
+                  </SelectItem>
+                  <SelectItem value="student">
+                    {td('visa-domain:employmentStatus.student')}
+                  </SelectItem>
+                  <SelectItem value="homemaker">
+                    {td('visa-domain:employmentStatus.homemaker')}
+                  </SelectItem>
+                  <SelectItem value="other">
+                    {td('visa-domain:employmentStatus.other')}
+                  </SelectItem>
                 </SelectContent>
               </Select>
               {errors.employmentStatus && (
@@ -172,34 +185,40 @@ export default function EmploymentPage() {
           <>
             <Card>
               <CardHeader>
-                <CardTitle>Employer Details</CardTitle>
+                <CardTitle>{t('employment:employer.title')}</CardTitle>
                 <CardDescription>
-                  Information about your current employer
+                  {t('employment:employer.description')}
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid gap-4 md:grid-cols-2">
                   <div className="space-y-2">
-                    <Label htmlFor="employerName">Employer Name</Label>
+                    <Label htmlFor="employerName">
+                      {t('employment:employer.name')}
+                    </Label>
                     <Input
                       id="employerName"
                       {...register('employerName')}
-                      placeholder="Company name"
+                      placeholder={t('employment:employer.namePlaceholder')}
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="jobTitle">Job Title</Label>
+                    <Label htmlFor="jobTitle">
+                      {t('employment:employer.jobTitle')}
+                    </Label>
                     <Input
                       id="jobTitle"
                       {...register('jobTitle')}
-                      placeholder="Your position"
+                      placeholder={t('employment:employer.jobTitlePlaceholder')}
                     />
                   </div>
                 </div>
 
                 <div className="grid gap-4 md:grid-cols-3">
                   <div className="space-y-2">
-                    <Label htmlFor="startDate">Start Date</Label>
+                    <Label htmlFor="startDate">
+                      {t('employment:employer.startDate')}
+                    </Label>
                     <Input
                       id="startDate"
                       type="date"
@@ -207,7 +226,9 @@ export default function EmploymentPage() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="monthlyNetIncome">Monthly Net Income</Label>
+                    <Label htmlFor="monthlyNetIncome">
+                      {t('employment:employer.monthlyNetIncome')}
+                    </Label>
                     <Input
                       id="monthlyNetIncome"
                       type="number"
@@ -216,7 +237,9 @@ export default function EmploymentPage() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="currency">Currency</Label>
+                    <Label htmlFor="currency">
+                      {t('employment:employer.currency')}
+                    </Label>
                     <Select
                       value={watch('currency')}
                       onValueChange={(value) => setValue('currency', value)}
@@ -239,7 +262,7 @@ export default function EmploymentPage() {
 
             <Card>
               <CardHeader>
-                <CardTitle>Approved Leave</CardTitle>
+                <CardTitle>{t('employment:leave.title')}</CardTitle>
                 <CardDescription>
                   Leave period approved by your employer for this trip
                 </CardDescription>
@@ -247,7 +270,9 @@ export default function EmploymentPage() {
               <CardContent className="space-y-4">
                 <div className="grid gap-4 md:grid-cols-2">
                   <div className="space-y-2">
-                    <Label htmlFor="approvedLeaveStart">Leave Start Date</Label>
+                    <Label htmlFor="approvedLeaveStart">
+                      {t('employment:leave.startDate')}
+                    </Label>
                     <Input
                       id="approvedLeaveStart"
                       type="date"
@@ -255,7 +280,9 @@ export default function EmploymentPage() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="approvedLeaveEnd">Leave End Date</Label>
+                    <Label htmlFor="approvedLeaveEnd">
+                      {t('employment:leave.endDate')}
+                    </Label>
                     <Input
                       id="approvedLeaveEnd"
                       type="date"
@@ -269,7 +296,7 @@ export default function EmploymentPage() {
         )}
 
         <div className="flex justify-end">
-          <Button type="submit">Save Changes</Button>
+          <Button type="submit">{t('common:actions.saveChanges')}</Button>
         </div>
       </form>
     </div>

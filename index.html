@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="tr">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
@@ -11,8 +11,10 @@
     />
     <title>VisaFlow</title>
     <script>
-      // Applies the stored theme before first paint, so a dark-mode user never
-      // sees a white flash. Reads only the non-personal theme key (ADR-006).
+      // Applies the stored theme and language before first paint, so a
+      // dark-mode user never sees a white flash and assistive technology gets
+      // the right language immediately. Reads only the two non-personal
+      // preference keys (ADR-006, ADR-013).
       ;(function () {
         try {
           var stored = localStorage.getItem('visaflow-theme')
@@ -24,6 +26,14 @@
           document.documentElement.style.colorScheme = dark ? 'dark' : 'light'
         } catch (e) {
           /* storage unavailable — fall through to the light default */
+        }
+        try {
+          // Turkish is the default; the browser language is never consulted.
+          var locale = localStorage.getItem('visaflow-locale')
+          document.documentElement.lang =
+            locale === 'en' || locale === 'tr' ? locale : 'tr'
+        } catch (e) {
+          document.documentElement.lang = 'tr'
         }
       })()
     </script>

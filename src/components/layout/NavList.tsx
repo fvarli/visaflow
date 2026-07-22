@@ -1,5 +1,7 @@
 import { NavLink } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { cn } from '@/lib/utils'
+import { dynamicT } from '@/lib/i18n-dynamic'
 import type { NavGroup, NavItem } from '@/config/navigation'
 
 export type NavBadgeCounts = Partial<
@@ -21,16 +23,19 @@ interface NavListProps {
  * `aria-current="page"` carries the same meaning non-visually.
  */
 export function NavList({ groups, counts, onNavigate }: NavListProps) {
+  const { t } = useTranslation()
+  const td = dynamicT(t)
+
   return (
     <div className="flex flex-col gap-6">
       {groups.map((group, index) => (
         <div
-          key={group.label ?? `group-${index}`}
+          key={group.labelKey ?? `group-${index}`}
           className="flex flex-col gap-1"
         >
-          {group.label && (
+          {group.labelKey && (
             <h2 className="text-eyebrow text-muted-foreground/80 px-3 pb-1 uppercase">
-              {group.label}
+              {td(group.labelKey)}
             </h2>
           )}
           <ul className="flex flex-col gap-0.5">
@@ -59,7 +64,9 @@ export function NavItemLink({
   counts?: NavBadgeCounts
   onNavigate?: () => void
 }) {
+  const { t } = useTranslation()
   const count = item.badgeKey ? counts?.[item.badgeKey] : undefined
+  const label = dynamicT(t)(item.labelKey)
 
   return (
     <NavLink
@@ -92,7 +99,7 @@ export function NavItemLink({
                 : 'text-muted-foreground group-hover:text-foreground'
             )}
           />
-          <span className="truncate">{item.label}</span>
+          <span className="min-w-0 break-words">{label}</span>
           {count !== undefined && count > 0 && (
             <span
               data-numeric

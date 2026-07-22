@@ -3,22 +3,30 @@
 import '@fontsource-variable/inter'
 import '@fontsource-variable/jetbrains-mono'
 
+// Initialises i18next before any component renders. Both locales are bundled
+// locally, so this also makes no network request.
+import '@/i18n'
+import '@/i18n/types'
+
 import { RouterProvider } from 'react-router-dom'
 import { router } from '@/app/router/routes'
 import { DossierProvider } from '@/app/providers/DossierProvider'
 import { ThemeProvider } from '@/app/providers/ThemeProvider'
+import { LocaleProvider } from '@/app/providers/LocaleProvider'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import './index.css'
 
 function App() {
   return (
-    <ThemeProvider>
-      <DossierProvider>
-        <TooltipProvider delayDuration={200}>
-          <RouterProvider router={router} />
-        </TooltipProvider>
-      </DossierProvider>
-    </ThemeProvider>
+    <LocaleProvider>
+      <ThemeProvider>
+        <DossierProvider>
+          <TooltipProvider delayDuration={200}>
+            <RouterProvider router={router} />
+          </TooltipProvider>
+        </DossierProvider>
+      </ThemeProvider>
+    </LocaleProvider>
   )
 }
 

@@ -1,0 +1,128 @@
+{
+  "app": {
+    "name": "VisaFlow",
+    "tagline": "Visa application dossier and document checklist manager",
+    "titleSuffix": "VisaFlow"
+  },
+  "actions": {
+    "add": "Add",
+    "back": "Back",
+    "cancel": "Cancel",
+    "clearFilters": "Clear filters",
+    "close": "Close",
+    "continue": "Continue",
+    "delete": "Delete",
+    "edit": "Edit",
+    "export": "Export",
+    "goToDashboard": "Go to Dashboard",
+    "import": "Import",
+    "remove": "Remove",
+    "save": "Save",
+    "saveChanges": "Save changes",
+    "search": "Search",
+    "viewAll": "View all"
+  },
+  "states": {
+    "all": "All",
+    "loading": "Loading",
+    "no": "No",
+    "none": "None",
+    "notProvided": "Not provided",
+    "notSet": "Not set",
+    "optional": "Optional",
+    "required": "Required",
+    "yes": "Yes"
+  },
+  "units": {
+    "days_one": "{{count}} day",
+    "days_other": "{{count}} days",
+    "nights_one": "{{count}} night",
+    "nights_other": "{{count}} nights"
+  },
+  "time": {
+    "justNow": "just now",
+    "minutesAgo": "{{count}}m ago",
+    "hoursAgo": "{{count}}h ago",
+    "daysAgo": "{{count}} days ago",
+    "today": "Today",
+    "inDays": "In {{count}} days",
+    "daysRemaining": "{{count}} days remaining",
+    "datePassed": "Date has passed"
+  },
+  "saveState": {
+    "unsaved": "Unsaved",
+    "noChanges": "No changes",
+    "savedAt": "Saved {{when}}"
+  },
+  "footer": {
+    "disclaimer": "VisaFlow is an organizational tool. It does not provide legal advice, represent any embassy or visa center, or guarantee a visa decision. Always verify requirements using current official sources."
+  },
+  "privacy": {
+    "title": "Your data never leaves this browser",
+    "body": "Everything stays in memory only — nothing is sent to a server and nothing is written to disk. Export your dossier to save your progress before closing the tab.",
+    "memoryOnly": "Imported data stays in browser memory only. Export again to save any changes you make."
+  },
+  "theme": {
+    "label": "Theme",
+    "change": "Change theme",
+    "light": "Light",
+    "dark": "Dark",
+    "system": "System"
+  },
+  "language": {
+    "label": "Language",
+    "change": "Change language",
+    "tr": "Türkçe",
+    "en": "English"
+  },
+  "a11y": {
+    "skipToContent": "Skip to content",
+    "openNavigation": "Open navigation",
+    "mainNavigation": "Main",
+    "homeLink": "VisaFlow home",
+    "loadingPage": "Loading page"
+  },
+  "importDialog": {
+    "title": "Import data",
+    "description": "Load a dossier from a JSON file you exported earlier.",
+    "chooseFile": "Choose JSON file",
+    "or": "Or",
+    "loadExample": "Load example data",
+    "failedToRead": "Failed to read file",
+    "failedExample": "Failed to load example data"
+  },
+  "noDossier": {
+    "title": "No application loaded",
+    "description": "Start a new application or import an existing dossier to continue.",
+    "descriptionFor": "Start a new application or import an existing dossier to work on {{section}}."
+  },
+  "sources": {
+    "heading": "Source",
+    "lastVerified": "Last verified",
+    "authority": "Authority",
+    "retrieved": "Retrieved",
+    "jurisdiction": "Jurisdiction",
+    "documentLanguage": "Document language",
+    "viewSource": "Open source",
+    "showDetails": "Source details",
+    "sourceType": {
+      "embassy": "Embassy",
+      "consulate": "Consulate",
+      "authorized_visa_center": "Authorized visa centre",
+      "government": "Government",
+      "regulation": "Regulation",
+      "other": "Other"
+    },
+    "reviewStatus": {
+      "label": "Review status",
+      "unverified": "Unverified",
+      "partially_verified": "Partially verified",
+      "verified": "Verified",
+      "needs_review": "Needs review"
+    },
+    "unverifiedNotice": "This requirement has not yet been verified against a current official source. Check the authorized institution's current document list before applying.",
+    "notLegalGuarantee": "Review status describes how recently this template was checked by a maintainer. It is not a legal guarantee and VisaFlow is not an embassy or authorized visa centre.",
+    "type": "Source type",
+    "notes": "Notes"
+  }
+}

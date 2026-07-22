@@ -301,6 +301,16 @@ All imported JSON is validated against Zod schemas before being loaded. Invalid 
 
 ## Migration Notes
 
+### Document `name` deprecation (iteration 3, still 1.0.0)
+
+`Document.name` is now optional and deprecated. Documents created from a
+country template no longer store a display name — a stored name would make
+exported JSON depend on the UI language. The stable `code` identifies the
+document and the label is resolved through translation. Existing 1.0.0
+exports that still contain `name` import unchanged; the value is used only as
+a display fallback for codes with no translation. `schemaVersion` stays
+`1.0.0`. See ADR-012.
+
 ### Version 1.0.0 (Current)
 - Initial schema version
 - All fields and structures as documented above

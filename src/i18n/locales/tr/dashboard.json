@@ -1,0 +1,43 @@
+{
+  "title": "Genel bakış",
+  "welcome": "VisaFlow'a hoş geldiniz",
+  "welcomeDescription": "Vize başvuru dosyanızı güvenle düzenleyin.",
+  "getStarted": {
+    "title": "Başlayın",
+    "description": "Vize başvurunuzu düzenlemeye nasıl başlamak istediğinizi seçin.",
+    "startGreece": "Yeni Yunanistan başvurusu oluştur",
+    "orImport": "Ya da mevcut bir dosyayı yüklemek için kenar çubuğundaki <1>İçe aktar</1> seçeneğini kullanın.",
+    "orImportPlain": "Ya da mevcut veriyi yüklemek için kenar çubuğundaki İçe aktar düğmesini kullanın."
+  },
+  "cards": {
+    "appointment": "Randevu",
+    "tripStart": "Seyahat başlangıcı",
+    "daysUntilTravel": "Seyahate {{count}} gün kaldı"
+  },
+  "completion": {
+    "title": "Dosya hazırlık düzeyi",
+    "description": "{{total}} zorunlu belgeden {{ready}} tanesi hazır",
+    "progressLabel": "Belge tamamlanma durumu",
+    "ready": "hazır",
+    "pending": "beklemede",
+    "needUpdate": "güncellenmeli"
+  },
+  "checks": {
+    "title": "Tutarlılık kontrolleri",
+    "description": "Başvuru dosyanızdaki yaygın sorunlar için otomatik kontroller",
+    "viewAllFindings": "{{count}} bulgunun tümünü gör",
+    "noIssues": "Sorun bulunamadı"
+  },
+  "nextSteps": {
+    "title": "Sonraki adımlar",
+    "description": "Başvurunuzu ilerletmenin en hızlı yolları",
+    "nothingOutstanding": "Bekleyen iş yok",
+    "nothingOutstandingBody": "Takip edilen tüm maddeler tamamlandı. Bu durumu kaydetmek için dosyanızı dışa aktarın.",
+    "completeMissingDocs_one": "Eksik {{count}} belgeyi tamamlayın",
+    "completeMissingDocs_other": "Eksik {{count}} belgeyi tamamlayın",
+    "setAppointment": "Randevu tarihi belirleyin",
+    "addTrip": "Seyahat bilgilerini ekleyin",
+    "resolveErrors_one": "{{count}} hatayı giderin",
+    "resolveErrors_other": "{{count}} hatayı giderin"
+  }
+}

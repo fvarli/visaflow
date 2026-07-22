@@ -1,6 +1,6 @@
 # Current Implementation Status
 
-Last updated: 2026-07-21
+Last updated: 2026-07-23
 
 ## Completed Features
 
@@ -31,9 +31,18 @@ Last updated: 2026-07-21
 - [x] Example dossier for testing
 
 ### Country Configuration
-- [x] Greece Schengen tourism requirements
+- [x] Country → visa type → requirement hierarchy
+- [x] Greece Schengen tourism template (honestly marked `unverified`)
 - [x] Conditional requirements support
 - [x] Common Schengen documents
+- [x] Official-source verification metadata (no scraping, no invented dates)
+
+### Internationalization
+- [x] Turkish + English UI, Turkish default (i18next / react-i18next)
+- [x] Locale preference persisted (`visaflow-locale`), no browser detection
+- [x] Locale-aware date / number / currency formatting
+- [x] Validation findings carry stable keys + params; prose resolved in the UI
+- [x] Exported JSON is language-independent
 
 ### Technical
 - [x] TypeScript strict mode
@@ -53,8 +62,11 @@ Last updated: 2026-07-21
 ## Active Issues
 
 ### Lint Warnings (Acceptable)
-- `react-refresh/only-export-components` in route files
+- `react-refresh/only-export-components` in route/provider files
 - `react-hooks/incompatible-library` for React Hook Form watch
+- `@typescript-eslint/no-deprecated` where the UI reads the deprecated
+  `Document.name` as a legacy fallback (intentional), plus a pre-existing
+  Zod `z.email()` deprecation
 
 These warnings don't affect functionality.
 
@@ -68,6 +80,11 @@ These warnings don't affect functionality.
 ## Build Status
 
 All checks pass:
-- `pnpm typecheck` - PASS
-- `pnpm test` - 23/23 PASS
+- `pnpm format:check` - PASS
+- `pnpm lint` - 0 errors (warnings acceptable, see below)
+- `pnpm typecheck` - PASS (`tsc -b`)
+- `pnpm test` - 84/84 PASS
 - `pnpm build` - SUCCESS
+
+Note: an earlier version of this file claimed 23/23 tests and `tsc --noEmit`;
+the script is now `tsc -b` and the suite has grown.

@@ -113,3 +113,20 @@ These are for developers' reference only. VisaFlow does NOT scrape or link to of
 - Schengen Visa Code (Regulation (EC) No 810/2009)
 - Individual embassy websites
 - VFS Global / BLS International (visa centers)
+
+## Positioning: organization, not prediction (ADR-016)
+
+VisaFlow measures **dossier readiness and internal consistency** only. It must
+never present a visa-approval probability or a refusal-risk score. Contributors
+adding features should use the vocabulary: dossier readiness, application
+completeness, missing required documents, documents needing updates,
+consistency findings (TR: dosya hazırlık düzeyi, başvuru tamamlanma durumu,
+eksik zorunlu belgeler, güncellenmesi gereken belgeler, tutarlılık bulguları).
+
+## Requirement vs document instance
+
+- **Document requirement** (`src/config/types.ts`) — template/configuration
+  stating what an application *may* need.
+- **Document instance** (`src/domain/schemas/document.schema.ts`) —
+  applicant-specific record of whether that document is prepared. Identified by
+  stable `code`; its display label is derived via translation.

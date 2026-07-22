@@ -1,4 +1,5 @@
 import { useForm } from 'react-hook-form'
+import { useTranslation } from 'react-i18next'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useDossier } from '@/app/providers/DossierProvider'
@@ -13,8 +14,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
-import { Alert, AlertDescription } from '@/components/ui/alert'
-import { AlertCircle } from 'lucide-react'
+import { NoDossierState } from '@/components/NoDossierState'
 import { useEffect } from 'react'
 
 const formSchema = z.object({
@@ -34,6 +34,7 @@ type FormData = z.infer<typeof formSchema>
 
 export default function TripPage() {
   const { state, updateTrip, updateAppointment, hasData } = useDossier()
+  const { t } = useTranslation(['trip', 'common'])
 
   const {
     register,
@@ -102,38 +103,30 @@ export default function TripPage() {
   }
 
   if (!hasData) {
-    return (
-      <Alert>
-        <AlertCircle className="h-4 w-4" />
-        <AlertDescription>
-          No application data loaded. Go to Dashboard to start a new
-          application.
-        </AlertDescription>
-      </Alert>
-    )
+    return <NoDossierState section={t('trip:title')} />
   }
 
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold">Trip Details</h1>
-        <p className="text-muted-foreground">
-          Visa appointment and travel information
-        </p>
+        <h1 className="text-2xl font-bold">{t('trip:title')}</h1>
+        <p className="text-muted-foreground">{t('trip:shortDescription')}</p>
       </div>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
         <Card>
           <CardHeader>
-            <CardTitle>Visa Appointment</CardTitle>
+            <CardTitle>{t('trip:appointment.title')}</CardTitle>
             <CardDescription>
-              Your scheduled visa application appointment
+              {t('trip:appointment.description')}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid gap-4 md:grid-cols-3">
               <div className="space-y-2">
-                <Label htmlFor="appointmentDate">Date</Label>
+                <Label htmlFor="appointmentDate">
+                  {t('trip:appointment.date')}
+                </Label>
                 <Input
                   id="appointmentDate"
                   type="date"
@@ -141,7 +134,9 @@ export default function TripPage() {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="appointmentTime">Time</Label>
+                <Label htmlFor="appointmentTime">
+                  {t('trip:appointment.time')}
+                </Label>
                 <Input
                   id="appointmentTime"
                   type="time"
@@ -149,11 +144,13 @@ export default function TripPage() {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="appointmentLocation">Location</Label>
+                <Label htmlFor="appointmentLocation">
+                  {t('trip:appointment.location')}
+                </Label>
                 <Input
                   id="appointmentLocation"
                   {...register('appointmentLocation')}
-                  placeholder="e.g., VFS Global Istanbul"
+                  placeholder={t('trip:appointment.locationPlaceholder')}
                 />
               </div>
             </div>
@@ -162,15 +159,13 @@ export default function TripPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Travel Dates</CardTitle>
-            <CardDescription>
-              When you plan to enter and leave the Schengen area
-            </CardDescription>
+            <CardTitle>{t('trip:dates.title')}</CardTitle>
+            <CardDescription>{t('trip:dates.description')}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid gap-4 md:grid-cols-2">
               <div className="space-y-2">
-                <Label htmlFor="entryDate">Entry Date *</Label>
+                <Label htmlFor="entryDate">{t('trip:dates.entryDate')} *</Label>
                 <Input id="entryDate" type="date" {...register('entryDate')} />
                 {errors.entryDate && (
                   <p className="text-sm text-red-500">
@@ -179,7 +174,7 @@ export default function TripPage() {
                 )}
               </div>
               <div className="space-y-2">
-                <Label htmlFor="exitDate">Exit Date *</Label>
+                <Label htmlFor="exitDate">{t('trip:dates.exitDate')} *</Label>
                 <Input id="exitDate" type="date" {...register('exitDate')} />
                 {errors.exitDate && (
                   <p className="text-sm text-red-500">
@@ -193,19 +188,21 @@ export default function TripPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Destinations</CardTitle>
+            <CardTitle>{t('trip:destinations.title')}</CardTitle>
             <CardDescription>
-              Countries and cities you will visit
+              {t('trip:destinations.description')}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid gap-4 md:grid-cols-2">
               <div className="space-y-2">
-                <Label htmlFor="firstEntryCountry">First Entry Country *</Label>
+                <Label htmlFor="firstEntryCountry">
+                  {t('trip:destinations.firstEntryCountry')} *
+                </Label>
                 <Input
                   id="firstEntryCountry"
                   {...register('firstEntryCountry')}
-                  placeholder="e.g., GR"
+                  placeholder={t('trip:destinations.countryPlaceholder')}
                   maxLength={2}
                 />
                 {errors.firstEntryCountry && (
@@ -216,12 +213,12 @@ export default function TripPage() {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="mainDestinationCountry">
-                  Main Destination *
+                  {t('trip:destinations.mainDestination')} *
                 </Label>
                 <Input
                   id="mainDestinationCountry"
                   {...register('mainDestinationCountry')}
-                  placeholder="e.g., GR"
+                  placeholder={t('trip:destinations.countryPlaceholder')}
                   maxLength={2}
                 />
                 {errors.mainDestinationCountry && (
@@ -234,29 +231,33 @@ export default function TripPage() {
 
             <div className="grid gap-4 md:grid-cols-2">
               <div className="space-y-2">
-                <Label htmlFor="entryCity">Entry City</Label>
+                <Label htmlFor="entryCity">
+                  {t('trip:destinations.entryCity')}
+                </Label>
                 <Input
                   id="entryCity"
                   {...register('entryCity')}
-                  placeholder="e.g., Athens"
+                  placeholder={t('trip:destinations.cityPlaceholder')}
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="exitCity">Exit City</Label>
+                <Label htmlFor="exitCity">
+                  {t('trip:destinations.exitCity')}
+                </Label>
                 <Input
                   id="exitCity"
                   {...register('exitCity')}
-                  placeholder="e.g., Athens"
+                  placeholder={t('trip:destinations.cityPlaceholder')}
                 />
               </div>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="tripPurpose">Trip Purpose</Label>
+              <Label htmlFor="tripPurpose">{t('trip:purpose.title')}</Label>
               <Textarea
                 id="tripPurpose"
                 {...register('tripPurpose')}
-                placeholder="Describe the purpose of your trip..."
+                placeholder={t('trip:purpose.placeholder')}
                 rows={3}
               />
             </div>
@@ -264,7 +265,7 @@ export default function TripPage() {
         </Card>
 
         <div className="flex justify-end">
-          <Button type="submit">Save Changes</Button>
+          <Button type="submit">{t('common:actions.saveChanges')}</Button>
         </div>
       </form>
     </div>

@@ -1,0 +1,40 @@
+{
+  "title": "Documents",
+  "description": "Track every document this application requires, and where each one stands.",
+  "shortDescription": "Track your visa application documents",
+  "readyCount": "{{ready}} of {{total}} ready",
+  "filters": {
+    "search": "Search documents...",
+    "searchLabel": "Search documents",
+    "category": "Category",
+    "categoryLabel": "Filter by category",
+    "allCategories": "All categories",
+    "status": "Status",
+    "statusLabel": "Filter by status",
+    "allStatuses": "All statuses",
+    "requiredOnly": "Required only"
+  },
+  "table": {
+    "document": "Document",
+    "category": "Category",
+    "status": "Status",
+    "required": "Required",
+    "actions": "Actions",
+    "statusFor": "Status for {{document}}"
+  },
+  "empty": {
+    "title": "No documents match",
+    "description": "Try clearing the search or loosening the filters."
+  },
+  "edit": {
+    "title": "Edit document",
+    "issuedDate": "Issued date",
+    "validUntil": "Valid until",
+    "fileReference": "File reference",
+    "fileReferenceHint": "A path or note telling you where this document lives. Never uploaded.",
+    "fileReferencePlaceholder": "Local file path or reference",
+    "notes": "Notes",
+    "notesPlaceholder": "Additional notes...",
+    "verified": "Verified / reviewed"
+  }
+}

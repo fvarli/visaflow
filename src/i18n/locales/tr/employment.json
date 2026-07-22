@@ -1,0 +1,29 @@
+{
+  "title": "Çalışma durumu",
+  "description": "Güncel çalışma durumunuz ve konsolosluğun isteyeceği bilgiler",
+  "shortDescription": "Güncel çalışma durumunuz ve bilgileriniz",
+  "status": {
+    "title": "Çalışma durumu",
+    "description": "Mevcut çalışma durumunuzu seçin",
+    "label": "Durum",
+    "placeholder": "Durum seçin",
+    "required": "Çalışma durumu zorunludur"
+  },
+  "employer": {
+    "title": "İşveren bilgileri",
+    "description": "Çalıştığınız kurum hakkında bilgiler",
+    "name": "İşveren adı",
+    "namePlaceholder": "Şirket adı",
+    "jobTitle": "Görev",
+    "jobTitlePlaceholder": "Pozisyonunuz",
+    "startDate": "İşe giriş tarihi",
+    "monthlyNetIncome": "Aylık net gelir",
+    "currency": "Para birimi"
+  },
+  "leave": {
+    "title": "Onaylı izin",
+    "description": "İşvereninizin bu seyahat için onayladığı izin",
+    "startDate": "İzin başlangıç tarihi",
+    "endDate": "İzin bitiş tarihi"
+  }
+}

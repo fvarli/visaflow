@@ -1,4 +1,5 @@
 import { useState, useCallback, useRef, useMemo } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Outlet } from 'react-router-dom'
 import { Sidebar } from './Sidebar'
 import { Header } from './Header'
@@ -23,6 +24,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert'
 import { AlertCircle, Upload, FileJson, ShieldCheck } from 'lucide-react'
 
 export function AppLayout() {
+  const { t } = useTranslation()
   const [mobileNavOpen, setMobileNavOpen] = useState(false)
   const [importDialogOpen, setImportDialogOpen] = useState(false)
   const [importErrors, setImportErrors] = useState<string[]>([])
@@ -79,7 +81,9 @@ export function AppLayout() {
         }
       } catch (error) {
         setImportErrors([
-          error instanceof Error ? error.message : 'Failed to read file',
+          error instanceof Error
+            ? error.message
+            : t('importDialog.failedToRead'),
         ])
       }
 
@@ -107,7 +111,7 @@ export function AppLayout() {
         setImportDialogOpen(false)
       }
     } catch {
-      setImportErrors(['Failed to load example data'])
+      setImportErrors([t('importDialog.failedExample')])
     }
   }, [loadDossier])
 
@@ -173,19 +177,16 @@ export function AppLayout() {
       <Dialog open={importDialogOpen} onOpenChange={setImportDialogOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Import data</DialogTitle>
+            <DialogTitle>{t('importDialog.title')}</DialogTitle>
             <DialogDescription>
-              Load a dossier from a JSON file you exported earlier.
+              {t('importDialog.description')}
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4">
             <Alert variant="info">
               <ShieldCheck />
-              <AlertDescription>
-                Imported data stays in browser memory only. Export again to save
-                any changes you make.
-              </AlertDescription>
+              <AlertDescription>{t('privacy.memoryOnly')}</AlertDescription>
             </Alert>
 
             <div className="space-y-2">
@@ -203,7 +204,7 @@ export function AppLayout() {
                 onClick={() => fileInputRef.current?.click()}
               >
                 <Upload />
-                Choose JSON file
+                {t('importDialog.chooseFile')}
               </Button>
             </div>
 
@@ -213,7 +214,7 @@ export function AppLayout() {
               </div>
               <div className="text-eyebrow relative flex justify-center uppercase">
                 <span className="bg-popover text-muted-foreground px-2">
-                  Or
+                  {t('importDialog.or')}
                 </span>
               </div>
             </div>
@@ -224,7 +225,7 @@ export function AppLayout() {
               onClick={handleLoadExample}
             >
               <FileJson />
-              Load example data
+              {t('importDialog.loadExample')}
             </Button>
 
             {importErrors.length > 0 && (
