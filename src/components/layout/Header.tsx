@@ -1,66 +1,77 @@
-import { Menu, Save, AlertCircle, CheckCircle } from 'lucide-react'
+import { useLocation } from 'react-router-dom'
+import { Menu, Download } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
+import { ThemeToggle } from '@/components/ui/theme-toggle'
+import { StatusBadge } from '@/components/ui/status-badge'
 import { useDossier } from '@/app/providers/DossierProvider'
+import { getNavItemByPath } from '@/config/navigation'
+import { cn } from '@/lib/utils'
 
 interface HeaderProps {
   onMenuClick?: () => void
   onSave?: () => void
+  /** Drives the hairline: no border at rest, a border once content scrolls under. */
+  scrolled?: boolean
 }
 
-export function Header({ onMenuClick, onSave }: HeaderProps) {
+export function Header({ onMenuClick, onSave, scrolled = false }: HeaderProps) {
   const { state, hasData } = useDossier()
+  const { pathname } = useLocation()
+  const current = getNavItemByPath(pathname)
 
   return (
-    <header className="flex h-14 items-center justify-between border-b bg-[var(--background)] px-4">
-      <div className="flex items-center gap-4">
-        {/* Mobile menu button */}
-        <Button
-          variant="ghost"
-          size="icon"
-          className="lg:hidden"
-          onClick={onMenuClick}
-        >
-          <Menu className="h-5 w-5" />
-          <span className="sr-only">Toggle menu</span>
-        </Button>
+    <header
+      className={cn(
+        'bg-background/85 sticky top-0 z-30 flex h-14 shrink-0 items-center gap-3 px-4 backdrop-blur-md md:px-6',
+        'border-b transition-colors duration-200',
+        scrolled ? 'border-border' : 'border-transparent'
+      )}
+    >
+      <Button
+        variant="ghost"
+        size="icon-sm"
+        className="lg:hidden"
+        onClick={onMenuClick}
+      >
+        <Menu />
+        <span className="sr-only">Open navigation</span>
+      </Button>
 
-        {/* Application info */}
-        {hasData && state.application && (
-          <div className="flex items-center gap-2">
-            <span className="text-sm font-medium">
-              {state.application.destinationCountry || 'No destination'}
+      {/* Page context. Doubles as a breadcrumb once more levels exist. */}
+      <div className="flex min-w-0 items-center gap-2">
+        <span className="text-body text-foreground truncate font-medium">
+          {current?.label ?? 'VisaFlow'}
+        </span>
+        {hasData && state.application?.destinationCountry && (
+          <>
+            <span aria-hidden className="text-muted-foreground/50">
+              /
             </span>
-            <Badge variant="secondary" className="text-xs">
-              {state.application.visaType.replace(/_/g, ' ')}
-            </Badge>
-          </div>
+            <span className="text-body text-muted-foreground hidden truncate sm:inline">
+              {state.application.destinationCountry}
+              {state.application.visaType &&
+                ` · ${state.application.visaType.replace(/_/g, ' ')}`}
+            </span>
+          </>
         )}
       </div>
 
-      <div className="flex items-center gap-4">
-        {/* Save status */}
+      <div className="ml-auto flex items-center gap-2">
         {hasData && (
-          <div className="flex items-center gap-2 text-sm">
-            {state.isDirty ? (
-              <>
-                <AlertCircle className="h-4 w-4 text-amber-500" />
-                <span className="text-muted-foreground">Unsaved changes</span>
-              </>
-            ) : (
-              <>
-                <CheckCircle className="h-4 w-4 text-green-500" />
-                <span className="text-muted-foreground">
-                  {state.lastSaved
-                    ? `Saved ${formatRelativeTime(state.lastSaved)}`
-                    : 'No changes'}
-                </span>
-              </>
-            )}
-          </div>
+          <StatusBadge
+            tone={state.isDirty ? 'warning' : 'success'}
+            dot
+            size="md"
+            className="hidden sm:inline-flex"
+          >
+            {state.isDirty
+              ? 'Unsaved'
+              : state.lastSaved
+                ? `Saved ${formatRelativeTime(state.lastSaved)}`
+                : 'No changes'}
+          </StatusBadge>
         )}
 
-        {/* Save button */}
         {hasData && onSave && (
           <Button
             variant={state.isDirty ? 'default' : 'outline'}
@@ -68,10 +79,12 @@ export function Header({ onMenuClick, onSave }: HeaderProps) {
             onClick={onSave}
             disabled={!state.isDirty}
           >
-            <Save className="mr-2 h-4 w-4" />
+            <Download />
             Export
           </Button>
         )}
+
+        <ThemeToggle />
       </div>
     </header>
   )

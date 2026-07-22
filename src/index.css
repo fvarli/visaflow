@@ -1,100 +1,467 @@
 @import 'tailwindcss';
 
-@theme {
-  --font-sans:
-    ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
-    'Segoe UI Symbol', 'Noto Color Emoji';
-  --font-mono:
-    ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono',
-    monospace;
+/* ---------------------------------------------------------------------------
+ * VisaFlow Design System
+ * ---------------------------------------------------------------------------
+ * Three layers, in order:
+ *   1. Primitives  — raw OKLCH ramps. Never referenced by components.
+ *   2. Semantics   — :root / .dark role tokens. What components consume.
+ *   3. Theme       — @theme inline, which turns semantics into Tailwind
+ *                    utilities. Without this layer, `bg-card`,
+ *                    `text-muted-foreground`, etc. simply do not exist.
+ *
+ * ACCENT DISCIPLINE
+ *   The UI is 90-95% neutral. Cobalt is permitted ONLY on:
+ *   primary actions · active navigation · focus rings · selected items ·
+ *   progress fill. Never on decorative icons, card borders, or headings.
+ *
+ *   Note the deliberate naming: `--primary` is the cobalt brand accent
+ *   (primary buttons, links), while `--accent` keeps its shadcn meaning of
+ *   "subtle neutral hover surface". Swapping those would turn every ghost
+ *   button hover bright blue.
+ * ------------------------------------------------------------------------- */
 
-  --radius-sm: 0.25rem;
-  --radius-md: 0.375rem;
-  --radius-lg: 0.5rem;
-  --radius-xl: 0.75rem;
-}
+/* Class-based dark mode. Tailwind v4 defaults the `dark:` variant to
+ * prefers-color-scheme; our ThemeProvider toggles a class instead, so the
+ * variant has to be redefined or every `dark:` utility in components/ui
+ * would ignore the toggle. */
+@custom-variant dark (&:is(.dark *));
 
 @layer base {
   :root {
-    --background: oklch(1 0 0);
-    --foreground: oklch(0.145 0 0);
-    --card: oklch(1 0 0);
-    --card-foreground: oklch(0.145 0 0);
-    --popover: oklch(1 0 0);
-    --popover-foreground: oklch(0.145 0 0);
-    --primary: oklch(0.205 0 0);
-    --primary-foreground: oklch(0.985 0 0);
-    --secondary: oklch(0.97 0 0);
-    --secondary-foreground: oklch(0.205 0 0);
-    --muted: oklch(0.97 0 0);
-    --muted-foreground: oklch(0.556 0 0);
-    --accent: oklch(0.97 0 0);
-    --accent-foreground: oklch(0.205 0 0);
-    --destructive: oklch(0.577 0.245 27.325);
-    --destructive-foreground: oklch(0.985 0 0);
-    --border: oklch(0.922 0 0);
-    --input: oklch(0.922 0 0);
-    --ring: oklch(0.708 0 0);
-    --chart-1: oklch(0.646 0.222 41.116);
-    --chart-2: oklch(0.6 0.118 184.704);
-    --chart-3: oklch(0.398 0.07 227.392);
-    --chart-4: oklch(0.828 0.189 84.429);
-    --chart-5: oklch(0.769 0.188 70.08);
-    --sidebar: oklch(0.985 0 0);
-    --sidebar-foreground: oklch(0.145 0 0);
-    --sidebar-primary: oklch(0.205 0 0);
-    --sidebar-primary-foreground: oklch(0.985 0 0);
-    --sidebar-accent: oklch(0.97 0 0);
-    --sidebar-accent-foreground: oklch(0.205 0 0);
-    --sidebar-border: oklch(0.922 0 0);
-    --sidebar-ring: oklch(0.708 0 0);
+    /* -- 1. PRIMITIVES ---------------------------------------------------- */
+
+    /* Neutral ramp. Carries a very slight cool cast (hue 264, chroma
+     * 0.003-0.015) so grays harmonize with cobalt rather than fighting it.
+     * Pure achromatic gray next to a saturated accent reads as dirty. */
+    --n-0: oklch(1 0 0);
+    --n-25: oklch(0.988 0.002 264);
+    --n-50: oklch(0.976 0.003 264);
+    --n-100: oklch(0.958 0.004 264);
+    --n-150: oklch(0.941 0.005 264);
+    --n-200: oklch(0.922 0.005 264);
+    --n-300: oklch(0.871 0.007 264);
+    --n-400: oklch(0.712 0.012 264);
+    --n-500: oklch(0.576 0.015 264);
+    --n-600: oklch(0.468 0.015 264);
+    --n-700: oklch(0.359 0.013 264);
+    --n-800: oklch(0.259 0.011 264);
+    --n-900: oklch(0.193 0.009 264);
+    --n-950: oklch(0.145 0.007 264);
+
+    /* Accent — Cobalt Indigo. Change --brand-hue to rebrand the entire app. */
+    --brand-hue: 264;
+    --brand-400: oklch(0.63 0.17 var(--brand-hue));
+    --brand-500: oklch(0.55 0.19 var(--brand-hue));
+    --brand-600: oklch(0.5 0.19 var(--brand-hue));
+    --brand-700: oklch(0.45 0.17 var(--brand-hue));
+    --brand-subtle-bg: oklch(0.965 0.018 var(--brand-hue));
+    --brand-subtle-border: oklch(0.9 0.045 var(--brand-hue));
+
+    /* Status ramps. `info` is deliberately LOW chroma (0.06 vs the accent's
+     * 0.19) so an informational finding can never be mistaken for a
+     * clickable accent element. */
+    --success-solid: oklch(0.55 0.13 155);
+    --success-fg: oklch(0.43 0.11 155);
+    --success-bg: oklch(0.96 0.03 155);
+    --success-border: oklch(0.88 0.06 155);
+
+    --warning-solid: oklch(0.7 0.15 75);
+    --warning-fg: oklch(0.48 0.11 75);
+    --warning-bg: oklch(0.97 0.04 85);
+    --warning-border: oklch(0.89 0.07 80);
+
+    --danger-solid: oklch(0.58 0.21 27);
+    --danger-fg: oklch(0.5 0.19 27);
+    --danger-bg: oklch(0.965 0.02 27);
+    --danger-border: oklch(0.89 0.05 27);
+
+    --info-solid: oklch(0.55 0.06 250);
+    --info-fg: oklch(0.45 0.06 250);
+    --info-bg: oklch(0.965 0.012 250);
+    --info-border: oklch(0.89 0.025 250);
+
+    /* -- 2. SEMANTICS ----------------------------------------------------- */
+
+    /* Surfaces get depth from value, not shadow: the canvas is off-white and
+     * cards are pure white, so a card lifts without needing a heavy shadow. */
+    --background: var(--n-25);
+    --foreground: var(--n-900);
+
+    --card: var(--n-0);
+    --card-foreground: var(--n-900);
+    --popover: var(--n-0);
+    --popover-foreground: var(--n-900);
+
+    /* Brand accent */
+    --primary: var(--brand-500);
+    --primary-hover: var(--brand-600);
+    --primary-foreground: oklch(0.99 0 0);
+    --brand-subtle: var(--brand-subtle-bg);
+    --brand-subtle-foreground: var(--brand-700);
+
+    --secondary: var(--n-100);
+    --secondary-foreground: var(--n-800);
+
+    --muted: var(--n-100);
+    --muted-foreground: var(--n-500);
+
+    /* shadcn semantics: neutral hover surface, NOT the brand accent */
+    --accent: var(--n-100);
+    --accent-foreground: var(--n-900);
+
+    --destructive: var(--danger-solid);
+    --destructive-foreground: oklch(0.99 0 0);
+
+    --border: var(--n-200);
+    --border-strong: var(--n-300);
+    --input: var(--n-300);
+    --ring: var(--brand-500);
+
+    /* Status roles */
+    --success: var(--success-solid);
+    --success-foreground: var(--success-fg);
+    --success-muted: var(--success-bg);
+    --success-subtle-border: var(--success-border);
+    --warning: var(--warning-solid);
+    --warning-foreground: var(--warning-fg);
+    --warning-muted: var(--warning-bg);
+    --warning-subtle-border: var(--warning-border);
+    --danger: var(--danger-solid);
+    --danger-foreground: var(--danger-fg);
+    --danger-muted: var(--danger-bg);
+    --danger-subtle-border: var(--danger-border);
+    --info: var(--info-solid);
+    --info-foreground: var(--info-fg);
+    --info-muted: var(--info-bg);
+    --info-subtle-border: var(--info-border);
+
+    /* Sidebar — one step off the canvas so the content column reads as the
+     * focal plane. */
+    --sidebar: var(--n-50);
+    --sidebar-foreground: var(--n-700);
+    --sidebar-primary: var(--brand-500);
+    --sidebar-primary-foreground: oklch(0.99 0 0);
+    --sidebar-accent: var(--brand-subtle-bg);
+    --sidebar-accent-foreground: var(--brand-700);
+    --sidebar-border: var(--n-150);
+    --sidebar-ring: var(--brand-500);
+
+    --chart-1: oklch(0.55 0.19 264);
+    --chart-2: oklch(0.6 0.12 195);
+    --chart-3: oklch(0.65 0.14 155);
+    --chart-4: oklch(0.72 0.15 75);
+    --chart-5: oklch(0.62 0.19 27);
+
+    --shadow-color: 264 15% 12%;
+
+    color-scheme: light;
   }
 
   .dark {
-    --background: oklch(0.145 0 0);
-    --foreground: oklch(0.985 0 0);
-    --card: oklch(0.145 0 0);
-    --card-foreground: oklch(0.985 0 0);
-    --popover: oklch(0.145 0 0);
-    --popover-foreground: oklch(0.985 0 0);
-    --primary: oklch(0.985 0 0);
-    --primary-foreground: oklch(0.205 0 0);
-    --secondary: oklch(0.269 0 0);
-    --secondary-foreground: oklch(0.985 0 0);
-    --muted: oklch(0.269 0 0);
-    --muted-foreground: oklch(0.708 0 0);
-    --accent: oklch(0.269 0 0);
-    --accent-foreground: oklch(0.985 0 0);
-    --destructive: oklch(0.396 0.141 25.768);
-    --destructive-foreground: oklch(0.985 0 0);
-    --border: oklch(0.269 0 0);
-    --input: oklch(0.269 0 0);
-    --ring: oklch(0.439 0 0);
-    --chart-1: oklch(0.488 0.243 264.376);
-    --chart-2: oklch(0.696 0.17 162.48);
-    --chart-3: oklch(0.985 0 0);
-    --chart-4: oklch(0.828 0.189 84.429);
-    --chart-5: oklch(0.769 0.188 70.08);
-    --sidebar: oklch(0.205 0 0);
-    --sidebar-foreground: oklch(0.985 0 0);
-    --sidebar-primary: oklch(0.488 0.243 264.376);
-    --sidebar-primary-foreground: oklch(0.985 0 0);
-    --sidebar-accent: oklch(0.269 0 0);
-    --sidebar-accent-foreground: oklch(0.985 0 0);
-    --sidebar-border: oklch(0.269 0 0);
-    --sidebar-ring: oklch(0.439 0 0);
+    --n-0: oklch(0.145 0.007 264);
+    --n-25: oklch(0.165 0.008 264);
+    --n-50: oklch(0.185 0.009 264);
+    --n-100: oklch(0.225 0.01 264);
+    --n-150: oklch(0.255 0.011 264);
+    --n-200: oklch(0.285 0.012 264);
+    --n-300: oklch(0.34 0.013 264);
+    --n-400: oklch(0.46 0.015 264);
+    --n-500: oklch(0.63 0.016 264);
+    --n-600: oklch(0.72 0.014 264);
+    --n-700: oklch(0.8 0.012 264);
+    --n-800: oklch(0.88 0.008 264);
+    --n-900: oklch(0.945 0.005 264);
+    --n-950: oklch(0.985 0.002 264);
+
+    --brand-400: oklch(0.74 0.14 var(--brand-hue));
+    --brand-500: oklch(0.66 0.17 var(--brand-hue));
+    --brand-600: oklch(0.71 0.16 var(--brand-hue));
+    --brand-700: oklch(0.82 0.1 var(--brand-hue));
+    --brand-subtle-bg: oklch(0.29 0.06 var(--brand-hue));
+    --brand-subtle-border: oklch(0.38 0.09 var(--brand-hue));
+
+    --success-solid: oklch(0.68 0.14 155);
+    --success-fg: oklch(0.8 0.12 155);
+    --success-bg: oklch(0.27 0.05 155);
+    --success-border: oklch(0.36 0.07 155);
+
+    --warning-solid: oklch(0.78 0.15 75);
+    --warning-fg: oklch(0.86 0.12 80);
+    --warning-bg: oklch(0.28 0.05 75);
+    --warning-border: oklch(0.38 0.07 75);
+
+    --danger-solid: oklch(0.65 0.19 27);
+    --danger-fg: oklch(0.78 0.14 27);
+    --danger-bg: oklch(0.28 0.06 27);
+    --danger-border: oklch(0.38 0.09 27);
+
+    --info-solid: oklch(0.68 0.06 250);
+    --info-fg: oklch(0.8 0.05 250);
+    --info-bg: oklch(0.27 0.02 250);
+    --info-border: oklch(0.36 0.03 250);
+
+    --background: var(--n-0);
+    --foreground: var(--n-900);
+    --card: var(--n-50);
+    --card-foreground: var(--n-900);
+    --popover: var(--n-100);
+    --popover-foreground: var(--n-900);
+
+    --primary: var(--brand-500);
+    --primary-hover: var(--brand-600);
+    --primary-foreground: oklch(0.16 0.02 264);
+    --brand-subtle: var(--brand-subtle-bg);
+    --brand-subtle-foreground: var(--brand-700);
+
+    --secondary: var(--n-150);
+    --secondary-foreground: var(--n-900);
+    --muted: var(--n-100);
+    --muted-foreground: var(--n-500);
+    --accent: var(--n-150);
+    --accent-foreground: var(--n-900);
+
+    --destructive: var(--danger-solid);
+    --destructive-foreground: oklch(0.16 0.02 27);
+
+    --border: var(--n-200);
+    --border-strong: var(--n-300);
+    --input: var(--n-300);
+    --ring: var(--brand-500);
+
+    --sidebar: var(--n-25);
+    --sidebar-foreground: var(--n-600);
+    --sidebar-accent: var(--brand-subtle-bg);
+    --sidebar-accent-foreground: var(--brand-700);
+    --sidebar-border: var(--n-150);
+
+    --shadow-color: 264 40% 2%;
+
+    color-scheme: dark;
   }
 }
 
+/* ---------------------------------------------------------------------------
+ * 3. THEME — semantics become Tailwind utilities.
+ *
+ * `inline` is mandatory. Without it Tailwind resolves each var at build time
+ * and bakes the LIGHT value into the utility, so dark mode silently no-ops.
+ * With it, the utility emits `var(--card)` and follows the cascade.
+ * ------------------------------------------------------------------------- */
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-brand-subtle: var(--brand-subtle);
+  --color-brand-subtle-foreground: var(--brand-subtle-foreground);
+
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-success-muted: var(--success-muted);
+  --color-success-border: var(--success-subtle-border);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-warning-muted: var(--warning-muted);
+  --color-warning-border: var(--warning-subtle-border);
+  --color-danger: var(--danger);
+  --color-danger-foreground: var(--danger-foreground);
+  --color-danger-muted: var(--danger-muted);
+  --color-danger-border: var(--danger-subtle-border);
+  --color-info: var(--info);
+  --color-info-foreground: var(--info-foreground);
+  --color-info-muted: var(--info-muted);
+  --color-info-border: var(--info-subtle-border);
+
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+}
+
+@theme {
+  --font-sans:
+    'Inter Variable', ui-sans-serif, system-ui, -apple-system, 'Segoe UI',
+    sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji';
+  --font-mono:
+    'JetBrains Mono Variable', ui-monospace, SFMono-Regular, Menlo, Consolas,
+    monospace;
+
+  /* Type scale. Each size is paired with line-height, tracking and weight so
+   * one class carries the whole typographic decision. Optical tracking
+   * tightens as size grows — the reason `text-2xl font-bold` looked blunt. */
+  --text-display: 1.875rem;
+  --text-display--line-height: 2.25rem;
+  --text-display--letter-spacing: -0.021em;
+  --text-display--font-weight: 600;
+
+  --text-title: 1.5rem;
+  --text-title--line-height: 2rem;
+  --text-title--letter-spacing: -0.017em;
+  --text-title--font-weight: 600;
+
+  --text-heading: 1rem;
+  --text-heading--line-height: 1.5rem;
+  --text-heading--letter-spacing: -0.011em;
+  --text-heading--font-weight: 600;
+
+  --text-body: 0.875rem;
+  --text-body--line-height: 1.375rem;
+  --text-body--letter-spacing: -0.006em;
+
+  --text-small: 0.8125rem;
+  --text-small--line-height: 1.25rem;
+  --text-small--letter-spacing: 0em;
+
+  --text-caption: 0.75rem;
+  --text-caption--line-height: 1rem;
+  --text-caption--letter-spacing: 0.01em;
+
+  --text-eyebrow: 0.6875rem;
+  --text-eyebrow--line-height: 1rem;
+  --text-eyebrow--letter-spacing: 0.06em;
+  --text-eyebrow--font-weight: 600;
+
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.625rem;
+  --radius-xl: 0.875rem;
+  --radius-2xl: 1.125rem;
+
+  /* Shadows are hue-tinted rather than pure black, and stay genuinely faint —
+   * elevation here comes mostly from surface value plus a hairline border. */
+  --shadow-xs: 0 1px 2px -1px hsl(var(--shadow-color) / 0.06);
+  --shadow-sm:
+    0 1px 2px -1px hsl(var(--shadow-color) / 0.07),
+    0 2px 6px -2px hsl(var(--shadow-color) / 0.05);
+  --shadow-md:
+    0 2px 4px -2px hsl(var(--shadow-color) / 0.07),
+    0 6px 16px -4px hsl(var(--shadow-color) / 0.08);
+  --shadow-lg:
+    0 4px 8px -4px hsl(var(--shadow-color) / 0.08),
+    0 12px 32px -8px hsl(var(--shadow-color) / 0.12);
+}
+
 @layer base {
-  * {
-    @apply border-[var(--border)];
+  *,
+  ::before,
+  ::after {
+    border-color: var(--border);
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
   }
 
   body {
-    @apply bg-[var(--background)] text-[var(--foreground)];
+    background-color: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-sans);
+    font-synthesis-weight: none;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
     font-feature-settings:
-      'rlig' 1,
-      'calt' 1;
+      'liga' 1,
+      'calt' 1,
+      'cv05' 1,
+      'ss03' 1;
+  }
+
+  /* One focus system for the entire app. Components must not re-implement
+   * this; the shadcn defaults that painted their own 3px ring have been
+   * stripped so focus looks identical everywhere. */
+  /* No border-radius here: the outline already follows the element's own
+   * radius, and setting it would reshape rounded-full controls on focus. */
+  :focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
+
+  :focus:not(:focus-visible) {
+    outline: none;
+  }
+
+  /* Dates, counts and money must align in columns. */
+  time,
+  [data-numeric] {
+    font-variant-numeric: tabular-nums;
+  }
+
+  ::selection {
+    background-color: var(--brand-subtle);
+    color: var(--brand-subtle-foreground);
+  }
+
+  ::placeholder {
+    color: var(--muted-foreground);
+    opacity: 1;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    ::before,
+    ::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+@layer components {
+  /* Scrollbars: visible enough to grab, quiet enough to ignore. */
+  .scrollbar-subtle {
+    scrollbar-width: thin;
+    scrollbar-color: var(--border-strong) transparent;
+  }
+
+  .scrollbar-subtle::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+
+  .scrollbar-subtle::-webkit-scrollbar-thumb {
+    background-color: var(--border-strong);
+    border: 3px solid transparent;
+    background-clip: content-box;
+    border-radius: 9999px;
+  }
+
+  .scrollbar-subtle::-webkit-scrollbar-track {
+    background: transparent;
   }
 }

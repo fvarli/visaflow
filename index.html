@@ -4,7 +4,29 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>visaflow</title>
+    <meta name="color-scheme" content="light dark" />
+    <meta
+      name="description"
+      content="Privacy-first visa application dossier and document checklist manager."
+    />
+    <title>VisaFlow</title>
+    <script>
+      // Applies the stored theme before first paint, so a dark-mode user never
+      // sees a white flash. Reads only the non-personal theme key (ADR-006).
+      ;(function () {
+        try {
+          var stored = localStorage.getItem('visaflow-theme')
+          var dark =
+            stored === 'dark' ||
+            ((!stored || stored === 'system') &&
+              window.matchMedia('(prefers-color-scheme: dark)').matches)
+          if (dark) document.documentElement.classList.add('dark')
+          document.documentElement.style.colorScheme = dark ? 'dark' : 'light'
+        } catch (e) {
+          /* storage unavailable — fall through to the light default */
+        }
+      })()
+    </script>
   </head>
   <body>
     <div id="root"></div>

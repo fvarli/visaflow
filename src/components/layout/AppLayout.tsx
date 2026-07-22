@@ -1,9 +1,10 @@
-import { useState, useCallback, useRef } from 'react'
+import { useState, useCallback, useRef, useMemo } from 'react'
 import { Outlet } from 'react-router-dom'
 import { Sidebar } from './Sidebar'
 import { Header } from './Header'
 import { Footer } from './Footer'
 import { MobileNav } from './MobileNav'
+import { SkipLink } from './SkipLink'
 import { useDossier } from '@/app/providers/DossierProvider'
 import { downloadDossier } from '@/features/import-export/services/export.service'
 import {
@@ -19,14 +20,14 @@ import {
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { AlertCircle, Upload, FileJson } from 'lucide-react'
-import { ScrollArea } from '@/components/ui/scroll-area'
+import { AlertCircle, Upload, FileJson, ShieldCheck } from 'lucide-react'
 
 export function AppLayout() {
   const [mobileNavOpen, setMobileNavOpen] = useState(false)
   const [importDialogOpen, setImportDialogOpen] = useState(false)
   const [importErrors, setImportErrors] = useState<string[]>([])
   const [importWarnings, setImportWarnings] = useState<string[]>([])
+  const [scrolled, setScrolled] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const { state, loadDossier, markSaved } = useDossier()
@@ -110,64 +111,83 @@ export function AppLayout() {
     }
   }, [loadDossier])
 
+  // Cheap derived count for the Documents nav row.
+  const navCounts = useMemo(
+    () => ({
+      missingDocuments: state.documents.filter(
+        (doc) =>
+          doc.required &&
+          (doc.status === 'not_started' || doc.status === 'requested')
+      ).length,
+    }),
+    [state.documents]
+  )
+
+  const handleScroll = useCallback((event: React.UIEvent<HTMLElement>) => {
+    setScrolled(event.currentTarget.scrollTop > 4)
+  }, [])
+
   return (
-    <div className="flex h-screen bg-[var(--background)]">
-      {/* Desktop Sidebar */}
+    <div className="bg-background flex h-screen overflow-hidden">
+      <SkipLink />
+
       <div className="hidden lg:block">
         <Sidebar
           onImportClick={handleImportClick}
           onExportClick={handleExport}
+          counts={navCounts}
         />
       </div>
 
-      {/* Mobile Navigation */}
       <MobileNav
         open={mobileNavOpen}
         onOpenChange={setMobileNavOpen}
         onImportClick={handleImportClick}
         onExportClick={handleExport}
+        counts={navCounts}
       />
 
-      {/* Main Content */}
-      <div className="flex flex-1 flex-col overflow-hidden">
+      {/* One scroll owner. The previous layout nested a ScrollArea inside an
+          already-overflow-y-auto <main>, which produced two competing scroll
+          containers and a sticky header that could not work. */}
+      <main
+        id="main"
+        onScroll={handleScroll}
+        className="scrollbar-subtle flex flex-1 flex-col overflow-y-auto"
+      >
         <Header
           onMenuClick={() => setMobileNavOpen(true)}
           onSave={handleExport}
+          scrolled={scrolled}
         />
 
-        <main className="flex-1 overflow-y-auto">
-          <ScrollArea className="h-full">
-            <div className="container max-w-5xl py-6 px-4 md:px-6">
-              <Outlet />
-            </div>
-          </ScrollArea>
-        </main>
-
-        <Footer />
-      </div>
+        <div className="mx-auto flex w-full max-w-[1120px] flex-1 flex-col gap-10 px-5 py-8 md:px-8 md:py-10">
+          <div className="flex-1">
+            <Outlet />
+          </div>
+          <Footer />
+        </div>
+      </main>
 
       {/* Import Dialog */}
       <Dialog open={importDialogOpen} onOpenChange={setImportDialogOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Import Data</DialogTitle>
+            <DialogTitle>Import data</DialogTitle>
             <DialogDescription>
-              Import your visa application data from a JSON file. Your data
-              remains in browser memory only.
+              Load a dossier from a JSON file you exported earlier.
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4">
-            {/* Privacy warning */}
-            <Alert>
-              <AlertCircle className="h-4 w-4" />
+            <Alert variant="info">
+              <ShieldCheck />
               <AlertDescription>
-                Imported data is stored only in browser memory. Export your
-                dossier to save changes.
+                Imported data stays in browser memory only. Export again to save
+                any changes you make.
               </AlertDescription>
             </Alert>
 
-            {/* File upload */}
             <div className="space-y-2">
               <input
                 ref={fileInputRef}
@@ -182,18 +202,17 @@ export function AppLayout() {
                 className="w-full"
                 onClick={() => fileInputRef.current?.click()}
               >
-                <Upload className="mr-2 h-4 w-4" />
-                Choose JSON File
+                <Upload />
+                Choose JSON file
               </Button>
             </div>
 
-            {/* Load example data */}
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
                 <span className="w-full border-t" />
               </div>
-              <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-[var(--background)] px-2 text-muted-foreground">
+              <div className="text-eyebrow relative flex justify-center uppercase">
+                <span className="bg-popover text-muted-foreground px-2">
                   Or
                 </span>
               </div>
@@ -204,16 +223,15 @@ export function AppLayout() {
               className="w-full"
               onClick={handleLoadExample}
             >
-              <FileJson className="mr-2 h-4 w-4" />
-              Load Example Data
+              <FileJson />
+              Load example data
             </Button>
 
-            {/* Errors */}
             {importErrors.length > 0 && (
               <Alert variant="destructive">
-                <AlertCircle className="h-4 w-4" />
+                <AlertCircle />
                 <AlertDescription>
-                  <ul className="list-disc list-inside space-y-1">
+                  <ul className="list-inside list-disc space-y-1">
                     {importErrors.map((error, index) => (
                       <li key={index}>{error}</li>
                     ))}
@@ -222,12 +240,11 @@ export function AppLayout() {
               </Alert>
             )}
 
-            {/* Warnings */}
             {importWarnings.length > 0 && (
-              <Alert>
-                <AlertCircle className="h-4 w-4" />
+              <Alert variant="warning">
+                <AlertCircle />
                 <AlertDescription>
-                  <ul className="list-disc list-inside space-y-1">
+                  <ul className="list-inside list-disc space-y-1">
                     {importWarnings.map((warning, index) => (
                       <li key={index}>{warning}</li>
                     ))}

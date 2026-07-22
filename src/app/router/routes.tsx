@@ -19,12 +19,28 @@ const ConsistencyChecksPage = lazy(
 const NotesPage = lazy(() => import('@/pages/NotesPage'))
 const SettingsPage = lazy(() => import('@/pages/SettingsPage'))
 
+// Design system playground. Lazy like everything else, so it costs nothing
+// until visited; the sidebar only links it in development.
+const PlaygroundPage = lazy(() => import('@/pages/PlaygroundPage'))
+
+/**
+ * Shaped to match the real page rhythm (title, description, then cards) so
+ * nothing jumps when the lazy chunk resolves.
+ */
 function PageLoader() {
   return (
-    <div className="p-6 space-y-4">
-      <Skeleton className="h-8 w-48" />
-      <Skeleton className="h-32 w-full" />
-      <Skeleton className="h-32 w-full" />
+    <div
+      className="flex flex-col gap-8"
+      role="status"
+      aria-label="Loading page"
+    >
+      <div className="space-y-2.5 pb-2">
+        <Skeleton className="h-7 w-56" />
+        <Skeleton className="h-4 w-80" />
+      </div>
+      <Skeleton className="h-40 w-full rounded-xl" />
+      <Skeleton className="h-40 w-full rounded-xl" />
+      <span className="sr-only">Loading</span>
     </div>
   )
 }
@@ -127,6 +143,14 @@ export const router = createBrowserRouter([
         element: (
           <LazyPage>
             <SettingsPage />
+          </LazyPage>
+        ),
+      },
+      {
+        path: 'playground',
+        element: (
+          <LazyPage>
+            <PlaygroundPage />
           </LazyPage>
         ),
       },
