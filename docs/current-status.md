@@ -62,13 +62,19 @@ Last updated: 2026-07-23
 - [x] Lazy-loaded routes
 - [x] Unit tests for validation rules
 
-## Known Limitations
+## Current scope
 
-1. **Single application** - No multi-application support
-2. **No persistence** - Data lost on refresh without export
-3. **No file uploads** - Document references are text only
-4. **One country** - Only Greece configuration exists
-5. **No offline PWA** - Requires browser session
+These are deliberate boundaries of the current (Foundation) phase, not defects. Each maps to a
+later phase in [roadmap.md](./roadmap.md):
+
+1. **Single application** — one dossier at a time (multiple saved dossiers → Core Workspace).
+   The dashboard model is already shaped for multi-application.
+2. **In-memory only** — data is lost on refresh unless exported (optional persistence →
+   Optional Self-Hosting; kept opt-in by design).
+3. **Document references are text** — no file uploads yet.
+4. **One country pack** — Greece (Schengen short-stay tourism); more via the country-pack
+   system (Country Ecosystem).
+5. **No offline PWA** — requires a browser session.
 
 ## Active Issues
 

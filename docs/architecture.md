@@ -1,272 +1,175 @@
 # Architecture
 
-## Overview
+This is the canonical system map for VisaFlow. It describes the layers, their responsibilities,
+and the dependency rules between them. Per-layer deep dives live in dedicated documents:
+[validation-engine.md](./validation-engine.md), [dashboard-architecture.md](./dashboard-architecture.md),
+[country-pack-guide.md](./country-pack-guide.md), [json-schema.md](./json-schema.md), and
+[privacy.md](./privacy.md). The reasoning behind individual choices is in
+[decisions.md](./decisions.md) (ADRs); the commitments they serve are in [principles.md](./principles.md).
 
-VisaFlow follows a domain-driven, modular architecture designed for:
-- Privacy (no server, no persistent storage)
-- Testability (pure functions for business logic)
-- Maintainability (clear separation of concerns)
-- Extensibility (configurable country requirements)
+## Shape of the system
 
-## Directory Structure
+VisaFlow is a **client-only** React/TypeScript application. There is no backend. State lives in
+memory; the only durable artifact is a JSON file the user exports. The code is organized into
+layers whose dependencies point **downward only** — presentation depends on the domain, never
+the reverse.
+
+```
+            ┌───────────────────────────────────────────────┐
+            │                 Presentation                   │  React pages, design system,
+            │   pages · components/ui · dashboard widgets    │  widget dashboard, i18n
+            └───────────────┬───────────────────────────────┘
+                            │ depends on ▼ (never upward)
+   ┌──────────────┬─────────┴─────────┬──────────────────────┐
+   │  Validation  │   Country packs   │    Import / Export    │
+   │   engine     │   (config layer)  │   (JSON boundary)     │
+   └──────┬───────┴─────────┬─────────┴──────────┬───────────┘
+          │                 │                    │
+          └───────────────► Domain ◄─────────────┘   Zod schemas · branded types · pure rules
+                              │
+                        ┌─────┴─────┐
+                        │  Privacy  │   cross-cutting invariant: nothing personal leaves the device
+                        └───────────┘
+```
+
+## Directory structure
 
 ```
 src/
-├── app/                    # Application bootstrap
-│   ├── providers/          # React Context providers
-│   └── router/             # Route definitions
+├── app/
+│   ├── providers/          # DossierProvider, LocaleProvider, ThemeProvider (React Context)
+│   └── router/             # Lazy-loaded route definitions
 ├── components/
-│   ├── ui/                 # shadcn/ui primitives
-│   ├── layout/             # App shell components
-│   └── shared/             # Reusable business components
-├── features/               # Feature modules
-│   └── import-export/      # JSON import/export
+│   ├── ui/                 # Design-system primitives (shadcn/ui + custom)
+│   ├── dashboard/          # Dashboard widgets (composed over the presentation adapter)
+│   └── layout/             # App shell (Header, Sidebar, …)
+├── features/
+│   ├── dashboard/          # dashboard-model.ts — pure presentation adapter
+│   └── import-export/      # JSON import/export services
 ├── domain/
-│   ├── schemas/            # Zod validation schemas
-│   ├── types/              # TypeScript types
-│   └── rules/              # Validation rules
+│   ├── schemas/            # Zod schemas (source of truth for data shapes)
+│   ├── types/              # Branded ID types + shared enums
+│   └── rules/              # Pure validation rules + runner
 ├── config/
-│   └── countries/          # Country configurations
-├── data/
-│   └── examples/           # Example JSON data
-├── hooks/                  # Custom React hooks
-├── lib/                    # Utilities
-├── pages/                  # Page components
-└── tests/                  # Test files
+│   ├── countries/          # Country packs: country → visa type → requirements
+│   └── sources/            # Manually maintained official-source citations
+├── i18n/                   # i18next init + tr/en locale namespaces
+├── lib/                    # format.ts, finding-text.ts, i18n-dynamic.ts, utils
+├── data/examples/          # Fictional example dossier
+├── pages/                  # Route page components
+└── tests/                  # Vitest unit + render tests
 ```
 
-## Key Architectural Decisions
+## The layers
 
-### 1. No Database
+### 1. Domain
 
-**Decision**: Store all data in browser memory with JSON export.
+**Responsibility:** the model of visa preparation — what a dossier *is* and what a valid one
+looks like. Lives in `src/domain/`. Zod schemas are the single source of truth for data shapes
+([ADR-002]); TypeScript types are inferred from them. IDs are branded types ([ADR-009]).
+**Depends on:** nothing but Zod and plain TypeScript — it is framework-independent by design, so
+the valuable part of the product outlives any framework choice. **Must not:** import React, touch
+the DOM, or perform I/O.
 
-**Rationale**:
-- Maximum privacy - data never leaves the device
-- Portability - JSON files work anywhere
-- Simplicity - no backend infrastructure needed
-- User control - explicit export action
+### 2. Validation engine
 
-**Trade-off**: Data is lost on page refresh unless exported.
+**Responsibility:** turn a dossier into deterministic **findings**. Rules are pure functions
+`(Dossier) => ValidationFinding[]`, composed by `src/domain/rules/runner.ts` with a stable
+severity order ([ADR-003]). Findings carry stable keys + typed params, never prose, and are never
+persisted. Full detail: [validation-engine.md](./validation-engine.md). **Depends on:** Domain.
+**Must not:** depend on the UI, the network, or a country pack's *rendering*.
 
-### 2. Domain-Driven Structure
+### 3. Country packs (configuration layer)
 
-**Decision**: Organize code by domain concepts, not technical layers.
+**Responsibility:** *what an application needs*, as data. `src/config/` holds
+`CountryConfig → VisaTypeTemplate → DocumentRequirement`, plus preparation milestones and honest
+`RequirementSource` records ([ADR-004], [ADR-014], [ADR-015]). Requirements use translation keys,
+not prose; identifiers are stable and language-independent. `resolveVisaTemplate(countryCode,
+visaType)` maps the persisted dossier enum to a template. Authoring guide:
+[country-pack-guide.md](./country-pack-guide.md). **Depends on:** Domain types. **Must not:**
+contain applicant data or invented/scraped source information.
 
-**Rationale**:
-- Business logic is co-located and discoverable
-- Changes to a feature are isolated
-- Easier to understand the system
-- Facilitates testing
+### 4. Import / Export
 
-### 3. Pure Function Validation Rules
+**Responsibility:** the open JSON boundary. `src/features/import-export/` serializes the dossier
+to a single documented, **versioned** JSON document and validates imports with Zod. The format is
+language-independent — an export is byte-identical regardless of UI language ([ADR-010],
+[ADR-012]). Spec: [json-schema.md](./json-schema.md). **Depends on:** Domain schemas. **Must
+not:** write UI-language-dependent values into the file.
 
-**Decision**: All validation rules are pure functions that take a Dossier and return findings.
+### 5. Presentation
 
-**Rationale**:
-- Easy to test in isolation
-- Easy to compose and extend
-- No side effects
-- Predictable behavior
+**Responsibility:** everything the user sees. React pages (`src/pages/`), the design system
+(`src/components/ui/`), the widget-based dashboard (`src/components/dashboard/` over the pure
+adapter `src/features/dashboard/dashboard-model.ts`), the app shell, and internationalization.
+Pages read/write state through `DossierProvider`; formatting goes through `src/lib/format.ts`
+(never `Intl` directly); finding prose is resolved via `src/lib/finding-text.ts`. Dashboard
+detail: [dashboard-architecture.md](./dashboard-architecture.md). Reusable UI is demonstrated in
+the [Playground](./playground.md) before use. **Depends on:** all layers below. **Must not:** be
+depended *on* by them.
 
-**Example**:
-```typescript
-type ValidationRule = (dossier: Dossier) => ValidationFinding[]
+### 6. Privacy (cross-cutting)
 
-const passportValidAfterTrip: ValidationRule = (dossier) => {
-  // Pure logic, no side effects
-  // Returns array of findings
-}
+**Responsibility:** the invariant that nothing personal leaves the device. No server, no
+database, no analytics, no third-party calls; the dossier lives only in memory; the only
+`localStorage` keys are the non-personal `visaflow-theme` and `visaflow-locale` ([ADR-006],
+[ADR-013]). This is not a module but a constraint every layer respects. Model:
+[privacy.md](./privacy.md).
+
+## State management
+
+A single `DossierProvider` (`src/app/providers/DossierProvider.tsx`) holds the working state
+with React's `useReducer` ([ADR-005]) — a flat shape (`applicant`, `application`, `documents`,
+`sponsors`, plus dirty/saved flags), not a nested `Dossier`. Actions are explicit
+(`LOAD_DOSSIER`, `UPDATE_APPLICANT`, `ADD_DOCUMENT`, …). Redux/Zustand would add dependencies and
+concepts the app's simple state doesn't need. `LocaleProvider` and `ThemeProvider` follow the
+same pattern for the two non-personal preferences.
+
+## Data flow
+
+```
+┌──────────────────────────── Browser (no network for user data) ───────────────────────────┐
+│                                                                                            │
+│  Forms ──▶ DossierProvider (useReducer) ──▶ state                                          │
+│                     │                                                                       │
+│                     ├──▶ runValidation(dossier) ──▶ findings ──▶ finding-text ──▶ UI       │
+│                     ├──▶ buildDashboardModel(state) ──▶ dashboard widgets                   │
+│                     └──▶ resolveVisaTemplate(country, visaType) ──▶ requirements/timeline   │
+│                                                                                            │
+│  Import service ◀────────── JSON file ──────────▶ Export service                            │
+└────────────────────────────────────────────────────────────────────────────────────────────┘
 ```
 
-### 4. Zod Schemas as Source of Truth
+## Performance
 
-**Decision**: Use Zod schemas for both validation and TypeScript type inference.
+- **Lazy routes** — every page is code-split ([ADR-008]); the dashboard has a tailored skeleton
+  fallback for its chunk load.
+- **Memoized derivation** — validation and the dashboard model recompute only when state changes.
+- **No network** — zero latency for all operations; all assets are bundled.
 
-**Rationale**:
-- Single source of truth for data shapes
-- Runtime validation for imports
-- Compile-time type safety
-- Self-documenting
+## Testing strategy
 
-### 5. Country Configuration
+- **Unit** — validation rules, schema validation, and the pure dashboard adapter (no React).
+- **Render** — bilingual component/page tests (e.g. dashboard, app shell) using the real provider
+  stack, asserting translated output and accessibility wiring.
+- Run with `pnpm test` (Vitest + Testing Library). Integration/E2E flows are future work.
 
-**Decision**: Document requirements are configuration, not code.
+## Extension points
 
-**Rationale**:
-- Easy to add new countries
-- Requirements can be updated without code changes
-- Clear separation of rules from requirements
-- Supports conditional requirements
+- **Add a validation rule** → [validation-engine.md](./validation-engine.md).
+- **Add a country pack** → [country-pack-guide.md](./country-pack-guide.md).
+- **Add a dashboard widget** → [dashboard-architecture.md](./dashboard-architecture.md).
+- **Add a reusable UI primitive** → build it, demonstrate it in the [Playground](./playground.md),
+  then use it.
 
-## Data Flow
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│                        Browser                               │
-│                                                              │
-│  ┌──────────┐     ┌───────────────┐     ┌──────────────┐   │
-│  │   UI     │────▶│ DossierContext │────▶│   Reducer    │   │
-│  │  Forms   │     │   (State)     │     │   Actions    │   │
-│  └──────────┘     └───────────────┘     └──────────────┘   │
-│       │                  │                                   │
-│       │                  ▼                                   │
-│       │           ┌───────────────┐                         │
-│       │           │  Validation   │                         │
-│       │           │    Rules      │                         │
-│       │           └───────────────┘                         │
-│       │                                                      │
-│       ▼                  ▼                                   │
-│  ┌──────────┐     ┌───────────────┐                         │
-│  │  Import  │◀────│    Export     │────────▶ JSON File      │
-│  │ Service  │     │   Service     │                         │
-│  └──────────┘     └───────────────┘                         │
-│                                                              │
-└─────────────────────────────────────────────────────────────┘
-```
-
-## State Management
-
-### DossierContext
-
-The central state container using React's useReducer:
-
-```typescript
-interface DossierState {
-  dossier: Dossier | null
-  isDirty: boolean
-  lastSaved: Date | null
-}
-
-type DossierAction =
-  | { type: 'LOAD_DOSSIER'; payload: Dossier }
-  | { type: 'UPDATE_APPLICANT'; payload: Partial<Applicant> }
-  | { type: 'UPDATE_APPLICATION'; payload: Partial<Application> }
-  // ...more actions
-```
-
-### Why Not Redux/Zustand?
-
-- Application state is relatively simple
-- React Context + useReducer is sufficient
-- Fewer dependencies
-- Easier to understand
-
-## Validation Architecture
-
-### Rule Composition
-
-Rules are composed in the runner:
-
-```typescript
-const allRules: ValidationRule[] = [
-  tripDatesValid,
-  appointmentBeforeTrip,
-  passportValidAfterTrip,
-  // ...more rules
-]
-
-export function runValidation(dossier: Dossier): ValidationFinding[] {
-  return allRules
-    .flatMap(rule => rule(dossier))
-    .sort(bySeverity)
-}
-```
-
-### Finding Structure
-
-```typescript
-interface ValidationFinding {
-  id: string           // Unique identifier
-  severity: 'error' | 'warning' | 'info'
-  title: string        // Short description
-  description: string  // Detailed explanation
-  relatedFields: string[]  // Affected fields
-  suggestedAction: string  // What to do
-}
-```
-
-## Component Architecture
-
-### Page Components
-
-Each page follows a consistent pattern:
-1. Fetch data from DossierContext
-2. Render form with React Hook Form
-3. Validate with Zod schema
-4. Dispatch updates on change
-
-### UI Components
-
-Using shadcn/ui provides:
-- Accessible by default
-- Consistent styling
-- Customizable primitives
-- No heavy runtime
-
-## Performance Considerations
-
-1. **Memoization**: Validation runs only when dossier changes
-2. **Lazy Loading**: Pages could be code-split (not implemented yet)
-3. **Efficient Updates**: Reducer updates only changed portions
-4. **No Network**: Zero latency for all operations
-
-## Testing Strategy
-
-### Unit Tests
-- All validation rules
-- Schema validation
-- Utility functions
-
-### Integration Tests (Future)
-- Import/export flow
-- Form submissions
-- Navigation
-
-### E2E Tests (Future)
-- Complete user flows
-- Cross-browser testing
-
-## Extension Points
-
-### Adding Validation Rules
-1. Create rule function in `src/domain/rules/`
-2. Add to runner
-3. Add tests
-
-### Adding Countries
-1. Create config in `src/config/countries/`
-2. Register in index
-3. See [adding-a-country.md](./adding-a-country.md)
-
-### Adding Document Types
-1. Update country configuration
-2. Add to DocumentCategory enum if new category
-
-## Internationalization (added iteration 3)
-
-VisaFlow is bilingual (Turkish default, English). See ADR-011 through ADR-013.
-
-- `src/i18n/` — i18next init and 15 translation namespaces per locale. Both
-  locales are bundled; no network request, no browser language detection.
-- `src/app/providers/LocaleProvider.tsx` — resolves the locale (stored
-  preference → Turkish), syncs `<html lang>`, persists only `visaflow-locale`.
-- `src/lib/format.ts` — the single home for `Intl`-based date/number/currency
-  formatting. Pages never call `Intl` directly.
-- Domain data stays language-independent; UI text is resolved from keys. See
-  `src/lib/document-label.ts` (document labels) and `src/lib/finding-text.ts`
-  (validation findings resolved from `messageKey` + `messageParams`).
-- `src/lib/i18n-dynamic.ts` — a typed escape hatch for keys computed at
-  runtime; coverage for those keys comes from the i18n parity tests.
-
-## Configuration layer (restructured iteration 3)
-
-`country → visa type → requirements`, see ADR-014 / ADR-015.
-
-- `src/config/types.ts` — `CountryConfig`, `VisaTypeTemplate`,
-  `DocumentRequirement` (keys not prose), `RequirementSource`, `ReviewStatus`.
-- `src/config/countries/<country>/` — one folder per country;
-  `resolveVisaTemplate(countryCode, visaType)` maps the persisted dossier enum
-  to a template.
-- `src/config/sources/` — manually maintained source citations. Absent
-  sources/dates are meaningful; nothing is scraped or invented.
+[ADR-002]: ./decisions.md
+[ADR-003]: ./decisions.md
+[ADR-004]: ./decisions.md
+[ADR-005]: ./decisions.md
+[ADR-006]: ./decisions.md
+[ADR-008]: ./decisions.md
+[ADR-009]: ./decisions.md
+[ADR-010]: ./decisions.md
+[ADR-013]: ./decisions.md
+[ADR-014]: ./decisions.md
+[ADR-015]: ./decisions.md

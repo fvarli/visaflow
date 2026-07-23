@@ -6,6 +6,25 @@ Thank you for your interest in contributing to VisaFlow! This document provides 
 
 Please be respectful and constructive in all interactions. We welcome contributions from everyone.
 
+## Contribution philosophy
+
+VisaFlow is a product with a clear vision and firm commitments — please read
+[docs/vision.md](docs/vision.md) and [docs/principles.md](docs/principles.md) before a
+significant change. A few expectations follow directly from them:
+
+- **Respect the layer boundaries.** Dependencies point downward only: presentation depends on the
+  domain, never the reverse. Keep business logic (validation, readiness, template resolution) as
+  pure functions in `domain/` / `config/` / `features/*-model.ts`, free of React and I/O. See
+  [docs/architecture.md](docs/architecture.md).
+- **Demonstrate reusable UI in the Playground first.** Every reusable primitive
+  (`src/components/ui/`) or dashboard widget (`src/components/dashboard/`) must appear in
+  `/playground` in the same change that introduces it — it is our lightweight Storybook. See
+  [docs/playground.md](docs/playground.md).
+- **Privacy and ownership are non-negotiable.** No server, no analytics, no personal data in
+  browser storage, open JSON format. And never introduce approval/refusal prediction (ADR-016).
+- **Record decisions.** Architectural choices go in [docs/decisions.md](docs/decisions.md) as an
+  append-only ADR.
+
 ## How to Contribute
 
 ### Reporting Bugs
@@ -85,7 +104,9 @@ pnpm lint
 
 ## Adding a New Country
 
-See [docs/adding-a-country.md](docs/adding-a-country.md) for detailed instructions.
+Country support is authored data, not code. See
+[docs/country-pack-guide.md](docs/country-pack-guide.md) for the concept and step-by-step
+instructions.
 
 ## Testing
 

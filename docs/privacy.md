@@ -2,7 +2,10 @@
 
 ## Core Principles
 
-VisaFlow is built on the principle that sensitive personal data should never leave your control. This document explains our privacy model in detail.
+VisaFlow is built on the principle that sensitive personal data should never leave your control.
+This document is **the canonical privacy model** — the README and [SECURITY.md](../SECURITY.md)
+summarize it and link here, and [principles.md](./principles.md) (#1 Privacy first, #2 The user
+owns the data) states the commitments it fulfils.
 
 ## What Data VisaFlow Handles
 
@@ -32,13 +35,12 @@ VisaFlow has no backend server. There is:
 
 ### 2. No Persistent Browser Storage
 
-Unlike many web apps, VisaFlow does NOT use:
-- localStorage
-- sessionStorage
-- IndexedDB
-- Cookies (except potentially for theme preference)
+VisaFlow stores **no personal data** in the browser. It does not use `sessionStorage`,
+`IndexedDB`, or cookies at all. The **only** `localStorage` keys it ever writes are two
+non-personal interface preferences — `visaflow-theme` and `visaflow-locale` (ADR-006 / ADR-013).
+Your dossier — names, passport numbers, finances — lives only in memory.
 
-**When you close your browser, data is gone.**
+**When you close or refresh your browser, your dossier is gone** (unless you exported it).
 
 ### 3. No External API Calls
 
@@ -58,6 +60,20 @@ The only way data leaves your browser is through explicit export:
 - You control where this file is stored
 
 **You decide when and where to save your data.**
+
+## Data Ownership
+
+Privacy and ownership are two sides of the same design:
+
+- **Your data is yours, in a file you hold.** The dossier is a single, documented, versioned
+  JSON document ([json-schema.md](./json-schema.md)) — not a proprietary blob and not a row in
+  someone else's database.
+- **It is portable and language-independent.** The same dossier exports byte-identically whether
+  the UI is in Turkish or English, so switching language never changes your file.
+- **There is no lock-in.** VisaFlow is open source and self-hostable as static files; you can
+  audit it, build it, or leave with your data at any time.
+
+Ownership means the freedom to walk away — with everything.
 
 ## Data Lifecycle
 

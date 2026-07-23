@@ -17,9 +17,13 @@ pnpm format       # Format code with Prettier
 
 ## Project Overview
 
-VisaFlow is a privacy-first visa application dossier and document checklist manager. It helps users organize documents required for Schengen visa applications.
+VisaFlow is the open-source, privacy-first application workspace for international visa
+preparation — a structured dossier, validation engine, timeline, and country-specific
+requirements. Greece (Schengen short-stay tourism) is the first implemented country pack; the
+architecture is built to add more. See `docs/vision.md`.
 
-**Key principle:** All data stays in-memory. No localStorage, no external APIs, no tracking. Users explicitly export/import JSON files.
+**Key principle:** All personal data stays in-memory. No localStorage for data, no external APIs,
+no tracking. Users explicitly export/import JSON files.
 
 ## Technology Stack
 
@@ -100,7 +104,8 @@ src/
   `resolveVisaTemplate(countryCode, visaType)`
 - Support conditional requirements (e.g., "required if employed")
 - Source metadata is honest: no scraping, no invented dates; unverified stays
-  `unverified` (ADR-015). Currently only Greece Schengen tourism is implemented.
+  `unverified` (ADR-015). Greece Schengen tourism is the first implemented pack;
+  add more via `docs/country-pack-guide.md`.
 
 ## Testing
 
@@ -116,7 +121,8 @@ src/
 | `src/app/providers/DossierProvider.tsx` | Central state management |
 | `src/domain/rules/runner.ts` | Validation rule composition |
 | `src/domain/schemas/dossier.schema.ts` | Combined schema for import/export |
-| `src/config/countries/greece.ts` | Greece document requirements |
+| `src/config/countries/greece/` | Greece country pack (first implemented) |
+| `src/features/dashboard/dashboard-model.ts` | Dashboard presentation adapter |
 | `src/data/examples/example-dossier.json` | Sample data for testing |
 
 ## Common Tasks
@@ -127,9 +133,9 @@ src/
 3. Add tests in `src/tests/rules/`
 
 ### Adding a new country
-1. Create config in `src/config/countries/[country].ts`
-2. Export from `src/config/countries/index.ts`
-3. See `docs/adding-a-country.md` for details
+1. Create the pack under `src/config/countries/<country>/`
+2. Register it in `src/config/countries/index.ts`
+3. See `docs/country-pack-guide.md` for details
 
 ### Adding a new page
 1. Create page component in `src/pages/`
@@ -143,7 +149,14 @@ ESLint may show `react-refresh/only-export-components` warnings for route files 
 
 ## Documentation
 
-- `docs/architecture.md` - System design
-- `docs/privacy.md` - Privacy model details
-- `docs/json-schema.md` - JSON format documentation
-- `docs/adding-a-country.md` - Country configuration guide
+- `docs/vision.md` - Product vision, why it exists, Current/Next/Future
+- `docs/principles.md` - Product & engineering principles (tied to ADRs)
+- `docs/architecture.md` - System map + layer boundaries (canonical)
+- `docs/validation-engine.md` - Rules, findings, the i18n boundary
+- `docs/dashboard-architecture.md` - Widget-based dashboard + presentation adapter
+- `docs/country-pack-guide.md` - Country pack concept + authoring guide
+- `docs/playground.md` - The component workbench + demonstrate-before-use rule
+- `docs/privacy.md` - Privacy model + data ownership (canonical)
+- `docs/json-schema.md` - JSON import/export format
+- `docs/roadmap.md` - Product phases
+- `docs/decisions.md` - Architectural decision records (ADRs)

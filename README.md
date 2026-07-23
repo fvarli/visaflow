@@ -1,188 +1,184 @@
 # VisaFlow
 
-A privacy-first visa application dossier and document checklist manager.
+**The open-source, privacy-first application workspace for international visa preparation.**
 
-**VisaFlow is an organizational tool. It does not provide legal advice, represent any embassy or visa center, or guarantee a visa decision. Always verify requirements using current official sources.**
+VisaFlow turns a stressful, error-prone process into a structured one — a validated dossier, a
+deterministic consistency engine, a timeline of the dates that matter, and country-specific
+requirements — while keeping **every byte of your personal data on your own device**. No server,
+no account, no tracking. Your data lives in the browser and in a JSON file you own.
 
-## Languages
+> VisaFlow is an organizational tool. It does **not** provide legal advice, represent any
+> embassy or visa center, submit applications, or predict a visa decision. Always verify
+> requirements using current official sources.
 
-VisaFlow is bilingual: **Turkish** (default) and **English**. The language
-picker is in the header and in Settings. Your choice is remembered in this
-browser (`visaflow-locale`) — it is a non-personal interface preference and the
-only thing besides the theme that VisaFlow stores. Dossier data never leaves
-memory, and exported JSON is identical regardless of the selected language.
+## Vision
+
+Rather than being limited to a checklist, VisaFlow provides a structured dossier, validation
+engine, timeline, country-specific requirements, and reusable workflows that help applicants
+organize complex visa processes while keeping all personal data under their own control. The
+full statement and reasoning live in [docs/vision.md](docs/vision.md).
+
+## Why VisaFlow exists
+
+Visa preparation means juggling passports, finances, employment letters, reservations, insurance
+and appointment logistics for weeks — where one inconsistency (a passport that expires too soon,
+coverage that ends before the trip) can cost an appointment or a refusal. Spreadsheets don't
+understand the domain; cloud "visa helpers" ask you to hand your passport number and bank balance
+to a third party. VisaFlow is the alternative: software that understands the domain **without
+ever taking custody of your data**.
+
+## Core principles
+
+Privacy first · The user owns the data · No vendor lock-in · Open, versioned JSON format ·
+Deterministic validation · Reusable country packs · Configuration over hardcoding ·
+Accessibility first · Internationalization by design · Pure business logic · Framework-independent
+domain layer where practical · Long-term maintainability.
+
+Each is explained and tied to an ADR in [docs/principles.md](docs/principles.md). The hard line:
+VisaFlow will **never** estimate an approval probability or refusal-risk score.
 
 ## Features
 
-- **Document Checklist** - Track all required documents for your visa application
-- **Consistency Validation** - Automated checks for common issues (dates, coverage, etc.)
-- **Timeline View** - Visual timeline of important dates and milestones
-- **Privacy-First** - All data stays in your browser; nothing is sent to any server
-- **JSON Import/Export** - Full control over your data with portable JSON format
-- **Multiple Countries** - Configurable requirements (starting with Greece Schengen tourism)
+- **Structured dossier** — applicant, trip, employment, finances, sponsors, documents,
+  appointment and notes as first-class, schema-validated data.
+- **Consistency validation** — deterministic checks surface inconsistencies (dates, coverage,
+  completeness) as actionable findings.
+- **Command-center dashboard** — readiness, next actions, upcoming dates and open findings at a
+  glance (widget-based; organizational metrics only, never a prediction).
+- **Timeline** — appointment, preparation milestones, trip and document-expiry dates.
+- **Country packs** — requirements as `country → visa type → requirements` with honest
+  official-source metadata.
+- **Bilingual** — Turkish (default) and English; the choice is a non-personal preference and the
+  exported JSON is identical regardless of language.
+- **Privacy-first** — all data stays in your browser; nothing is sent anywhere.
+- **Open JSON import/export** — full control of your data in a portable, documented format.
+
+## Product architecture
+
+VisaFlow is a client-only React/TypeScript application organized into clear layers, each with a
+single responsibility and dependencies that point downward only:
+
+| Layer | Responsibility |
+|-------|----------------|
+| **Domain** | Zod schemas, branded types, and pure validation rules — the model of visa preparation |
+| **Validation engine** | Composes pure rules into deterministic findings ([docs/validation-engine.md](docs/validation-engine.md)) |
+| **Country packs** | `country → visa type → requirements` configuration + source metadata ([docs/country-pack-guide.md](docs/country-pack-guide.md)) |
+| **Import / Export** | The open JSON boundary in and out of the app ([docs/json-schema.md](docs/json-schema.md)) |
+| **Presentation** | React pages, the design system, and the widget-based dashboard ([docs/dashboard-architecture.md](docs/dashboard-architecture.md)) |
+| **Privacy** | The cross-cutting invariant: nothing personal leaves the device ([docs/privacy.md](docs/privacy.md)) |
+
+The full directory map and the layer boundaries are in
+[docs/architecture.md](docs/architecture.md). Reusable UI is developed and demonstrated in the
+[Playground](docs/playground.md) before being used in the app.
 
 ## Screenshots
 
-_Screenshots coming soon_
+_Placeholder — screenshots to be added._
 
-## Getting Started
+## Demo
 
-### Prerequisites
+_Placeholder — a hosted demo will be linked here._
 
-- Node.js 22+ (see `.nvmrc`)
-- pnpm 11+ (enforced via `packageManager` field)
+## Installation
 
-### Installation
+**Prerequisites:** Node.js 22+ (see `.nvmrc`) and pnpm 11+ (enforced via `packageManager`).
 
 ```bash
-# Clone the repository
 git clone https://github.com/fvarli/visaflow.git
 cd visaflow
-
-# Install dependencies
 pnpm install
-
-# Start development server
-pnpm dev
+pnpm dev            # http://localhost:5173
 ```
 
-### Development Commands
+New machine? See [docs/fresh-machine-setup.md](docs/fresh-machine-setup.md).
+
+## Development
 
 ```bash
-# Start development server
-pnpm dev
-
-# Run linting
-pnpm lint
-
-# Run tests
-pnpm test
-
-# Build for production
-pnpm build
-
-# Preview production build
-pnpm preview
+pnpm dev            # start the dev server
+pnpm lint           # ESLint
+pnpm typecheck      # TypeScript (tsc -b)
+pnpm test           # Vitest
+pnpm build          # production build
+pnpm format         # Prettier
 ```
 
-## Usage
+**Stack:** React 19 · TypeScript (strict) · Vite 8 · Tailwind CSS v4 · shadcn/ui · React Router v7
+· React Hook Form + Zod v4 · i18next · date-fns · Vitest.
 
-### Starting a New Application
+Contributions are welcome — start with [CONTRIBUTING.md](CONTRIBUTING.md) and
+[docs/principles.md](docs/principles.md).
 
-1. Open VisaFlow in your browser
-2. Click "Start New Greece Application" on the Dashboard
-3. Fill in your applicant information
-4. Add trip details and appointment date
-5. Track your documents on the Documents page
-6. Use Consistency Checks to find potential issues
+## Privacy model
 
-### Import/Export Workflow
+Privacy is the architecture, not a feature:
 
-VisaFlow uses JSON files for data storage. This gives you full control over your data.
+- **No server, no account, no database** — VisaFlow is a static client-side app.
+- **No analytics, no tracking, no third-party or CDN requests** — all assets are bundled.
+- **No personal data in browser storage** — the dossier lives only in memory; the *only*
+  permitted `localStorage` keys are `visaflow-theme` and `visaflow-locale`, both non-personal
+  interface preferences.
+- **Explicit export/import** — your data leaves the browser only when you download a JSON file.
 
-**To save your work:**
-1. Click "Export Dossier" in the sidebar
-2. A JSON file will be downloaded
-3. Store this file securely (it contains personal information)
+Closing or refreshing the tab discards in-memory data by design — export first. Full details in
+[docs/privacy.md](docs/privacy.md); the security policy is in [SECURITY.md](SECURITY.md).
 
-**To resume your work:**
-1. Click "Import Data" in the sidebar
-2. Select your previously exported JSON file
-3. Your data will be loaded into the application
+## Data ownership
 
-**Example Data:**
-Click "Load Example Data" to see how VisaFlow works with fictional sample data.
+Your dossier is yours, in a portable file you control. VisaFlow reads and writes a single,
+documented, **versioned** JSON document ([docs/json-schema.md](docs/json-schema.md)) that is
+**language-independent** — the same dossier exports byte-identically whether the UI is in Turkish
+or English. Because the format is open and the app is self-hostable static files, there is no
+lock-in: you can leave with your data at any time.
 
-## Privacy Model
+## Country packs
 
-VisaFlow is designed with privacy as a core principle:
+Support for a country is **authored data**, not code. A pack declares its visa types and their
+requirements (with conditional logic like "required if employed"), preparation milestones, and
+honest source citations — requirements carry translation keys, never baked-in prose. VisaFlow
+does not scrape official sites or invent dates; an unverified pack says so plainly. See
+[docs/country-pack-guide.md](docs/country-pack-guide.md). Currently one production pack ships:
+Greece (Schengen short-stay tourism).
 
-- **No Server Storage** - All data remains in your browser's memory
-- **No Analytics** - No tracking, no cookies, no telemetry
-- **No External APIs** - No network requests to third-party services
-- **You Control Your Data** - Export anytime, delete by closing the browser
+## Validation engine
 
-**Important:** Data is NOT persisted to localStorage. When you close the browser or refresh the page, data is lost unless you export it first.
+Validation is a set of pure functions `(Dossier) => ValidationFinding[]` composed by a runner
+with a stable severity order — same input, same findings, always. Findings carry **stable keys
+and typed parameters**, not prose, so they render identically in either language and never touch
+the exported JSON. Details in [docs/validation-engine.md](docs/validation-engine.md).
 
-## Technology Stack
+## JSON format
 
-- React 19
-- TypeScript (strict mode)
-- Vite
-- Tailwind CSS v4
-- shadcn/ui
-- React Router
-- React Hook Form + Zod
-- date-fns
-- Vitest
-
-## Project Structure
-
-```
-src/
-├── app/                    # App configuration
-│   ├── providers/          # React Context providers
-│   └── router/             # Route definitions
-├── components/
-│   ├── ui/                 # shadcn/ui components
-│   ├── layout/             # App shell components
-│   └── shared/             # Shared business components
-├── features/               # Feature modules
-│   └── import-export/      # JSON import/export
-├── domain/
-│   ├── schemas/            # Zod validation schemas
-│   ├── types/              # TypeScript types
-│   └── rules/              # Validation rules
-├── config/
-│   └── countries/          # Country configurations
-├── data/
-│   └── examples/           # Example JSON data
-├── hooks/                  # Custom React hooks
-├── lib/                    # Utilities
-├── pages/                  # Page components
-└── tests/                  # Test files
-```
-
-## Current Limitations
-
-1. **No Persistent Storage** - Data must be exported manually
-2. **Single Application** - One application at a time
-3. **No File Uploads** - Document references are text-only
-4. **Limited Countries** - Only Greece configuration included
-5. **No Offline Support** - Requires browser session
+Import/export uses one documented JSON document with an explicit `schemaVersion` (currently
+`1.0.0`) and forward-compatible migration notes. See [docs/json-schema.md](docs/json-schema.md).
 
 ## Roadmap
 
-### Phase 2
-- Local Node.js file adapter for automatic saving
-- Multiple saved applications
-- PDF dossier index generation
-- Printable checklist export
+VisaFlow is planned as product phases. In brief:
 
-### Phase 3
-- Optional encrypted local database
-- User-defined country templates
-- Document expiry notifications
-- Family/group applications
+- **Current** — a complete single-application workspace: dossier, validation engine, timeline,
+  dashboard, design system + playground, TR/EN i18n, JSON import/export, one country pack (Greece).
+- **Next** — multiple saved dossiers, a richer core workspace, more visa types and country packs.
+- **Future** — a country-pack ecosystem with verified sources, optional self-hosting, reviewer
+  collaboration, and organizational (never predictive) AI assistance.
 
-### Phase 4
-- Optional self-hosted backend
-- Encrypted file storage
-- Collaborative dossier review
-- Role-based access control
+The phased plan, the reasoning behind each phase, and the explicit non-goals are in
+[docs/roadmap.md](docs/roadmap.md).
 
 ## Contributing
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
-
-## Security
-
-See [SECURITY.md](SECURITY.md) for security policy.
+See [CONTRIBUTING.md](CONTRIBUTING.md). New reusable UI must be demonstrated in the
+[Playground](docs/playground.md) first; new countries follow the
+[country pack guide](docs/country-pack-guide.md); architectural decisions are recorded in
+[docs/decisions.md](docs/decisions.md).
 
 ## License
 
-MIT License - see [LICENSE](LICENSE) for details.
+MIT — see [LICENSE](LICENSE).
 
 ## Disclaimer
 
-VisaFlow is provided "as is" without warranty of any kind. The document checklists and validation rules are for organizational purposes only and should not be considered official requirements. Always verify requirements with the official embassy, consulate, or authorized visa center for your application.
+VisaFlow is provided "as is", without warranty of any kind. Its document checklists and
+validation rules are for organizational purposes only and are not official requirements. Always
+verify requirements with the official embassy, consulate, or authorized visa center for your
+application.

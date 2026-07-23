@@ -99,7 +99,7 @@ After setup, verify:
 - [ ] `pnpm dev` starts server at http://localhost:5173
 - [ ] `pnpm lint` runs (warnings OK, errors not OK)
 - [ ] `pnpm typecheck` passes
-- [ ] `pnpm test` passes (23 tests)
+- [ ] `pnpm test` passes (see `docs/current-status.md` for the current count)
 - [ ] `pnpm build` completes successfully
 - [ ] "Load Example Data" works in browser
 

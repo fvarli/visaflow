@@ -28,7 +28,8 @@ git log --oneline -5       # Recent commits
 | State management | `src/app/providers/DossierProvider.tsx` |
 | Validation | `src/domain/rules/*.ts`, `src/domain/rules/runner.ts` |
 | Schemas | `src/domain/schemas/*.ts` |
-| Country config | `src/config/countries/greece.ts` |
+| Country packs | `src/config/countries/<country>/`, `src/config/countries/index.ts` |
+| Dashboard model | `src/features/dashboard/dashboard-model.ts` |
 | Routes | `src/app/router/routes.tsx` |
 | Pages | `src/pages/*.tsx` |
 | Tests | `src/tests/` |
@@ -70,16 +71,23 @@ See `CLAUDE.md` in the project root for AI assistant context.
 
 ## Documentation Index
 
-- `README.md` - User-facing documentation
-- `CONTRIBUTING.md` - Contribution guidelines
+- `README.md` - User-facing product overview
+- `CONTRIBUTING.md` - Contribution guidelines + philosophy
 - `SECURITY.md` - Security policy
-- `docs/architecture.md` - System design
-- `docs/privacy.md` - Privacy model
-- `docs/json-schema.md` - JSON format
-- `docs/adding-a-country.md` - Country config guide
-- `docs/decisions.md` - Architectural decisions
-- `docs/roadmap.md` - Future plans
-- `docs/current-status.md` - Implementation status
+- `docs/vision.md` - Product vision, why it exists, Current/Next/Future
+- `docs/principles.md` - Product & engineering principles (tied to ADRs)
+- `docs/architecture.md` - System map + layer boundaries (canonical)
+- `docs/validation-engine.md` - Rules, findings, i18n boundary
+- `docs/dashboard-architecture.md` - Widget dashboard + presentation adapter
+- `docs/country-pack-guide.md` - Country pack concept + authoring guide
+- `docs/playground.md` - Component workbench + demonstrate-before-use rule
+- `docs/privacy.md` - Privacy model + data ownership (canonical)
+- `docs/json-schema.md` - JSON import/export format
+- `docs/decisions.md` - Architectural decision records (ADRs)
+- `docs/roadmap.md` - Product phases
+- `docs/current-status.md` - Implementation status snapshot
+- `docs/visa-domain-notes.md` - Schengen domain background + rule rationale
+- `docs/fresh-machine-setup.md` - New-machine dev setup
 
 ## Environment
 
@@ -197,3 +205,52 @@ committed, not pushed.
 
 ### ADRs added
 017 dashboard presentation adapter · 018 scope `useTranslation` to its namespaces.
+
+---
+
+## Iteration 5 handoff (2026-07-23) — Product vision & documentation alignment
+
+Documentation-only sprint. **No code, schema, validation, page, or JSON changes.** The goal was
+to align the repository with the product vision (an application workspace for international visa
+preparation, not a Greece checklist), remove MVP/Greece-only framing and heavy duplication, and
+establish a clean documentation taxonomy.
+
+### What changed
+- **README.md** rewritten as a serious open-source product (Vision · Why · Principles · Features ·
+  Product architecture · Screenshots/Demo placeholders · Install · Development · Privacy model ·
+  Data ownership · Country packs · Validation engine · JSON format · Roadmap Current/Next/Future ·
+  Contributing · License). Duplicated `src/` tree and limitations list removed in favour of links.
+- **New docs:** `vision.md`, `principles.md` (12 principles → ADRs), `validation-engine.md`,
+  `dashboard-architecture.md`, `playground.md` (names the Playground a lightweight Storybook
+  alternative + codifies demonstrate-before-use).
+- **`architecture.md`** restructured around the six layer boundaries (Domain · Validation engine ·
+  Country packs · Import/Export · Presentation · Privacy) and de-staled (current `ValidationFinding`
+  shape, flat `DossierState`, lazy routes done, dashboard adapter added).
+- **`roadmap.md`** rewritten as named product phases (Foundation → Core Workspace → Country
+  Ecosystem → Productivity → Optional Self-Hosting → Collaboration → AI Assistance) with reasoning
+  and Current/Next/Future tags; AI phase bounded to organizational help only (ADR-016).
+- **Renamed** `adding-a-country.md` → `country-pack-guide.md` (expanded with the country-pack
+  concept); all 5 references updated.
+- **Deleted** orphaned `project-context.md` (content migrated into `vision.md`).
+- **Improved** `privacy.md` (firm storage rule + Data Ownership section), `CONTRIBUTING.md`
+  (philosophy + playground rule + layer boundaries), `CLAUDE.md` (vision framing, doc index, stale
+  paths), `current-status.md` ("Known Limitations" → "Current scope" → roadmap),
+  `fresh-machine-setup.md` (stale test count).
+- **ADRs:** appended ADR-019 (product vision) and ADR-020 (Playground demonstrate-before-use).
+
+### Single source of truth (deduped)
+`src/` tree → architecture.md · privacy narrative → privacy.md · roadmap/limitations → roadmap.md +
+current-status.md · domain vocabulary → vision.md. Other docs summarize + link.
+
+### Gates
+Docs-only; ran `pnpm test` / `lint` / `typecheck` / `build` once to confirm nothing was
+accidentally touched — all green (110/110). Not committed, not pushed.
+
+### Known follow-ups
+- `package.json` has no `license` field though LICENSE (MIT) exists — metadata inconsistency
+  (left as code/config, out of this docs sprint's scope).
+- `SECURITY.md` still duplicates some of the privacy data-flow and pins "Supported Versions" to
+  1.0.x — could be trimmed to link `privacy.md` in a later pass.
+
+### ADRs added
+019 product vision · 020 Playground demonstrate-before-use.
