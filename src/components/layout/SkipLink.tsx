@@ -6,7 +6,7 @@ import { useTranslation } from 'react-i18next'
  * past 13 navigation links to reach the content.
  */
 export function SkipLink() {
-  const { t } = useTranslation()
+  const { t } = useTranslation('common')
 
   return (
     <a

@@ -21,7 +21,7 @@ const REVIEW_TONE: Record<ReviewStatus, StatusTone> = {
 }
 
 export function ReviewStatusBadge({ status }: { status: ReviewStatus }) {
-  const { t } = useTranslation()
+  const { t } = useTranslation('common')
   return (
     <StatusBadge tone={REVIEW_TONE[status]} dot>
       {dynamicT(t)(`sources.reviewStatus.${status}`)}
@@ -50,7 +50,7 @@ export function SourceNote({
   lastReviewedAt,
   className,
 }: SourceNoteProps) {
-  const { t } = useTranslation()
+  const { t } = useTranslation('common')
 
   const isVerified = reviewStatus === 'verified'
   const hasVerifiedSource = sources.some((s) => s.lastVerifiedAt)
@@ -92,7 +92,7 @@ function SourceList({
   sources: RequirementSource[]
   lastReviewedAt?: string
 }) {
-  const { t } = useTranslation()
+  const { t } = useTranslation('common')
   const format = useFormatters()
 
   return (

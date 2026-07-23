@@ -24,7 +24,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert'
 import { AlertCircle, Upload, FileJson, ShieldCheck } from 'lucide-react'
 
 export function AppLayout() {
-  const { t } = useTranslation()
+  const { t } = useTranslation('common')
   const [mobileNavOpen, setMobileNavOpen] = useState(false)
   const [importDialogOpen, setImportDialogOpen] = useState(false)
   const [importErrors, setImportErrors] = useState<string[]>([])

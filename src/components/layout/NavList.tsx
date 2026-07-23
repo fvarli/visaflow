@@ -23,7 +23,7 @@ interface NavListProps {
  * `aria-current="page"` carries the same meaning non-visually.
  */
 export function NavList({ groups, counts, onNavigate }: NavListProps) {
-  const { t } = useTranslation()
+  const { t } = useTranslation('common')
   const td = dynamicT(t)
 
   return (
@@ -64,7 +64,7 @@ export function NavItemLink({
   counts?: NavBadgeCounts
   onNavigate?: () => void
 }) {
-  const { t } = useTranslation()
+  const { t } = useTranslation('common')
   const count = item.badgeKey ? counts?.[item.badgeKey] : undefined
   const label = dynamicT(t)(item.labelKey)
 

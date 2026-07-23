@@ -23,7 +23,7 @@ const LOCALE_LABELS: Record<Locale, string> = {
 
 export function LanguageSelect({ className }: { className?: string }) {
   const { locale, setLocale } = useLocale()
-  const { t } = useTranslation()
+  const { t } = useTranslation('common')
 
   return (
     <DropdownMenu>

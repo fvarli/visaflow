@@ -148,3 +148,52 @@ pnpm typecheck       # Check for type errors first
 ### ADRs added
 011 Turkish-first · 012 stable domain values · 013 locale may persist ·
 014 country→visa-type→requirement · 015 source metadata · 016 no prediction.
+
+---
+
+## Iteration 4 handoff (2026-07-23) — Dashboard command center
+
+This iteration redesigned **only the Dashboard** into a widget-based command
+center. No other page, the validation logic, the schemas, or import/export were
+changed.
+
+### What changed
+- **Presentation adapter** `src/features/dashboard/dashboard-model.ts` —
+  `buildDashboardModel(state)` derives readiness buckets, countdowns, next
+  actions, a timeline and source status. Pure (no i18n/Intl), unit-tested. Wraps
+  a per-application model in `{ applications, active }` for future multi-app
+  (structure only). Re-encodes no rule — validation via `runValidation`,
+  requirements via `resolveVisaTemplate`. See ADR-017.
+- **New primitives** `src/components/ui/readiness-ring.tsx` (understated SVG
+  ring, shows % + state, organizational only) and `src/components/ui/timeline.tsx`
+  (generic vertical timeline). Both in `/playground`.
+- **Widgets** `src/components/dashboard/*` — ReadinessHero, MetricsRow,
+  NextActions, UpcomingTimeline, DocumentsSummary (segmented Ready/Missing/Needs
+  update), ValidationSummary (leads with actionable findings), TripSummary,
+  DashboardSkeleton. Each is prop-driven and shown in `/playground`.
+- **DashboardPage** is now a thin composition over `useDashboardModel()`.
+- **Formatter** `formatRelativeDays` / `relativeDays` added to
+  `src/lib/format.ts` (Intl.RelativeTimeFormat).
+- **Motion** a small keyframe set (`fade-in`, `fade-in-up`, `subtle-scale`,
+  `shimmer`) in `src/index.css`, all covered by the existing reduced-motion
+  rule. No framer-motion; no new dependency.
+- **i18n** additive `dashboard` namespace keys (tr/en parity). All previously
+  no-argument `useTranslation()` calls were scoped to `'common'` to avoid a
+  TypeScript key-union depth blow-up (TS2589) — see ADR-018.
+
+### Gates (this iteration)
+`format:check` PASS · `lint` 0 errors / 48 warnings · `typecheck` PASS (`tsc -b`)
+· `test` **110/110** · `build` SUCCESS. Bundle: dashboard widgets are a lazy
+shared chunk (~7.4 kB gzip); main `index` ~109.3 kB gzip (≈ baseline). Not
+committed, not pushed.
+
+### Known limitations / next
+- Visual verification was via bilingual render tests, not a browser (Chrome
+  extension unavailable). Re-verify at 1440/834/390px × light/dark × tr/en.
+- The timeline date math is duplicated between the dashboard adapter and the
+  (off-limits this sprint) Timeline page — consolidate onto the adapter when the
+  Timeline page is next touched.
+- Multi-application is structural only; no switcher/list/storage is built.
+
+### ADRs added
+017 dashboard presentation adapter · 018 scope `useTranslation` to its namespaces.

@@ -9,7 +9,7 @@ import { useTranslation } from 'react-i18next'
  * control — it belongs at the end of the content, read once.
  */
 export function Footer() {
-  const { t } = useTranslation()
+  const { t } = useTranslation('common')
 
   return (
     <footer className="mt-4 border-t pt-6">

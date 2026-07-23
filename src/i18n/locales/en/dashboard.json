@@ -6,38 +6,92 @@
     "title": "Get started",
     "description": "Choose how you would like to begin organizing your visa application.",
     "startGreece": "Start new Greece application",
-    "orImport": "Or use <1>Import</1> in the sidebar to load an existing dossier file.",
     "orImportPlain": "Or use the Import button in the sidebar to load existing data."
   },
   "cards": {
     "appointment": "Appointment",
-    "tripStart": "Trip start",
-    "daysUntilTravel": "{{count}} days until travel"
+    "tripStart": "Trip start"
   },
-  "completion": {
-    "title": "Dossier readiness",
-    "description": "{{ready}} of {{total}} required documents ready",
-    "progressLabel": "Document completion",
-    "ready": "ready",
-    "pending": "pending",
-    "needUpdate": "need update"
+  "header": {
+    "documents": "Documents",
+    "checkIssues": "Check issues"
   },
-  "checks": {
-    "title": "Consistency checks",
-    "description": "Automated checks for common issues in your dossier",
-    "viewAllFindings": "View all {{count}} findings",
-    "noIssues": "No issues found"
+  "hero": {
+    "readinessLabel": "Dossier readiness",
+    "subtitle": "How much of your dossier is assembled — not a prediction of any decision.",
+    "primaryActionLabel": "Recommended next step",
+    "allDone": "Everything tracked is complete.",
+    "verdict": {
+      "not_started": "Not started yet",
+      "preparing": "Preparing well",
+      "waiting_reservations": "Waiting for reservations",
+      "documents_remaining": "Required documents remaining: {{count}}",
+      "ready_for_appointment": "Ready for your appointment"
+    }
   },
-  "nextSteps": {
-    "title": "Next steps",
-    "description": "The quickest ways to move your application forward",
-    "nothingOutstanding": "Nothing outstanding",
-    "nothingOutstandingBody": "Every tracked item is complete. Export your dossier to save this state.",
-    "completeMissingDocs_one": "Complete {{count}} missing document",
-    "completeMissingDocs_other": "Complete {{count}} missing documents",
-    "setAppointment": "Set appointment date",
-    "addTrip": "Add trip details",
-    "resolveErrors_one": "Resolve {{count}} error",
-    "resolveErrors_other": "Resolve {{count}} errors"
+  "metrics": {
+    "appointment": "Appointment",
+    "trip": "Trip",
+    "documentsReady": "Documents ready",
+    "openFindings": "Open findings",
+    "notScheduled": "Not scheduled",
+    "notPlanned": "Not planned",
+    "noFindings": "All clear",
+    "findingsBreakdown": "{{errors}} to fix, {{warnings}} to review"
+  },
+  "nextActions": {
+    "title": "Next recommended actions",
+    "description": "Derived from your dossier's current state.",
+    "empty": "Nothing outstanding — export your dossier to save this state.",
+    "resolveErrors": "Resolve errors ({{count}})",
+    "completeMissingDocs": "Complete missing documents ({{count}})",
+    "updateDocuments": "Update documents ({{count}})",
+    "reviewWarnings": "Review warnings ({{count}})",
+    "setAppointment": "Set your appointment date",
+    "addTrip": "Add your trip details"
+  },
+  "timeline": {
+    "title": "Upcoming",
+    "description": "The next dates on your path to applying.",
+    "empty": "No upcoming dates yet.",
+    "eventType": {
+      "appointment": "Appointment",
+      "milestone": "Preparation milestone",
+      "trip_entry": "Trip starts",
+      "trip_exit": "Trip ends",
+      "document_expiry": "{{document}} expires"
+    }
+  },
+  "documentsSummary": {
+    "title": "Documents",
+    "description": "{{ready}} of {{total}} ready",
+    "ready": "Ready",
+    "missing": "Missing",
+    "needsUpdate": "Needs update",
+    "viewAll": "Open documents",
+    "empty": "No documents yet."
+  },
+  "validationSummary": {
+    "title": "Consistency",
+    "allClear": "No issues found.",
+    "viewAll": "View all findings",
+    "viewMore": "View {{count}} more"
+  },
+  "tripSummary": {
+    "title": "Trip & funding",
+    "destination": "Destination",
+    "dates": "Travel dates",
+    "budget": "Estimated budget",
+    "financingSource": "Funding source",
+    "accountBalance": "Account balance",
+    "sponsors": "Sponsors",
+    "insurance": "Travel insurance",
+    "insured": "Added",
+    "notInsured": "Not added",
+    "empty": "No trip details yet."
+  },
+  "sourceStatus": {
+    "title": "Requirement sources",
+    "description": "Where this checklist's requirements come from."
   }
 }

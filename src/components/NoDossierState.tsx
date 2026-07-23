@@ -11,7 +11,7 @@ import { EmptyState } from '@/components/ui/empty-state'
  * a destructive-red alert.
  */
 export function NoDossierState({ section }: { section?: string }) {
-  const { t } = useTranslation()
+  const { t } = useTranslation('common')
 
   return (
     <EmptyState

@@ -6,38 +6,92 @@
     "title": "Başlayın",
     "description": "Vize başvurunuzu düzenlemeye nasıl başlamak istediğinizi seçin.",
     "startGreece": "Yeni Yunanistan başvurusu oluştur",
-    "orImport": "Ya da mevcut bir dosyayı yüklemek için kenar çubuğundaki <1>İçe aktar</1> seçeneğini kullanın.",
     "orImportPlain": "Ya da mevcut veriyi yüklemek için kenar çubuğundaki İçe aktar düğmesini kullanın."
   },
   "cards": {
     "appointment": "Randevu",
-    "tripStart": "Seyahat başlangıcı",
-    "daysUntilTravel": "Seyahate {{count}} gün kaldı"
+    "tripStart": "Seyahat başlangıcı"
   },
-  "completion": {
-    "title": "Dosya hazırlık düzeyi",
-    "description": "{{total}} zorunlu belgeden {{ready}} tanesi hazır",
-    "progressLabel": "Belge tamamlanma durumu",
-    "ready": "hazır",
-    "pending": "beklemede",
-    "needUpdate": "güncellenmeli"
+  "header": {
+    "documents": "Belgeler",
+    "checkIssues": "Sorunları denetle"
   },
-  "checks": {
-    "title": "Tutarlılık kontrolleri",
-    "description": "Başvuru dosyanızdaki yaygın sorunlar için otomatik kontroller",
-    "viewAllFindings": "{{count}} bulgunun tümünü gör",
-    "noIssues": "Sorun bulunamadı"
+  "hero": {
+    "readinessLabel": "Dosya hazırlık düzeyi",
+    "subtitle": "Dosyanızın ne kadarının hazır olduğunu gösterir — herhangi bir karar tahmini değildir.",
+    "primaryActionLabel": "Önerilen sonraki adım",
+    "allDone": "Takip edilen her şey tamamlandı.",
+    "verdict": {
+      "not_started": "Henüz başlanmadı",
+      "preparing": "İyi hazırlanıyor",
+      "waiting_reservations": "Rezervasyonlar bekleniyor",
+      "documents_remaining": "Kalan zorunlu belge: {{count}}",
+      "ready_for_appointment": "Randevuya hazır"
+    }
   },
-  "nextSteps": {
-    "title": "Sonraki adımlar",
-    "description": "Başvurunuzu ilerletmenin en hızlı yolları",
-    "nothingOutstanding": "Bekleyen iş yok",
-    "nothingOutstandingBody": "Takip edilen tüm maddeler tamamlandı. Bu durumu kaydetmek için dosyanızı dışa aktarın.",
-    "completeMissingDocs_one": "Eksik {{count}} belgeyi tamamlayın",
-    "completeMissingDocs_other": "Eksik {{count}} belgeyi tamamlayın",
-    "setAppointment": "Randevu tarihi belirleyin",
-    "addTrip": "Seyahat bilgilerini ekleyin",
-    "resolveErrors_one": "{{count}} hatayı giderin",
-    "resolveErrors_other": "{{count}} hatayı giderin"
+  "metrics": {
+    "appointment": "Randevu",
+    "trip": "Seyahat",
+    "documentsReady": "Hazır belgeler",
+    "openFindings": "Açık bulgular",
+    "notScheduled": "Planlanmadı",
+    "notPlanned": "Planlanmadı",
+    "noFindings": "Sorun yok",
+    "findingsBreakdown": "{{errors}} düzeltilecek, {{warnings}} gözden geçirilecek"
+  },
+  "nextActions": {
+    "title": "Önerilen sonraki adımlar",
+    "description": "Dosyanızın mevcut durumundan çıkarıldı.",
+    "empty": "Bekleyen iş yok — bu durumu kaydetmek için dosyanızı dışa aktarın.",
+    "resolveErrors": "Hataları giderin ({{count}})",
+    "completeMissingDocs": "Eksik belgeleri tamamlayın ({{count}})",
+    "updateDocuments": "Belgeleri güncelleyin ({{count}})",
+    "reviewWarnings": "Uyarıları gözden geçirin ({{count}})",
+    "setAppointment": "Randevu tarihinizi belirleyin",
+    "addTrip": "Seyahat bilgilerinizi ekleyin"
+  },
+  "timeline": {
+    "title": "Yaklaşanlar",
+    "description": "Başvuru yolundaki sonraki tarihler.",
+    "empty": "Henüz yaklaşan tarih yok.",
+    "eventType": {
+      "appointment": "Randevu",
+      "milestone": "Hazırlık aşaması",
+      "trip_entry": "Seyahat başlıyor",
+      "trip_exit": "Seyahat bitiyor",
+      "document_expiry": "{{document}} süresi doluyor"
+    }
+  },
+  "documentsSummary": {
+    "title": "Belgeler",
+    "description": "{{total}} belgeden {{ready}} tanesi hazır",
+    "ready": "Hazır",
+    "missing": "Eksik",
+    "needsUpdate": "Güncellenmeli",
+    "viewAll": "Belgeleri aç",
+    "empty": "Henüz belge yok."
+  },
+  "validationSummary": {
+    "title": "Tutarlılık",
+    "allClear": "Sorun bulunamadı.",
+    "viewAll": "Tüm bulguları gör",
+    "viewMore": "{{count}} tane daha gör"
+  },
+  "tripSummary": {
+    "title": "Seyahat ve finansman",
+    "destination": "Varış ülkesi",
+    "dates": "Seyahat tarihleri",
+    "budget": "Tahmini bütçe",
+    "financingSource": "Finansman kaynağı",
+    "accountBalance": "Hesap bakiyesi",
+    "sponsors": "Sponsorlar",
+    "insurance": "Seyahat sigortası",
+    "insured": "Eklendi",
+    "notInsured": "Eklenmedi",
+    "empty": "Henüz seyahat bilgisi yok."
+  },
+  "sourceStatus": {
+    "title": "Gereklilik kaynakları",
+    "description": "Bu kontrol listesinin gereklilikleri nereden geliyor."
   }
 }

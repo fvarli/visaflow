@@ -5,6 +5,7 @@ import { AppLayout } from '@/components/layout/AppLayout'
 import { lazy, Suspense } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Skeleton } from '@/components/ui/skeleton'
+import { DashboardSkeleton } from '@/components/dashboard/DashboardSkeleton'
 
 const DashboardPage = lazy(() => import('@/pages/DashboardPage'))
 const ApplicantPage = lazy(() => import('@/pages/ApplicantPage'))
@@ -29,7 +30,7 @@ const PlaygroundPage = lazy(() => import('@/pages/PlaygroundPage'))
  * nothing jumps when the lazy chunk resolves.
  */
 function PageLoader() {
-  const { t } = useTranslation()
+  const { t } = useTranslation('common')
 
   return (
     <div
@@ -48,8 +49,14 @@ function PageLoader() {
   )
 }
 
-function LazyPage({ children }: { children: React.ReactNode }) {
-  return <Suspense fallback={<PageLoader />}>{children}</Suspense>
+function LazyPage({
+  children,
+  fallback,
+}: {
+  children: React.ReactNode
+  fallback?: React.ReactNode
+}) {
+  return <Suspense fallback={fallback ?? <PageLoader />}>{children}</Suspense>
 }
 
 export const router = createBrowserRouter([
@@ -64,7 +71,7 @@ export const router = createBrowserRouter([
       {
         path: 'dashboard',
         element: (
-          <LazyPage>
+          <LazyPage fallback={<DashboardSkeleton />}>
             <DashboardPage />
           </LazyPage>
         ),

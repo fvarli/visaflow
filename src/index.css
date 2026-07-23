@@ -465,3 +465,80 @@
     background: transparent;
   }
 }
+
+/* Motion vocabulary — intentionally tiny.
+ *
+ * The whole app has exactly four entrance/emphasis animations. They are calm
+ * by design: short (120–220ms), small (≤2px translate), no bounce/overshoot/
+ * spin/flash. Hover emphasis stays in the components (elevation + a ≤2px lift).
+ * Every one is neutralized by the `prefers-reduced-motion` rule in @layer base,
+ * whose `!important` duration override wins regardless of layer order — so no
+ * component needs its own reduced-motion handling. */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(2px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes subtle-scale {
+  from {
+    opacity: 0;
+    transform: scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes shimmer {
+  from {
+    background-position: -150% 0;
+  }
+  to {
+    background-position: 150% 0;
+  }
+}
+
+@layer utilities {
+  .animate-fade-in {
+    animation: fade-in 160ms ease-out both;
+  }
+
+  .animate-fade-in-up {
+    animation: fade-in-up 200ms ease-out both;
+  }
+
+  .animate-subtle-scale {
+    animation: subtle-scale 180ms ease-out both;
+  }
+
+  /* Skeleton sweep — the one place shimmer is used. Apply to an overlay element
+   * over a `bg-muted` block; the sheen alpha lives in the gradient, so the
+   * block underneath keeps its colour. */
+  .animate-shimmer {
+    background-image: linear-gradient(
+      90deg,
+      transparent 0%,
+      color-mix(in oklab, var(--foreground) 9%, transparent) 50%,
+      transparent 100%
+    );
+    background-size: 200% 100%;
+    background-repeat: no-repeat;
+    animation: shimmer 1.4s ease-in-out infinite;
+  }
+}

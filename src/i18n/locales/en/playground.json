@@ -12,7 +12,8 @@
     "data": "Data display",
     "overlays": "Overlays",
     "i18n": "Internationalization",
-    "composition": "Composition"
+    "composition": "Composition",
+    "dashboard": "Dashboard"
   },
   "rows": {
     "surfaces": "Surfaces",
@@ -54,7 +55,9 @@
     "currency": "Currency",
     "numbers": "Numbers",
     "sourceVerified": "Source (verified)",
-    "sourceUnverified": "Source (unverified)"
+    "sourceUnverified": "Source (unverified)",
+    "readinessRing": "Readiness ring",
+    "dashboardSkeleton": "Dashboard skeleton"
   },
   "i18n": {
     "description": "Locale-aware formatting and translated domain vocabulary. Switch language above to see everything update in place.",
@@ -104,6 +107,7 @@
     "feedback": "Alerts, progress and loading. Tints are low chroma — a change in paper stock, not a colored box.",
     "data": "Metrics, tables and label/value pairs. Numbers use tabular figures so columns align.",
     "overlays": "Dialog, tooltip and accordion. Check focus trapping and escape handling here.",
-    "composition": "How the page-level pieces sit together. This is the rhythm every page should inherit."
+    "composition": "How the page-level pieces sit together. This is the rhythm every page should inherit.",
+    "dashboard": "Composed command-center widgets, driven by the derived dashboard model over a fictional demo dossier."
   }
 }

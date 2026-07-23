@@ -12,7 +12,8 @@
     "data": "Veri gösterimi",
     "overlays": "Katmanlar",
     "i18n": "Dil ve yerelleştirme",
-    "composition": "Kompozisyon"
+    "composition": "Kompozisyon",
+    "dashboard": "Genel bakış"
   },
   "rows": {
     "surfaces": "Yüzeyler",
@@ -54,7 +55,9 @@
     "currency": "Para birimi",
     "numbers": "Sayılar",
     "sourceVerified": "Kaynak (doğrulanmış)",
-    "sourceUnverified": "Kaynak (doğrulanmamış)"
+    "sourceUnverified": "Kaynak (doğrulanmamış)",
+    "readinessRing": "Hazırlık halkası",
+    "dashboardSkeleton": "Genel bakış iskeleti"
   },
   "i18n": {
     "description": "Yerele duyarlı biçimlendirme ve çevrilmiş alan terimleri. Yukarıdan dili değiştirerek her şeyin anında güncellendiğini görebilirsiniz.",
@@ -104,6 +107,7 @@
     "feedback": "Uyarılar, ilerleme ve yükleme durumları. Renk tonları çok düşük doygunluktadır; renkli bir kutu değil, kâğıt tonu değişimi gibidir.",
     "data": "Ölçütler, tablolar ve etiket/değer çiftleri. Sayılar sütun hizası için sabit genişlikli rakamlar kullanır.",
     "overlays": "İletişim kutusu, ipucu ve akordiyon. Odak hapsi ve Esc davranışını burada kontrol edin.",
-    "composition": "Sayfa düzeyindeki parçaların bir araya gelişi. Her sayfanın devralması gereken ritim budur."
+    "composition": "Sayfa düzeyindeki parçaların bir araya gelişi. Her sayfanın devralması gereken ritim budur.",
+    "dashboard": "Türetilmiş genel bakış modelini kurgusal bir örnek dosya üzerinden kullanan, bir araya getirilmiş komuta merkezi bileşenleri."
   }
 }

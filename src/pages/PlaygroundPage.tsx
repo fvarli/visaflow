@@ -86,9 +86,22 @@ import { useTheme } from '@/app/providers/ThemeProvider'
 import { useLocale } from '@/app/providers/LocaleProvider'
 import { LanguageSelect } from '@/components/ui/language-select'
 import { SourceNote } from '@/components/ui/source-note'
+import { ReadinessRing } from '@/components/ui/readiness-ring'
+import { ReadinessHero } from '@/components/dashboard/ReadinessHero'
+import { MetricsRow } from '@/components/dashboard/MetricsRow'
+import { NextActions } from '@/components/dashboard/NextActions'
+import { UpcomingTimeline } from '@/components/dashboard/UpcomingTimeline'
+import { DocumentsSummary } from '@/components/dashboard/DocumentsSummary'
+import { ValidationSummary } from '@/components/dashboard/ValidationSummary'
+import { TripSummary } from '@/components/dashboard/TripSummary'
+import { DashboardSkeleton } from '@/components/dashboard/DashboardSkeleton'
+import { buildDashboardModel } from '@/features/dashboard/dashboard-model'
 import { useFormatters } from '@/lib/format'
 import { dynamicT } from '@/lib/i18n-dynamic'
 import type { RequirementSource } from '@/config/types'
+import type { Applicant } from '@/domain/schemas/applicant.schema'
+import type { Application } from '@/domain/schemas/application.schema'
+import type { Document } from '@/domain/schemas/document.schema'
 
 /**
  * Design system playground.
@@ -132,6 +145,7 @@ export default function PlaygroundPage() {
       <DataDisplay />
       <Overlays />
       <Composition />
+      <Dashboard />
     </PageBody>
   )
 }
@@ -151,6 +165,7 @@ const SECTIONS = [
   'data',
   'overlays',
   'composition',
+  'dashboard',
 ] as const
 
 function Nav() {
@@ -1264,6 +1279,199 @@ function Composition() {
             </Button>
           </CardFooter>
         </Card>
+      </Row>
+    </Block>
+  )
+}
+
+/* -------------------------------------------------------------------------
+ * Dashboard widgets
+ * ---------------------------------------------------------------------- */
+
+/**
+ * A fictional dossier used only to drive the dashboard widget demos. It is not
+ * real applicant data and must never be copied into the app or a template.
+ */
+const DEMO_APPLICANT: Applicant = {
+  id: 'demo-applicant',
+  firstName: 'Demo',
+  lastName: 'Applicant',
+  dateOfBirth: '1990-01-01',
+  nationality: 'TR',
+  passport: {
+    number: 'X0000000',
+    issueDate: '2022-01-01',
+    expiryDate: '2032-01-01',
+    issuingCountry: 'TR',
+    passportType: 'ordinary',
+  },
+  previousPassports: [],
+  previousVisas: [],
+  travelHistory: [],
+}
+
+const DEMO_APPLICATION: Application = {
+  applicationId: 'demo-app',
+  applicantId: 'demo-applicant',
+  destinationCountry: 'GR',
+  visaType: 'short_stay_tourism',
+  status: 'preparing',
+  createdAt: '2027-01-01T00:00:00.000Z',
+  appointment: {
+    date: '2027-03-15',
+    location: 'Demo VAC',
+    type: 'visa_center',
+  },
+  trip: {
+    entryDate: '2027-05-01',
+    exitDate: '2027-05-10',
+    firstEntryCountry: 'GR',
+    mainDestinationCountry: 'GR',
+    entryCity: 'Athens',
+    exitCity: 'Athens',
+    route: [],
+    transportReservations: [],
+    accommodationReservations: [],
+    insurance: {
+      provider: 'Demo Insure',
+      coverageStartDate: '2027-05-01',
+      coverageEndDate: '2027-05-10',
+      coverageAmount: 30000,
+      currency: 'EUR',
+      medicalCoverage: true,
+      repatriationCoverage: true,
+    },
+    estimatedBudget: 2000,
+    budgetCurrency: 'EUR',
+  },
+  financing: {
+    source: 'self',
+    currency: 'EUR',
+    selfFundedAmount: 2000,
+    accountBalance: 12000,
+  },
+  sponsorIds: [],
+  documentIds: [],
+  notes: [],
+}
+
+const demoDoc = (
+  code: string,
+  category: Document['category'],
+  status: Document['status']
+): Document => ({
+  id: `demo-${code}`,
+  code,
+  category,
+  ownerType: 'applicant',
+  ownerId: 'demo-applicant',
+  required: true,
+  status,
+  verified: status === 'ready',
+})
+
+const DEMO_DOCUMENTS: Document[] = [
+  demoDoc('APPLICATION_FORM', 'application_form', 'ready'),
+  demoDoc('PASSPORT_CURRENT', 'passport', 'ready'),
+  demoDoc('PHOTOS', 'identity', 'ready'),
+  demoDoc('ID_CARD_COPY', 'identity', 'ready'),
+  demoDoc('BANK_STATEMENTS', 'financial', 'needs_update'),
+  demoDoc('EMPLOYMENT_LETTER', 'employment', 'requested'),
+  demoDoc('PAYSLIPS', 'employment', 'received'),
+  demoDoc('TRAVEL_INSURANCE', 'insurance', 'not_started'),
+  demoDoc('TRANSPORT_RESERVATION', 'travel', 'not_started'),
+  demoDoc('ACCOMMODATION', 'accommodation', 'not_started'),
+]
+
+const DEMO_MODEL = buildDashboardModel({
+  applicant: DEMO_APPLICANT,
+  application: DEMO_APPLICATION,
+  documents: DEMO_DOCUMENTS,
+  sponsors: [],
+})
+
+function Dashboard() {
+  const { t } = useTranslation([
+    'playground',
+    'dashboard',
+    'common',
+    'validation',
+    'visa-domain',
+  ])
+  const td = dynamicT(t)
+  const format = useFormatters()
+  const app = DEMO_MODEL.active
+
+  return (
+    <Block
+      id="dashboard"
+      title={t('playground:sections.dashboard')}
+      description={t('playground:blurbs.dashboard')}
+    >
+      <Row label={t('playground:rows.readinessRing')} align="start">
+        <ReadinessRing
+          value={40}
+          size={132}
+          label={t('dashboard:hero.readinessLabel')}
+          valueLabel={format.percent(40)}
+          caption={td('dashboard:hero.verdict.documents_remaining', {
+            count: 5,
+          })}
+        />
+        <ReadinessRing
+          value={72}
+          size={132}
+          label={t('dashboard:hero.readinessLabel')}
+          valueLabel={format.percent(72)}
+          caption={td('dashboard:hero.verdict.preparing')}
+        />
+        <ReadinessRing
+          value={100}
+          size={132}
+          label={t('dashboard:hero.readinessLabel')}
+          valueLabel={format.percent(100)}
+          caption={td('dashboard:hero.verdict.ready_for_appointment')}
+        />
+      </Row>
+
+      <Separator />
+
+      <div className="flex flex-col gap-6">
+        <ReadinessHero
+          percent={app.readiness.percent}
+          state={app.readiness.state}
+          missingCount={app.readiness.missingCount}
+          appointment={app.appointment}
+          primaryAction={app.nextActions[0]}
+        />
+        <MetricsRow
+          documents={app.documents}
+          appointment={app.appointment}
+          trip={app.trip}
+          validation={app.validation}
+        />
+        <div className="grid gap-6 lg:grid-cols-2">
+          <NextActions actions={app.nextActions} />
+          <UpcomingTimeline items={app.upcomingTimeline} />
+        </div>
+        <div className="grid gap-6 lg:grid-cols-2">
+          <DocumentsSummary buckets={app.documents} />
+          <ValidationSummary validation={app.validation} />
+        </div>
+        <TripSummary
+          countryCode={app.countryCode}
+          trip={app.trip}
+          financing={app.financing}
+          sponsorCount={app.sponsorCount}
+        />
+      </div>
+
+      <Separator />
+
+      <Row label={t('playground:rows.dashboardSkeleton')} align="start">
+        <div className="w-full">
+          <DashboardSkeleton />
+        </div>
       </Row>
     </Block>
   )

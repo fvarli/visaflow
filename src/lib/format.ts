@@ -1,4 +1,4 @@
-import { parseISO } from 'date-fns'
+import { differenceInCalendarDays, parseISO } from 'date-fns'
 import { useLocale } from '@/app/providers/LocaleProvider'
 
 /**
@@ -94,6 +94,27 @@ export function formatNumber(
   return new Intl.NumberFormat(intlLocale, options).format(value)
 }
 
+/**
+ * A localized, calendar-day-relative countdown: "in 12 days" / "12 gün sonra",
+ * and — with numeric 'auto' — "today"/"bugün", "tomorrow"/"yarın",
+ * "yesterday"/"dün". Used for appointment/trip countdowns so the phrasing is
+ * decided by Intl rather than stitched together from separate keys.
+ *
+ * The reference point is the current calendar day; the stored value stays ISO.
+ */
+export function formatRelativeDays(
+  value: string | Date | null | undefined,
+  intlLocale: string
+): string {
+  const date = toDate(value)
+  if (!date) return ''
+  const days = differenceInCalendarDays(date, new Date())
+  return new Intl.RelativeTimeFormat(intlLocale, { numeric: 'auto' }).format(
+    days,
+    'day'
+  )
+}
+
 /** 0-100 in, "72%" out. */
 export function formatPercent(
   value: number | null | undefined,
@@ -130,5 +151,7 @@ export function useFormatters() {
     ) => formatNumber(value, intlLocale, options),
     percent: (value: number | null | undefined) =>
       formatPercent(value, intlLocale),
+    relativeDays: (value: string | Date | null | undefined) =>
+      formatRelativeDays(value, intlLocale),
   }
 }

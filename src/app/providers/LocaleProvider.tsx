@@ -25,7 +25,7 @@ interface LocaleContextValue {
 const LocaleContext = createContext<LocaleContextValue | undefined>(undefined)
 
 export function LocaleProvider({ children }: { children: React.ReactNode }) {
-  const { i18n: instance } = useTranslation()
+  const { i18n: instance } = useTranslation('common')
 
   const locale: Locale = isSupportedLocale(instance.resolvedLanguage)
     ? instance.resolvedLanguage

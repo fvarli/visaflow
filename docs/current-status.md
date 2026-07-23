@@ -40,9 +40,20 @@ Last updated: 2026-07-23
 ### Internationalization
 - [x] Turkish + English UI, Turkish default (i18next / react-i18next)
 - [x] Locale preference persisted (`visaflow-locale`), no browser detection
-- [x] Locale-aware date / number / currency formatting
+- [x] Locale-aware date / number / currency formatting (+ relative-day countdown)
 - [x] Validation findings carry stable keys + params; prose resolved in the UI
 - [x] Exported JSON is language-independent
+
+### Dashboard command center
+- [x] Widget-based dashboard over a pure presentation adapter
+      (`src/features/dashboard/dashboard-model.ts`)
+- [x] Understated circular readiness ring (organizational, no prediction)
+- [x] Derived next actions, upcoming timeline, documents / validation / trip
+      summaries
+- [x] Reusable widgets + `ReadinessRing` / `Timeline` primitives, all in
+      `/playground`
+- [x] Small CSS motion vocabulary (fade / slide / scale / shimmer),
+      reduced-motion respected
 
 ### Technical
 - [x] TypeScript strict mode
@@ -74,7 +85,8 @@ These warnings don't affect functionality.
 
 - Validation rules: covered
 - Schema validation: covered
-- Component tests: not yet implemented
+- Dashboard model (pure adapter): covered
+- Component/render tests: dashboard + app shell (bilingual)
 - E2E tests: not yet implemented
 
 ## Build Status
@@ -83,7 +95,7 @@ All checks pass:
 - `pnpm format:check` - PASS
 - `pnpm lint` - 0 errors (warnings acceptable, see below)
 - `pnpm typecheck` - PASS (`tsc -b`)
-- `pnpm test` - 84/84 PASS
+- `pnpm test` - 110/110 PASS
 - `pnpm build` - SUCCESS
 
 Note: an earlier version of this file claimed 23/23 tests and `tsc --noEmit`;

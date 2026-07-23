@@ -83,7 +83,7 @@ function buildInterpolation(
 
 /** Component-facing wrapper; keeps pages free of formatter plumbing. */
 export function useFindingText() {
-  const { t } = useTranslation()
+  const { t } = useTranslation('common')
   const formatters = useFormatters()
 
   const listFormatter = new Intl.ListFormat(formatters.intlLocale, {

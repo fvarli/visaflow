@@ -20,7 +20,7 @@ interface HeaderProps {
 export function Header({ onMenuClick, onSave, scrolled = false }: HeaderProps) {
   const { state, hasData } = useDossier()
   const { pathname } = useLocation()
-  const { t } = useTranslation()
+  const { t } = useTranslation('common')
   const current = getNavItemByPath(pathname)
 
   return (
@@ -102,7 +102,7 @@ export function Header({ onMenuClick, onSave, scrolled = false }: HeaderProps) {
 
 function formatRelativeTime(
   date: Date,
-  t: ReturnType<typeof useTranslation>['t']
+  t: ReturnType<typeof useTranslation<'common'>>['t']
 ): string {
   const now = new Date()
   const diffMs = now.getTime() - date.getTime()
