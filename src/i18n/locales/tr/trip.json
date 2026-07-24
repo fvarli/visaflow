@@ -1,26 +1,75 @@
 {
   "title": "Seyahat",
-  "description": "Vize randevunuz ve başvuruya konu seyahatiniz",
+  "description": "Vize randevunuz ve başvurduğunuz seyahat",
   "shortDescription": "Vize randevusu ve seyahat bilgileri",
+  "wizard": {
+    "title": "Seyahatinizi planlayın",
+    "description": "Güzergâhınızı adım adım oluşturun — tarihler, rota, konaklama, ulaşım ve sigorta. Her şey siz ilerledikçe kaydedilir ve cihazınızda kalır."
+  },
+  "steps": {
+    "dates": {
+      "title": "Seyahat tarihleri",
+      "description": "Giriş ve çıkış tarihleriniz ile konsolosluk randevunuz."
+    },
+    "route": {
+      "title": "Destinasyonlar ve rota",
+      "description": "Nereye gideceğiniz ve hangi sırayla seyahat edeceğiniz."
+    },
+    "accommodation": {
+      "title": "Konaklama",
+      "description": "Yol boyunca nerede kalacağınız."
+    },
+    "transportation": {
+      "title": "Ulaşım",
+      "description": "Gidiş ve dönüşü nasıl yapacağınız."
+    },
+    "insurance": {
+      "title": "Seyahat sigortası",
+      "description": "Seyahat boyunca sağlık teminatınız."
+    },
+    "review": {
+      "title": "Gözden geçir",
+      "description": "Devam etmeden önce tüm yolculuğa bir bakış."
+    }
+  },
+  "nav": {
+    "back": "Geri",
+    "continue": "Devam et",
+    "rail": "Seyahat adımları",
+    "stepProgress": "Adım {{current}} / {{total}}"
+  },
+  "hero": {
+    "destination": "Destinasyon",
+    "mainDestination": "Ana destinasyon",
+    "dates": "Tarihler",
+    "nights": "Süre",
+    "appointment": "Randevu",
+    "noTrip": "Henüz seyahat planlanmadı",
+    "toReview_one": "{{count}} gözden geçirilecek",
+    "toReview_other": "{{count}} gözden geçirilecek"
+  },
+  "nights_one": "{{count}} gece",
+  "nights_other": "{{count}} gece",
   "appointment": {
     "title": "Vize randevusu",
     "description": "Planlanmış vize başvuru randevunuz",
     "date": "Tarih",
     "time": "Saat",
-    "location": "Yer",
-    "locationPlaceholder": "örn. VFS Global İstanbul"
+    "location": "Konum",
+    "locationPlaceholder": "örn. VFS Global İstanbul",
+    "note": "Hazırlık takibi için kullanılır — belge son tarihlerinizi geriye sayar. Seyahat tarihlerinizden ayrıdır."
   },
   "dates": {
     "title": "Seyahat tarihleri",
-    "description": "Schengen bölgesine giriş ve çıkış planınız",
+    "description": "Schengen alanına ne zaman giriş ve çıkış yapmayı planladığınız",
     "entryDate": "Giriş tarihi",
     "exitDate": "Çıkış tarihi"
   },
   "destinations": {
-    "title": "Varış yerleri",
+    "title": "Destinasyonlar",
     "description": "Ziyaret edeceğiniz ülkeler ve şehirler",
     "firstEntryCountry": "İlk giriş ülkesi",
-    "mainDestination": "Ana varış ülkesi",
+    "mainDestination": "Ana destinasyon",
     "entryCity": "Giriş şehri",
     "exitCity": "Çıkış şehri",
     "cityPlaceholder": "örn. Atina",
@@ -30,10 +79,139 @@
     "title": "Seyahat amacı",
     "placeholder": "Seyahatinizin amacını açıklayın..."
   },
+  "route": {
+    "title": "Güzergâh",
+    "add": "Destinasyon ekle",
+    "addTitle": "Destinasyon ekle",
+    "editTitle": "Destinasyonu düzenle",
+    "moveUp": "Önce taşı",
+    "moveDown": "Sonra taşı",
+    "main": "Ana destinasyon",
+    "totalNights": "Rotanız boyunca {{nights}}",
+    "stayBooked": "Konaklama var",
+    "noStay": "Konaklama yok",
+    "empty": {
+      "title": "Henüz destinasyon yok",
+      "description": "Ziyaret edeceğiniz şehirleri sırayla ekleyin. Her biri yolculuğunuzda bir durak olur."
+    },
+    "fields": {
+      "city": "Şehir",
+      "country": "Ülke",
+      "arrival": "Varış",
+      "departure": "Ayrılış",
+      "purpose": "Kalış amacı"
+    }
+  },
+  "accommodation": {
+    "add": "Konaklama ekle",
+    "addTitle": "Konaklama ekle",
+    "editTitle": "Konaklamayı düzenle",
+    "empty": {
+      "title": "Henüz konaklama yok",
+      "description": "Gecelerinizi kapsamak için ilk otel veya konaklama rezervasyonunuzu ekleyin."
+    },
+    "nights": "Giriş → çıkış",
+    "fields": {
+      "name": "Ad",
+      "type": "Tür",
+      "city": "Şehir",
+      "checkIn": "Giriş",
+      "checkOut": "Çıkış",
+      "reservationNumber": "Rezervasyon numarası",
+      "guestName": "Misafir adı",
+      "status": "Durum"
+    }
+  },
+  "transportation": {
+    "add": "Ulaşım ekle",
+    "addTitle": "Ulaşım ekle",
+    "editTitle": "Ulaşımı düzenle",
+    "empty": {
+      "title": "Ulaşım eklenmedi",
+      "description": "Varış ulaşımınızı ekleyin — uçak, feribot, tren veya otobüs."
+    },
+    "fields": {
+      "type": "Tür",
+      "carrier": "Taşıyıcı",
+      "reservationNumber": "Rezervasyon numarası",
+      "departureCity": "Nereden",
+      "departureDate": "Kalkış tarihi",
+      "departureTime": "Kalkış saati",
+      "arrivalCity": "Nereye",
+      "arrivalDate": "Varış tarihi",
+      "arrivalTime": "Varış saati",
+      "passengerName": "Yolcu adı",
+      "status": "Durum"
+    }
+  },
+  "insurance": {
+    "add": "Sigorta ekle",
+    "addTitle": "Seyahat sigortası ekle",
+    "editTitle": "Seyahat sigortasını düzenle",
+    "empty": {
+      "title": "Henüz sigorta yok",
+      "description": "Hazır olduğunuzda seyahat sigortası ekleyin. Schengen seyahatlerinde genellikle tüm kalış için sağlık teminatı beklenir."
+    },
+    "coverageCaption": "teminat",
+    "spansTrip": {
+      "full": "Tüm seyahati kapsıyor",
+      "gap": "Tüm seyahati kapsamıyor"
+    },
+    "fields": {
+      "provider": "Sağlayıcı",
+      "policyNumber": "Poliçe numarası",
+      "coverageStart": "Teminat başlangıcı",
+      "coverageEnd": "Teminat bitişi",
+      "amount": "Teminat tutarı",
+      "currency": "Para birimi",
+      "medical": "Tıbbi teminat içerir",
+      "repatriation": "Ülkeye iade teminatı içerir",
+      "insured": "Sigortalı adı"
+    }
+  },
+  "review": {
+    "intro": "İşte tüm seyahatiniz. Değişiklik yapmak için herhangi bir bölümde Düzenle'yi kullanın — buradan hiçbir şey gönderilmez.",
+    "edit": "Düzenle",
+    "none": "Eklenmedi",
+    "notProvided": "Belirtilmedi",
+    "headings": {
+      "dates": "Seyahat tarihleri ve randevu",
+      "route": "Destinasyonlar ve rota",
+      "accommodation": "Konaklama",
+      "transportation": "Ulaşım",
+      "insurance": "Sigorta"
+    },
+    "insights": {
+      "title": "Seyahat tutarlılığı",
+      "description": "Eksikleri fark etmenize yardımcı olacak düzenleyici kontroller — başvurunuz hakkında bir karar değildir.",
+      "allClear": "Seyahatle ilgili sorun bulunamadı. Her şey tutarlı görünüyor."
+    }
+  },
+  "why": {
+    "title": "Bunu neden soruyoruz?",
+    "trigger": "Bunu neden soruyoruz? — {{field}}",
+    "disclaimer": "Bu, hazırlanmanıza yardımcı olacak genel bilgidir; hukuki tavsiye değildir.",
+    "mainDestination": "Ana destinasyon genellikle en çok gece geçirdiğiniz yerdir ve çoğu zaman hangi ülkenin konsolosluğuna başvuracağınızı belirler.",
+    "insurance": "Seyahat sağlık sigortasının tüm kalışınızı kapsaması yaygın olarak beklenir. Teminat aralığını kaydetmek, tarihlerinize göre boşlukları işaretlememizi sağlar."
+  },
+  "collection": {
+    "edit": "Düzenle",
+    "remove": "Kaldır",
+    "save": "Kaydet",
+    "cancel": "İptal"
+  },
   "errors": {
     "entryDateRequired": "Giriş tarihi zorunludur",
     "exitDateRequired": "Çıkış tarihi zorunludur",
     "firstEntryCountryRequired": "İlk giriş ülkesi zorunludur",
-    "mainDestinationRequired": "Ana varış ülkesi zorunludur"
+    "mainDestinationRequired": "Ana destinasyon zorunludur",
+    "cityRequired": "Şehir zorunludur",
+    "countryRequired": "Ülke zorunludur",
+    "arrivalRequired": "Varış tarihi zorunludur",
+    "departureRequired": "Ayrılış tarihi zorunludur",
+    "nameRequired": "Ad zorunludur",
+    "providerRequired": "Sağlayıcı zorunludur",
+    "coverageStartRequired": "Teminat başlangıcı zorunludur",
+    "coverageEndRequired": "Teminat bitişi zorunludur"
   }
 }

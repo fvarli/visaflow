@@ -2,13 +2,62 @@
   "title": "Trip",
   "description": "Your visa appointment and the trip you are applying for",
   "shortDescription": "Visa appointment and travel information",
+  "wizard": {
+    "title": "Plan your trip",
+    "description": "Build your itinerary step by step — dates, route, stays, transport and insurance. Everything saves as you go and stays on your device."
+  },
+  "steps": {
+    "dates": {
+      "title": "Travel dates",
+      "description": "When you enter and leave, plus your consulate appointment."
+    },
+    "route": {
+      "title": "Destinations & route",
+      "description": "Where you're going and the order you'll travel."
+    },
+    "accommodation": {
+      "title": "Accommodation",
+      "description": "Where you'll stay along the way."
+    },
+    "transportation": {
+      "title": "Transportation",
+      "description": "How you'll get there and back."
+    },
+    "insurance": {
+      "title": "Travel insurance",
+      "description": "Your travel health coverage for the trip."
+    },
+    "review": {
+      "title": "Review",
+      "description": "A look over the whole journey before you move on."
+    }
+  },
+  "nav": {
+    "back": "Back",
+    "continue": "Continue",
+    "rail": "Trip steps",
+    "stepProgress": "Step {{current}} of {{total}}"
+  },
+  "hero": {
+    "destination": "Destination",
+    "mainDestination": "Main destination",
+    "dates": "Dates",
+    "nights": "Duration",
+    "appointment": "Appointment",
+    "noTrip": "No trip planned yet",
+    "toReview_one": "{{count}} to review",
+    "toReview_other": "{{count}} to review"
+  },
+  "nights_one": "{{count}} night",
+  "nights_other": "{{count}} nights",
   "appointment": {
     "title": "Visa appointment",
     "description": "Your scheduled visa application appointment",
     "date": "Date",
     "time": "Time",
     "location": "Location",
-    "locationPlaceholder": "e.g. VFS Global Istanbul"
+    "locationPlaceholder": "e.g. VFS Global Istanbul",
+    "note": "Used for preparation tracking — it counts down your document deadlines. It's separate from your travel dates."
   },
   "dates": {
     "title": "Travel dates",
@@ -30,10 +79,139 @@
     "title": "Trip purpose",
     "placeholder": "Describe the purpose of your trip..."
   },
+  "route": {
+    "title": "Itinerary",
+    "add": "Add destination",
+    "addTitle": "Add a destination",
+    "editTitle": "Edit destination",
+    "moveUp": "Move earlier",
+    "moveDown": "Move later",
+    "main": "Main destination",
+    "totalNights": "{{nights}} across your route",
+    "stayBooked": "Stay booked",
+    "noStay": "No stay yet",
+    "empty": {
+      "title": "No destinations yet",
+      "description": "Add the cities you'll visit, in order. Each becomes a stop on your journey."
+    },
+    "fields": {
+      "city": "City",
+      "country": "Country",
+      "arrival": "Arrival",
+      "departure": "Departure",
+      "purpose": "Purpose of stay"
+    }
+  },
+  "accommodation": {
+    "add": "Add accommodation",
+    "addTitle": "Add accommodation",
+    "editTitle": "Edit accommodation",
+    "empty": {
+      "title": "No accommodations yet",
+      "description": "Add your first hotel or stay reservation to cover your nights."
+    },
+    "nights": "Check-in → check-out",
+    "fields": {
+      "name": "Name",
+      "type": "Type",
+      "city": "City",
+      "checkIn": "Check-in",
+      "checkOut": "Check-out",
+      "reservationNumber": "Reservation number",
+      "guestName": "Guest name",
+      "status": "Status"
+    }
+  },
+  "transportation": {
+    "add": "Add transport",
+    "addTitle": "Add transportation",
+    "editTitle": "Edit transportation",
+    "empty": {
+      "title": "No transport added",
+      "description": "Add your arrival transportation — a flight, ferry, train or bus."
+    },
+    "fields": {
+      "type": "Type",
+      "carrier": "Carrier",
+      "reservationNumber": "Reservation number",
+      "departureCity": "From",
+      "departureDate": "Departure date",
+      "departureTime": "Departure time",
+      "arrivalCity": "To",
+      "arrivalDate": "Arrival date",
+      "arrivalTime": "Arrival time",
+      "passengerName": "Passenger name",
+      "status": "Status"
+    }
+  },
+  "insurance": {
+    "add": "Add insurance",
+    "addTitle": "Add travel insurance",
+    "editTitle": "Edit travel insurance",
+    "empty": {
+      "title": "No insurance yet",
+      "description": "Add travel insurance when ready. Schengen trips usually expect medical coverage for the whole stay."
+    },
+    "coverageCaption": "coverage",
+    "spansTrip": {
+      "full": "Covers the full trip",
+      "gap": "Does not cover the full trip"
+    },
+    "fields": {
+      "provider": "Provider",
+      "policyNumber": "Policy number",
+      "coverageStart": "Coverage start",
+      "coverageEnd": "Coverage end",
+      "amount": "Coverage amount",
+      "currency": "Currency",
+      "medical": "Includes medical coverage",
+      "repatriation": "Includes repatriation coverage",
+      "insured": "Insured name"
+    }
+  },
+  "review": {
+    "intro": "Here's your whole trip. Use Edit on any section to make a change — nothing is submitted from here.",
+    "edit": "Edit",
+    "none": "None added",
+    "notProvided": "Not provided",
+    "headings": {
+      "dates": "Travel dates & appointment",
+      "route": "Destinations & route",
+      "accommodation": "Accommodation",
+      "transportation": "Transportation",
+      "insurance": "Insurance"
+    },
+    "insights": {
+      "title": "Trip consistency",
+      "description": "Organizational checks to help you spot gaps — not a decision on your application.",
+      "allClear": "No trip issues found. Everything looks consistent."
+    }
+  },
+  "why": {
+    "title": "Why do we ask this?",
+    "trigger": "Why do we ask this? — {{field}}",
+    "disclaimer": "This is general information to help you prepare, not legal advice.",
+    "mainDestination": "The main destination is usually where you spend the most nights, and it often determines which country's consulate you apply to.",
+    "insurance": "Travel health insurance is commonly expected to cover your whole stay. Recording the coverage window lets us flag gaps against your dates."
+  },
+  "collection": {
+    "edit": "Edit",
+    "remove": "Remove",
+    "save": "Save",
+    "cancel": "Cancel"
+  },
   "errors": {
     "entryDateRequired": "Entry date is required",
     "exitDateRequired": "Exit date is required",
     "firstEntryCountryRequired": "First entry country is required",
-    "mainDestinationRequired": "Main destination is required"
+    "mainDestinationRequired": "Main destination is required",
+    "cityRequired": "City is required",
+    "countryRequired": "Country is required",
+    "arrivalRequired": "Arrival date is required",
+    "departureRequired": "Departure date is required",
+    "nameRequired": "Name is required",
+    "providerRequired": "Provider is required",
+    "coverageStartRequired": "Coverage start is required",
+    "coverageEndRequired": "Coverage end is required"
   }
 }

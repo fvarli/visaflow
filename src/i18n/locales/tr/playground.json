@@ -13,6 +13,7 @@
     "overlays": "Katmanlar",
     "i18n": "Dil ve yerelleştirme",
     "onboarding": "Rehberli akış",
+    "travel": "Seyahat",
     "composition": "Kompozisyon",
     "dashboard": "Genel bakış"
   },
@@ -61,7 +62,11 @@
     "dashboardSkeleton": "Genel bakış iskeleti",
     "stepper": "Adım göstergesi",
     "fieldHelp": "Alan yardımı",
-    "collectionEditor": "Koleksiyon düzenleyici"
+    "collectionEditor": "Koleksiyon düzenleyici",
+    "tripHero": "TripHero",
+    "journeyTimeline": "JourneyTimeline",
+    "travelSegment": "TravelSegmentCard",
+    "coverageCard": "CoverageCard"
   },
   "i18n": {
     "description": "Yerele duyarlı biçimlendirme ve çevrilmiş alan terimleri. Yukarıdan dili değiştirerek her şeyin anında güncellendiğini görebilirsiniz.",
@@ -113,6 +118,7 @@
     "overlays": "İletişim kutusu, ipucu ve akordiyon. Odak hapsi ve Esc davranışını burada kontrol edin.",
     "composition": "Sayfa düzeyindeki parçaların bir araya gelişi. Her sayfanın devralması gereken ritim budur.",
     "dashboard": "Türetilmiş genel bakış modelini kurgusal bir örnek dosya üzerinden kullanan, bir araya getirilmiş komuta merkezi bileşenleri.",
-    "onboarding": "Rehberli akışın yapı taşları: adım göstergesi, \"Bunu neden soruyoruz?\" balonu ve genel koleksiyon düzenleyici."
+    "onboarding": "Rehberli akışın yapı taşları: adım göstergesi, \"Bunu neden soruyoruz?\" balonu ve genel koleksiyon düzenleyici.",
+    "travel": "Seyahat planlayıcı yapı taşları: genel bakış kartı, destinasyon kartlarıyla bağlı yolculuk zaman çizelgesi, ulaşım bölümleri ve sigorta teminat kartı."
   }
 }

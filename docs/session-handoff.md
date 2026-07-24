@@ -318,3 +318,81 @@ FieldHelp popover, inline required-field error, collection add) ·
 - No validation rules cover `previousVisas`/`travelHistory` yet (they're optional records).
 - Collection records use array-index list keys (schema has no `id`); editing is via dialog so this is
   safe, but adding an `id` would be needed for reorder/drag.
+
+---
+
+## Iteration 7 handoff (2026-07-24) — Trip planner experience
+
+Redesigned **only the Trip experience** from a flat 3-Card form into a guided travel planner: a pinned
+overview hero + a six-step flow (Travel dates → Destinations & route → Accommodation → Transportation →
+Insurance → Review). No other page, the dossier schema, the provider actions, or the JSON format were
+changed — existing exports stay byte-compatible.
+
+### Key finding (same as the applicant/dashboard pattern)
+`trip.schema.ts` already modelled everything: `route[]`, `transportReservations[]`,
+`accommodationReservations[]`, `insurance`, dates, `mainDestinationCountry`, budget (arrays default
+`[]`). `TripPage` only edited ~7 flat fields + appointment. So this was a **UI + i18n sprint** — no
+schema/provider change. Sub-lists commit via the existing `updateTrip(Partial<Trip>)` whole-array
+replacement, index-keyed (as the applicant collections did).
+
+### New reusable trip components (all shown in `/playground` → "Travel")
+- `src/components/trip/TripHero.tsx` — compact overview band (destination, dates, total nights, main
+  destination, appointment proximity, unresolved-findings pill). Prop-driven facts; no KPI tiles, no
+  approval language. Pinned `lg:sticky`, compact/non-sticky on mobile.
+- `JourneyTimeline.tsx` (`JourneyTimeline` + `JourneyStop`) — connected vertical rail (`<ol>`, dot +
+  connector, `highlight` for main destination). Travel-flavoured sibling of the dashboard `Timeline`.
+- `DestinationCard.tsx` — itinerary-entry card: city/country, dates, a nights bar scaled to the longest
+  stay, accommodation-status hint, "Main destination" badge, an `actions` slot.
+- `TravelSegmentCard.tsx` — transport leg (type icon, carrier, from → to, times, status).
+- `CoverageCard.tsx` — insurance safeguard; "covers the full trip / gap" indicator **derived from
+  validation findings** (organizational, not legal).
+- `RouteBuilder.tsx` — the signature piece: `JourneyTimeline` of `DestinationCard`s + add/edit dialog +
+  Up/Down reorder isolated behind a pure `reorder(list, from, to)` so drag-and-drop can be layered on
+  later. Nights auto-computed from arrival/departure. Commits the whole `route` array.
+- `transport-meta.ts` — `TRANSPORT_ICON` map (kept out of the step file so it stays fast-refresh clean).
+
+### Feature / step / shell files
+- `src/features/trip/trip-model.ts` — **pure** `buildTripModel(state, now)`: overview + countdown, route
+  stop views (nights ratio + `isMain`), and `insights` sourced from `runValidation` filtered to
+  trip/insurance/accommodation/`passport.validAfterTrip` findings (coverage indicators derived from
+  findings, never recomputed). `useTripModel()` hook. Unit-tested.
+- `src/features/trip/trip-wizard.ts` — pure `TRIP_STEP_IDS` + `deriveStepStatuses(application, current)`.
+- `src/components/trip/{TripDatesStep,RouteStep,AccommodationStep,TransportationStep,InsuranceStep,TripReviewStep}.tsx`
+  — RHF steps (Dates, Route scalars) `mode:'onBlur'` + `watch → updateTrip`/`updateAppointment`
+  **autosave, no Save button**. Accommodation/Transportation reuse the generic `CollectionEditor<T>`;
+  Insurance is a single-object editor; Review reuses the cards read-only with per-section Edit +
+  the consistency insights via `useFindingText`.
+- `src/pages/TripPage.tsx` — rewritten as the thin shell (hero + stepper + step + Back/Continue, focus
+  to the step `h2`, `key` remount per step). Appointment stays as a separate "Consulate appointment"
+  card in the Dates step (preparation-tracking framing), summarized in the hero.
+
+### i18n (additive, tr/en parity)
+- Extended `trip.json` (both locales): `wizard`, `steps.*`, `nav.*`, `hero.*` (+ `toReview` plural),
+  `nights` plural, `appointment.note`, `route.*`, `accommodation.*`, `transportation.*`, `insurance.*`
+  (+ `spansTrip.{full,gap}`), `review.*` (+ insights), `why.*`, `collection.*`, extra `errors.*`.
+  (Existing `dates.*`/`destinations.*`/`errors.*` kept — the Playground Forms demo still uses them.)
+- Added `transportType.*`, `accommodationType.*`, `transportStatus.*`, `accommodationStatus.*` to
+  `visa-domain.json`; `playground.json` "Travel" keys. Values stay ISO/raw → exported JSON unchanged.
+
+### Gates (this iteration)
+`format:check` ✓ · `lint` 0 errors / 51 warnings (baseline 49; +2 accepted RHF `watch`
+`incompatible-library`) · `typecheck` ✓ · `test` **138/138** (124 + 14 new) · `build` ✓ (TripPage is a
+lazy ~8.3 kB gzip chunk; main index ~109.5 kB gzip ≈ baseline). Not committed, not pushed.
+
+### Tests added
+`src/tests/features/trip-wizard.test.ts` (pure `deriveStepStatuses` + `buildTripModel` totals/ratios/
+insights) · `src/tests/ui/trip-planner.test.tsx` (both locales: single `h1`, step heading, progress,
+Continue nav, itinerary + reorder controls, empty state, no Save button) · `src/tests/ui/route-builder.test.tsx`
+(empty→add with computed nights, move-down reorder, remove).
+
+### Known limitations / next
+- Visual verification was via bilingual render tests, not a browser (no connected Chrome). Re-verify at
+  1440/834/390 × light/dark × tr/en; check hero sticky-desktop/compact-mobile, journey continuity, and
+  the nights bars.
+- One flaky test run was observed on a **cold** vitest cache (heavy first-run transform pushing a render
+  past the default timeout); 6 subsequent full runs were green. Not a logic regression, but if it
+  recurs in CI consider raising the test timeout for the heavy playground/page render tests.
+- Route reorder is Up/Down; drag-and-drop can reuse the isolated `reorder()` helper (needs an `id` on
+  `RouteStopSchema` for stable DnD keys — a future, backward-compatible schema addition).
+- Trip-consistency insights read the whole validation set filtered by ruleId; a future `runSpecificRules`
+  call could avoid running unrelated rules if it ever matters for performance.

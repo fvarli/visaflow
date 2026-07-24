@@ -72,6 +72,11 @@ import { Field } from '@/components/ui/field'
 import { FieldHelp } from '@/components/ui/field-help'
 import { Stepper, type StepperStep } from '@/components/ui/stepper'
 import { CollectionEditor } from '@/components/ui/collection-editor'
+import { TripHero } from '@/components/trip/TripHero'
+import { JourneyTimeline, JourneyStop } from '@/components/trip/JourneyTimeline'
+import { DestinationCard } from '@/components/trip/DestinationCard'
+import { TravelSegmentCard } from '@/components/trip/TravelSegmentCard'
+import { CoverageCard } from '@/components/trip/CoverageCard'
 import { StatCard } from '@/components/ui/stat-card'
 import { EmptyState } from '@/components/ui/empty-state'
 import { DataList, DataListItem } from '@/components/ui/data-list'
@@ -146,6 +151,7 @@ export default function PlaygroundPage() {
       <Badges />
       <Forms />
       <Onboarding />
+      <Travel />
       <Feedback />
       <DataDisplay />
       <Overlays />
@@ -167,6 +173,7 @@ const SECTIONS = [
   'badges',
   'forms',
   'onboarding',
+  'travel',
   'feedback',
   'data',
   'overlays',
@@ -984,6 +991,98 @@ function Onboarding() {
                 />
               </Field>
             )}
+          />
+        </div>
+      </Row>
+    </Block>
+  )
+}
+
+/* -------------------------------------------------------------------------
+ * Travel
+ * ---------------------------------------------------------------------- */
+
+function Travel() {
+  const { t } = useTranslation(['playground'])
+  return (
+    <Block
+      id="travel"
+      title={t('playground:sections.travel')}
+      description={t('playground:blurbs.travel')}
+    >
+      <Row label={t('playground:rows.tripHero')} align="start">
+        <TripHero
+          className="w-full"
+          facts={[
+            { label: 'Destination', value: 'Greece' },
+            { label: 'Main destination', value: 'Greece' },
+            { label: 'Dates', value: '1 Apr – 10 Apr' },
+            { label: 'Duration', value: '9 nights' },
+            { label: 'Appointment', value: 'in 12 days' },
+          ]}
+          findingsLabel="2 to review"
+          findingsTone="warning"
+        />
+      </Row>
+
+      <Row label={t('playground:rows.journeyTimeline')} align="start">
+        <div className="w-full max-w-md">
+          <JourneyTimeline>
+            <JourneyStop highlight>
+              <DestinationCard
+                city="Athens"
+                countryLabel="Greece"
+                dateRangeLabel="1 Apr – 5 Apr"
+                nightsLabel="4 nights"
+                ratio={0.8}
+                isMain
+                mainLabel="Main destination"
+                accommodationLabel="Stay booked"
+                accommodationTone="success"
+              />
+            </JourneyStop>
+            <JourneyStop isLast>
+              <DestinationCard
+                city="Santorini"
+                countryLabel="Greece"
+                dateRangeLabel="5 Apr – 10 Apr"
+                nightsLabel="5 nights"
+                ratio={1}
+                accommodationLabel="No stay yet"
+                accommodationTone="neutral"
+              />
+            </JourneyStop>
+          </JourneyTimeline>
+        </div>
+      </Row>
+
+      <Row label={t('playground:rows.travelSegment')} align="start">
+        <div className="w-full max-w-md">
+          <TravelSegmentCard
+            typeLabel="Flight"
+            carrier="Aegean Airlines"
+            fromLabel="Istanbul (TR)"
+            toLabel="Athens (GR)"
+            departLabel="1 Apr · 09:00"
+            arriveLabel="1 Apr · 10:30"
+            statusLabel="Confirmed"
+            statusTone="success"
+          />
+        </div>
+      </Row>
+
+      <Row label={t('playground:rows.coverageCard')} align="start">
+        <div className="w-full max-w-md">
+          <CoverageCard
+            provider="Allianz Travel"
+            periodLabel="1 Apr – 10 Apr"
+            amountLabel="€50,000"
+            amountCaption="coverage"
+            spansTrip
+            spansFullLabel="Covers the full trip"
+            spansGapLabel="Does not cover the full trip"
+            statusLabel="Active"
+            statusTone="success"
           />
         </div>
       </Row>

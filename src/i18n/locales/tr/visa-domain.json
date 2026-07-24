@@ -96,6 +96,32 @@
     "pocket_money": "Harçlık",
     "all": "Tüm masraflar"
   },
+  "transportType": {
+    "flight": "Uçak",
+    "train": "Tren",
+    "bus": "Otobüs",
+    "car": "Araba",
+    "ferry": "Feribot",
+    "other": "Diğer"
+  },
+  "accommodationType": {
+    "hotel": "Otel",
+    "airbnb": "Airbnb",
+    "hostel": "Hostel",
+    "apartment": "Daire",
+    "friend_family": "Arkadaş veya aile",
+    "other": "Diğer"
+  },
+  "transportStatus": {
+    "pending": "Beklemede",
+    "confirmed": "Onaylandı",
+    "ticketed": "Biletlendi"
+  },
+  "accommodationStatus": {
+    "pending": "Beklemede",
+    "confirmed": "Onaylandı",
+    "paid": "Ödendi"
+  },
   "requirements": {
     "APPLICATION_FORM": {
       "name": "Vize Başvuru Formu",

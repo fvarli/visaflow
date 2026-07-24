@@ -96,6 +96,32 @@
     "pocket_money": "Pocket money",
     "all": "All expenses"
   },
+  "transportType": {
+    "flight": "Flight",
+    "train": "Train",
+    "bus": "Bus",
+    "car": "Car",
+    "ferry": "Ferry",
+    "other": "Other"
+  },
+  "accommodationType": {
+    "hotel": "Hotel",
+    "airbnb": "Airbnb",
+    "hostel": "Hostel",
+    "apartment": "Apartment",
+    "friend_family": "Friend or family",
+    "other": "Other"
+  },
+  "transportStatus": {
+    "pending": "Pending",
+    "confirmed": "Confirmed",
+    "ticketed": "Ticketed"
+  },
+  "accommodationStatus": {
+    "pending": "Pending",
+    "confirmed": "Confirmed",
+    "paid": "Paid"
+  },
   "requirements": {
     "APPLICATION_FORM": {
       "name": "Visa Application Form",
