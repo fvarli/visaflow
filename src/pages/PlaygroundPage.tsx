@@ -9,6 +9,7 @@ import {
   Plane,
   Plus,
   ShieldCheck,
+  Stamp,
   Trash2,
 } from 'lucide-react'
 
@@ -68,6 +69,9 @@ import {
 import { PageHeader } from '@/components/ui/page-header'
 import { PageBody, Section, SectionHeader } from '@/components/ui/section'
 import { Field } from '@/components/ui/field'
+import { FieldHelp } from '@/components/ui/field-help'
+import { Stepper, type StepperStep } from '@/components/ui/stepper'
+import { CollectionEditor } from '@/components/ui/collection-editor'
 import { StatCard } from '@/components/ui/stat-card'
 import { EmptyState } from '@/components/ui/empty-state'
 import { DataList, DataListItem } from '@/components/ui/data-list'
@@ -141,6 +145,7 @@ export default function PlaygroundPage() {
       <Buttons />
       <Badges />
       <Forms />
+      <Onboarding />
       <Feedback />
       <DataDisplay />
       <Overlays />
@@ -161,6 +166,7 @@ const SECTIONS = [
   'buttons',
   'badges',
   'forms',
+  'onboarding',
   'feedback',
   'data',
   'overlays',
@@ -875,6 +881,111 @@ function Forms() {
             </SelectContent>
           </Select>
         </Toolbar>
+      </Row>
+    </Block>
+  )
+}
+
+/* -------------------------------------------------------------------------
+ * Onboarding
+ * ---------------------------------------------------------------------- */
+
+type DemoRecord = { label: string; note?: string }
+
+function Onboarding() {
+  const { t } = useTranslation(['playground', 'applicant', 'common'])
+  const [step, setStep] = useState(1)
+  const [records, setRecords] = useState<DemoRecord[]>([])
+
+  const titles = [
+    t('applicant:steps.personal.title'),
+    t('applicant:steps.passport.title'),
+    t('applicant:steps.previousVisas.title'),
+    t('applicant:steps.review.title'),
+  ]
+  const steps: StepperStep[] = titles.map((title, i) => ({
+    id: String(i),
+    title,
+    status: i < step ? 'complete' : i === step ? 'current' : 'upcoming',
+  }))
+
+  return (
+    <Block
+      id="onboarding"
+      title={t('playground:sections.onboarding')}
+      description={t('playground:blurbs.onboarding')}
+    >
+      <Row label={t('playground:rows.stepper')} align="start">
+        <div className="w-full max-w-xs">
+          <Stepper
+            steps={steps}
+            current={step}
+            onSelect={setStep}
+            ariaLabel={t('applicant:nav.rail')}
+            progressLabel={t('applicant:nav.stepProgress', {
+              current: step + 1,
+              total: titles.length,
+            })}
+          />
+        </div>
+      </Row>
+
+      <Row label={t('playground:rows.fieldHelp')} align="start">
+        <div className="w-full max-w-sm">
+          <Field
+            label={t('applicant:fields.dateOfBirth')}
+            help={
+              <FieldHelp
+                label={t('applicant:why.trigger', {
+                  field: t('applicant:fields.dateOfBirth'),
+                })}
+                title={t('applicant:why.title')}
+              >
+                <p>{t('applicant:why.dateOfBirth')}</p>
+              </FieldHelp>
+            }
+          >
+            <Input type="date" />
+          </Field>
+        </div>
+      </Row>
+
+      <Row label={t('playground:rows.collectionEditor')} align="start">
+        <div className="w-full max-w-md">
+          <CollectionEditor<DemoRecord>
+            items={records}
+            onChange={setRecords}
+            createEmpty={() => ({ label: '' })}
+            validate={(d) => d.label.trim().length > 0}
+            emptyIcon={Stamp}
+            emptyTitle={t('applicant:previousVisas.empty.title')}
+            emptyDescription={t('applicant:previousVisas.empty.description')}
+            labels={{
+              add: t('applicant:previousVisas.add'),
+              addTitle: t('applicant:previousVisas.addTitle'),
+              editTitle: t('applicant:previousVisas.editTitle'),
+              save: t('applicant:collection.save'),
+              cancel: t('applicant:collection.cancel'),
+              edit: t('applicant:collection.edit'),
+              remove: t('applicant:collection.remove'),
+            }}
+            renderSummary={(item) => (
+              <p className="text-body text-foreground font-medium">
+                {item.label}
+              </p>
+            )}
+            renderForm={({ draft, setDraft }) => (
+              <Field label={t('applicant:fields.visaType')}>
+                <Input
+                  value={draft.label}
+                  onChange={(e) =>
+                    setDraft({ ...draft, label: e.target.value })
+                  }
+                />
+              </Field>
+            )}
+          />
+        </div>
       </Row>
     </Block>
   )

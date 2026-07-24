@@ -2,6 +2,10 @@
   "title": "Applicant",
   "description": "Personal details of the visa applicant, exactly as they appear on the passport",
   "shortDescription": "Personal details of the visa applicant",
+  "wizard": {
+    "title": "Applicant profile",
+    "description": "We'll walk through your details step by step, the way a consultant would. Everything saves as you go and stays on your device."
+  },
   "personal": {
     "title": "Personal details",
     "description": "Enter your personal information as it appears on your passport"
@@ -10,11 +14,52 @@
     "title": "Current passport",
     "description": "Details of your current valid passport"
   },
+  "steps": {
+    "personal": {
+      "title": "Personal information",
+      "description": "Tell us who you are, exactly as it appears on your passport."
+    },
+    "passport": {
+      "title": "Passport",
+      "description": "The passport you'll travel and apply with."
+    },
+    "previousVisas": {
+      "title": "Previous visas",
+      "description": "Any visas you've held before. This is optional, but it helps keep your history consistent."
+    },
+    "travelHistory": {
+      "title": "Travel history",
+      "description": "Trips you've taken recently. Optional, and easy to add one at a time."
+    },
+    "review": {
+      "title": "Review",
+      "description": "A quick look over everything before you move on."
+    }
+  },
+  "nav": {
+    "back": "Back",
+    "continue": "Continue",
+    "rail": "Application steps",
+    "stepProgress": "Step {{current}} of {{total}}"
+  },
+  "why": {
+    "trigger": "Why do we ask this? — {{field}}",
+    "title": "Why do we ask this?",
+    "disclaimer": "This is general information to help you prepare, not legal advice.",
+    "dateOfBirth": "Your date of birth ties your application to your passport and identity documents, and some requirements or fee categories can differ by age.",
+    "nationality": "Nationality can shape which documents a consulate asks for and how your application is handled. It's part of your core identity details.",
+    "countryOfResidence": "Where you currently live often decides which consulate or visa centre handles your application — which can differ from your nationality.",
+    "passportExpiry": "Consulates generally prefer a passport that stays valid for a while beyond your travel dates, so it's worth checking the expiry date early.",
+    "passportType": "Ordinary passports cover most travel. Diplomatic, service and other types can follow different rules, so it helps to record which one you hold.",
+    "previousVisas": "A record of past visas helps you answer application questions consistently and keep your own travel-document history in one place.",
+    "travelHistory": "A short history of previous trips helps you answer travel-history questions accurately and keep your records together."
+  },
   "fields": {
     "firstName": "First name",
     "lastName": "Last name",
     "dateOfBirth": "Date of birth",
     "nationality": "Nationality",
+    "countryOfResidence": "Country of residence",
     "maritalStatus": "Marital status",
     "occupation": "Occupation",
     "email": "Email",
@@ -22,12 +67,67 @@
     "passportNumber": "Passport number",
     "passportIssuingCountry": "Issuing country",
     "passportIssueDate": "Issue date",
-    "passportExpiry": "Expiry date"
+    "passportExpiry": "Expiry date",
+    "passportType": "Passport type",
+    "visaCountry": "Country",
+    "visaType": "Visa type",
+    "visaIssueDate": "Issue date",
+    "visaExpiryDate": "Expiry date",
+    "entryCount": "Number of entries",
+    "visaStatus": "Status",
+    "notes": "Notes",
+    "travelCountry": "Country",
+    "entryDate": "Entry date",
+    "exitDate": "Exit date",
+    "purpose": "Purpose of travel",
+    "visaRequired": "A visa was required for this trip"
   },
   "hints": {
     "countryCode": "Two-letter country code",
     "asOnPassport": "As on passport",
-    "selectStatus": "Select status"
+    "selectStatus": "Select status",
+    "optional": "Optional",
+    "visaTypeExample": "e.g. Schengen Type C"
+  },
+  "previousVisas": {
+    "add": "Add visa",
+    "addTitle": "Add a previous visa",
+    "editTitle": "Edit previous visa",
+    "untitled": "Previous visa",
+    "empty": {
+      "title": "No previous visas yet",
+      "description": "If you've held a visa before, add it here to keep your history complete. You can skip this if it doesn't apply."
+    }
+  },
+  "travelHistory": {
+    "add": "Add trip",
+    "addTitle": "Add a trip",
+    "editTitle": "Edit trip",
+    "untitled": "Trip",
+    "empty": {
+      "title": "No trips added yet",
+      "description": "Add any recent international trips one at a time. This is optional and easy to update later."
+    }
+  },
+  "collection": {
+    "edit": "Edit",
+    "remove": "Remove",
+    "save": "Save",
+    "cancel": "Cancel"
+  },
+  "review": {
+    "intro": "Here's everything you've entered. Use Edit on any section to make a change — nothing is submitted from here.",
+    "edit": "Edit",
+    "personalHeading": "Personal information",
+    "passportHeading": "Passport",
+    "previousVisasHeading": "Previous visas",
+    "travelHistoryHeading": "Travel history",
+    "notProvided": "Not provided",
+    "none": "None added",
+    "entryCount_one": "{{count}} entry",
+    "entryCount_other": "{{count}} entries",
+    "yes": "Yes",
+    "no": "No"
   },
   "errors": {
     "firstNameRequired": "First name is required",
@@ -38,6 +138,9 @@
     "issueDateRequired": "Issue date is required",
     "expiryDateRequired": "Expiry date is required",
     "issuingCountryRequired": "Issuing country is required",
-    "invalidEmail": "Enter a valid email address"
+    "invalidEmail": "Enter a valid email address",
+    "countryRequired": "Country is required",
+    "visaTypeRequired": "Visa type is required",
+    "entryDateRequired": "Entry date is required"
   }
 }

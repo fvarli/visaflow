@@ -254,3 +254,67 @@ accidentally touched — all green (110/110). Not committed, not pushed.
 
 ### ADRs added
 019 product vision · 020 Playground demonstrate-before-use.
+
+---
+
+## Iteration 6 handoff (2026-07-24) — Applicant experience redesign
+
+Redesigned **only the Applicant experience** from a flat two-Card form into a guided, five-step
+wizard (Personal information → Passport → Previous visas → Travel history → Review). No other page,
+the dossier schema, the validation rules, the provider actions, or the JSON format were changed —
+existing exports stay byte-compatible.
+
+### Key finding
+The domain schema already modelled everything: `applicant.schema.ts` carries `passport` (nested),
+`previousVisas[]`, `travelHistory[]`, and `countryOfResidence` (all defaulted). They were simply
+never surfaced. So this was a **UI + i18n sprint** — no schema/provider/JSON change.
+
+### New reusable primitives (all shown in `/playground` → "Onboarding")
+- `src/components/ui/stepper.tsx` — `Stepper`: prop-driven step rail. Vertical numbered rail at `lg`,
+  compact "Step X of N" + progress bar below. `aria-current="step"`; completed/current steps
+  selectable, upcoming disabled. Presentational + navigational only.
+- `src/components/ui/field-help.tsx` — `FieldHelp`: click/tap Popover "Why do we ask this?" with a
+  translated trigger `aria-label`. Reserved for genuinely useful fields; disclaimer only where copy
+  could read as legal advice. Consumed via a new **additive** optional `help` slot on `Field`
+  (`src/components/ui/field.tsx`) — the only shared-primitive touch, backward-compatible.
+- `src/components/ui/collection-editor.tsx` — generic `CollectionEditor<T>`: Add → card list → Dialog
+  edit → remove, with an inviting empty state. Controlled; commits whole arrays via `onChange` (no
+  reducer action needed). Drives both Previous visas and Travel history.
+
+### Applicant feature files
+- `src/features/applicant/applicant-wizard.ts` — **pure** step model: `WIZARD_STEP_IDS`,
+  `deriveStepStatuses(applicant, current)`, `isPersonalComplete`/`isPassportComplete`. Unit-tested.
+- `src/components/applicant/{PersonalInfoStep,PassportStep,PreviousVisasStep,TravelHistoryStep,ReviewStep}.tsx`.
+  Personal/Passport keep their own RHF form (`mode:'onBlur'`, `reValidateMode:'onChange'`, translated
+  messages) with `watch → updateApplicant` **autosave — no Save button**. Review reuses `DataList`
+  and has per-section "Edit" that jumps back via `onEdit`.
+- `src/pages/ApplicantPage.tsx` — rewritten as the thin shell: `PageHeader` (single `h1`) + `Stepper`
+  in a responsive grid + active step + Back/Continue nav (Review → "Go to dashboard"). Focus moves to
+  the step `h2` on change. Each step remounts on change (`key={activeId}`) so it re-seeds from state.
+
+### i18n (additive, tr/en parity kept)
+- Extended `applicant.json` (both locales): `wizard`, `steps.*`, `nav.*` (incl. `stepProgress`
+  interpolation), `why.*` (+ `disclaimer`), new `fields.*`, `previousVisas.*`, `travelHistory.*`,
+  `collection.*`, `review.*`, extra `errors.*`.
+- Added enum labels `passportType.*` and `previousVisaStatus.*` to `visa-domain.json` (both locales;
+  resolved with `dynamicT`). Added `playground.json` keys for the Onboarding section.
+
+### Gates (this iteration)
+`format:check` ✓ · `lint` 0 errors / 49 warnings (baseline 48; +1 accepted RHF `watch`
+`incompatible-library`) · `typecheck` ✓ · `test` **124/124** (110 + 14 new) · `build` ✓
+(index ~109.4 kB gzip ≈ baseline). Not committed, not pushed.
+
+### Tests added
+`src/tests/features/applicant-wizard.test.ts` (pure `deriveStepStatuses`) ·
+`src/tests/ui/applicant-wizard.test.tsx` (both locales: single `h1`, stepper progress, continue nav,
+FieldHelp popover, inline required-field error, collection add) ·
+`src/tests/ui/collection-editor.test.tsx` (empty → add → edit → remove + validate-gated save).
+
+### Known limitations / next
+- Visual verification was via bilingual render tests, not a browser (no connected Chrome). Re-verify
+  at 1440/834/390px × light/dark × tr/en; watch long Turkish labels and Popover placement on mobile.
+- `address` (street/city/postal) is still deferred — planned as a dedicated **Residence & Contact**
+  experience, not bolted onto onboarding.
+- No validation rules cover `previousVisas`/`travelHistory` yet (they're optional records).
+- Collection records use array-index list keys (schema has no `id`); editing is via dialog so this is
+  safe, but adding an `id` would be needed for reorder/drag.

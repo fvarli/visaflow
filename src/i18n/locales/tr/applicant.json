@@ -2,6 +2,10 @@
   "title": "Başvuru sahibi",
   "description": "Başvuru sahibinin pasaportta yer aldığı şekliyle kişisel bilgileri",
   "shortDescription": "Vize başvuru sahibinin kişisel bilgileri",
+  "wizard": {
+    "title": "Başvuru profili",
+    "description": "Bilgilerinizi bir danışman gibi adım adım birlikte gireceğiz. Her şey siz ilerledikçe kaydedilir ve cihazınızda kalır."
+  },
   "personal": {
     "title": "Kişisel bilgiler",
     "description": "Bilgilerinizi pasaportunuzda yazdığı şekilde girin"
@@ -10,11 +14,52 @@
     "title": "Güncel pasaport",
     "description": "Kullanımdaki geçerli pasaportunuzun bilgileri"
   },
+  "steps": {
+    "personal": {
+      "title": "Kişisel bilgiler",
+      "description": "Pasaportunuzda yazdığı şekliyle kim olduğunuzu belirtin."
+    },
+    "passport": {
+      "title": "Pasaport",
+      "description": "Seyahat edeceğiniz ve başvuracağınız pasaport."
+    },
+    "previousVisas": {
+      "title": "Önceki vizeler",
+      "description": "Daha önce aldığınız vizeler. İsteğe bağlıdır, ancak geçmişinizi tutarlı tutmaya yardımcı olur."
+    },
+    "travelHistory": {
+      "title": "Seyahat geçmişi",
+      "description": "Son zamanlarda yaptığınız seyahatler. İsteğe bağlıdır; teker teker eklemek kolaydır."
+    },
+    "review": {
+      "title": "Gözden geçir",
+      "description": "Devam etmeden önce her şeye hızlı bir bakış."
+    }
+  },
+  "nav": {
+    "back": "Geri",
+    "continue": "Devam et",
+    "rail": "Başvuru adımları",
+    "stepProgress": "Adım {{current}} / {{total}}"
+  },
+  "why": {
+    "trigger": "Bunu neden soruyoruz? — {{field}}",
+    "title": "Bunu neden soruyoruz?",
+    "disclaimer": "Bu, hazırlanmanıza yardımcı olacak genel bilgidir; hukuki tavsiye değildir.",
+    "dateOfBirth": "Doğum tarihiniz başvurunuzu pasaportunuza ve kimlik belgelerinize bağlar; bazı gereklilikler veya ücret kategorileri yaşa göre değişebilir.",
+    "nationality": "Uyruk, bir konsolosluğun hangi belgeleri isteyeceğini ve başvurunuzun nasıl ele alınacağını etkileyebilir. Temel kimlik bilgilerinizin bir parçasıdır.",
+    "countryOfResidence": "Şu anda yaşadığınız yer, başvurunuzu hangi konsolosluğun veya vize merkezinin ele alacağını çoğu zaman belirler — bu, uyruğunuzdan farklı olabilir.",
+    "passportExpiry": "Konsolosluklar genellikle pasaportun seyahat tarihlerinizin ötesinde bir süre daha geçerli kalmasını tercih eder; bu nedenle geçerlilik tarihini erkenden kontrol etmek iyi olur.",
+    "passportType": "Umuma mahsus pasaportlar çoğu seyahati kapsar. Diplomatik, hizmet ve diğer türler farklı kurallara tabi olabilir; bu nedenle hangisine sahip olduğunuzu kaydetmek faydalıdır.",
+    "previousVisas": "Geçmiş vizelerin kaydı, başvuru sorularını tutarlı yanıtlamanıza ve seyahat belgesi geçmişinizi tek yerde tutmanıza yardımcı olur.",
+    "travelHistory": "Önceki seyahatlerin kısa bir geçmişi, seyahat geçmişi sorularını doğru yanıtlamanıza ve kayıtlarınızı bir arada tutmanıza yardımcı olur."
+  },
   "fields": {
     "firstName": "Ad",
     "lastName": "Soyad",
     "dateOfBirth": "Doğum tarihi",
     "nationality": "Uyruk",
+    "countryOfResidence": "İkamet ülkesi",
     "maritalStatus": "Medenî durum",
     "occupation": "Meslek",
     "email": "E-posta",
@@ -22,12 +67,67 @@
     "passportNumber": "Pasaport numarası",
     "passportIssuingCountry": "Veren ülke",
     "passportIssueDate": "Veriliş tarihi",
-    "passportExpiry": "Geçerlilik bitişi"
+    "passportExpiry": "Geçerlilik bitişi",
+    "passportType": "Pasaport türü",
+    "visaCountry": "Ülke",
+    "visaType": "Vize türü",
+    "visaIssueDate": "Veriliş tarihi",
+    "visaExpiryDate": "Geçerlilik bitişi",
+    "entryCount": "Giriş sayısı",
+    "visaStatus": "Durum",
+    "notes": "Notlar",
+    "travelCountry": "Ülke",
+    "entryDate": "Giriş tarihi",
+    "exitDate": "Çıkış tarihi",
+    "purpose": "Seyahat amacı",
+    "visaRequired": "Bu seyahat için vize gerekiyordu"
   },
   "hints": {
     "countryCode": "İki harfli ülke kodu",
     "asOnPassport": "Pasaporttaki gibi",
-    "selectStatus": "Durum seçin"
+    "selectStatus": "Durum seçin",
+    "optional": "İsteğe bağlı",
+    "visaTypeExample": "örn. Schengen Tip C"
+  },
+  "previousVisas": {
+    "add": "Vize ekle",
+    "addTitle": "Önceki vize ekle",
+    "editTitle": "Önceki vizeyi düzenle",
+    "untitled": "Önceki vize",
+    "empty": {
+      "title": "Henüz önceki vize yok",
+      "description": "Daha önce vize aldıysanız geçmişinizi tamamlamak için buraya ekleyin. Sizin için geçerli değilse atlayabilirsiniz."
+    }
+  },
+  "travelHistory": {
+    "add": "Seyahat ekle",
+    "addTitle": "Seyahat ekle",
+    "editTitle": "Seyahati düzenle",
+    "untitled": "Seyahat",
+    "empty": {
+      "title": "Henüz seyahat eklenmedi",
+      "description": "Son uluslararası seyahatlerinizi teker teker ekleyin. İsteğe bağlıdır ve daha sonra güncellemek kolaydır."
+    }
+  },
+  "collection": {
+    "edit": "Düzenle",
+    "remove": "Kaldır",
+    "save": "Kaydet",
+    "cancel": "İptal"
+  },
+  "review": {
+    "intro": "Girdiğiniz her şey burada. Değişiklik yapmak için herhangi bir bölümde Düzenle'yi kullanın — buradan hiçbir şey gönderilmez.",
+    "edit": "Düzenle",
+    "personalHeading": "Kişisel bilgiler",
+    "passportHeading": "Pasaport",
+    "previousVisasHeading": "Önceki vizeler",
+    "travelHistoryHeading": "Seyahat geçmişi",
+    "notProvided": "Belirtilmedi",
+    "none": "Eklenmedi",
+    "entryCount_one": "{{count}} giriş",
+    "entryCount_other": "{{count}} giriş",
+    "yes": "Evet",
+    "no": "Hayır"
   },
   "errors": {
     "firstNameRequired": "Ad zorunludur",
@@ -38,6 +138,9 @@
     "issueDateRequired": "Veriliş tarihi zorunludur",
     "expiryDateRequired": "Geçerlilik bitiş tarihi zorunludur",
     "issuingCountryRequired": "Veren ülke zorunludur",
-    "invalidEmail": "Geçerli bir e-posta adresi girin"
+    "invalidEmail": "Geçerli bir e-posta adresi girin",
+    "countryRequired": "Ülke zorunludur",
+    "visaTypeRequired": "Vize türü zorunludur",
+    "entryDateRequired": "Giriş tarihi zorunludur"
   }
 }

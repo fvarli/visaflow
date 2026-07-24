@@ -15,6 +15,12 @@ interface FieldProps extends Omit<React.ComponentProps<'div'>, 'children'> {
   /** Validation message. Announced immediately and marks the control invalid. */
   error?: React.ReactNode
   required?: boolean
+  /**
+   * Optional adornment rendered next to the label — e.g. a `FieldHelp`
+   * "Why do we ask this?" trigger. Kept a sibling of (not inside) the
+   * `<label>` so its own interactive controls don't retarget the field.
+   */
+  help?: React.ReactNode
   /** Supply when the control cannot receive a cloned id (e.g. Radix Select). */
   htmlFor?: string
   /**
@@ -38,6 +44,7 @@ function Field({
   description,
   error,
   required,
+  help,
   htmlFor,
   children,
   className,
@@ -71,15 +78,18 @@ function Field({
 
   return (
     <div data-slot="field" className={cn('space-y-2', className)} {...props}>
-      <Label htmlFor={id} className="text-body text-foreground">
-        {label}
-        {required && (
-          <span className="text-muted-foreground font-normal" aria-hidden>
-            *
-          </span>
-        )}
-        {required && <span className="sr-only">(required)</span>}
-      </Label>
+      <div className="flex items-center gap-1.5">
+        <Label htmlFor={id} className="text-body text-foreground">
+          {label}
+          {required && (
+            <span className="text-muted-foreground font-normal" aria-hidden>
+              *
+            </span>
+          )}
+          {required && <span className="sr-only">(required)</span>}
+        </Label>
+        {help}
+      </div>
 
       {control}
 

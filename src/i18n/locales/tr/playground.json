@@ -12,6 +12,7 @@
     "data": "Veri gösterimi",
     "overlays": "Katmanlar",
     "i18n": "Dil ve yerelleştirme",
+    "onboarding": "Rehberli akış",
     "composition": "Kompozisyon",
     "dashboard": "Genel bakış"
   },
@@ -57,7 +58,10 @@
     "sourceVerified": "Kaynak (doğrulanmış)",
     "sourceUnverified": "Kaynak (doğrulanmamış)",
     "readinessRing": "Hazırlık halkası",
-    "dashboardSkeleton": "Genel bakış iskeleti"
+    "dashboardSkeleton": "Genel bakış iskeleti",
+    "stepper": "Adım göstergesi",
+    "fieldHelp": "Alan yardımı",
+    "collectionEditor": "Koleksiyon düzenleyici"
   },
   "i18n": {
     "description": "Yerele duyarlı biçimlendirme ve çevrilmiş alan terimleri. Yukarıdan dili değiştirerek her şeyin anında güncellendiğini görebilirsiniz.",
@@ -108,6 +112,7 @@
     "data": "Ölçütler, tablolar ve etiket/değer çiftleri. Sayılar sütun hizası için sabit genişlikli rakamlar kullanır.",
     "overlays": "İletişim kutusu, ipucu ve akordiyon. Odak hapsi ve Esc davranışını burada kontrol edin.",
     "composition": "Sayfa düzeyindeki parçaların bir araya gelişi. Her sayfanın devralması gereken ritim budur.",
-    "dashboard": "Türetilmiş genel bakış modelini kurgusal bir örnek dosya üzerinden kullanan, bir araya getirilmiş komuta merkezi bileşenleri."
+    "dashboard": "Türetilmiş genel bakış modelini kurgusal bir örnek dosya üzerinden kullanan, bir araya getirilmiş komuta merkezi bileşenleri.",
+    "onboarding": "Rehberli akışın yapı taşları: adım göstergesi, \"Bunu neden soruyoruz?\" balonu ve genel koleksiyon düzenleyici."
   }
 }

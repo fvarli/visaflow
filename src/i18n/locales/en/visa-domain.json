@@ -75,6 +75,19 @@
     "separated": "Separated",
     "civil_partnership": "Civil partnership"
   },
+  "passportType": {
+    "ordinary": "Ordinary",
+    "diplomatic": "Diplomatic",
+    "service": "Service",
+    "official": "Official",
+    "emergency": "Emergency"
+  },
+  "previousVisaStatus": {
+    "used": "Used",
+    "unused": "Unused",
+    "expired": "Expired",
+    "cancelled": "Cancelled"
+  },
   "expenseType": {
     "accommodation": "Accommodation",
     "transport": "Transport",

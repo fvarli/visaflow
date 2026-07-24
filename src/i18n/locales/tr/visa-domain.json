@@ -75,6 +75,19 @@
     "separated": "Ayrı yaşıyor",
     "civil_partnership": "Medenî birliktelik"
   },
+  "passportType": {
+    "ordinary": "Umuma mahsus",
+    "diplomatic": "Diplomatik",
+    "service": "Hizmet",
+    "official": "Hususi",
+    "emergency": "Acil durum"
+  },
+  "previousVisaStatus": {
+    "used": "Kullanıldı",
+    "unused": "Kullanılmadı",
+    "expired": "Süresi doldu",
+    "cancelled": "İptal edildi"
+  },
   "expenseType": {
     "accommodation": "Konaklama",
     "transport": "Ulaşım",
