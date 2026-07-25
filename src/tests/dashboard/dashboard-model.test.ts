@@ -2,11 +2,13 @@ import { describe, it, expect } from 'vitest'
 import {
   buildDashboardModel,
   buildDocumentBuckets,
+  buildDossierSnapshot,
   buildTimeline,
+  dashboardFindingLink,
   deriveNextActions,
   deriveReadinessState,
 } from '@/features/dashboard/dashboard-model'
-import type { ValidationResult } from '@/domain/rules/types'
+import type { ValidationFinding, ValidationResult } from '@/domain/rules/types'
 import type { Application } from '@/domain/schemas/application.schema'
 import type { Applicant } from '@/domain/schemas/applicant.schema'
 import type { Document } from '@/domain/schemas/document.schema'
@@ -249,6 +251,63 @@ describe('buildTimeline', () => {
   })
 })
 
+describe('dashboardFindingLink', () => {
+  const finding = (field: string): ValidationFinding =>
+    ({ relatedFields: [field] }) as ValidationFinding
+
+  it('links each locatable finding to the page that fixes it', () => {
+    expect(dashboardFindingLink(finding('documents.d-1'))?.route).toBe(
+      '/documents'
+    )
+    expect(dashboardFindingLink(finding('applicant.passport'))?.route).toBe(
+      '/applicant'
+    )
+    expect(dashboardFindingLink(finding('trip.insurance'))?.route).toBe('/trip')
+    expect(dashboardFindingLink(finding('appointment.date'))?.route).toBe(
+      '/trip'
+    )
+    expect(
+      dashboardFindingLink({
+        relatedFields: [],
+      } as unknown as ValidationFinding)
+    ).toBeNull()
+  })
+})
+
+describe('buildDossierSnapshot', () => {
+  it('derives present-tense facts from current state', () => {
+    const items = buildDossierSnapshot({
+      applicant: applicant(),
+      application: app({
+        appointment: { date: '2027-03-15' },
+        financing: { source: 'self', currency: 'EUR' },
+      }),
+      documents: MIXED_DOCS,
+      sponsors: [],
+    })
+    const keys = items.map((i) => i.key)
+    expect(keys).toContain('applicantOnFile')
+    expect(keys).toContain('passportOnFile')
+    expect(keys).toContain('appointmentScheduled')
+    expect(keys).toContain('financingSet')
+
+    const ready = items.find((i) => i.key === 'documentsReady')
+    expect(ready?.count).toBe(4)
+    expect(ready?.to).toBe('/documents')
+  })
+
+  it('is empty for a bare dossier — never fabricates activity', () => {
+    expect(
+      buildDossierSnapshot({
+        applicant: null,
+        application: null,
+        documents: [],
+        sponsors: [],
+      })
+    ).toEqual([])
+  })
+})
+
 describe('buildDashboardModel', () => {
   it('wraps exactly one application today, with active pointing at it', () => {
     const model = buildDashboardModel(
@@ -284,6 +343,36 @@ describe('buildDashboardModel', () => {
     )
     expect(populated.active.validation.totalRules).toBeGreaterThan(0)
     expect(populated.active.documents.completionPercent).toBe(40)
+
+    // Given-name greeting only; null (→ neutral) when there is no applicant.
+    expect(populated.active.greetingName).toBe('Demo')
+    expect(empty.active.greetingName).toBeNull()
+
+    // The five-way breakdown reuses the Documents workspace definition.
+    expect(populated.active.documentsBreakdown.requiredTotal).toBe(10)
+    expect(populated.active.documentsBreakdown.ready).toBe(4)
+    expect(populated.active.documentsBreakdown.needsUpdate).toBe(1)
+    expect(populated.active.documentsBreakdown.requested).toBe(1)
+  })
+
+  it('surfaces the nearest upcoming date as the next milestone', () => {
+    const model = buildDashboardModel(
+      {
+        applicant: applicant(),
+        application: app({ appointment: { date: '2027-03-15' } }),
+        documents: [],
+        sponsors: [],
+      },
+      NOW
+    )
+    expect(model.active.nextMilestone).not.toBeNull()
+    expect(model.active.nextMilestone).toBe(model.active.upcomingTimeline[0])
+
+    const empty = buildDashboardModel(
+      { applicant: null, application: null, documents: [], sponsors: [] },
+      NOW
+    )
+    expect(empty.active.nextMilestone).toBeNull()
   })
 
   it('caps the upcoming timeline and excludes past events', () => {

@@ -277,3 +277,29 @@ const passportValidAfterTrip = (dossier: Dossier): ValidationFinding[] => {
 - It is code-split and not linked from the production sidebar, so it costs nothing in production.
 
 **Implementation:** `docs/playground.md`; the rule is stated in `CONTRIBUTING.md`. Enforced in practice by the playground render test that mounts every section.
+
+## ADR-021: Live Dossier Snapshot Instead of an Activity Feed (Until Persistence)
+
+**Decision:** The dashboard's "recent activity" area is a **live dossier snapshot** — present-tense facts derived from the current state — not a chronological activity/history feed. It invents no history and no timestamps.
+
+**Context:** A command-center dashboard wants a "what changed recently" surface, but VisaFlow keeps all data in memory (ADR-006) with no event log, so there is nothing to source a truthful history from. Faking timestamps or a change stream would be dishonest and would break on refresh.
+
+**Rationale:**
+- Everything shown is derived directly from current state (`buildDossierSnapshot`) — "applicant on file", "7 documents ready", "trip planned" — so it is always accurate and never fabricated.
+- The item shape (`SnapshotItem { id, key, tone, count?, to? }`) is deliberately event-stream-shaped, so a future persistence/event-logging phase can replace the source with a real activity timeline **without changing the widget or the surrounding layout**.
+- Each item deep-links to where that part of the dossier is edited, so the section is never a dead end.
+
+**Implementation:** `buildDossierSnapshot` in `src/features/dashboard/dashboard-model.ts`; `src/components/dashboard/DossierSnapshot.tsx`; demonstrated (populated + empty) in `/playground`. Reaffirms [ADR-006] (in-memory only) and [ADR-016] (no prediction).
+
+## ADR-022: Dashboard Is a Command Center, Not a Metrics Panel
+
+**Decision:** The dashboard communicates through purpose-driven product sections with **readiness as the single dominant progress indicator**. It carries no standalone KPI-card row.
+
+**Context:** The first dashboard led with a four-card KPI metrics strip (documents / appointment / trip / findings). It read like an analytics/admin panel and diluted the one question the dashboard exists to answer — *what should I do next?*
+
+**Rationale:**
+- The redesign removed the KPI row outright (not replaced with smaller cards). No information was lost: each signal re-homed into a section that also says *why it matters* and *where to act* (readiness hero, single next action, documents summary, upcoming timeline, consistency health, trip, snapshot).
+- Every visible number must help the user decide or act; a metric that cannot answer "what next?" is not promoted.
+- The single next action surfaces exactly one task with its reason and an effort estimate — never a list — so priority is unambiguous.
+
+**Implementation:** `src/pages/DashboardPage.tsx`; `src/components/dashboard/{ReadinessHero,NextAction,ConsistencyHealth,DocumentsSummary,DossierSnapshot}.tsx`. Reaffirms [ADR-017] (presentation adapter) and [ADR-016] (organizational, not predictive).

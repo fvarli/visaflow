@@ -1,6 +1,6 @@
 # Current Implementation Status
 
-Last updated: 2026-07-23
+Last updated: 2026-07-25
 
 ## Completed Features
 
@@ -47,9 +47,14 @@ Last updated: 2026-07-23
 ### Dashboard command center
 - [x] Widget-based dashboard over a pure presentation adapter
       (`src/features/dashboard/dashboard-model.ts`)
+- [x] Command-center IA: given-name greeting, readiness as the single dominant
+      indicator (ring + next milestone), one primary next action (reason +
+      effort + CTA), upcoming timeline, consistency health with deep-links,
+      five-bucket documents summary, trip summary — no KPI-card row (ADR-022)
 - [x] Understated circular readiness ring (organizational, no prediction)
-- [x] Derived next actions, upcoming timeline, documents / validation / trip
-      summaries
+- [x] Live dossier snapshot — present-tense facts from current state, no
+      fabricated history/timestamps, event-stream-shaped for a future timeline
+      (ADR-021)
 - [x] Reusable widgets + `ReadinessRing` / `Timeline` primitives, all in
       `/playground`
 - [x] Small CSS motion vocabulary (fade / slide / scale / shimmer),
@@ -112,7 +117,7 @@ All checks pass:
 - `pnpm format:check` - PASS
 - `pnpm lint` - 0 errors (warnings acceptable, see below)
 - `pnpm typecheck` - PASS (`tsc -b`)
-- `pnpm test` - 153/153 PASS
+- `pnpm test` - 158/158 PASS
 - `pnpm build` - SUCCESS
 
 Note: an earlier version of this file claimed 23/23 tests and `tsc --noEmit`;

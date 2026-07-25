@@ -2,11 +2,17 @@
   "title": "Dashboard",
   "welcome": "Welcome to VisaFlow",
   "welcomeDescription": "Organize your visa application dossier with confidence.",
+  "greeting": {
+    "hello": "Welcome back, {{name}}",
+    "helloNeutral": "Welcome back"
+  },
   "getStarted": {
     "title": "Get started",
     "description": "Choose how you would like to begin organizing your visa application.",
     "startGreece": "Start new Greece application",
-    "orImportPlain": "Or use the Import button in the sidebar to load existing data."
+    "explore": "Explore the documents workspace",
+    "privacyNote": "Your data stays in your browser — nothing is uploaded.",
+    "orImportPlain": "Or use the Import button in the header to load existing data."
   },
   "cards": {
     "appointment": "Appointment",
@@ -19,8 +25,8 @@
   "hero": {
     "readinessLabel": "Dossier readiness",
     "subtitle": "How much of your dossier is assembled — not a prediction of any decision.",
-    "primaryActionLabel": "Recommended next step",
-    "allDone": "Everything tracked is complete.",
+    "nextMilestoneLabel": "Next milestone",
+    "nextMilestoneEmpty": "No upcoming dates yet.",
     "verdict": {
       "not_started": "Not started yet",
       "preparing": "Preparing well",
@@ -29,20 +35,29 @@
       "ready_for_appointment": "Ready for your appointment"
     }
   },
-  "metrics": {
-    "appointment": "Appointment",
-    "trip": "Trip",
-    "documentsReady": "Documents ready",
-    "openFindings": "Open findings",
-    "notScheduled": "Not scheduled",
-    "notPlanned": "Not planned",
-    "noFindings": "All clear",
-    "findingsBreakdown": "{{errors}} to fix, {{warnings}} to review"
+  "nextAction": {
+    "title": "Your next step",
+    "cta": "Continue",
+    "allDoneTitle": "You're all set",
+    "allDoneDescription": "Everything tracked is complete. Export your dossier to save this state.",
+    "reason": {
+      "resolveErrors": "These conflicts can block your application — resolve them first.",
+      "completeMissingDocs": "Your dossier isn't complete until every required document is added.",
+      "updateDocuments": "Some documents are out of date and should be refreshed before you apply.",
+      "reviewWarnings": "A few details are worth double-checking for consistency.",
+      "setAppointment": "Booking your appointment anchors your whole preparation timeline.",
+      "addTrip": "Your travel dates drive the insurance, accommodation and timeline checks."
+    },
+    "effort": {
+      "resolveErrors": "A few minutes",
+      "completeMissingDocs": "Varies by document",
+      "updateDocuments": "A few minutes",
+      "reviewWarnings": "A quick review",
+      "setAppointment": "About 5 minutes",
+      "addTrip": "About 5 minutes"
+    }
   },
   "nextActions": {
-    "title": "Next recommended actions",
-    "description": "Derived from your dossier's current state.",
-    "empty": "Nothing outstanding — export your dossier to save this state.",
     "resolveErrors": "Resolve errors ({{count}})",
     "completeMissingDocs": "Complete missing documents ({{count}})",
     "updateDocuments": "Update documents ({{count}})",
@@ -66,14 +81,17 @@
     "title": "Documents",
     "description": "{{ready}} of {{total}} ready",
     "ready": "Ready",
-    "missing": "Missing",
     "needsUpdate": "Needs update",
-    "viewAll": "Open documents",
+    "requested": "Requested",
+    "missing": "Missing",
+    "optional": "Optional",
+    "openWorkspace": "Open documents workspace",
     "empty": "No documents yet."
   },
-  "validationSummary": {
-    "title": "Consistency",
+  "consistencyHealth": {
+    "title": "Consistency health",
     "allClear": "No issues found.",
+    "goToFix": "Go to fix",
     "viewAll": "View all findings",
     "viewMore": "View {{count}} more"
   },
@@ -88,7 +106,24 @@
     "insurance": "Travel insurance",
     "insured": "Added",
     "notInsured": "Not added",
+    "viewAll": "Open trip planner",
     "empty": "No trip details yet."
+  },
+  "snapshot": {
+    "title": "Dossier snapshot",
+    "description": "What your dossier holds right now.",
+    "empty": "Details you add will appear here.",
+    "item": {
+      "applicantOnFile": "Applicant details on file",
+      "passportOnFile": "Passport on file",
+      "documentsReady": "{{count}} documents ready",
+      "documentsNeedUpdate": "{{count}} documents need updating",
+      "appointmentScheduled": "Appointment scheduled",
+      "tripPlanned": "Trip planned",
+      "insuranceReady": "Travel insurance added",
+      "financingSet": "Funding source recorded",
+      "sponsorPresent": "{{count}} sponsors added"
+    }
   },
   "sourceStatus": {
     "title": "Requirement sources",

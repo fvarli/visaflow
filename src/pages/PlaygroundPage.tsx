@@ -100,12 +100,12 @@ import { LanguageSelect } from '@/components/ui/language-select'
 import { SourceNote } from '@/components/ui/source-note'
 import { ReadinessRing } from '@/components/ui/readiness-ring'
 import { ReadinessHero } from '@/components/dashboard/ReadinessHero'
-import { MetricsRow } from '@/components/dashboard/MetricsRow'
-import { NextActions } from '@/components/dashboard/NextActions'
+import { NextAction } from '@/components/dashboard/NextAction'
 import { UpcomingTimeline } from '@/components/dashboard/UpcomingTimeline'
+import { ConsistencyHealth } from '@/components/dashboard/ConsistencyHealth'
 import { DocumentsSummary } from '@/components/dashboard/DocumentsSummary'
-import { ValidationSummary } from '@/components/dashboard/ValidationSummary'
 import { TripSummary } from '@/components/dashboard/TripSummary'
+import { DossierSnapshot } from '@/components/dashboard/DossierSnapshot'
 import { DashboardSkeleton } from '@/components/dashboard/DashboardSkeleton'
 import { buildDashboardModel } from '@/features/dashboard/dashboard-model'
 import { useFormatters } from '@/lib/format'
@@ -1758,33 +1758,41 @@ function Dashboard() {
       <Separator />
 
       <div className="flex flex-col gap-6">
-        <ReadinessHero
-          percent={app.readiness.percent}
-          state={app.readiness.state}
-          missingCount={app.readiness.missingCount}
-          appointment={app.appointment}
-          primaryAction={app.nextActions[0]}
-        />
-        <MetricsRow
-          documents={app.documents}
-          appointment={app.appointment}
-          trip={app.trip}
-          validation={app.validation}
-        />
+        <div className="grid gap-6 lg:grid-cols-5">
+          <div className="lg:col-span-3">
+            <ReadinessHero
+              percent={app.readiness.percent}
+              state={app.readiness.state}
+              missingCount={app.readiness.missingCount}
+              nextMilestone={app.nextMilestone}
+            />
+          </div>
+          <div className="lg:col-span-2">
+            <NextAction action={app.nextActions[0] ?? null} />
+          </div>
+        </div>
+        {/* The "all done" state of the single next-action card. */}
+        <div className="lg:max-w-md">
+          <NextAction action={null} />
+        </div>
         <div className="grid gap-6 lg:grid-cols-2">
-          <NextActions actions={app.nextActions} />
           <UpcomingTimeline items={app.upcomingTimeline} />
+          <ConsistencyHealth validation={app.validation} />
         </div>
         <div className="grid gap-6 lg:grid-cols-2">
-          <DocumentsSummary buckets={app.documents} />
-          <ValidationSummary validation={app.validation} />
+          <DocumentsSummary breakdown={app.documentsBreakdown} />
+          <TripSummary
+            countryCode={app.countryCode}
+            trip={app.trip}
+            financing={app.financing}
+            sponsorCount={app.sponsorCount}
+          />
         </div>
-        <TripSummary
-          countryCode={app.countryCode}
-          trip={app.trip}
-          financing={app.financing}
-          sponsorCount={app.sponsorCount}
-        />
+        <div className="grid gap-6 lg:grid-cols-2">
+          <DossierSnapshot items={app.snapshot} />
+          {/* The empty, first-run state of the snapshot. */}
+          <DossierSnapshot items={[]} />
+        </div>
       </div>
 
       <Separator />

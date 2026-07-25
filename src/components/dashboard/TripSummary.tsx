@@ -1,8 +1,9 @@
+import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { DataList, DataListItem } from '@/components/ui/data-list'
 import { EmptyState } from '@/components/ui/empty-state'
-import { MapPin } from 'lucide-react'
+import { ArrowRight, MapPin } from 'lucide-react'
 import { useFormatters } from '@/lib/format'
 import { dynamicT } from '@/lib/i18n-dynamic'
 import type {
@@ -114,6 +115,13 @@ export function TripSummary({
             }
           />
         </DataList>
+        <Link
+          to="/trip"
+          className="text-primary mt-4 inline-flex items-center gap-1 self-start rounded-sm text-sm hover:underline"
+        >
+          {t('dashboard:tripSummary.viewAll')}
+          <ArrowRight className="size-3.5" />
+        </Link>
       </CardContent>
     </Card>
   )

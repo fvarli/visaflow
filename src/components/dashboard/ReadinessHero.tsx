@@ -1,41 +1,42 @@
-import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { ArrowRight, CalendarClock } from 'lucide-react'
+import { CalendarClock } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
 import { ReadinessRing } from '@/components/ui/readiness-ring'
 import { useFormatters } from '@/lib/format'
 import { dynamicT } from '@/lib/i18n-dynamic'
-import { ACTION_ICON, actionLabel } from '@/components/dashboard/action-meta'
+import {
+  TIMELINE_TYPE_ICON,
+  useTimelineTitle,
+} from '@/components/dashboard/timeline-labels'
 import type {
-  ActionDescriptor,
-  CountdownModel,
   ReadinessState,
+  TimelineItemModel,
 } from '@/features/dashboard/dashboard-model'
 
 interface ReadinessHeroProps {
   percent: number
   state: ReadinessState
   missingCount: number
-  appointment: CountdownModel
-  primaryAction?: ActionDescriptor
+  /** The nearest upcoming date, shown beneath the verdict. */
+  nextMilestone: TimelineItemModel | null
 }
 
 /**
- * The command-center anchor: how ready the dossier is, how close the
- * appointment is, and the single most useful next step. Readiness is an
- * organizational signal only — never a prediction of a visa outcome.
+ * The command-center anchor and the single dominant progress indicator: how
+ * assembled the dossier is, in one large ring, with the nearest milestone
+ * beneath it. Readiness is an organizational signal only — never a prediction
+ * of a visa outcome (ADR-016). The recommended action lives in its own section.
  */
 export function ReadinessHero({
   percent,
   state,
   missingCount,
-  appointment,
-  primaryAction,
+  nextMilestone,
 }: ReadinessHeroProps) {
   const { t } = useTranslation(['dashboard', 'common'])
   const td = dynamicT(t)
   const format = useFormatters()
+  const timelineTitle = useTimelineTitle()
 
   const verdict =
     state === 'documents_remaining'
@@ -44,13 +45,16 @@ export function ReadinessHero({
         })
       : td(`dashboard:hero.verdict.${state}`)
 
-  const PrimaryIcon = primaryAction ? ACTION_ICON[primaryAction.id] : null
+  const MilestoneIcon = nextMilestone
+    ? TIMELINE_TYPE_ICON[nextMilestone.type]
+    : CalendarClock
 
   return (
-    <Card className="animate-fade-in overflow-hidden">
-      <CardContent className="flex flex-col items-center gap-6 sm:flex-row sm:items-center sm:gap-8">
+    <Card className="animate-fade-in h-full overflow-hidden">
+      <CardContent className="flex h-full flex-col items-center gap-6 sm:flex-row sm:items-center sm:gap-8">
         <ReadinessRing
           value={percent}
+          size={188}
           label={t('dashboard:hero.readinessLabel')}
           valueLabel={format.percent(percent)}
           caption={verdict}
@@ -61,43 +65,38 @@ export function ReadinessHero({
             <p className="text-eyebrow text-muted-foreground uppercase">
               {t('dashboard:hero.readinessLabel')}
             </p>
+            <p className="text-heading text-foreground text-balance">
+              {verdict}
+            </p>
             <p className="text-body text-muted-foreground text-pretty">
               {t('dashboard:hero.subtitle')}
             </p>
           </div>
 
-          <div className="flex items-center justify-center gap-2 sm:justify-start">
-            <CalendarClock
-              aria-hidden
-              className="text-muted-foreground size-4 shrink-0"
-            />
-            <span className="text-body text-foreground" data-numeric>
-              {appointment.date
-                ? `${format.dateShort(appointment.date)} · ${format.relativeDays(appointment.date)}`
-                : t('dashboard:metrics.notScheduled')}
+          <div className="border-border/60 flex flex-col gap-1.5 border-t pt-4">
+            <span className="text-caption text-muted-foreground">
+              {t('dashboard:hero.nextMilestoneLabel')}
             </span>
-          </div>
-
-          {primaryAction ? (
-            <div className="flex flex-col gap-1.5">
-              <span className="text-caption text-muted-foreground">
-                {t('dashboard:hero.primaryActionLabel')}
-              </span>
-              <Button asChild className="w-full justify-between sm:w-auto">
-                <Link to={primaryAction.to}>
-                  <span className="flex items-center gap-2">
-                    {PrimaryIcon && <PrimaryIcon className="size-4" />}
-                    {actionLabel(td, primaryAction)}
+            <div className="flex items-center justify-center gap-2 sm:justify-start">
+              <MilestoneIcon
+                aria-hidden
+                className="text-muted-foreground size-4 shrink-0"
+              />
+              {nextMilestone ? (
+                <span className="text-body text-foreground min-w-0">
+                  {timelineTitle(nextMilestone)}
+                  <span className="text-muted-foreground" data-numeric>
+                    {' · '}
+                    {format.relativeDays(nextMilestone.date)}
                   </span>
-                  <ArrowRight className="size-4" />
-                </Link>
-              </Button>
+                </span>
+              ) : (
+                <span className="text-body text-muted-foreground">
+                  {t('dashboard:hero.nextMilestoneEmpty')}
+                </span>
+              )}
             </div>
-          ) : (
-            <p className="text-body text-foreground font-medium">
-              {t('dashboard:hero.allDone')}
-            </p>
-          )}
+          </div>
         </div>
       </CardContent>
     </Card>

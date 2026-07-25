@@ -28,17 +28,14 @@ export function DashboardSkeleton() {
       className="flex flex-col gap-8"
     >
       <div className="flex flex-col gap-2.5 pb-2">
-        <Block className="h-7 w-56" />
-        <Block className="h-4 w-80" />
+        <Block className="h-4 w-40" />
+        <Block className="h-8 w-64" />
       </div>
 
-      <Block className="h-44 w-full" />
-
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <Block className="h-28" />
-        <Block className="h-28" />
-        <Block className="h-28" />
-        <Block className="h-28" />
+      {/* Hero row: readiness + next action. */}
+      <div className="grid gap-6 lg:grid-cols-5">
+        <Block className="h-52 w-full lg:col-span-3" />
+        <Block className="h-52 w-full lg:col-span-2" />
       </div>
 
       <div className="grid gap-6 lg:grid-cols-3">
@@ -47,6 +44,7 @@ export function DashboardSkeleton() {
           <Block className="h-56 w-full" />
         </div>
         <div className="flex flex-col gap-6">
+          <Block className="h-40 w-full" />
           <Block className="h-40 w-full" />
           <Block className="h-40 w-full" />
         </div>

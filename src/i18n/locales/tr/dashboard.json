@@ -2,11 +2,17 @@
   "title": "Genel bakış",
   "welcome": "VisaFlow'a hoş geldiniz",
   "welcomeDescription": "Vize başvuru dosyanızı güvenle düzenleyin.",
+  "greeting": {
+    "hello": "Tekrar hoş geldiniz, {{name}}",
+    "helloNeutral": "Tekrar hoş geldiniz"
+  },
   "getStarted": {
     "title": "Başlayın",
     "description": "Vize başvurunuzu düzenlemeye nasıl başlamak istediğinizi seçin.",
     "startGreece": "Yeni Yunanistan başvurusu oluştur",
-    "orImportPlain": "Ya da mevcut veriyi yüklemek için kenar çubuğundaki İçe aktar düğmesini kullanın."
+    "explore": "Belgeler çalışma alanını keşfedin",
+    "privacyNote": "Verileriniz tarayıcınızda kalır — hiçbir şey yüklenmez.",
+    "orImportPlain": "Ya da mevcut veriyi yüklemek için üst çubuktaki İçe aktar düğmesini kullanın."
   },
   "cards": {
     "appointment": "Randevu",
@@ -19,8 +25,8 @@
   "hero": {
     "readinessLabel": "Dosya hazırlık düzeyi",
     "subtitle": "Dosyanızın ne kadarının hazır olduğunu gösterir — herhangi bir karar tahmini değildir.",
-    "primaryActionLabel": "Önerilen sonraki adım",
-    "allDone": "Takip edilen her şey tamamlandı.",
+    "nextMilestoneLabel": "Sonraki aşama",
+    "nextMilestoneEmpty": "Henüz yaklaşan tarih yok.",
     "verdict": {
       "not_started": "Henüz başlanmadı",
       "preparing": "İyi hazırlanıyor",
@@ -29,20 +35,29 @@
       "ready_for_appointment": "Randevuya hazır"
     }
   },
-  "metrics": {
-    "appointment": "Randevu",
-    "trip": "Seyahat",
-    "documentsReady": "Hazır belgeler",
-    "openFindings": "Açık bulgular",
-    "notScheduled": "Planlanmadı",
-    "notPlanned": "Planlanmadı",
-    "noFindings": "Sorun yok",
-    "findingsBreakdown": "{{errors}} düzeltilecek, {{warnings}} gözden geçirilecek"
+  "nextAction": {
+    "title": "Sonraki adımınız",
+    "cta": "Devam et",
+    "allDoneTitle": "Her şey hazır",
+    "allDoneDescription": "Takip edilen her şey tamamlandı. Bu durumu kaydetmek için dosyanızı dışa aktarın.",
+    "reason": {
+      "resolveErrors": "Bu çelişkiler başvurunuzu engelleyebilir — önce bunları giderin.",
+      "completeMissingDocs": "Her zorunlu belge eklenene kadar dosyanız tamamlanmış sayılmaz.",
+      "updateDocuments": "Bazı belgeler güncel değil; başvurudan önce yenilenmeli.",
+      "reviewWarnings": "Birkaç ayrıntıyı tutarlılık açısından yeniden kontrol etmekte fayda var.",
+      "setAppointment": "Randevunuzu belirlemek tüm hazırlık takviminizi çerçeveler.",
+      "addTrip": "Seyahat tarihleriniz sigorta, konaklama ve takvim denetimlerini yönlendirir."
+    },
+    "effort": {
+      "resolveErrors": "Birkaç dakika",
+      "completeMissingDocs": "Belgeye göre değişir",
+      "updateDocuments": "Birkaç dakika",
+      "reviewWarnings": "Kısa bir inceleme",
+      "setAppointment": "Yaklaşık 5 dakika",
+      "addTrip": "Yaklaşık 5 dakika"
+    }
   },
   "nextActions": {
-    "title": "Önerilen sonraki adımlar",
-    "description": "Dosyanızın mevcut durumundan çıkarıldı.",
-    "empty": "Bekleyen iş yok — bu durumu kaydetmek için dosyanızı dışa aktarın.",
     "resolveErrors": "Hataları giderin ({{count}})",
     "completeMissingDocs": "Eksik belgeleri tamamlayın ({{count}})",
     "updateDocuments": "Belgeleri güncelleyin ({{count}})",
@@ -66,14 +81,17 @@
     "title": "Belgeler",
     "description": "{{total}} belgeden {{ready}} tanesi hazır",
     "ready": "Hazır",
-    "missing": "Eksik",
     "needsUpdate": "Güncellenmeli",
-    "viewAll": "Belgeleri aç",
+    "requested": "Talep edildi",
+    "missing": "Eksik",
+    "optional": "İsteğe bağlı",
+    "openWorkspace": "Belgeler çalışma alanını aç",
     "empty": "Henüz belge yok."
   },
-  "validationSummary": {
-    "title": "Tutarlılık",
+  "consistencyHealth": {
+    "title": "Tutarlılık durumu",
     "allClear": "Sorun bulunamadı.",
+    "goToFix": "Düzeltmeye git",
     "viewAll": "Tüm bulguları gör",
     "viewMore": "{{count}} tane daha gör"
   },
@@ -88,7 +106,24 @@
     "insurance": "Seyahat sigortası",
     "insured": "Eklendi",
     "notInsured": "Eklenmedi",
+    "viewAll": "Seyahat planlayıcıyı aç",
     "empty": "Henüz seyahat bilgisi yok."
+  },
+  "snapshot": {
+    "title": "Dosya özeti",
+    "description": "Dosyanızın şu anda içerdikleri.",
+    "empty": "Eklediğiniz ayrıntılar burada görünecek.",
+    "item": {
+      "applicantOnFile": "Başvuru sahibi bilgileri kayıtlı",
+      "passportOnFile": "Pasaport kayıtlı",
+      "documentsReady": "{{count}} belge hazır",
+      "documentsNeedUpdate": "{{count}} belge güncellenmeli",
+      "appointmentScheduled": "Randevu planlandı",
+      "tripPlanned": "Seyahat planlandı",
+      "insuranceReady": "Seyahat sigortası eklendi",
+      "financingSet": "Finansman kaynağı kaydedildi",
+      "sponsorPresent": "{{count}} sponsor eklendi"
+    }
   },
   "sourceStatus": {
     "title": "Gereklilik kaynakları",

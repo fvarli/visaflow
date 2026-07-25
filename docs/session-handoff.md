@@ -466,3 +466,60 @@ search filter**, side panel opens without navigation + a cross-entity finding wi
   stabilize per-doc callbacks (noted as future).
 - Verification is a single `verified` boolean (no verifier/date); attachments are out of scope (text
   `fileReference` only). Template sync is additive; "no longer applicable" items are surfaced, not deleted.
+
+## Iteration 9 handoff (2026-07-25) — Dashboard redesign (command center)
+
+Reworked the dashboard from a widget grid that read like an analytics panel into a **command center**
+that answers *what should I do next?* on sight. Architecture (pure adapter + prop-driven widgets,
+ADR-017) was kept; the change is IA + a few pure-model additions. No schema/import-export change.
+
+### Model (`src/features/dashboard/dashboard-model.ts`)
+Added to `ApplicationDashboardModel`: `greetingName` (given name only, else null → neutral),
+`documentsBreakdown: DocumentBuckets5` (**reuses** `buildDocumentBuckets5` from the Documents feature —
+one-directional import, no cycle), `nextMilestone` (nearest upcoming timeline item), and `snapshot:
+SnapshotItem[]` (live present-tense facts, no history/timestamps, event-stream-shaped — ADR-021). New
+pure `dashboardFindingLink(finding)` (maps `documents.*`→/documents, `applicant.*`→/applicant,
+`trip.*`/`appointment.*`→/trip; distinct from the Documents workspace's `findingLink`) and
+`buildDossierSnapshot(input)`.
+
+### Widgets (`src/components/dashboard/`)
+- **Removed** `MetricsRow` (the 4-KPI strip — ADR-022), `NextActions` (list), `ValidationSummary`.
+- **`ReadinessHero`** — now the single dominant indicator: large ring + verdict + next-milestone line
+  (CTA moved out). **`NextAction`** (new) — one task + reason + effort + single CTA, calm "all done"
+  state. **`ConsistencyHealth`** (replaces ValidationSummary) — counts + top findings each with a
+  "Go to fix" deep-link. **`DocumentsSummary`** — five buckets (ready/needsUpdate/requested/missing/
+  optional) from `documentsBreakdown`. **`DossierSnapshot`** (new) — live snapshot, populated + empty.
+  **`TripSummary`** gains an "Open trip planner" link. Shared `timeline-labels.ts` holds the timeline
+  title/icon/tone maps (used by hero + `UpcomingTimeline`). `DashboardSkeleton` reshaped to the new grid.
+
+### Page (`src/pages/DashboardPage.tsx`)
+Greeting `h1` + eyebrow (country · visa type · preparation status); hero row (`lg:grid-cols-5`:
+readiness 3 / next action 2); content grid (`lg:grid-cols-3`: timeline + consistency health / documents
++ trip + snapshot); source note. Empty state is an inviting first-run (Start Greece + explore link +
+privacy note + import guidance) rather than a blank page.
+
+### i18n (`dashboard.json` both locales, tr/en parity kept)
+Added `greeting.*`, `hero.nextMilestone*`, `nextAction.*` (reason/effort per ActionKind),
+`consistencyHealth.*` (replaces `validationSummary.*`), `documentsSummary.{requested,optional,openWorkspace}`,
+`snapshot.*`, `tripSummary.viewAll`, `getStarted.{explore,privacyNote}`. Removed the now-unused
+`metrics.*` and stale `hero`/`nextActions` keys. Playground demos updated (no new row keys).
+
+### Gates (this iteration)
+`format:check` ✓ · `lint` 0 errors / 50 warnings (baseline) · `typecheck` ✓ · `test` **158/158**
+(153 + 5 new) · `build` ✓ (DashboardPage lazy ~1.5 kB gzip; shared dashboard widget chunk ~6.6 kB gzip;
+main index ~108.3 kB gzip, unchanged). Not committed, not pushed.
+
+### Tests
+`src/tests/dashboard/dashboard-model.test.ts` — `dashboardFindingLink`, `buildDossierSnapshot` (derives
+facts / empty for bare dossier), `greetingName`, `documentsBreakdown`, `nextMilestone`.
+`src/tests/ui/dashboard.test.tsx` — both locales: greeting is the single `h1`, readiness ring exposes the
+percentage, one next-action CTA, five document buckets, snapshot facts; plus a GAP seed that surfaces a
+consistency finding with a working "Go to fix" deep-link.
+
+### Known limitations / next
+- Visual verification was via bilingual render tests, not a browser (no connected Chrome). Re-verify at
+  1440/834/390 × light/dark × tr/en — greeting + readiness above the fold, hero row wrapping on tablet.
+- `DossierSnapshot` is a live snapshot, not a history; a real activity timeline needs persistence/event
+  logging (ADR-021, ADR-006) — the item shape is ready for it.
+- The empty-state "import" path is guidance to the header Import control (the import dialog lives in
+  `AppLayout`); wiring a direct button would need shared state and was left out of scope.

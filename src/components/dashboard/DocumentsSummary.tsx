@@ -2,38 +2,44 @@ import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { ArrowRight, FileText } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { StatusBadge } from '@/components/ui/status-badge'
+import { StatusBadge, type StatusTone } from '@/components/ui/status-badge'
 import { EmptyState } from '@/components/ui/empty-state'
-import type { DocumentBuckets } from '@/features/dashboard/dashboard-model'
+import type { DocumentBuckets5 } from '@/features/documents/documents-model'
 
 interface DocumentsSummaryProps {
-  buckets: DocumentBuckets
+  breakdown: DocumentBuckets5
 }
 
 /**
- * Required-document breakdown. A single segmented bar plus per-bucket chips make
- * Ready / Missing / Needs update visually distinct — not just a running total.
+ * The required-document breakdown as a purpose-driven section: a segmented
+ * readiness bar plus the five named states, so the user sees not just "how many"
+ * but exactly what shape the dossier is in — and can step straight into the
+ * Documents workspace to act.
  */
-export function DocumentsSummary({ buckets }: DocumentsSummaryProps) {
+export function DocumentsSummary({ breakdown }: DocumentsSummaryProps) {
   const { t } = useTranslation(['dashboard', 'common'])
 
-  const { total, ready, missing, needsUpdate } = buckets
-  const pct = (n: number) => (total > 0 ? (n / total) * 100 : 0)
+  const { requiredTotal, ready, needsUpdate, requested, missing, optional } =
+    breakdown
+  const pct = (n: number) => (requiredTotal > 0 ? (n / requiredTotal) * 100 : 0)
 
   return (
     <Card className="animate-fade-in-up h-full">
       <CardHeader>
         <CardTitle className="flex items-center justify-between gap-3">
           <span>{t('dashboard:documentsSummary.title')}</span>
-          {total > 0 && (
+          {requiredTotal > 0 && (
             <span className="text-caption text-muted-foreground font-normal">
-              {t('dashboard:documentsSummary.description', { ready, total })}
+              {t('dashboard:documentsSummary.description', {
+                ready,
+                total: requiredTotal,
+              })}
             </span>
           )}
         </CardTitle>
       </CardHeader>
       <CardContent>
-        {total === 0 ? (
+        {requiredTotal === 0 && optional === 0 ? (
           <EmptyState
             variant="inline"
             icon={FileText}
@@ -41,30 +47,35 @@ export function DocumentsSummary({ buckets }: DocumentsSummaryProps) {
           />
         ) : (
           <div className="flex flex-col gap-4">
-            {/* Segmented readiness bar. */}
+            {/* Segmented readiness bar over the required documents. */}
             <div
               className="bg-muted flex h-2 w-full overflow-hidden rounded-full"
               aria-hidden
             >
-              <div
-                className="bg-success h-full transition-[width] duration-500 ease-out"
-                style={{ width: `${pct(ready)}%` }}
-              />
-              <div
-                className="bg-danger h-full transition-[width] duration-500 ease-out"
-                style={{ width: `${pct(needsUpdate)}%` }}
-              />
-              <div
-                className="bg-muted-foreground/30 h-full transition-[width] duration-500 ease-out"
-                style={{ width: `${pct(missing)}%` }}
+              <Segment className="bg-success" width={pct(ready)} />
+              <Segment className="bg-info" width={pct(requested)} />
+              <Segment className="bg-danger" width={pct(needsUpdate)} />
+              <Segment
+                className="bg-muted-foreground/30"
+                width={pct(missing)}
               />
             </div>
 
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
               <BucketChip
                 tone="success"
                 count={ready}
                 label={t('dashboard:documentsSummary.ready')}
+              />
+              <BucketChip
+                tone="danger"
+                count={needsUpdate}
+                label={t('dashboard:documentsSummary.needsUpdate')}
+              />
+              <BucketChip
+                tone="info"
+                count={requested}
+                label={t('dashboard:documentsSummary.requested')}
               />
               <BucketChip
                 tone="warning"
@@ -72,9 +83,9 @@ export function DocumentsSummary({ buckets }: DocumentsSummaryProps) {
                 label={t('dashboard:documentsSummary.missing')}
               />
               <BucketChip
-                tone="danger"
-                count={needsUpdate}
-                label={t('dashboard:documentsSummary.needsUpdate')}
+                tone="neutral"
+                count={optional}
+                label={t('dashboard:documentsSummary.optional')}
               />
             </div>
 
@@ -82,7 +93,7 @@ export function DocumentsSummary({ buckets }: DocumentsSummaryProps) {
               to="/documents"
               className="text-primary inline-flex items-center gap-1 self-start rounded-sm text-sm hover:underline"
             >
-              {t('dashboard:documentsSummary.viewAll')}
+              {t('dashboard:documentsSummary.openWorkspace')}
               <ArrowRight className="size-3.5" />
             </Link>
           </div>
@@ -92,12 +103,21 @@ export function DocumentsSummary({ buckets }: DocumentsSummaryProps) {
   )
 }
 
+function Segment({ className, width }: { className: string; width: number }) {
+  return (
+    <div
+      className={`h-full transition-[width] duration-500 ease-out ${className}`}
+      style={{ width: `${width}%` }}
+    />
+  )
+}
+
 function BucketChip({
   tone,
   count,
   label,
 }: {
-  tone: 'success' | 'warning' | 'danger'
+  tone: StatusTone
   count: number
   label: string
 }) {

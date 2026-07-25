@@ -12,10 +12,14 @@ import type {
   VisaType,
 } from '@/domain/types/common'
 import { runValidation } from '@/domain/rules/runner'
-import type { ValidationResult } from '@/domain/rules/types'
+import type { ValidationFinding, ValidationResult } from '@/domain/rules/types'
 import { resolveVisaTemplate, getSourcesForRefs } from '@/config/countries'
 import type { RequirementSource, ReviewStatus } from '@/config/types'
 import type { StatusTone } from '@/components/ui/status-badge'
+import {
+  buildDocumentBuckets5,
+  type DocumentBuckets5,
+} from '@/features/documents/documents-model'
 import { useDossier } from '@/app/providers/DossierProvider'
 
 /**
@@ -125,12 +129,44 @@ export interface CountdownModel {
   daysUntil: number | null
 }
 
+/**
+ * One present-tense fact about the dossier as it stands *now* — never a logged
+ * historical event. It is derived live from state (no persistence, no
+ * timestamps), but its shape is deliberately event-stream-shaped (`id`, `key`,
+ * `tone`, optional `count`/`to`) so it can evolve into a real activity timeline
+ * once persistence/event logging exists, without changing the surrounding UI.
+ */
+export interface SnapshotItem {
+  id: string
+  /** Suffix under `dashboard:snapshot.item.*`; prose resolved at the UI boundary. */
+  key: string
+  tone: StatusTone
+  /** Present when the fact is quantified (e.g. "7 documents ready"). */
+  count?: number
+  /** Where this part of the dossier is edited, for a deep-link. */
+  to?: string
+}
+
+/** A finding whose fix lives on another page ("Go to fix"). */
+export interface FindingLink {
+  route: string
+}
+
 /** The per-application view model — the unit a future multi-application phase repeats. */
 export interface ApplicationDashboardModel {
   hasData: boolean
+  /** Given name only for the greeting — never the full legal name (null → neutral). */
+  greetingName: string | null
   countryCode?: string
   visaType?: VisaType
   documents: DocumentBuckets
+  /**
+   * The five-way required-document breakdown for the Documents section — the
+   * same canonical definition the Documents workspace uses. Distinct from
+   * `documents` (the organizational readiness buckets that back the ring, where
+   * `not_applicable` counts as ready).
+   */
+  documentsBreakdown: DocumentBuckets5
   readiness: {
     percent: number
     state: ReadinessState
@@ -144,6 +180,10 @@ export interface ApplicationDashboardModel {
   timeline: TimelineItemModel[]
   /** Today + future items only, capped for the dashboard overview. */
   upcomingTimeline: TimelineItemModel[]
+  /** The nearest upcoming date, surfaced beside the readiness ring. */
+  nextMilestone: TimelineItemModel | null
+  /** Live present-tense facts about the current dossier (not an event log). */
+  snapshot: SnapshotItem[]
   sponsorCount: number
   financing: FinancingSummaryModel | null
   reviewStatus?: ReviewStatus
@@ -284,6 +324,107 @@ export function deriveNextActions(
   }
 
   return actions
+}
+
+/**
+ * Deep-link for a finding whose fix lives elsewhere. Unlike the Documents
+ * workspace's `findingLink` (which returns null for `documents.*` because the
+ * fix is already on-screen there), the dashboard links every locatable finding
+ * — including document ones — to the page that resolves it.
+ */
+export function dashboardFindingLink(
+  finding: ValidationFinding
+): FindingLink | null {
+  const field = finding.relatedFields[0] ?? ''
+  if (field.startsWith('documents.')) return { route: '/documents' }
+  if (field.startsWith('applicant.')) return { route: '/applicant' }
+  if (field.startsWith('trip.') || field.startsWith('appointment.'))
+    return { route: '/trip' }
+  return null
+}
+
+/**
+ * Derive present-tense facts about the dossier as it stands now — what is on
+ * file, ready, planned. This is intentionally *not* an activity feed: it invents
+ * no history and no timestamps, reading everything from current state. The item
+ * shape is event-stream-ready so a future persistence phase can replace this
+ * with a real timeline without touching the widget.
+ */
+export function buildDossierSnapshot(input: DashboardInput): SnapshotItem[] {
+  const { applicant, application, documents, sponsors } = input
+  const buckets = buildDocumentBuckets5(documents)
+  const items: SnapshotItem[] = []
+
+  if (applicant) {
+    items.push({
+      id: 'applicant',
+      key: 'applicantOnFile',
+      tone: 'success',
+      to: '/applicant',
+    })
+    if (applicant.passport?.number) {
+      items.push({
+        id: 'passport',
+        key: 'passportOnFile',
+        tone: 'neutral',
+        to: '/applicant',
+      })
+    }
+  }
+  if (buckets.ready > 0) {
+    items.push({
+      id: 'documents-ready',
+      key: 'documentsReady',
+      tone: 'success',
+      count: buckets.ready,
+      to: '/documents',
+    })
+  }
+  if (buckets.needsUpdate > 0) {
+    items.push({
+      id: 'documents-needs-update',
+      key: 'documentsNeedUpdate',
+      tone: 'warning',
+      count: buckets.needsUpdate,
+      to: '/documents',
+    })
+  }
+  if (application?.appointment) {
+    items.push({
+      id: 'appointment',
+      key: 'appointmentScheduled',
+      tone: 'info',
+      to: '/trip',
+    })
+  }
+  if (application?.trip) {
+    items.push({ id: 'trip', key: 'tripPlanned', tone: 'info', to: '/trip' })
+  }
+  if (application?.trip?.insurance) {
+    items.push({
+      id: 'insurance',
+      key: 'insuranceReady',
+      tone: 'success',
+      to: '/trip',
+    })
+  }
+  if (application?.financing) {
+    items.push({
+      id: 'financing',
+      key: 'financingSet',
+      tone: 'neutral',
+      to: '/trip',
+    })
+  }
+  if (sponsors.length > 0) {
+    items.push({
+      id: 'sponsors',
+      key: 'sponsorPresent',
+      tone: 'neutral',
+      count: sponsors.length,
+    })
+  }
+  return items
 }
 
 export function buildTimeline(
@@ -445,9 +586,11 @@ function buildApplicationModel(
 
   return {
     hasData,
+    greetingName: applicant?.firstName ?? null,
     countryCode: application?.destinationCountry || undefined,
     visaType: application?.visaType,
     documents: buckets,
+    documentsBreakdown: buildDocumentBuckets5(documents),
     readiness: {
       percent: buckets.completionPercent,
       state,
@@ -462,6 +605,8 @@ function buildApplicationModel(
     nextActions: deriveNextActions(buckets, validation, application),
     timeline,
     upcomingTimeline,
+    nextMilestone: upcomingTimeline[0] ?? null,
+    snapshot: buildDossierSnapshot(input),
     sponsorCount: sponsors.length,
     financing,
     reviewStatus: template?.reviewStatus,

@@ -28,6 +28,32 @@ if (!imported.success || !imported.data) {
 }
 const SEED: Dossier = imported.data
 
+/** A seed where insurance ends before the trip — fires a cross-entity finding. */
+const GAP_SEED: Dossier = {
+  ...SEED,
+  application: SEED.application
+    ? {
+        ...SEED.application,
+        trip: SEED.application.trip
+          ? {
+              ...SEED.application.trip,
+              insurance: SEED.application.trip.insurance
+                ? {
+                    ...SEED.application.trip.insurance,
+                    coverageEndDate: '2020-01-01',
+                  }
+                : undefined,
+            }
+          : undefined,
+      }
+    : SEED.application,
+}
+
+const greetingFor = () =>
+  i18n.t('dashboard:greeting.hello', {
+    name: SEED.applicant?.firstName ?? '',
+  })
+
 /** Seeds the provider on mount — no fixture-loading test helper existed before. */
 function Seed({
   data,
@@ -90,53 +116,64 @@ describe('Dashboard — empty state', () => {
 
 describe('Dashboard — seeded command center', () => {
   it.each([...SUPPORTED_LOCALES])(
-    'renders the readiness, metrics and widgets in "%s"',
+    'renders the greeting, readiness and purpose-driven sections in "%s"',
     async (locale) => {
       await i18n.changeLanguage(locale)
       renderDashboard(SEED)
 
-      // The page title is the single h1.
+      // The greeting (with the applicant's given name) is the single h1.
       const h1 = await screen.findByRole('heading', {
         level: 1,
-        name: i18n.t('dashboard:title'),
+        name: greetingFor(),
       })
       expect(h1).toBeInTheDocument()
       expect(screen.getAllByRole('heading', { level: 1 })).toHaveLength(1)
 
-      // The readiness ring exposes both percentage and state via its label.
-      // The example dossier has 7 of 10 required documents ready → 70%.
+      // Readiness is the single dominant indicator: the ring exposes the
+      // percentage via its label. The example has 7 of 10 required ready → 70%.
       const ring = screen.getByRole('img')
       expect(ring.getAttribute('aria-label')).toContain('70')
 
-      // Documents metric shows ready / total.
-      expect(screen.getByText('7/10')).toBeInTheDocument()
+      // The single next action offers exactly one CTA.
+      expect(
+        screen.getByRole('link', { name: i18n.t('dashboard:nextAction.cta') })
+      ).toBeInTheDocument()
 
-      // Next actions renders as a real list of actionable items.
-      const lists = screen.getAllByRole('list')
-      expect(lists.length).toBeGreaterThan(0)
-      expect(screen.getAllByRole('listitem').length).toBeGreaterThan(0)
-
-      // The document buckets are individually labelled.
+      // The documents section labels the five buckets.
       expect(
         screen.getByText(i18n.t('dashboard:documentsSummary.ready'))
       ).toBeInTheDocument()
       expect(
-        screen.getByText(i18n.t('dashboard:documentsSummary.missing'))
+        screen.getByText(i18n.t('dashboard:documentsSummary.requested'))
       ).toBeInTheDocument()
       expect(
-        screen.getByText(i18n.t('dashboard:documentsSummary.needsUpdate'))
+        screen.getByText(i18n.t('dashboard:documentsSummary.optional'))
+      ).toBeInTheDocument()
+
+      // The live dossier snapshot renders present-tense facts.
+      expect(
+        screen.getByText(i18n.t('dashboard:snapshot.item.applicantOnFile'))
       ).toBeInTheDocument()
     }
   )
+
+  it('surfaces a consistency finding with a deep-link to its fix', async () => {
+    renderDashboard(GAP_SEED)
+
+    await screen.findByRole('heading', { level: 1, name: greetingFor() })
+
+    // Consistency health links a finding to the page that resolves it.
+    const links = await screen.findAllByRole('link', {
+      name: new RegExp(i18n.t('dashboard:consistencyHealth.goToFix')),
+    })
+    expect(links.length).toBeGreaterThan(0)
+  })
 
   it('translates the header actions rather than hardcoding English', async () => {
     await i18n.changeLanguage('tr')
     renderDashboard(SEED)
 
-    await screen.findByRole('heading', {
-      level: 1,
-      name: i18n.t('dashboard:title'),
-    })
+    await screen.findByRole('heading', { level: 1, name: greetingFor() })
 
     // The old build hardcoded the English "Check Issues" / "Documents".
     expect(

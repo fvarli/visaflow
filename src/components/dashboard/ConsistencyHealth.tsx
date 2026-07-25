@@ -8,11 +8,12 @@ import {
   Info,
 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { StatusBadge, SEVERITY_TONE } from '@/components/ui/status-badge'
+import { StatusBadge } from '@/components/ui/status-badge'
 import { useFindingText } from '@/lib/finding-text'
+import { dashboardFindingLink } from '@/features/dashboard/dashboard-model'
 import type { ValidationResult, ValidationSeverity } from '@/domain/rules/types'
 
-interface ValidationSummaryProps {
+interface ConsistencyHealthProps {
   validation: ValidationResult
 }
 
@@ -22,13 +23,20 @@ const SEVERITY_ICON: Record<ValidationSeverity, typeof AlertCircle> = {
   info: Info,
 }
 
+const SEVERITY_ICON_CLASS: Record<ValidationSeverity, string> = {
+  error: 'text-danger',
+  warning: 'text-warning',
+  info: 'text-info',
+}
+
 const MAX_SHOWN = 3
 
 /**
- * Leads with the first actionable findings (already sorted error-first) rather
- * than a bare count, so the most important problems are visible immediately.
+ * The dossier's consistency health: a calm error/warning/info summary that leads
+ * with the most important findings (already sorted error-first) and links each
+ * one straight to the page that fixes it — never a dead end.
  */
-export function ValidationSummary({ validation }: ValidationSummaryProps) {
+export function ConsistencyHealth({ validation }: ConsistencyHealthProps) {
   const { t } = useTranslation(['dashboard', 'validation', 'common'])
   const findingText = useFindingText()
 
@@ -40,7 +48,7 @@ export function ValidationSummary({ validation }: ValidationSummaryProps) {
     <Card className="animate-fade-in-up h-full">
       <CardHeader>
         <CardTitle className="flex items-center justify-between gap-3">
-          <span>{t('dashboard:validationSummary.title')}</span>
+          <span>{t('dashboard:consistencyHealth.title')}</span>
           {findings.length > 0 && (
             <span className="flex items-center gap-1.5">
               {errorCount > 0 && (
@@ -61,30 +69,35 @@ export function ValidationSummary({ validation }: ValidationSummaryProps) {
           <div className="text-muted-foreground flex items-center gap-2.5 py-1">
             <CheckCircle2 className="text-success size-5 shrink-0" />
             <p className="text-body">
-              {t('dashboard:validationSummary.allClear')}
+              {t('dashboard:consistencyHealth.allClear')}
             </p>
           </div>
         ) : (
           <div className="flex flex-col gap-3">
-            <ul className="flex flex-col gap-2.5">
+            <ul className="flex flex-col gap-3">
               {shown.map((finding) => {
                 const Icon = SEVERITY_ICON[finding.severity]
-                const tone = SEVERITY_TONE[finding.severity]
+                const link = dashboardFindingLink(finding)
                 return (
                   <li key={finding.id} className="flex items-start gap-2.5">
                     <Icon
                       aria-hidden
-                      className={
-                        tone === 'danger'
-                          ? 'text-danger mt-0.5 size-4 shrink-0'
-                          : tone === 'warning'
-                            ? 'text-warning mt-0.5 size-4 shrink-0'
-                            : 'text-info mt-0.5 size-4 shrink-0'
-                      }
+                      className={`mt-0.5 size-4 shrink-0 ${SEVERITY_ICON_CLASS[finding.severity]}`}
                     />
-                    <span className="text-body text-foreground min-w-0">
-                      {findingText(finding).title}
-                    </span>
+                    <div className="flex min-w-0 flex-col gap-0.5">
+                      <span className="text-body text-foreground">
+                        {findingText(finding).title}
+                      </span>
+                      {link && (
+                        <Link
+                          to={link.route}
+                          className="text-primary inline-flex w-fit items-center gap-1 rounded-sm text-sm hover:underline"
+                        >
+                          {t('dashboard:consistencyHealth.goToFix')}
+                          <ArrowRight className="size-3.5" />
+                        </Link>
+                      )}
+                    </div>
                   </li>
                 )
               })}
@@ -94,10 +107,10 @@ export function ValidationSummary({ validation }: ValidationSummaryProps) {
               className="text-primary inline-flex items-center gap-1 self-start rounded-sm text-sm hover:underline"
             >
               {remaining > 0
-                ? t('dashboard:validationSummary.viewMore', {
+                ? t('dashboard:consistencyHealth.viewMore', {
                     count: remaining,
                   })
-                : t('dashboard:validationSummary.viewAll')}
+                : t('dashboard:consistencyHealth.viewAll')}
               <ArrowRight className="size-3.5" />
             </Link>
           </div>

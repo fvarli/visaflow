@@ -25,8 +25,8 @@ actions, a timeline, and requirement/source status. It is:
   descriptors.
 
 **2. The widgets — `src/components/dashboard/*`.** Each section is a standalone, prop-driven
-component fed from the model: `ReadinessHero`, `MetricsRow`, `NextActions`, `UpcomingTimeline`,
-`DocumentsSummary`, `ValidationSummary`, `TripSummary`, and `DashboardSkeleton`. `DashboardPage`
+component fed from the model: `ReadinessHero`, `NextAction`, `UpcomingTimeline`, `ConsistencyHealth`,
+`DocumentsSummary`, `TripSummary`, `DossierSnapshot`, and `DashboardSkeleton`. `DashboardPage`
 holds only layout and order — no data logic.
 
 ```
@@ -34,8 +34,29 @@ DossierState ──▶ useDashboardModel() ──▶ DashboardModel
                                             │  (per-application view model)
         ┌───────────────┬──────────────┬───┴────────────┬───────────────┐
         ▼               ▼              ▼                ▼               ▼
-  ReadinessHero    MetricsRow    NextActions     DocumentsSummary  ValidationSummary …
+  ReadinessHero    NextAction   ConsistencyHealth  DocumentsSummary  DossierSnapshot …
 ```
+
+## A command center, not a metrics panel
+
+The dashboard answers one question on sight — *what should I do next?* — so it leads with meaningful
+product sections rather than isolated statistics ([ADR-022]):
+
+- **Greeting** (the single `h1`) uses the applicant's given name only — never the full legal name —
+  falling back to a neutral greeting; application context (country · visa type · preparation status)
+  sits in the eyebrow.
+- **Readiness is the single dominant progress indicator** — one large ring with an organizational
+  verdict and the nearest milestone beneath it. There is **no KPI-card row**; the old four-metric strip
+  was removed, and each signal re-homed into a section that also says why it matters and where to act.
+- **The next action is exactly one task** — with its reason and an effort estimate — never a list.
+- **Consistency health** leads with the top findings and deep-links each to the page that fixes it
+  (`dashboardFindingLink`; unlike the Documents workspace's `findingLink`, it also links `documents.*`
+  findings, since the dashboard is not the fix site).
+- **Documents** shows the five-way breakdown reusing the Documents workspace's `buildDocumentBuckets5`
+  (a distinct definition from the ring's organizational readiness, which counts `not_applicable` as ready).
+- **Dossier snapshot** is a *live* present-tense view of what the dossier holds now — not a fabricated
+  activity feed. It is event-stream-shaped so it can become a real timeline once persistence exists,
+  with no layout change ([ADR-021]).
 
 ## Organizational, never predictive
 
@@ -75,3 +96,5 @@ by the global `prefers-reduced-motion` rule — widgets do not implement their o
 
 [ADR-016]: ./decisions.md
 [ADR-017]: ./decisions.md
+[ADR-021]: ./decisions.md
+[ADR-022]: ./decisions.md

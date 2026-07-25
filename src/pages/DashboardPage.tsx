@@ -1,30 +1,37 @@
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
-import { AlertCircle, Compass, FileText, ListChecks, Plus } from 'lucide-react'
+import {
+  ArrowRight,
+  Compass,
+  FileText,
+  ListChecks,
+  Plus,
+  ShieldCheck,
+} from 'lucide-react'
 import { useDossier } from '@/app/providers/DossierProvider'
 import { useDashboardModel } from '@/features/dashboard/dashboard-model'
 import { PageHeader } from '@/components/ui/page-header'
 import { PageBody, Section, SectionHeader } from '@/components/ui/section'
 import { Button } from '@/components/ui/button'
 import { EmptyState } from '@/components/ui/empty-state'
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { SourceNote } from '@/components/ui/source-note'
 import { dynamicT } from '@/lib/i18n-dynamic'
 import { ReadinessHero } from '@/components/dashboard/ReadinessHero'
-import { MetricsRow } from '@/components/dashboard/MetricsRow'
-import { NextActions } from '@/components/dashboard/NextActions'
+import { NextAction } from '@/components/dashboard/NextAction'
 import { UpcomingTimeline } from '@/components/dashboard/UpcomingTimeline'
+import { ConsistencyHealth } from '@/components/dashboard/ConsistencyHealth'
 import { DocumentsSummary } from '@/components/dashboard/DocumentsSummary'
-import { ValidationSummary } from '@/components/dashboard/ValidationSummary'
 import { TripSummary } from '@/components/dashboard/TripSummary'
+import { DossierSnapshot } from '@/components/dashboard/DossierSnapshot'
 
 /** Only Greece is configured today; kept as a named constant, not a literal. */
 const DEFAULT_COUNTRY = 'GR'
 
 /**
- * The dossier command center: a thin composition of reusable widgets over the
- * derived dashboard model. All data logic lives in `useDashboardModel`; this
- * page decides only layout and order.
+ * The dossier command center: a thin composition of purpose-driven sections over
+ * the derived dashboard model. All data logic lives in `useDashboardModel`; this
+ * page decides only layout and order. It answers one question on sight — what
+ * should I do next — with readiness as the single dominant progress indicator.
  */
 export default function DashboardPage() {
   const { hasData, initializeEmpty } = useDossier()
@@ -35,33 +42,7 @@ export default function DashboardPage() {
 
   if (!hasData) {
     return (
-      <PageBody>
-        <PageHeader
-          title={t('dashboard:welcome')}
-          description={t('dashboard:welcomeDescription')}
-        />
-
-        <Alert>
-          <AlertCircle />
-          <AlertTitle>{t('common:privacy.title')}</AlertTitle>
-          <AlertDescription>{t('common:privacy.body')}</AlertDescription>
-        </Alert>
-
-        <EmptyState
-          icon={Compass}
-          title={t('dashboard:getStarted.title')}
-          description={t('dashboard:getStarted.description')}
-          action={
-            <Button onClick={() => initializeEmpty(DEFAULT_COUNTRY)}>
-              <Plus className="size-4" />
-              {t('dashboard:getStarted.startGreece')}
-            </Button>
-          }
-        />
-        <p className="text-caption text-muted-foreground text-center">
-          {t('dashboard:getStarted.orImportPlain')}
-        </p>
-      </PageBody>
+      <DashboardEmptyState onStart={() => initializeEmpty(DEFAULT_COUNTRY)} />
     )
   }
 
@@ -73,13 +54,25 @@ export default function DashboardPage() {
   const visaTypeLabel = app.visaType
     ? td(`visa-domain:visaTypes.${app.visaType}`)
     : null
-  const eyebrow = [countryLabel, visaTypeLabel].filter(Boolean).join(' · ')
+  const statusLabel =
+    app.readiness.state === 'documents_remaining'
+      ? td('dashboard:hero.verdict.documents_remaining', {
+          count: app.readiness.missingCount,
+        })
+      : td(`dashboard:hero.verdict.${app.readiness.state}`)
+  const eyebrow = [countryLabel, visaTypeLabel, statusLabel]
+    .filter(Boolean)
+    .join(' · ')
+
+  const greeting = app.greetingName
+    ? t('dashboard:greeting.hello', { name: app.greetingName })
+    : t('dashboard:greeting.helloNeutral')
 
   return (
     <PageBody>
       <PageHeader
         eyebrow={eyebrow || undefined}
-        title={t('dashboard:title')}
+        title={greeting}
         actions={
           <>
             <Button asChild variant="outline" size="sm">
@@ -98,35 +91,35 @@ export default function DashboardPage() {
         }
       />
 
-      <ReadinessHero
-        percent={app.readiness.percent}
-        state={app.readiness.state}
-        missingCount={app.readiness.missingCount}
-        appointment={app.appointment}
-        primaryAction={app.nextActions[0]}
-      />
-
-      <MetricsRow
-        documents={app.documents}
-        appointment={app.appointment}
-        trip={app.trip}
-        validation={app.validation}
-      />
+      {/* Hero row: the dominant readiness indicator + the single next action. */}
+      <div className="grid gap-6 lg:grid-cols-5">
+        <div className="lg:col-span-3">
+          <ReadinessHero
+            percent={app.readiness.percent}
+            state={app.readiness.state}
+            missingCount={app.readiness.missingCount}
+            nextMilestone={app.nextMilestone}
+          />
+        </div>
+        <div className="lg:col-span-2">
+          <NextAction action={app.nextActions[0] ?? null} />
+        </div>
+      </div>
 
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="flex flex-col gap-6 lg:col-span-2">
-          <NextActions actions={app.nextActions} />
           <UpcomingTimeline items={app.upcomingTimeline} />
+          <ConsistencyHealth validation={app.validation} />
         </div>
         <div className="flex flex-col gap-6">
-          <DocumentsSummary buckets={app.documents} />
-          <ValidationSummary validation={app.validation} />
+          <DocumentsSummary breakdown={app.documentsBreakdown} />
           <TripSummary
             countryCode={app.countryCode}
             trip={app.trip}
             financing={app.financing}
             sponsorCount={app.sponsorCount}
           />
+          <DossierSnapshot items={app.snapshot} />
         </div>
       </div>
 
@@ -137,6 +130,53 @@ export default function DashboardPage() {
         />
         <SourceNote sources={app.sources} reviewStatus={app.reviewStatus} />
       </Section>
+    </PageBody>
+  )
+}
+
+/**
+ * The first-run experience: an inviting introduction rather than a blank page.
+ * The primary path starts a Greece application in memory; importing an existing
+ * dossier uses the Import control in the header.
+ */
+function DashboardEmptyState({ onStart }: { onStart: () => void }) {
+  const { t } = useTranslation(['dashboard', 'common'])
+
+  return (
+    <PageBody>
+      <PageHeader
+        eyebrow={t('dashboard:welcome')}
+        title={t('dashboard:welcomeDescription')}
+      />
+
+      <EmptyState
+        icon={Compass}
+        title={t('dashboard:getStarted.title')}
+        description={t('dashboard:getStarted.description')}
+        action={
+          <div className="flex flex-col items-center gap-3">
+            <Button onClick={onStart}>
+              <Plus className="size-4" />
+              {t('dashboard:getStarted.startGreece')}
+            </Button>
+            <Link
+              to="/documents"
+              className="text-muted-foreground hover:text-foreground inline-flex items-center gap-1 rounded-sm text-sm"
+            >
+              {t('dashboard:getStarted.explore')}
+              <ArrowRight className="size-3.5" />
+            </Link>
+          </div>
+        }
+      />
+
+      <p className="text-caption text-muted-foreground inline-flex items-center justify-center gap-1.5 text-center">
+        <ShieldCheck className="size-3.5 shrink-0" />
+        {t('dashboard:getStarted.privacyNote')}
+      </p>
+      <p className="text-caption text-muted-foreground text-center">
+        {t('dashboard:getStarted.orImportPlain')}
+      </p>
     </PageBody>
   )
 }
