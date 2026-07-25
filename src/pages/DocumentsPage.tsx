@@ -1,31 +1,12 @@
-import { useState, useMemo, useEffect } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { FilePlus2, FileText, RefreshCw } from 'lucide-react'
 import { useDossier } from '@/app/providers/DossierProvider'
 import { resolveVisaTemplate } from '@/config/countries'
-import { isRequirementApplicable } from '@/config/types'
-import type { Document } from '@/domain/schemas/document.schema'
-import { createDocumentId } from '@/domain/types/common'
-import { Card, CardContent } from '@/components/ui/card'
+import { PageHeader } from '@/components/ui/page-header'
+import { PageBody, Section } from '@/components/ui/section'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
-import { Checkbox } from '@/components/ui/checkbox'
-import { Badge } from '@/components/ui/badge'
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
+import { EmptyState } from '@/components/ui/empty-state'
 import {
   Table,
   TableBody,
@@ -34,72 +15,95 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import { FileText, Search, Filter } from 'lucide-react'
+import { StatusBadge, DOCUMENT_STATUS_TONE } from '@/components/ui/status-badge'
+import type { StatusTone } from '@/components/ui/status-badge'
 import { NoDossierState } from '@/components/NoDossierState'
 import { documentLabel } from '@/lib/document-label'
 import { dynamicT } from '@/lib/i18n-dynamic'
+import { useFormatters } from '@/lib/format'
+import type { Document } from '@/domain/schemas/document.schema'
+import type { ValidationFinding } from '@/domain/rules/types'
+import {
+  useDocumentsModel,
+  groupByCategory,
+} from '@/features/documents/documents-model'
+import {
+  useDocumentFilters,
+  filterDocuments,
+  matchQuickFilter,
+} from '@/features/documents/document-filters'
+import {
+  applicableRequirements,
+  documentFromRequirement,
+  isCustomCode,
+  planTemplateSync,
+} from '@/features/documents/template-sync'
+import { DocumentsHero } from '@/components/documents/DocumentsHero'
+import {
+  DocumentFilters,
+  type DocumentView,
+} from '@/components/documents/DocumentFilters'
+import { DocumentGroup } from '@/components/documents/DocumentGroup'
+import { DocumentCard } from '@/components/documents/DocumentCard'
+import { DocumentRow } from '@/components/documents/DocumentRow'
+import { DocumentDetailPanel } from '@/components/documents/DocumentDetailPanel'
+import { AddDocumentDialog } from '@/components/documents/AddDocumentDialog'
+import { TemplateSyncDialog } from '@/components/documents/TemplateSyncDialog'
 
-/** Single source for the status options rendered in both selects. */
-const DOCUMENT_STATUSES: Document['status'][] = [
-  'not_started',
-  'requested',
-  'received',
-  'needs_update',
-  'ready',
-  'not_applicable',
-]
-
-const statusColors: Record<string, string> = {
-  not_started: 'bg-gray-100 text-gray-800',
-  requested: 'bg-blue-100 text-blue-800',
-  received: 'bg-yellow-100 text-yellow-800',
-  needs_update: 'bg-red-100 text-red-800',
-  ready: 'bg-green-100 text-green-800',
-  not_applicable: 'bg-gray-100 text-gray-600',
+function findingTone(findings: ValidationFinding[]): StatusTone {
+  if (findings.some((f) => f.severity === 'error')) return 'danger'
+  if (findings.some((f) => f.severity === 'warning')) return 'warning'
+  return 'info'
 }
 
+/**
+ * The Documents workspace: an overview hero that answers "what's still
+ * missing?", reusable filters + a view switch (cards / list / table), grouped
+ * document cards, and a side panel that opens a document without leaving the
+ * page. All derivations live in the pure documents model; validation findings
+ * are surfaced (never re-encoded).
+ */
 export default function DocumentsPage() {
-  const { state, setDocuments, updateDocument, hasData } = useDossier()
-  const { t } = useTranslation(['documents', 'common', 'visa-domain'])
+  const { state, setDocuments, hasData } = useDossier()
+  const { t } = useTranslation(['documents', 'visa-domain', 'common'])
   const td = dynamicT(t)
-  const [searchTerm, setSearchTerm] = useState('')
-  const [categoryFilter, setCategoryFilter] = useState<string>('all')
-  const [statusFilter, setStatusFilter] = useState<string>('all')
-  const [requiredOnly, setRequiredOnly] = useState(false)
-  const [editingDoc, setEditingDoc] = useState<Document | null>(null)
+  const f = useFormatters()
 
-  // Initialize documents from country config if empty
+  const model = useDocumentsModel()
+  const { filters, update, reset, applyQuickFilter, activeCount } =
+    useDocumentFilters()
+  const [view, setView] = useState<DocumentView>('cards')
+  const [selectedDocId, setSelectedDocId] = useState<string | null>(null)
+  const [addOpen, setAddOpen] = useState(false)
+  const [addKey, setAddKey] = useState(0)
+  const [syncOpen, setSyncOpen] = useState(false)
+
+  // Bump the dialog's key on open so it always mounts with fresh state.
+  const openAdd = () => {
+    setAddKey((k) => k + 1)
+    setAddOpen(true)
+  }
+
+  const ownerId = state.applicant?.id ?? ''
+  const countryCode = state.application?.destinationCountry
+  const template = model.template
+
+  // Seed the checklist from the template the first time (once, on empty).
   useEffect(() => {
     if (
       hasData &&
       state.documents.length === 0 &&
       state.application?.destinationCountry
     ) {
-      const template = resolveVisaTemplate(
+      const seedTemplate = resolveVisaTemplate(
         state.application.destinationCountry,
         state.application.visaType
       )
-      if (template) {
-        const context = {
-          employment: state.application.employment,
-          financing: state.application.financing,
-        }
-
-        const docs: Document[] = template.documentRequirements
-          .filter((req) => isRequirementApplicable(req, context))
-          .map((req) => ({
-            id: createDocumentId(),
-            // `code` is the identity. No display name is stored: a stored
-            // label would make exported JSON depend on the UI language.
-            code: req.code,
-            category: req.category,
-            ownerType: req.ownerType,
-            ownerId: state.applicant?.id ?? '',
-            required: req.required,
-            status: 'not_started',
-            verified: false,
-          }))
-
+      if (seedTemplate) {
+        const docs = applicableRequirements(
+          seedTemplate,
+          state.application
+        ).map((req) => documentFromRequirement(req, state.applicant?.id ?? ''))
         setDocuments(docs)
       }
     }
@@ -111,338 +115,317 @@ export default function DocumentsPage() {
     setDocuments,
   ])
 
-  const filteredDocs = useMemo(() => {
-    return state.documents.filter((doc) => {
-      if (
-        searchTerm &&
-        !documentLabel(t, doc.code, doc.name)
-          .toLocaleLowerCase()
-          .includes(searchTerm.toLocaleLowerCase())
-      ) {
-        return false
-      }
-      if (categoryFilter !== 'all' && doc.category !== categoryFilter) {
-        return false
-      }
-      if (statusFilter !== 'all' && doc.status !== statusFilter) {
-        return false
-      }
-      if (requiredOnly && !doc.required) {
-        return false
-      }
-      return true
-    })
-  }, [
-    state.documents,
-    searchTerm,
-    categoryFilter,
-    statusFilter,
-    requiredOnly,
-    t,
-  ])
+  const labelOf = useMemo(
+    () => (doc: Document) => documentLabel(t, doc.code, doc.name),
+    [t]
+  )
 
-  const categories = useMemo(() => {
-    const cats = new Set(state.documents.map((d) => d.category))
-    return Array.from(cats).sort()
-  }, [state.documents])
+  const filtered = useMemo(
+    () => filterDocuments(state.documents, filters, labelOf),
+    [state.documents, filters, labelOf]
+  )
+  const groups = useMemo(() => groupByCategory(filtered), [filtered])
 
-  const handleStatusChange = (docId: string, status: Document['status']) => {
-    updateDocument(docId, { status })
+  const presentCategories = useMemo(
+    () => groupByCategory(state.documents).map((g) => g.category),
+    [state.documents]
+  )
+  const presentOwners = useMemo(
+    () => Array.from(new Set(state.documents.map((d) => d.ownerType))),
+    [state.documents]
+  )
+
+  const availableToAdd = useMemo(
+    () => (template ? applicableRequirements(template, state.application) : []),
+    [template, state.application]
+  )
+  const missingRequirements = useMemo(
+    () =>
+      template
+        ? availableToAdd.filter(
+            (req) => !state.documents.some((d) => d.code === req.code)
+          )
+        : [],
+    [template, availableToAdd, state.documents]
+  )
+  const syncPlan = useMemo(
+    () =>
+      template
+        ? planTemplateSync(state.documents, state.application, template)
+        : { toAdd: [], noLongerApplicable: [] },
+    [template, state.documents, state.application]
+  )
+
+  if (!hasData) {
+    return (
+      <PageBody>
+        <NoDossierState section={t('documents:title')} />
+      </PageBody>
+    )
   }
 
-  const handleSaveEdit = () => {
-    if (editingDoc) {
-      updateDocument(editingDoc.id, editingDoc)
-      setEditingDoc(null)
+  const { buckets } = model
+  const selectedDoc =
+    state.documents.find((d) => d.id === selectedDocId) ?? null
+
+  const buildDates = (doc: Document) => {
+    const out: { label: string; value: string }[] = []
+    if (doc.issuedAt)
+      out.push({
+        label: t('documents:card.issued'),
+        value: f.dateShort(doc.issuedAt),
+      })
+    if (doc.validUntil)
+      out.push({
+        label: t('documents:card.valid'),
+        value: f.dateShort(doc.validUntil),
+      })
+    if (doc.receivedAt)
+      out.push({
+        label: t('documents:card.received'),
+        value: f.dateShort(doc.receivedAt),
+      })
+    if (doc.requestedAt)
+      out.push({
+        label: t('documents:card.requested'),
+        value: f.dateShort(doc.requestedAt),
+      })
+    return out
+  }
+
+  const cardProps = (doc: Document) => {
+    const findings = model.findingsByDoc.get(doc.id) ?? []
+    return {
+      label: labelOf(doc),
+      categoryLabel: td(`visa-domain:documentCategory.${doc.category}`),
+      ownerLabel: td(`visa-domain:ownerType.${doc.ownerType}`),
+      statusLabel: td(`visa-domain:documentStatus.${doc.status}`),
+      statusTone: DOCUMENT_STATUS_TONE[doc.status] ?? 'neutral',
+      isCustom: isCustomCode(doc.code),
+      customLabel: t('documents:card.kindCustom'),
+      dates: buildDates(doc),
+      notesPreview: doc.notes,
+      missingInfo: doc.status === 'not_started',
+      missingInfoLabel: t('documents:card.missingInfo'),
+      verified: doc.verified,
+      verifiedLabel: t('documents:card.verified'),
+      notVerifiedLabel: t('documents:card.notVerified'),
+      findingCount: findings.length,
+      findingLabel:
+        findings.length > 0
+          ? t('documents:card.findings', { count: findings.length })
+          : undefined,
+      findingTone: findingTone(findings),
+      openLabel: t('documents:card.open'),
+      onOpen: () => setSelectedDocId(doc.id),
+      selected: selectedDocId === doc.id,
     }
   }
 
-  if (!hasData) {
-    return <NoDossierState section={t('documents:title')} />
+  const groupCount = (docs: Document[]) => {
+    const ready = docs.filter((d) => d.status === 'ready').length
+    return t('documents:group.count', { ready, total: docs.length })
   }
 
+  const emptyState = (
+    <EmptyState
+      icon={FileText}
+      title={t('documents:empty.title')}
+      description={t('documents:empty.description')}
+    />
+  )
+
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">{t('documents:title')}</h1>
-          <p className="text-muted-foreground">
-            {t('documents:shortDescription')}
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          <Badge variant="outline">
-            {t('documents:readyCount', {
-              ready: filteredDocs.filter((d) => d.status === 'ready').length,
-              total: filteredDocs.filter((d) => d.required).length,
-            })}
-          </Badge>
-        </div>
-      </div>
-
-      {/* Filters */}
-      <Card>
-        <CardContent className="pt-6">
-          <div className="flex flex-col gap-4 md:flex-row md:items-center">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                placeholder={t('documents:filters.search')}
-                aria-label={t('documents:filters.searchLabel')}
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
-              />
-            </div>
-
-            <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-              <SelectTrigger
-                className="w-40"
-                aria-label={t('documents:filters.categoryLabel')}
+    <PageBody>
+      <PageHeader
+        title={t('documents:title')}
+        description={t('documents:shortDescription')}
+        actions={
+          template && (
+            <>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setSyncOpen(true)}
               >
-                <Filter className="mr-2 h-4 w-4" />
-                <SelectValue placeholder={t('documents:filters.category')} />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">
-                  {t('documents:filters.allCategories')}
-                </SelectItem>
-                {categories.map((cat) => (
-                  <SelectItem key={cat} value={cat}>
-                    {td(`visa-domain:documentCategory.${cat}`)}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+                <RefreshCw />
+                {t('documents:sync.trigger')}
+              </Button>
+              <Button size="sm" onClick={openAdd}>
+                <FilePlus2 />
+                {t('documents:add.trigger')}
+              </Button>
+            </>
+          )
+        }
+      />
 
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger
-                className="w-40"
-                aria-label={t('documents:filters.statusLabel')}
-              >
-                <SelectValue placeholder={t('documents:filters.status')} />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">
-                  {t('documents:filters.allStatuses')}
-                </SelectItem>
-                {DOCUMENT_STATUSES.map((status) => (
-                  <SelectItem key={status} value={status}>
-                    {td(`visa-domain:documentStatus.${status}`)}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+      <DocumentsHero
+        buckets={buckets}
+        bucketLabels={{
+          ready: t('documents:hero.buckets.ready'),
+          missing: t('documents:hero.buckets.missing'),
+          needsUpdate: t('documents:hero.buckets.needsUpdate'),
+          requested: t('documents:hero.buckets.requested'),
+          optional: t('documents:hero.buckets.optional'),
+        }}
+        completionLabel={t('documents:hero.completion', {
+          percent: buckets.completionPercent,
+        })}
+        summaryLabel={t('documents:hero.ofRequired', {
+          ready: buckets.ready,
+          total: buckets.requiredTotal,
+        })}
+        nextTitle={t('documents:hero.nextTitle')}
+        nextDocLabel={model.nextDocument ? labelOf(model.nextDocument) : null}
+        nextEmptyLabel={t('documents:hero.nextEmpty')}
+        openLabel={t('documents:hero.open')}
+        activeBucket={matchQuickFilter(filters)}
+        onBucketClick={applyQuickFilter}
+        onOpenNext={
+          model.nextDocument
+            ? () => setSelectedDocId(model.nextDocument?.id ?? null)
+            : undefined
+        }
+      />
 
-            <div className="flex items-center gap-2">
-              <Checkbox
-                id="required-only"
-                checked={requiredOnly}
-                onCheckedChange={(checked) => setRequiredOnly(checked === true)}
-              />
-              <Label htmlFor="required-only" className="text-sm">
-                {t('documents:filters.requiredOnly')}
-              </Label>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+      <DocumentFilters
+        filters={filters}
+        categories={presentCategories}
+        owners={presentOwners}
+        onUpdate={update}
+        onClear={reset}
+        activeCount={activeCount}
+        resultsLabel={t('documents:filters.results', {
+          count: filtered.length,
+        })}
+        view={view}
+        onViewChange={setView}
+      />
 
-      {/* Documents Table */}
-      <Card>
-        <CardContent className="p-0">
+      {filtered.length === 0 ? (
+        emptyState
+      ) : view === 'table' ? (
+        <Section>
           <Table>
             <TableHeader>
               <TableRow>
                 <TableHead>{t('documents:table.document')}</TableHead>
                 <TableHead>{t('documents:table.category')}</TableHead>
+                <TableHead>{t('documents:table.owner')}</TableHead>
                 <TableHead>{t('documents:table.status')}</TableHead>
-                <TableHead>{t('documents:table.required')}</TableHead>
                 <TableHead className="text-right">
                   {t('documents:table.actions')}
                 </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredDocs.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={5} className="text-center py-8">
-                    <FileText className="mx-auto h-8 w-8 text-muted-foreground mb-2" />
-                    <p className="text-muted-foreground">
-                      {t('documents:empty.title')}
-                    </p>
+              {filtered.map((doc) => (
+                <TableRow
+                  key={doc.id}
+                  data-state={selectedDocId === doc.id ? 'selected' : undefined}
+                >
+                  <TableCell className="font-medium">{labelOf(doc)}</TableCell>
+                  <TableCell>
+                    {td(`visa-domain:documentCategory.${doc.category}`)}
+                  </TableCell>
+                  <TableCell>
+                    {td(`visa-domain:ownerType.${doc.ownerType}`)}
+                  </TableCell>
+                  <TableCell>
+                    <StatusBadge tone={DOCUMENT_STATUS_TONE[doc.status]} dot>
+                      {td(`visa-domain:documentStatus.${doc.status}`)}
+                    </StatusBadge>
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setSelectedDocId(doc.id)}
+                    >
+                      {t('documents:card.open')}
+                    </Button>
                   </TableCell>
                 </TableRow>
-              ) : (
-                filteredDocs.map((doc) => (
-                  <TableRow key={doc.id}>
-                    <TableCell>
-                      <div>
-                        <p className="font-medium">
-                          {documentLabel(t, doc.code, doc.name)}
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          {doc.code}
-                        </p>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <span className="text-sm">
-                        {td(`visa-domain:documentCategory.${doc.category}`)}
-                      </span>
-                    </TableCell>
-                    <TableCell>
-                      <Select
-                        value={doc.status}
-                        onValueChange={(value) =>
-                          handleStatusChange(
-                            doc.id,
-                            value as Document['status']
-                          )
-                        }
-                      >
-                        <SelectTrigger
-                          className="w-36"
-                          aria-label={t('documents:table.statusFor', {
-                            document: documentLabel(t, doc.code, doc.name),
-                          })}
-                        >
-                          <Badge
-                            variant="secondary"
-                            className={statusColors[doc.status]}
-                          >
-                            {td(`visa-domain:documentStatus.${doc.status}`)}
-                          </Badge>
-                        </SelectTrigger>
-                        <SelectContent>
-                          {DOCUMENT_STATUSES.map((status) => (
-                            <SelectItem key={status} value={status}>
-                              {td(`visa-domain:documentStatus.${status}`)}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </TableCell>
-                    <TableCell>
-                      {doc.required ? (
-                        <Badge variant="destructive">
-                          {t('common:states.required')}
-                        </Badge>
-                      ) : (
-                        <Badge variant="outline">
-                          {t('common:states.optional')}
-                        </Badge>
-                      )}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setEditingDoc(doc)}
-                      >
-                        {t('common:actions.edit')}
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))
-              )}
+              ))}
             </TableBody>
           </Table>
-        </CardContent>
-      </Card>
-
-      {/* Edit Dialog */}
-      <Dialog
-        open={!!editingDoc}
-        onOpenChange={(open) => !open && setEditingDoc(null)}
-      >
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{t('documents:edit.title')}</DialogTitle>
-            <DialogDescription>
-              {editingDoc
-                ? documentLabel(t, editingDoc.code, editingDoc.name)
-                : ''}
-            </DialogDescription>
-          </DialogHeader>
-
-          {editingDoc && (
-            <div className="space-y-4">
-              <div className="grid gap-4 grid-cols-2">
-                <div className="space-y-2">
-                  <Label>{t('documents:edit.issuedDate')}</Label>
-                  <Input
-                    type="date"
-                    value={editingDoc.issuedAt ?? ''}
-                    onChange={(e) =>
-                      setEditingDoc({ ...editingDoc, issuedAt: e.target.value })
-                    }
-                  />
+        </Section>
+      ) : (
+        <div className="flex flex-col gap-8">
+          {groups.map((group) => (
+            <DocumentGroup
+              key={group.category}
+              title={td(`visa-domain:documentCategory.${group.category}`)}
+              countLabel={groupCount(group.documents)}
+              toggleLabel={t('documents:group.toggle', {
+                category: td(`visa-domain:documentCategory.${group.category}`),
+              })}
+              addLabel={template ? t('documents:group.addDocument') : undefined}
+              onAdd={template ? openAdd : undefined}
+            >
+              {view === 'cards' ? (
+                <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                  {group.documents.map((doc) => (
+                    <DocumentCard key={doc.id} {...cardProps(doc)} />
+                  ))}
                 </div>
-                <div className="space-y-2">
-                  <Label>{t('documents:edit.validUntil')}</Label>
-                  <Input
-                    type="date"
-                    value={editingDoc.validUntil ?? ''}
-                    onChange={(e) =>
-                      setEditingDoc({
-                        ...editingDoc,
-                        validUntil: e.target.value,
-                      })
-                    }
-                  />
+              ) : (
+                <div className="flex flex-col gap-2">
+                  {group.documents.map((doc) => {
+                    const findings = model.findingsByDoc.get(doc.id) ?? []
+                    return (
+                      <DocumentRow
+                        key={doc.id}
+                        label={labelOf(doc)}
+                        metaLabel={`${td(`visa-domain:documentCategory.${doc.category}`)} · ${td(
+                          `visa-domain:ownerType.${doc.ownerType}`
+                        )}`}
+                        statusLabel={td(
+                          `visa-domain:documentStatus.${doc.status}`
+                        )}
+                        statusTone={
+                          DOCUMENT_STATUS_TONE[doc.status] ?? 'neutral'
+                        }
+                        findingCount={findings.length}
+                        openLabel={t('documents:card.open')}
+                        onOpen={() => setSelectedDocId(doc.id)}
+                        selected={selectedDocId === doc.id}
+                      />
+                    )
+                  })}
                 </div>
-              </div>
+              )}
+            </DocumentGroup>
+          ))}
+        </div>
+      )}
 
-              <div className="space-y-2">
-                <Label>{t('documents:edit.fileReference')}</Label>
-                <Input
-                  value={editingDoc.fileReference ?? ''}
-                  onChange={(e) =>
-                    setEditingDoc({
-                      ...editingDoc,
-                      fileReference: e.target.value,
-                    })
-                  }
-                  placeholder={t('documents:edit.fileReferencePlaceholder')}
-                />
-              </div>
+      <DocumentDetailPanel
+        document={selectedDoc}
+        findings={
+          selectedDoc ? (model.findingsByDoc.get(selectedDoc.id) ?? []) : []
+        }
+        template={template}
+        countryCode={countryCode}
+        open={selectedDoc !== null}
+        onOpenChange={(open) => !open && setSelectedDocId(null)}
+      />
 
-              <div className="space-y-2">
-                <Label>{t('documents:edit.notes')}</Label>
-                <Textarea
-                  value={editingDoc.notes ?? ''}
-                  onChange={(e) =>
-                    setEditingDoc({ ...editingDoc, notes: e.target.value })
-                  }
-                  placeholder={t('documents:edit.notesPlaceholder')}
-                  rows={3}
-                />
-              </div>
+      <AddDocumentDialog
+        key={addKey}
+        open={addOpen}
+        onOpenChange={setAddOpen}
+        availableRequirements={missingRequirements}
+        ownerId={ownerId}
+      />
 
-              <div className="flex items-center gap-2">
-                <Checkbox
-                  id="verified"
-                  checked={editingDoc.verified}
-                  onCheckedChange={(checked) =>
-                    setEditingDoc({ ...editingDoc, verified: checked === true })
-                  }
-                />
-                <Label htmlFor="verified">{t('documents:edit.verified')}</Label>
-              </div>
-
-              <div className="flex justify-end gap-2">
-                <Button variant="outline" onClick={() => setEditingDoc(null)}>
-                  {t('common:actions.cancel')}
-                </Button>
-                <Button onClick={handleSaveEdit}>
-                  {t('common:actions.saveChanges')}
-                </Button>
-              </div>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
-    </div>
+      <TemplateSyncDialog
+        open={syncOpen}
+        onOpenChange={setSyncOpen}
+        plan={syncPlan}
+        ownerId={ownerId}
+      />
+    </PageBody>
   )
 }

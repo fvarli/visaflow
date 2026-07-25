@@ -14,6 +14,7 @@
     "i18n": "Internationalization",
     "onboarding": "Onboarding",
     "travel": "Travel",
+    "documents": "Documents",
     "composition": "Composition",
     "dashboard": "Dashboard"
   },
@@ -66,7 +67,10 @@
     "tripHero": "TripHero",
     "journeyTimeline": "JourneyTimeline",
     "travelSegment": "TravelSegmentCard",
-    "coverageCard": "CoverageCard"
+    "coverageCard": "CoverageCard",
+    "segmentedControl": "SegmentedControl",
+    "documentsHero": "DocumentsHero",
+    "documentCard": "DocumentCard"
   },
   "i18n": {
     "description": "Locale-aware formatting and translated domain vocabulary. Switch language above to see everything update in place.",
@@ -119,6 +123,7 @@
     "composition": "How the page-level pieces sit together. This is the rhythm every page should inherit.",
     "dashboard": "Composed command-center widgets, driven by the derived dashboard model over a fictional demo dossier.",
     "onboarding": "Guided-flow building blocks: the step rail, the \"Why do we ask this?\" popover, and the generic collection editor.",
-    "travel": "Trip-planner building blocks: the overview hero, the connected journey timeline with destination cards, transport segments and the insurance coverage card."
+    "travel": "Trip-planner building blocks: the overview hero, the connected journey timeline with destination cards, transport segments and the insurance coverage card.",
+    "documents": "Document-workspace building blocks: the segmented view switch, the readiness overview hero, and the document card in its template, custom and with-findings states."
   }
 }

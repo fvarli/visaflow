@@ -55,6 +55,17 @@ Last updated: 2026-07-23
 - [x] Small CSS motion vocabulary (fade / slide / scale / shimmer),
       reduced-motion respected
 
+### Guided experiences (wizards & workspace)
+- [x] Applicant profile — guided multi-step wizard (autosave, no Save button)
+- [x] Trip planner — guided flow with a connected-journey route builder
+- [x] Documents workspace — overview hero, reusable filters + Cards/List/Table
+      view switch, category-grouped cards, and a side panel (open without
+      navigation) that surfaces requirement context + related findings
+- [x] Reusable primitives: `Stepper`, `FieldHelp`, generic `CollectionEditor`,
+      `SegmentedControl`, plus trip & document card families — all in `/playground`
+- [x] Add custom documents / re-add template requirements / additive template
+      sync (never deletes applicant data); custom docs use a stable `CUSTOM-` code
+
 ### Technical
 - [x] TypeScript strict mode
 - [x] Zod schemas for all domain types
@@ -101,7 +112,7 @@ All checks pass:
 - `pnpm format:check` - PASS
 - `pnpm lint` - 0 errors (warnings acceptable, see below)
 - `pnpm typecheck` - PASS (`tsc -b`)
-- `pnpm test` - 110/110 PASS
+- `pnpm test` - 153/153 PASS
 - `pnpm build` - SUCCESS
 
 Note: an earlier version of this file claimed 23/23 tests and `tsc --noEmit`;

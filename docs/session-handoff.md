@@ -396,3 +396,73 @@ Continue nav, itinerary + reorder controls, empty state, no Save button) · `src
   `RouteStopSchema` for stable DnD keys — a future, backward-compatible schema addition).
 - Trip-consistency insights read the whole validation set filtered by ruleId; a future `runSpecificRules`
   call could avoid running unrelated rules if it ever matters for performance.
+
+---
+
+## Iteration 8 handoff (2026-07-24) — Documents workspace redesign
+
+Turned the Documents checklist into the **primary dossier workspace**: an overview hero that answers
+"what's still missing?" above the fold, reusable filters + a Cards/List/Table view switch, category-grouped
+document cards, and a side panel that opens a document **without navigation**. No dossier-schema change and
+no rule duplication — existing exports stay 1.0.0-compatible.
+
+### Key finding (same pattern as prior sprints)
+No schema change. `Document` already carries every card field; the provider already exposes
+`addDocument`/`updateDocument(id, partial)`/`removeDocument`/`setDocuments`; requirement context
+(description, notes, sources) is **re-resolved by `code`** from `resolveVisaTemplate` (never persisted).
+Template-vs-custom is derived (code in template ⇒ template-derived; custom docs use a `CUSTOM-<id>` code
+with the user's title in the existing `name` field — legitimate user data, language-independent).
+
+### Pure logic (`src/features/documents/`)
+- **`documents-model.ts`** — `buildDocumentBuckets5` (Ready/Missing/Needs-update/Requested/Optional +
+  completion), `groupByCategory` (+ `CATEGORY_ORDER`), `deriveNextDocument`, `classifyDoc`
+  (required/conditional/optional/custom), `associateFindings` (by `documentCodes` + `relatedFields` doc-id
+  + category for cross-entity findings) and `findingLink` (relatedFields prefix → `/trip`|`/applicant`).
+  `buildDocumentsModel`/`useDocumentsModel` compose these over `runValidation` — **no rule re-encoding**.
+- **`document-filters.ts`** — reusable `filterDocuments` + `DocumentFilters` + `useDocumentFilters`
+  (search/status/category/owner/requirement) + `QUICK_FILTERS` / `matchQuickFilter` for the hero chips.
+- **`template-sync.ts`** — `documentFromRequirement` (shared by seed + re-add), `createCustomDocument`,
+  `applicableRequirements`, and `planTemplateSync` (additive: `toAdd` + `noLongerApplicable`, never deletes).
+
+### New reusable primitive
+- **`src/components/ui/segmented-control.tsx`** — accessible `role="radiogroup"` switcher (roving tabindex,
+  arrow/Home/End keys). Drives the view switch; demoed in `/playground` → "Documents".
+
+### Feature components (`src/components/documents/`, prop-driven, memoized cards)
+`DocumentsHero` (readiness bar + 5 clickable bucket quick-filters + next document), `DocumentCard`
+(`React.memo`) + `DocumentRow`, `DocumentGroup` (collapsible `aria-expanded` category section),
+`DocumentFilters` (Toolbar + Selects + SegmentedControl; **view switch preserves filters**),
+`DocumentDetailPanel` (`Sheet` side panel: 3 progressively-disclosed layers — read-only requirement context
+via `SourceNote`, editable applicant state, related findings with "Go to Trip" deep-links; edits autosave
+via `updateDocument`), `AddDocumentDialog` (custom or re-add template requirement), `TemplateSyncDialog`
+(preview + apply, additive). `DocumentsPage.tsx` composes them over the model; keeps seed-on-empty.
+
+### i18n
+Extended `documents.json` (both locales): `hero.*`, `view.*`, expanded `filters.*`, `card.*`, `group.*`,
+`panel.*` (3 layers + kinds + source states), `add.*`, `sync.*`. Reuses `visa-domain` enum labels +
+`useFindingText` for finding prose. Playground "Documents" keys added. Values stay raw/ISO → JSON unchanged.
+
+### Gates (this iteration)
+`format:check` ✓ · `lint` 0 errors / 50 warnings (baseline 51) · `typecheck` ✓ · `test` **153/153**
+(138 + 15 new) · `build` ✓ (DocumentsPage lazy ~7.7 kB gzip; main index ~108.3 kB gzip, **below** baseline).
+Not committed, not pushed.
+
+### Flaky-test fix
+`vitest.config.ts` gained `testTimeout`/`hookTimeout: 15000`. The suite still flakes on the very first
+**cold** transform of a large change set (heavy one-time compile); two consecutive warm runs are green.
+`pnpm test` twice, or a warm cache, is reliable.
+
+### Tests added
+`src/tests/features/documents-model.test.ts` (buckets/grouping/next/classify/findings+link/filter/sync),
+`src/tests/ui/documents-workspace.test.tsx` (both locales: single h1, groups, view switch **preserves the
+search filter**, side panel opens without navigation + a cross-entity finding with a "Go to Trip" link),
+`src/tests/ui/segmented-control.test.tsx` (selection + arrow-key roving focus + `aria-checked`).
+
+### Known limitations / next
+- Visual verification was via bilingual render tests, not a browser (no connected Chrome). Re-verify at
+  1440/834/390 × light/dark × tr/en — hero above the fold, Sheet full-height on mobile, long TR labels.
+- Card view-models are rebuilt on each dossier change; `DocumentCard`/`DocumentRow` are memoized but the
+  per-render `dates`/`onOpen` props limit memo hits. For hundreds of documents, add row virtualization and
+  stabilize per-doc callbacks (noted as future).
+- Verification is a single `verified` boolean (no verifier/date); attachments are out of scope (text
+  `fileReference` only). Template sync is additive; "no longer applicable" items are surfaced, not deleted.

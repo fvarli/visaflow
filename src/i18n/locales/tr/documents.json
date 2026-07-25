@@ -1,8 +1,28 @@
 {
   "title": "Belgeler",
   "description": "Bu başvurunun gerektirdiği tüm belgeleri ve her birinin durumunu takip edin.",
-  "shortDescription": "Vize başvuru belgelerinizi takip edin",
+  "shortDescription": "Vize başvuru dosyanızı düzenleyin",
   "readyCount": "{{total}} belgeden {{ready}} tanesi hazır",
+  "hero": {
+    "completion": "%{{percent}} hazır",
+    "ofRequired": "{{total}} zorunlu belgeden {{ready}} hazır",
+    "nextTitle": "Sıradaki belge",
+    "nextEmpty": "Her şey güncel — bekleyen zorunlu belge yok.",
+    "open": "Aç",
+    "buckets": {
+      "ready": "Hazır",
+      "missing": "Eksik",
+      "needsUpdate": "Güncellenmeli",
+      "requested": "Talep edildi",
+      "optional": "İsteğe bağlı"
+    }
+  },
+  "view": {
+    "label": "Görünüm",
+    "cards": "Kartlar",
+    "list": "Liste",
+    "table": "Tablo"
+  },
   "filters": {
     "search": "Belge ara...",
     "searchLabel": "Belgelerde ara",
@@ -12,19 +32,105 @@
     "status": "Durum",
     "statusLabel": "Duruma göre filtrele",
     "allStatuses": "Tüm durumlar",
-    "requiredOnly": "Yalnızca zorunlu"
+    "requiredOnly": "Yalnızca zorunlu",
+    "owner": "Sahip",
+    "ownerLabel": "Sahibe göre filtrele",
+    "allOwners": "Tüm sahipler",
+    "requirement": "Gereklilik",
+    "requirementLabel": "Gerekliliğe göre filtrele",
+    "requirementAll": "Zorunlu ve isteğe bağlı",
+    "requirementRequired": "Yalnızca zorunlu",
+    "requirementOptional": "Yalnızca isteğe bağlı",
+    "clear": "Filtreleri temizle",
+    "results": "{{count}} gösteriliyor"
   },
   "table": {
     "document": "Belge",
     "category": "Kategori",
     "status": "Durum",
     "required": "Zorunluluk",
+    "owner": "Sahip",
     "actions": "İşlemler",
     "statusFor": "{{document}} belgesinin durumu"
   },
   "empty": {
     "title": "Eşleşen belge yok",
     "description": "Aramayı temizlemeyi veya filtreleri gevşetmeyi deneyin."
+  },
+  "card": {
+    "open": "Belgeyi aç",
+    "missingInfo": "Tarih ve ayrıntı ekleyin",
+    "noDates": "Henüz tarih yok",
+    "verified": "Doğrulandı",
+    "notVerified": "Doğrulanmadı",
+    "kindCustom": "Özel",
+    "issued": "Veriliş",
+    "valid": "Geçerlilik",
+    "requested": "Talep",
+    "received": "Teslim",
+    "findings_one": "{{count}} sorun",
+    "findings_other": "{{count}} sorun"
+  },
+  "group": {
+    "addDocument": "Belge ekle",
+    "count": "{{total}} belgeden {{ready}} hazır",
+    "toggle": "{{category}} bölümünü aç/kapat"
+  },
+  "panel": {
+    "requirementContext": "Bu belge hakkında",
+    "why": "Neden istenebilir",
+    "yourDocument": "Belgeniz",
+    "relatedFindings": "Tutarlılık",
+    "noFindings": "İlgili sorun bulunamadı.",
+    "goTo": "{{section}} bölümüne git",
+    "section": {
+      "trip": "Seyahat",
+      "applicant": "Başvuru sahibi"
+    },
+    "kind": {
+      "required": "Zorunlu",
+      "conditional": "Sizin durumunuzda zorunlu",
+      "optional": "İsteğe bağlı",
+      "custom": "Özel destekleyici belge"
+    },
+    "customNote": "Eklediğiniz bir destekleyici belge. Ülke şablonunun parçası değildir.",
+    "status": "Durum",
+    "owner": "Sahip",
+    "issued": "Veriliş tarihi",
+    "received": "Teslim tarihi",
+    "valid": "Geçerlilik bitişi",
+    "fileReference": "Dosya referansı",
+    "fileReferenceHint": "Bu belgenin nerede olduğunu hatırlatan bir yol veya not. Hiçbir zaman yüklenmez.",
+    "fileReferencePlaceholder": "Yerel dosya yolu veya referans",
+    "notes": "Notlar",
+    "notesPlaceholder": "Ek notlar...",
+    "verified": "Doğrulandı / gözden geçirildi",
+    "remove": "Çalışma alanından kaldır",
+    "markNotApplicable": "Uygulanamaz olarak işaretle",
+    "removeCustomConfirm": "Bu belge çalışma alanınızdan kaldırılsın mı?",
+    "removeTemplateWarning": "Bu, ülke şablonundaki zorunlu bir belgedir. Kaldırmak onu çalışma alanınızdan çıkarır — daha sonra tekrar ekleyebilirsiniz. Bunun yerine “Uygulanamaz olarak işaretle”yi düşünün."
+  },
+  "add": {
+    "trigger": "Belge ekle",
+    "title": "Belge ekle",
+    "description": "Özel bir destekleyici belge ekleyin veya ülke şablonundan bir gerekliliği yeniden ekleyin.",
+    "tabCustom": "Özel belge",
+    "tabTemplate": "Gerekliliklerden",
+    "customTitle": "Başlık",
+    "customTitlePlaceholder": "örn. Ön yazı",
+    "category": "Kategori",
+    "add": "Ekle",
+    "noneAvailable": "Uygulanabilir her gereklilik zaten çalışma alanınızda."
+  },
+  "sync": {
+    "trigger": "Gerekliliklerle eşitle",
+    "title": "Ülke gereklilikleriyle eşitle",
+    "description": "Durumunuz için yeni zorunlu hâle gelen belgeleri ekleyin. Hiçbir şey silinmez; mevcut durumlarınız, notlarınız, tarihleriniz ve doğrulamalarınız korunur.",
+    "additions": "Eklenecek ({{count}})",
+    "noLongerApplicable": "Artık uygulanamaz ({{count}})",
+    "noLongerHint": "Bunlar çalışma alanınızda kalır. Her birini gözden geçirip dilerseniz kaldırın ya da uygulanamaz olarak işaretleyin.",
+    "apply": "{{count}} belge ekle",
+    "nothing": "Çalışma alanınız mevcut gerekliliklerle zaten uyumlu."
   },
   "edit": {
     "title": "Belgeyi düzenle",

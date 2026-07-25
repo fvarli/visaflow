@@ -1,8 +1,28 @@
 {
   "title": "Documents",
   "description": "Track every document this application requires, and where each one stands.",
-  "shortDescription": "Track your visa application documents",
+  "shortDescription": "Organize your visa application dossier",
   "readyCount": "{{ready}} of {{total}} ready",
+  "hero": {
+    "completion": "{{percent}}% ready",
+    "ofRequired": "{{ready}} of {{total}} required documents ready",
+    "nextTitle": "Next document to obtain",
+    "nextEmpty": "You're all caught up — nothing required is outstanding.",
+    "open": "Open",
+    "buckets": {
+      "ready": "Ready",
+      "missing": "Missing",
+      "needsUpdate": "Needs update",
+      "requested": "Requested",
+      "optional": "Optional"
+    }
+  },
+  "view": {
+    "label": "View",
+    "cards": "Cards",
+    "list": "List",
+    "table": "Table"
+  },
   "filters": {
     "search": "Search documents...",
     "searchLabel": "Search documents",
@@ -12,19 +32,105 @@
     "status": "Status",
     "statusLabel": "Filter by status",
     "allStatuses": "All statuses",
-    "requiredOnly": "Required only"
+    "requiredOnly": "Required only",
+    "owner": "Owner",
+    "ownerLabel": "Filter by owner",
+    "allOwners": "All owners",
+    "requirement": "Requirement",
+    "requirementLabel": "Filter by requirement",
+    "requirementAll": "Required & optional",
+    "requirementRequired": "Required only",
+    "requirementOptional": "Optional only",
+    "clear": "Clear filters",
+    "results": "{{count}} shown"
   },
   "table": {
     "document": "Document",
     "category": "Category",
     "status": "Status",
     "required": "Required",
+    "owner": "Owner",
     "actions": "Actions",
     "statusFor": "Status for {{document}}"
   },
   "empty": {
     "title": "No documents match",
     "description": "Try clearing the search or loosening the filters."
+  },
+  "card": {
+    "open": "Open document",
+    "missingInfo": "Add dates and details",
+    "noDates": "No dates yet",
+    "verified": "Verified",
+    "notVerified": "Not verified",
+    "kindCustom": "Custom",
+    "issued": "Issued",
+    "valid": "Valid until",
+    "requested": "Requested",
+    "received": "Received",
+    "findings_one": "{{count}} issue",
+    "findings_other": "{{count}} issues"
+  },
+  "group": {
+    "addDocument": "Add document",
+    "count": "{{ready}}/{{total}} ready",
+    "toggle": "Toggle {{category}}"
+  },
+  "panel": {
+    "requirementContext": "About this document",
+    "why": "Why it may be requested",
+    "yourDocument": "Your document",
+    "relatedFindings": "Consistency",
+    "noFindings": "No related issues found.",
+    "goTo": "Go to {{section}}",
+    "section": {
+      "trip": "Trip",
+      "applicant": "Applicant"
+    },
+    "kind": {
+      "required": "Required",
+      "conditional": "Required in your case",
+      "optional": "Optional",
+      "custom": "Custom supporting document"
+    },
+    "customNote": "A supporting document you added. It isn't part of the country template.",
+    "status": "Status",
+    "owner": "Owner",
+    "issued": "Issued date",
+    "received": "Received date",
+    "valid": "Valid until",
+    "fileReference": "File reference",
+    "fileReferenceHint": "A path or note telling you where this document lives. Never uploaded.",
+    "fileReferencePlaceholder": "Local file path or reference",
+    "notes": "Notes",
+    "notesPlaceholder": "Additional notes...",
+    "verified": "Verified / reviewed",
+    "remove": "Remove from workspace",
+    "markNotApplicable": "Mark not applicable",
+    "removeCustomConfirm": "Remove this document from your workspace?",
+    "removeTemplateWarning": "This is a required document from the country template. Removing it takes it out of your workspace — you can re-add it later. Consider “Mark not applicable” instead."
+  },
+  "add": {
+    "trigger": "Add document",
+    "title": "Add a document",
+    "description": "Add a custom supporting document, or re-add a requirement from the country template.",
+    "tabCustom": "Custom document",
+    "tabTemplate": "From requirements",
+    "customTitle": "Title",
+    "customTitlePlaceholder": "e.g. Cover letter",
+    "category": "Category",
+    "add": "Add",
+    "noneAvailable": "Every applicable requirement is already in your workspace."
+  },
+  "sync": {
+    "trigger": "Sync with requirements",
+    "title": "Sync with country requirements",
+    "description": "Add documents newly required for your situation. Nothing is deleted, and your existing statuses, notes, dates and verification are preserved.",
+    "additions": "To add ({{count}})",
+    "noLongerApplicable": "No longer applicable ({{count}})",
+    "noLongerHint": "These stay in your workspace. Review each and remove or mark not applicable if you like.",
+    "apply": "Add {{count}} document(s)",
+    "nothing": "Your workspace already matches the current requirements."
   },
   "edit": {
     "title": "Edit document",

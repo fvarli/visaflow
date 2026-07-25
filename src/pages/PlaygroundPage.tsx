@@ -77,6 +77,9 @@ import { JourneyTimeline, JourneyStop } from '@/components/trip/JourneyTimeline'
 import { DestinationCard } from '@/components/trip/DestinationCard'
 import { TravelSegmentCard } from '@/components/trip/TravelSegmentCard'
 import { CoverageCard } from '@/components/trip/CoverageCard'
+import { SegmentedControl } from '@/components/ui/segmented-control'
+import { DocumentsHero } from '@/components/documents/DocumentsHero'
+import { DocumentCard } from '@/components/documents/DocumentCard'
 import { StatCard } from '@/components/ui/stat-card'
 import { EmptyState } from '@/components/ui/empty-state'
 import { DataList, DataListItem } from '@/components/ui/data-list'
@@ -152,6 +155,7 @@ export default function PlaygroundPage() {
       <Forms />
       <Onboarding />
       <Travel />
+      <Documents />
       <Feedback />
       <DataDisplay />
       <Overlays />
@@ -174,6 +178,7 @@ const SECTIONS = [
   'forms',
   'onboarding',
   'travel',
+  'documents',
   'feedback',
   'data',
   'overlays',
@@ -1083,6 +1088,112 @@ function Travel() {
             spansGapLabel="Does not cover the full trip"
             statusLabel="Active"
             statusTone="success"
+          />
+        </div>
+      </Row>
+    </Block>
+  )
+}
+
+/* -------------------------------------------------------------------------
+ * Documents
+ * ---------------------------------------------------------------------- */
+
+function Documents() {
+  const { t } = useTranslation(['playground'])
+  const [view, setView] = useState<'cards' | 'list' | 'table'>('cards')
+  return (
+    <Block
+      id="documents"
+      title={t('playground:sections.documents')}
+      description={t('playground:blurbs.documents')}
+    >
+      <Row label={t('playground:rows.segmentedControl')} align="start">
+        <SegmentedControl
+          options={[
+            { value: 'cards', label: 'Cards' },
+            { value: 'list', label: 'List' },
+            { value: 'table', label: 'Table' },
+          ]}
+          value={view}
+          onValueChange={setView}
+          ariaLabel="View"
+        />
+      </Row>
+
+      <Row label={t('playground:rows.documentsHero')} align="start">
+        <DocumentsHero
+          className="w-full"
+          buckets={{
+            requiredTotal: 8,
+            ready: 3,
+            needsUpdate: 1,
+            requested: 2,
+            missing: 2,
+            optional: 2,
+            completionPercent: 38,
+          }}
+          bucketLabels={{
+            ready: 'Ready',
+            missing: 'Missing',
+            needsUpdate: 'Needs update',
+            requested: 'Requested',
+            optional: 'Optional',
+          }}
+          completionLabel="38% ready"
+          summaryLabel="3 of 8 required documents ready"
+          nextTitle="Next document to obtain"
+          nextDocLabel="Employment letter"
+          nextEmptyLabel="All caught up."
+          openLabel="Open"
+          activeBucket={null}
+          onBucketClick={() => {}}
+        />
+      </Row>
+
+      <Row label={t('playground:rows.documentCard')} align="start">
+        <div className="grid w-full gap-4 sm:grid-cols-2">
+          <DocumentCard
+            label="Current passport"
+            categoryLabel="Passport"
+            ownerLabel="Applicant"
+            statusLabel="Ready"
+            statusTone="success"
+            dates={[{ label: 'Valid until', value: '9 Mar 2030' }]}
+            verified
+            verifiedLabel="Verified"
+            notVerifiedLabel="Not verified"
+            openLabel="Open document"
+            onOpen={() => {}}
+          />
+          <DocumentCard
+            label="Employer letter"
+            categoryLabel="Employment"
+            ownerLabel="Applicant"
+            statusLabel="Requested"
+            statusTone="info"
+            verifiedLabel="Verified"
+            notVerifiedLabel="Not verified"
+            missingInfo
+            missingInfoLabel="Add dates and details"
+            findingCount={1}
+            findingLabel="1 issue"
+            findingTone="warning"
+            openLabel="Open document"
+            onOpen={() => {}}
+          />
+          <DocumentCard
+            label="Cover letter"
+            categoryLabel="Supporting"
+            ownerLabel="Applicant"
+            statusLabel="Not started"
+            statusTone="neutral"
+            isCustom
+            customLabel="Custom"
+            verifiedLabel="Verified"
+            notVerifiedLabel="Not verified"
+            openLabel="Open document"
+            onOpen={() => {}}
           />
         </div>
       </Row>
