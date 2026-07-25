@@ -523,3 +523,53 @@ consistency finding with a working "Go to fix" deep-link.
   logging (ADR-021, ADR-006) — the item shape is ready for it.
 - The empty-state "import" path is guidance to the header Import control (the import dialog lives in
   `AppLayout`); wiring a direct button would need shared state and was left out of scope.
+
+## Iteration 10 handoff (2026-07-26) — Applicant experience redesign (guided onboarding)
+
+Enriched the existing 5-step applicant wizard **in place** (kept the wizard; no restructure) so it feels
+like premium onboarding: clearer step names, progressive disclosure, calm contextual guidance, a stronger
+review/completion step, and Contact/Additional fields folded into the most relevant step. No schema,
+import/export, or validation-logic change.
+
+### Guidance layer (pure presentation, NOT validation)
+`src/features/applicant/applicant-guidance.ts` — `deriveApplicantGuidance(applicant, now)` +
+`guidanceForStep`. Info-only `GuidanceHint`s derived from current form state: passport expiring within
+~6 months, passport issued ~9+ years ago, no previous Schengen (reassurance, ADR-016-safe), long travel
+history. **Never a validation rule, never feeds `runValidation`/readiness, never a warning/error, never
+blocks.** New reusable `src/components/ui/guidance-note.tsx` (`GuidanceNote`): calm, visually secondary,
+dismissible, `role="note"` (not `alert`); demoed in `/playground`.
+
+### Step changes (`src/components/applicant/*`)
+- **PersonalInfoStep** → "Identity & contact": required identity always visible; **Contact** (email,
+  phone, **address** — newly surfaced, autosaved as nested `address`, written only when non-empty) and
+  **Additional** (residence, marital status, occupation) behind `Accordion` disclosure (auto-open when
+  data exists).
+- **PassportStep** → adds expiry/age `GuidanceNote`s (no field changes).
+- **PreviousVisasStep / TravelHistoryStep** → Yes/No `SegmentedControl` disclosure. Non-destructive:
+  `showEditor = declared === 'yes' || items.length > 0`, so existing entries can never be hidden/lost.
+  "No" shows the reassurance/optional note.
+- **ReviewStep** → completion header (identity/passport captured via `isPersonalComplete`/
+  `isPassportComplete`), surfaces active guidance, adds an address line. Kept per-section jump-to-edit.
+- **ApplicantPage** → clearer step titles via i18n only; shell, focus management, autosave unchanged.
+
+### i18n (`applicant.json` both locales, parity kept)
+Added `groups.*`, `disclosure.*`, `guidance.*` (+ `dismiss`), `fields.address*`, `review.complete*`/
+`checkIdentity`/`checkPassport`/`address`; updated `steps.*` titles/descriptions; `playground.json` gains
+`rows.guidanceNote`. Values stay raw/ISO → exported JSON unchanged & language-independent.
+
+### Gates (this iteration)
+`format:check` ✓ · `lint` 0 errors / 50 warnings (baseline) · `typecheck` ✓ · `test` **170/170**
+(158 + 12 new) · `build` ✓ (ApplicantPage lazy ~5.6 kB gzip; `guidance-note` shared chunk ~0.8 kB gzip;
+main index ~108.4 kB gzip, unchanged). Not committed, not pushed.
+
+### Tests
+`src/tests/features/applicant-guidance.test.ts` (pure: expiry/age/no-visa/long-history thresholds +
+`guidanceForStep`). `src/tests/ui/applicant-wizard.test.tsx` extended: previous-Schengen Yes/No reveals
+the editor (and "No" shows reassurance); a soon-expiring passport surfaces a dismissible note; the
+add-a-visa flow now clicks "Yes" first (proves no data loss). Both locales; still one h1, no Save button.
+
+### Known limitations / next
+- Guidance is a live snapshot of current state (no persistence); dismissals are per-session only.
+- Previous passports remain unsurfaced by design (future advanced-workflow iteration).
+- Verified via bilingual render tests, not a browser — re-verify at 1440/834/390 × light/dark × tr/en
+  (accordion disclosure, Yes/No gates, long Turkish guidance copy).

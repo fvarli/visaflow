@@ -16,25 +16,44 @@
   },
   "steps": {
     "personal": {
-      "title": "Kişisel bilgiler",
-      "description": "Pasaportunuzda yazdığı şekliyle kim olduğunuzu belirtin."
+      "title": "Kimlik ve iletişim",
+      "description": "Pasaportunuzda yazdığı şekliyle siz. İletişim bilgileri isteğe bağlıdır."
     },
     "passport": {
       "title": "Pasaport",
       "description": "Seyahat edeceğiniz ve başvuracağınız pasaport."
     },
     "previousVisas": {
-      "title": "Önceki vizeler",
-      "description": "Daha önce aldığınız vizeler. İsteğe bağlıdır, ancak geçmişinizi tutarlı tutmaya yardımcı olur."
+      "title": "Önceki Schengen vizeleri",
+      "description": "İsteğe bağlı — geçmişinizi tutarlı tutmak için daha önce aldığınız vizeler."
     },
     "travelHistory": {
       "title": "Seyahat geçmişi",
-      "description": "Son zamanlarda yaptığınız seyahatler. İsteğe bağlıdır; teker teker eklemek kolaydır."
+      "description": "İsteğe bağlı — son seyahatleriniz, teker teker eklenir."
     },
     "review": {
-      "title": "Gözden geçir",
-      "description": "Devam etmeden önce her şeye hızlı bir bakış."
+      "title": "Gözden geçir ve bitir",
+      "description": "Devam etmeden önce her şeye son bir bakış."
     }
+  },
+  "groups": {
+    "contact": "İletişim bilgileri",
+    "contactHint": "İsteğe bağlı. Kayıtlarınızı bir arada tutmaya yardımcı olur — bunları sonra da ekleyebilirsiniz.",
+    "additional": "Ek bilgiler",
+    "additionalHint": "İsteğe bağlı. Sıkça istenir ancak şimdilik güvenle atlanabilir."
+  },
+  "disclosure": {
+    "previousVisasQuestion": "Daha önce Schengen vizesi aldınız mı?",
+    "travelHistoryQuestion": "Son zamanlarda yurt dışına seyahat ettiniz mi?",
+    "yes": "Evet",
+    "no": "Hayır"
+  },
+  "guidance": {
+    "dismiss": "Kapat",
+    "passportExpiringSoon": "Pasaportunuzun geçerliliği yaklaşık altı ay içinde doluyor. Konsolosluklar genellikle seyahat tarihlerinizin ötesinde geçerlilik bekler; bu nedenle bitiş tarihini erkenden kontrol etmekte fayda var.",
+    "passportOld": "Bu pasaport bir süre önce verilmiş. Hâlâ boş sayfalarının olduğunu ve fiziksel durumunun iyi olduğunu kontrol etmek için iyi bir zaman.",
+    "noPreviousVisas": "Daha önce Schengen vizesi almamış olmak son derece normaldir — ilk kez başvuranlar yaygındır. Karar yalnızca önceki vizelere değil, başvurunun tamamına dayanır.",
+    "longTravelHistory": "Sağlam bir seyahat geçmişi faydalıdır — önceki uluslararası seyahatler seyahat deneyiminizi göstermeye yardımcı olabilir."
   },
   "nav": {
     "back": "Geri",
@@ -69,6 +88,10 @@
     "passportIssueDate": "Veriliş tarihi",
     "passportExpiry": "Geçerlilik bitişi",
     "passportType": "Pasaport türü",
+    "addressStreet": "Açık adres",
+    "addressCity": "Şehir",
+    "addressPostalCode": "Posta kodu",
+    "addressCountry": "Ülke",
     "visaCountry": "Ülke",
     "visaType": "Vize türü",
     "visaIssueDate": "Veriliş tarihi",
@@ -117,10 +140,15 @@
   },
   "review": {
     "intro": "Girdiğiniz her şey burada. Değişiklik yapmak için herhangi bir bölümde Düzenle'yi kullanın — buradan hiçbir şey gönderilmez.",
+    "completeTitle": "Profiliniz gözden geçirilmeye hazır",
+    "completeBody": "Her şey siz ilerledikçe kaydedilir. Her bölümü gözden geçirin, hazır olduğunuzda devam edin — buradan hiçbir şey gönderilmez.",
+    "checkIdentity": "Kimlik alındı",
+    "checkPassport": "Pasaport alındı",
+    "address": "Adres",
     "edit": "Düzenle",
-    "personalHeading": "Kişisel bilgiler",
+    "personalHeading": "Kimlik ve iletişim",
     "passportHeading": "Pasaport",
-    "previousVisasHeading": "Önceki vizeler",
+    "previousVisasHeading": "Önceki Schengen vizeleri",
     "travelHistoryHeading": "Seyahat geçmişi",
     "notProvided": "Belirtilmedi",
     "none": "Eklenmedi",

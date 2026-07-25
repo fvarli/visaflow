@@ -14,7 +14,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { GuidanceNote } from '@/components/ui/guidance-note'
 import { dynamicT } from '@/lib/i18n-dynamic'
+import {
+  deriveApplicantGuidance,
+  guidanceForStep,
+} from '@/features/applicant/applicant-guidance'
 import { PassportTypeSchema, type PassportType } from '@/domain/types/common'
 
 const PASSPORT_TYPES: readonly PassportType[] = PassportTypeSchema.options
@@ -86,97 +91,117 @@ export function PassportStep() {
 
   const passportTypeValue = watch('passportType')
 
+  const hints = state.applicant
+    ? guidanceForStep(deriveApplicantGuidance(state.applicant), 'passport')
+    : []
+
   return (
-    <div className="grid gap-4 sm:grid-cols-2">
-      <Field
-        label={t('applicant:fields.passportNumber')}
-        required
-        error={errors.number?.message}
-      >
-        <Input
-          {...register('number')}
-          placeholder="U12345678"
-          className="font-mono"
-        />
-      </Field>
+    <div className="space-y-6">
+      <div className="grid gap-4 sm:grid-cols-2">
+        <Field
+          label={t('applicant:fields.passportNumber')}
+          required
+          error={errors.number?.message}
+        >
+          <Input
+            {...register('number')}
+            placeholder="U12345678"
+            className="font-mono"
+          />
+        </Field>
 
-      <Field
-        label={t('applicant:fields.passportIssuingCountry')}
-        required
-        description={t('applicant:hints.countryCode')}
-        error={errors.issuingCountry?.message}
-      >
-        <Input
-          {...register('issuingCountry')}
-          maxLength={2}
-          placeholder="TR"
-          className="font-mono uppercase"
-        />
-      </Field>
+        <Field
+          label={t('applicant:fields.passportIssuingCountry')}
+          required
+          description={t('applicant:hints.countryCode')}
+          error={errors.issuingCountry?.message}
+        >
+          <Input
+            {...register('issuingCountry')}
+            maxLength={2}
+            placeholder="TR"
+            className="font-mono uppercase"
+          />
+        </Field>
 
-      <Field
-        label={t('applicant:fields.passportIssueDate')}
-        required
-        error={errors.issueDate?.message}
-      >
-        <Input type="date" {...register('issueDate')} />
-      </Field>
+        <Field
+          label={t('applicant:fields.passportIssueDate')}
+          required
+          error={errors.issueDate?.message}
+        >
+          <Input type="date" {...register('issueDate')} />
+        </Field>
 
-      <Field
-        label={t('applicant:fields.passportExpiry')}
-        required
-        error={errors.expiryDate?.message}
-        help={
-          <FieldHelp
-            label={t('applicant:why.trigger', {
-              field: t('applicant:fields.passportExpiry'),
-            })}
-            title={t('applicant:why.title')}
-          >
-            <p>{t('applicant:why.passportExpiry')}</p>
-            <p>{t('applicant:why.disclaimer')}</p>
-          </FieldHelp>
-        }
-      >
-        <Input type="date" {...register('expiryDate')} />
-      </Field>
-
-      <Field
-        label={t('applicant:fields.passportType')}
-        htmlFor="applicant-passport-type"
-        className="sm:col-span-2"
-        help={
-          <FieldHelp
-            label={t('applicant:why.trigger', {
-              field: t('applicant:fields.passportType'),
-            })}
-            title={t('applicant:why.title')}
-          >
-            <p>{t('applicant:why.passportType')}</p>
-          </FieldHelp>
-        }
-      >
-        <Select
-          value={passportTypeValue || undefined}
-          onValueChange={(value) =>
-            setValue('passportType', value, { shouldDirty: true })
+        <Field
+          label={t('applicant:fields.passportExpiry')}
+          required
+          error={errors.expiryDate?.message}
+          help={
+            <FieldHelp
+              label={t('applicant:why.trigger', {
+                field: t('applicant:fields.passportExpiry'),
+              })}
+              title={t('applicant:why.title')}
+            >
+              <p>{t('applicant:why.passportExpiry')}</p>
+              <p>{t('applicant:why.disclaimer')}</p>
+            </FieldHelp>
           }
         >
-          <SelectTrigger
-            id="applicant-passport-type"
-            className="w-full sm:w-72"
+          <Input type="date" {...register('expiryDate')} />
+        </Field>
+
+        <Field
+          label={t('applicant:fields.passportType')}
+          htmlFor="applicant-passport-type"
+          className="sm:col-span-2"
+          help={
+            <FieldHelp
+              label={t('applicant:why.trigger', {
+                field: t('applicant:fields.passportType'),
+              })}
+              title={t('applicant:why.title')}
+            >
+              <p>{t('applicant:why.passportType')}</p>
+            </FieldHelp>
+          }
+        >
+          <Select
+            value={passportTypeValue || undefined}
+            onValueChange={(value) =>
+              setValue('passportType', value, { shouldDirty: true })
+            }
           >
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {PASSPORT_TYPES.map((option) => (
-              <SelectItem key={option} value={option}>
-                {td(`visa-domain:passportType.${option}`)}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </Field>
+            <SelectTrigger
+              id="applicant-passport-type"
+              className="w-full sm:w-72"
+            >
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {PASSPORT_TYPES.map((option) => (
+                <SelectItem key={option} value={option}>
+                  {td(`visa-domain:passportType.${option}`)}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </Field>
+      </div>
+
+      {hints.length > 0 && (
+        <div className="space-y-2">
+          {hints.map((hint) => (
+            <GuidanceNote
+              key={hint.id}
+              tone={hint.tone}
+              dismissLabel={t('applicant:guidance.dismiss')}
+            >
+              {td(hint.messageKey, hint.params)}
+            </GuidanceNote>
+          ))}
+        </div>
+      )}
     </div>
   )
 }

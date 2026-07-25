@@ -16,25 +16,44 @@
   },
   "steps": {
     "personal": {
-      "title": "Personal information",
-      "description": "Tell us who you are, exactly as it appears on your passport."
+      "title": "Identity & contact",
+      "description": "Who you are, as shown on your passport. Contact details are optional."
     },
     "passport": {
       "title": "Passport",
       "description": "The passport you'll travel and apply with."
     },
     "previousVisas": {
-      "title": "Previous visas",
-      "description": "Any visas you've held before. This is optional, but it helps keep your history consistent."
+      "title": "Previous Schengen visas",
+      "description": "Optional — visas you've held before, to keep your history consistent."
     },
     "travelHistory": {
       "title": "Travel history",
-      "description": "Trips you've taken recently. Optional, and easy to add one at a time."
+      "description": "Optional — recent trips, added one at a time."
     },
     "review": {
-      "title": "Review",
-      "description": "A quick look over everything before you move on."
+      "title": "Review & finish",
+      "description": "A final look over everything before you continue."
     }
+  },
+  "groups": {
+    "contact": "Contact details",
+    "contactHint": "Optional. Helpful for keeping your records together — you can add these later.",
+    "additional": "Additional details",
+    "additionalHint": "Optional. These are commonly requested but can safely be skipped for now."
+  },
+  "disclosure": {
+    "previousVisasQuestion": "Have you held a Schengen visa before?",
+    "travelHistoryQuestion": "Have you traveled internationally recently?",
+    "yes": "Yes",
+    "no": "No"
+  },
+  "guidance": {
+    "dismiss": "Dismiss",
+    "passportExpiringSoon": "Your passport expires within about six months. Consulates usually expect validity well beyond your travel dates, so it's worth checking the expiry early.",
+    "passportOld": "This passport was issued a while ago. It's a good moment to check it still has blank pages and is in good physical condition.",
+    "noPreviousVisas": "No previous Schengen visa is completely normal — first-time applicants are common. A decision rests on the whole application, not on prior visas alone.",
+    "longTravelHistory": "A solid travel history is helpful — previous international trips can help demonstrate your travel experience."
   },
   "nav": {
     "back": "Back",
@@ -69,6 +88,10 @@
     "passportIssueDate": "Issue date",
     "passportExpiry": "Expiry date",
     "passportType": "Passport type",
+    "addressStreet": "Street address",
+    "addressCity": "City",
+    "addressPostalCode": "Postal code",
+    "addressCountry": "Country",
     "visaCountry": "Country",
     "visaType": "Visa type",
     "visaIssueDate": "Issue date",
@@ -117,10 +140,15 @@
   },
   "review": {
     "intro": "Here's everything you've entered. Use Edit on any section to make a change — nothing is submitted from here.",
+    "completeTitle": "Your profile is ready to review",
+    "completeBody": "Everything is saved as you go. Look over each section, then continue whenever you're ready — nothing is submitted from here.",
+    "checkIdentity": "Identity captured",
+    "checkPassport": "Passport captured",
+    "address": "Address",
     "edit": "Edit",
-    "personalHeading": "Personal information",
+    "personalHeading": "Identity & contact",
     "passportHeading": "Passport",
-    "previousVisasHeading": "Previous visas",
+    "previousVisasHeading": "Previous Schengen visas",
     "travelHistoryHeading": "Travel history",
     "notProvided": "Not provided",
     "none": "None added",

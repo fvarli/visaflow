@@ -176,6 +176,13 @@ describe('Applicant wizard — interaction', () => {
       })
     )
 
+    // The step opens on the Yes/No disclosure; reveal the editor first.
+    await user.click(
+      await screen.findByRole('radio', {
+        name: i18n.t('applicant:disclosure.yes'),
+      })
+    )
+
     expect(
       await screen.findByText(i18n.t('applicant:previousVisas.empty.title'))
     ).toBeInTheDocument()
@@ -204,6 +211,83 @@ describe('Applicant wizard — interaction', () => {
     expect(await screen.findByText(/GR/)).toBeInTheDocument()
     expect(
       screen.queryByText(i18n.t('applicant:previousVisas.empty.title'))
+    ).toBeNull()
+  })
+})
+
+describe('Applicant wizard — progressive disclosure & guidance', () => {
+  const NO_HISTORY_SEED: Dossier = {
+    ...SEED,
+    applicant: { ...SEED.applicant, previousVisas: [], travelHistory: [] },
+  }
+
+  it('reveals the previous-visa editor only after choosing "Yes"', async () => {
+    const user = userEvent.setup()
+    renderApplicant(NO_HISTORY_SEED)
+
+    // personal → passport → previous visas
+    await user.click(
+      screen.getByRole('button', { name: i18n.t('applicant:nav.continue') })
+    )
+    await user.click(
+      await screen.findByRole('button', {
+        name: i18n.t('applicant:nav.continue'),
+      })
+    )
+
+    // Defaults to "No": reassurance shown, no editor.
+    expect(
+      await screen.findByText(i18n.t('applicant:guidance.noPreviousVisas'))
+    ).toBeInTheDocument()
+    expect(
+      screen.queryByRole('button', {
+        name: i18n.t('applicant:previousVisas.add'),
+      })
+    ).toBeNull()
+
+    // Choosing "Yes" reveals the editor.
+    await user.click(
+      screen.getByRole('radio', { name: i18n.t('applicant:disclosure.yes') })
+    )
+    expect(
+      await screen.findByRole('button', {
+        name: i18n.t('applicant:previousVisas.add'),
+      })
+    ).toBeInTheDocument()
+  })
+
+  it('surfaces a calm, dismissible note for a soon-expiring passport', async () => {
+    const user = userEvent.setup()
+    const soon = new Date()
+    soon.setDate(soon.getDate() + 90)
+    const EXPIRING_SEED: Dossier = {
+      ...SEED,
+      applicant: {
+        ...SEED.applicant,
+        passport: {
+          ...SEED.applicant.passport,
+          expiryDate: soon.toISOString().slice(0, 10),
+        },
+      },
+    }
+    renderApplicant(EXPIRING_SEED)
+
+    // personal → passport
+    await user.click(
+      screen.getByRole('button', { name: i18n.t('applicant:nav.continue') })
+    )
+
+    const note = await screen.findByText(
+      i18n.t('applicant:guidance.passportExpiringSoon')
+    )
+    expect(note).toBeInTheDocument()
+
+    // It is informational, never an alert, and can be dismissed.
+    await user.click(
+      screen.getByRole('button', { name: i18n.t('applicant:guidance.dismiss') })
+    )
+    expect(
+      screen.queryByText(i18n.t('applicant:guidance.passportExpiringSoon'))
     ).toBeNull()
   })
 })

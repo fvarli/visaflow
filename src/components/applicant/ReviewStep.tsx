@@ -1,12 +1,17 @@
 import * as React from 'react'
 import { useTranslation } from 'react-i18next'
-import { Pencil } from 'lucide-react'
+import { CheckCircle2, Circle, Pencil } from 'lucide-react'
 import { useDossier } from '@/app/providers/DossierProvider'
-import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { DataList, DataListItem } from '@/components/ui/data-list'
+import { GuidanceNote } from '@/components/ui/guidance-note'
 import { useFormatters } from '@/lib/format'
 import { dynamicT } from '@/lib/i18n-dynamic'
+import {
+  isPassportComplete,
+  isPersonalComplete,
+} from '@/features/applicant/applicant-wizard'
+import { deriveApplicantGuidance } from '@/features/applicant/applicant-guidance'
 
 interface ReviewStepProps {
   /** Jump back to a step (personal=0, passport=1, previousVisas=2, travelHistory=3). */
@@ -66,11 +71,74 @@ export function ReviewStep({ onEdit }: ReviewStepProps) {
     [applicant.firstName, applicant.lastName].filter(Boolean).join(' ') ||
     notProvided
 
+  const essentials = [
+    {
+      key: 'identity',
+      label: t('applicant:review.checkIdentity'),
+      done: isPersonalComplete(applicant),
+    },
+    {
+      key: 'passport',
+      label: t('applicant:review.checkPassport'),
+      done: isPassportComplete(applicant),
+    },
+  ]
+  const address = [
+    applicant.address?.street,
+    applicant.address?.postalCode,
+    applicant.address?.city,
+    applicant.address?.country,
+  ]
+    .filter(Boolean)
+    .join(', ')
+  const hints = deriveApplicantGuidance(applicant)
+
   return (
     <div className="space-y-8">
-      <Alert>
-        <AlertDescription>{t('applicant:review.intro')}</AlertDescription>
-      </Alert>
+      {/* Completion header — a confident summary of what's captured. */}
+      <div className="space-y-4">
+        <div className="space-y-1">
+          <h3 className="text-heading text-foreground">
+            {t('applicant:review.completeTitle')}
+          </h3>
+          <p className="text-body text-muted-foreground text-pretty">
+            {t('applicant:review.completeBody')}
+          </p>
+        </div>
+        <ul className="flex flex-col gap-2 sm:flex-row sm:gap-6">
+          {essentials.map((item) => (
+            <li key={item.key} className="flex items-center gap-2">
+              {item.done ? (
+                <CheckCircle2 aria-hidden className="text-success size-4" />
+              ) : (
+                <Circle aria-hidden className="text-muted-foreground size-4" />
+              )}
+              <span
+                className={
+                  item.done
+                    ? 'text-body text-foreground'
+                    : 'text-body text-muted-foreground'
+                }
+              >
+                {item.label}
+              </span>
+            </li>
+          ))}
+        </ul>
+        {hints.length > 0 && (
+          <div className="space-y-2">
+            {hints.map((hint) => (
+              <GuidanceNote
+                key={hint.id}
+                tone={hint.tone}
+                dismissLabel={t('applicant:guidance.dismiss')}
+              >
+                {td(hint.messageKey, hint.params)}
+              </GuidanceNote>
+            ))}
+          </div>
+        )}
+      </div>
 
       <ReviewSection
         title={t('applicant:review.personalHeading')}
@@ -118,6 +186,10 @@ export function ReviewStep({ onEdit }: ReviewStepProps) {
           <DataListItem
             label={t('applicant:fields.phone')}
             value={applicant.phone || notProvided}
+          />
+          <DataListItem
+            label={t('applicant:review.address')}
+            value={address || notProvided}
           />
         </DataList>
       </ReviewSection>

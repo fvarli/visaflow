@@ -70,6 +70,7 @@ import { PageHeader } from '@/components/ui/page-header'
 import { PageBody, Section, SectionHeader } from '@/components/ui/section'
 import { Field } from '@/components/ui/field'
 import { FieldHelp } from '@/components/ui/field-help'
+import { GuidanceNote } from '@/components/ui/guidance-note'
 import { Stepper, type StepperStep } from '@/components/ui/stepper'
 import { CollectionEditor } from '@/components/ui/collection-editor'
 import { TripHero } from '@/components/trip/TripHero'
@@ -959,6 +960,20 @@ function Onboarding() {
           >
             <Input type="date" />
           </Field>
+        </div>
+      </Row>
+
+      <Row label={t('playground:rows.guidanceNote')} align="start">
+        <div className="flex w-full max-w-md flex-col gap-3">
+          <GuidanceNote
+            tone="info"
+            dismissLabel={t('applicant:guidance.dismiss')}
+          >
+            {t('applicant:guidance.passportExpiringSoon')}
+          </GuidanceNote>
+          <GuidanceNote tone="neutral">
+            {t('applicant:guidance.noPreviousVisas')}
+          </GuidanceNote>
         </div>
       </Row>
 
