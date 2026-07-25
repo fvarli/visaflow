@@ -1,6 +1,6 @@
 # Current Implementation Status
 
-Last updated: 2026-07-26
+Last updated: 2026-07-27
 
 ## Completed Features
 
@@ -66,13 +66,18 @@ Last updated: 2026-07-26
       Yes/No), per-field "why" popovers, a stronger review/completion step, and a
       calm **info-only guidance layer** (`applicant-guidance.ts`) that reminds —
       never warns, blocks, or affects readiness (ADR-016-safe)
-- [x] Trip planner — guided flow with a connected-journey route builder
+- [x] Trip planner — guided itinerary workspace: derived date summary (nights vs
+      days), overnight route builder with canonical date math (`route-dates.ts`,
+      dates canonical / nights derived), coverage summaries that reuse validation
+      findings, calm info-only `trip-guidance.ts`, and a review with per-section
+      status + jump-to-fix
 - [x] Documents workspace — overview hero, reusable filters + Cards/List/Table
       view switch, category-grouped cards, and a side panel (open without
       navigation) that surfaces requirement context + related findings
-- [x] Reusable primitives: `Stepper`, `FieldHelp`, `GuidanceNote`, generic
-      `CollectionEditor`, `SegmentedControl`, plus trip & document card families —
-      all in `/playground`
+- [x] Reusable primitives: `Stepper`, `FieldHelp`, `GuidanceNote`,
+      `CountryCombobox` (searchable, ISO-code + `Intl.DisplayNames` labels),
+      generic `CollectionEditor`, `SegmentedControl`, plus trip & document card
+      families — all in `/playground`
 - [x] Add custom documents / re-add template requirements / additive template
       sync (never deletes applicant data); custom docs use a stable `CUSTOM-` code
 
@@ -122,7 +127,7 @@ All checks pass:
 - `pnpm format:check` - PASS
 - `pnpm lint` - 0 errors (warnings acceptable, see below)
 - `pnpm typecheck` - PASS (`tsc -b`)
-- `pnpm test` - 170/170 PASS
+- `pnpm test` - 199/199 PASS
 - `pnpm build` - SUCCESS
 
 Note: an earlier version of this file claimed 23/23 tests and `tsc --noEmit`;

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { ArrowLeft, ArrowRight } from 'lucide-react'
 import { useDossier } from '@/app/providers/DossierProvider'
@@ -9,6 +9,8 @@ import { Button } from '@/components/ui/button'
 import { Stepper, type StepperStep } from '@/components/ui/stepper'
 import { NoDossierState } from '@/components/NoDossierState'
 import { useFormatters } from '@/lib/format'
+import { useLocale } from '@/app/providers/LocaleProvider'
+import { getCountryName } from '@/lib/countries'
 import { dynamicT } from '@/lib/i18n-dynamic'
 import {
   TRIP_STEP_IDS,
@@ -35,8 +37,17 @@ export default function TripPage() {
   const { t } = useTranslation(['trip', 'common', 'visa-domain'])
   const td = dynamicT(t)
   const f = useFormatters()
+  const { locale } = useLocale()
   const model = useTripModel()
-  const [current, setCurrent] = useState(0)
+  const [searchParams] = useSearchParams()
+  // Optional deep-link: /trip?step=<id> opens directly on that step. Existing
+  // /trip links (no param) simply start at the first step — nothing breaks.
+  const initialStep = (() => {
+    const id = searchParams.get('step')
+    const index = id ? TRIP_STEP_IDS.indexOf(id as TripStepId) : -1
+    return index >= 0 ? index : 0
+  })()
+  const [current, setCurrent] = useState(initialStep)
   const headingRef = useRef<HTMLHeadingElement>(null)
 
   const mounted = useRef(false)
@@ -68,7 +79,7 @@ export default function TripPage() {
 
   const { overview, insights } = model
   const countryLabel = (code: string | null) =>
-    code ? td(`visa-domain:countries.${code}`, { defaultValue: code }) : null
+    code ? getCountryName(code, locale) : null
 
   const facts: TripHeroFact[] = []
   const destinationLabel = countryLabel(overview.destinationCountry)

@@ -7,6 +7,7 @@ import { useDossier } from '@/app/providers/DossierProvider'
 import { Field } from '@/components/ui/field'
 import { FieldHelp } from '@/components/ui/field-help'
 import { Input } from '@/components/ui/input'
+import { CountryCombobox } from '@/components/ui/country-combobox'
 import {
   Select,
   SelectContent,
@@ -113,14 +114,19 @@ export function PassportStep() {
         <Field
           label={t('applicant:fields.passportIssuingCountry')}
           required
-          description={t('applicant:hints.countryCode')}
+          htmlFor="applicant-issuing-country"
           error={errors.issuingCountry?.message}
         >
-          <Input
-            {...register('issuingCountry')}
-            maxLength={2}
-            placeholder="TR"
-            className="font-mono uppercase"
+          <CountryCombobox
+            id="applicant-issuing-country"
+            ariaLabel={t('applicant:fields.passportIssuingCountry')}
+            value={watch('issuingCountry') || ''}
+            onValueChange={(code) =>
+              setValue('issuingCountry', code, {
+                shouldDirty: true,
+                shouldValidate: true,
+              })
+            }
           />
         </Field>
 

@@ -16,6 +16,13 @@ import { Field } from '@/components/ui/field'
 import { FieldHelp } from '@/components/ui/field-help'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
+import { CountryCombobox } from '@/components/ui/country-combobox'
+import { GuidanceNote } from '@/components/ui/guidance-note'
+import { dynamicT } from '@/lib/i18n-dynamic'
+import {
+  deriveTripGuidance,
+  tripGuidanceForStage,
+} from '@/features/trip/trip-guidance'
 import type { RouteStop } from '@/domain/schemas/trip.schema'
 import { RouteBuilder } from './RouteBuilder'
 
@@ -34,6 +41,7 @@ interface RouteFormData {
 export function RouteStep() {
   const { state, updateTrip } = useDossier()
   const { t } = useTranslation(['trip'])
+  const td = dynamicT(t)
   const trip = state.application?.trip
 
   const schema = useMemo(
@@ -55,6 +63,7 @@ export function RouteStep() {
   const {
     register,
     watch,
+    setValue,
     formState: { errors },
   } = useForm<RouteFormData>({
     resolver: zodResolver(schema),
@@ -90,6 +99,10 @@ export function RouteStep() {
 
   const handleRouteChange = (route: RouteStop[]) => updateTrip({ route })
 
+  const firstEntryCountry = watch('firstEntryCountry')
+  const mainDestinationCountry = watch('mainDestinationCountry')
+  const guidance = tripGuidanceForStage(deriveTripGuidance(trip), 'route')
+
   return (
     <div className="space-y-8">
       <Card>
@@ -104,20 +117,35 @@ export function RouteStep() {
             <Field
               label={t('trip:destinations.firstEntryCountry')}
               required
-              description={t('trip:destinations.countryPlaceholder')}
+              htmlFor="trip-first-entry"
               error={errors.firstEntryCountry?.message}
+              help={
+                <FieldHelp
+                  label={t('trip:why.trigger', {
+                    field: t('trip:destinations.firstEntryCountry'),
+                  })}
+                  title={t('trip:why.title')}
+                >
+                  <p>{t('trip:why.firstEntry')}</p>
+                </FieldHelp>
+              }
             >
-              <Input
-                {...register('firstEntryCountry')}
-                maxLength={2}
-                placeholder="GR"
-                className="font-mono uppercase"
+              <CountryCombobox
+                id="trip-first-entry"
+                ariaLabel={t('trip:destinations.firstEntryCountry')}
+                value={firstEntryCountry || ''}
+                onValueChange={(code) =>
+                  setValue('firstEntryCountry', code, {
+                    shouldDirty: true,
+                    shouldValidate: true,
+                  })
+                }
               />
             </Field>
             <Field
               label={t('trip:destinations.mainDestination')}
               required
-              description={t('trip:destinations.countryPlaceholder')}
+              htmlFor="trip-main-destination"
               error={errors.mainDestinationCountry?.message}
               help={
                 <FieldHelp
@@ -130,11 +158,16 @@ export function RouteStep() {
                 </FieldHelp>
               }
             >
-              <Input
-                {...register('mainDestinationCountry')}
-                maxLength={2}
-                placeholder="GR"
-                className="font-mono uppercase"
+              <CountryCombobox
+                id="trip-main-destination"
+                ariaLabel={t('trip:destinations.mainDestination')}
+                value={mainDestinationCountry || ''}
+                onValueChange={(code) =>
+                  setValue('mainDestinationCountry', code, {
+                    shouldDirty: true,
+                    shouldValidate: true,
+                  })
+                }
               />
             </Field>
             <Field label={t('trip:destinations.entryCity')}>
@@ -166,8 +199,19 @@ export function RouteStep() {
           stops={trip?.route ?? []}
           mainDestinationCountry={trip?.mainDestinationCountry}
           bookedCities={bookedCities}
+          entryDate={trip?.entryDate}
+          exitDate={trip?.exitDate}
           onChange={handleRouteChange}
         />
+        {guidance.map((hint) => (
+          <GuidanceNote
+            key={hint.id}
+            tone={hint.tone}
+            dismissLabel={t('trip:guidance.dismiss')}
+          >
+            {td(hint.messageKey)}
+          </GuidanceNote>
+        ))}
       </Section>
     </div>
   )

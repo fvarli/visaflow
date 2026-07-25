@@ -1,7 +1,13 @@
 import { useMemo } from 'react'
-import { differenceInCalendarDays, differenceInDays, parseISO } from 'date-fns'
+import { differenceInCalendarDays, parseISO } from 'date-fns'
 import { useDossier } from '@/app/providers/DossierProvider'
 import { runValidation } from '@/domain/rules/runner'
+import {
+  maxStopNights,
+  stopNights,
+  totalRouteNights as sumRouteNights,
+  tripNights,
+} from '@/features/trip/route-dates'
 import type { Dossier } from '@/domain/schemas/dossier.schema'
 import type { Applicant } from '@/domain/schemas/applicant.schema'
 import type { Application } from '@/domain/schemas/application.schema'
@@ -95,22 +101,23 @@ export function buildTripModel(input: TripModelInput, now: Date): TripModel {
 
   const entryDate = trip?.entryDate ?? null
   const exitDate = trip?.exitDate ?? null
-  const totalNights =
-    entryDate && exitDate
-      ? Math.max(0, differenceInDays(parseISO(exitDate), parseISO(entryDate)))
-      : null
+  const totalNights = tripNights(entryDate, exitDate)
 
   const mainDestinationCountry = trip?.mainDestinationCountry ?? null
   const stops = trip?.route ?? []
-  const maxNights = stops.reduce((max, s) => Math.max(max, s.nights), 0)
-  const route: RouteStopView[] = stops.map((stop) => ({
-    ...stop,
-    ratio: maxNights > 0 ? stop.nights / maxNights : 0,
-    isMain:
-      mainDestinationCountry !== null &&
-      stop.country === mainDestinationCountry,
-  }))
-  const totalRouteNights = stops.reduce((sum, s) => sum + s.nights, 0)
+  const maxNights = maxStopNights(stops)
+  const route: RouteStopView[] = stops.map((stop) => {
+    const nights = stopNights(stop)
+    return {
+      ...stop,
+      nights,
+      ratio: maxNights > 0 ? nights / maxNights : 0,
+      isMain:
+        mainDestinationCountry !== null &&
+        stop.country === mainDestinationCountry,
+    }
+  })
+  const totalRouteNights = sumRouteNights(stops)
 
   // Insights come from the validation engine, never re-derived here.
   let findings: ValidationFinding[] = []

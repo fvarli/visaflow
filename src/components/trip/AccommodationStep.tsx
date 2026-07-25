@@ -13,7 +13,10 @@ import {
 } from '@/components/ui/select'
 import { StatusBadge, type StatusTone } from '@/components/ui/status-badge'
 import { useFormatters } from '@/lib/format'
+import { useFindingText } from '@/lib/finding-text'
 import { dynamicT } from '@/lib/i18n-dynamic'
+import { useTripModel } from '@/features/trip/trip-model'
+import { CoverageSummary } from '@/components/trip/CoverageSummary'
 import type { AccommodationReservation } from '@/domain/schemas/trip.schema'
 
 const TYPES: AccommodationReservation['type'][] = [
@@ -41,9 +44,17 @@ export function AccommodationStep() {
   const { t } = useTranslation(['trip', 'visa-domain'])
   const td = dynamicT(t)
   const f = useFormatters()
+  const findingText = useFindingText()
+  const model = useTripModel()
   const items = state.application?.trip?.accommodationReservations ?? []
 
-  return (
+  // Coverage status reuses the validation engine — no second validator here.
+  const coverageFinding = model.insights.findings.find(
+    (finding) =>
+      finding.id === 'accommodation-gap' || finding.id === 'no-accommodation'
+  )
+
+  const editor = (
     <CollectionEditor<AccommodationReservation>
       items={items}
       onChange={(next) => updateTrip({ accommodationReservations: next })}
@@ -193,5 +204,25 @@ export function AccommodationStep() {
         </div>
       )}
     />
+  )
+
+  return (
+    <div className="space-y-6">
+      {coverageFinding ? (
+        <CoverageSummary
+          tone={coverageFinding.severity === 'error' ? 'danger' : 'warning'}
+          title={findingText(coverageFinding).title}
+          description={findingText(coverageFinding).description}
+        />
+      ) : (
+        items.length > 0 && (
+          <CoverageSummary
+            tone="success"
+            title={t('trip:accommodation.coverage.full')}
+          />
+        )
+      )}
+      {editor}
+    </div>
   )
 }

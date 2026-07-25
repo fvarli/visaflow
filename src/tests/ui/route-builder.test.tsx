@@ -52,11 +52,15 @@ describe('RouteBuilder', () => {
       screen.getByLabelText(i18n.t('trip:route.fields.city'), { exact: false }),
       { target: { value: 'Nafplio' } }
     )
-    fireEvent.change(
-      screen.getByLabelText(i18n.t('trip:route.fields.country'), {
-        exact: false,
+    // Country is a searchable combobox: open, filter by code, select.
+    await user.click(
+      screen.getByRole('button', { name: i18n.t('trip:route.fields.country') })
+    )
+    await user.type(
+      await screen.findByRole('combobox', {
+        name: i18n.t('common:countryCombobox.search'),
       }),
-      { target: { value: 'GR' } }
+      'GR{Enter}'
     )
     fireEvent.change(
       screen.getByLabelText(i18n.t('trip:route.fields.arrival'), {

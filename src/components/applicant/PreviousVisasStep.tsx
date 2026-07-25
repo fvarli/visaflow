@@ -14,6 +14,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { SegmentedControl } from '@/components/ui/segmented-control'
+import { CountryCombobox } from '@/components/ui/country-combobox'
 import { GuidanceNote } from '@/components/ui/guidance-note'
 import { useFormatters } from '@/lib/format'
 import { dynamicT } from '@/lib/i18n-dynamic'
@@ -106,18 +107,14 @@ export function PreviousVisasStep() {
               <Field
                 label={t('applicant:fields.visaCountry')}
                 required
-                description={t('applicant:hints.countryCode')}
+                htmlFor="visa-country"
               >
-                <Input
+                <CountryCombobox
+                  id="visa-country"
+                  ariaLabel={t('applicant:fields.visaCountry')}
                   value={draft.country}
-                  maxLength={2}
-                  placeholder="GR"
-                  className="font-mono uppercase"
-                  onChange={(e) =>
-                    setDraft({
-                      ...draft,
-                      country: e.target.value.toUpperCase(),
-                    })
+                  onValueChange={(code) =>
+                    setDraft({ ...draft, country: code })
                   }
                 />
               </Field>

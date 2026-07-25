@@ -1,11 +1,11 @@
 import * as React from 'react'
 import { useTranslation } from 'react-i18next'
-import { differenceInDays, parseISO } from 'date-fns'
 import { ArrowDown, ArrowUp, MapPin, Pencil, Plus, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { EmptyState } from '@/components/ui/empty-state'
 import { Field } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
+import { CountryCombobox } from '@/components/ui/country-combobox'
 import {
   Dialog,
   DialogContent,
@@ -14,16 +14,28 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { useFormatters } from '@/lib/format'
-import { dynamicT } from '@/lib/i18n-dynamic'
+import { useLocale } from '@/app/providers/LocaleProvider'
+import { getCountryName } from '@/lib/countries'
+import {
+  maxStopNights,
+  routeCoverage,
+  stopNights,
+  syncStopNights,
+  totalRouteNights,
+} from '@/features/trip/route-dates'
 import type { RouteStop } from '@/domain/schemas/trip.schema'
 import { JourneyTimeline, JourneyStop } from './JourneyTimeline'
 import { DestinationCard } from './DestinationCard'
+import { CoverageSummary } from './CoverageSummary'
 
 interface RouteBuilderProps {
   stops: RouteStop[]
   mainDestinationCountry?: string
   /** Lowercased city names that have an accommodation reservation. */
   bookedCities?: string[]
+  /** Trip boundary, for the route-coverage indicator. */
+  entryDate?: string | null
+  exitDate?: string | null
   onChange: (next: RouteStop[]) => void
 }
 
@@ -35,11 +47,6 @@ function reorder<T>(list: T[], from: number, to: number): T[] {
   if (moved === undefined) return list
   next.splice(to, 0, moved)
   return next
-}
-
-function computeNights(arrival: string, departure: string): number {
-  if (!arrival || !departure) return 0
-  return Math.max(0, differenceInDays(parseISO(departure), parseISO(arrival)))
 }
 
 /**
@@ -54,17 +61,20 @@ export function RouteBuilder({
   stops,
   mainDestinationCountry,
   bookedCities = [],
+  entryDate,
+  exitDate,
   onChange,
 }: RouteBuilderProps) {
   const { t } = useTranslation(['trip', 'visa-domain'])
-  const td = dynamicT(t)
+  const { locale } = useLocale()
   const f = useFormatters()
 
   const [open, setOpen] = React.useState(false)
   const [editingIndex, setEditingIndex] = React.useState<number | null>(null)
   const [draft, setDraft] = React.useState<RouteStop | null>(null)
 
-  const maxNights = stops.reduce((max, s) => Math.max(max, s.nights), 0)
+  const maxNights = maxStopNights(stops)
+  const coverage = routeCoverage(stops, entryDate, exitDate)
 
   const startAdd = () => {
     setDraft({
@@ -96,10 +106,8 @@ export function RouteBuilder({
 
   const save = () => {
     if (!draft) return
-    const stop: RouteStop = {
-      ...draft,
-      nights: computeNights(draft.arrivalDate, draft.departureDate),
-    }
+    // Keep the stored `nights` in sync with the date pair (dates are canonical).
+    const stop = syncStopNights(draft)
     if (editingIndex === null) onChange([...stops, stop])
     else onChange(stops.map((s, i) => (i === editingIndex ? stop : s)))
     setOpen(false)
@@ -146,14 +154,12 @@ export function RouteBuilder({
                 >
                   <DestinationCard
                     city={stop.city}
-                    countryLabel={td(`visa-domain:countries.${stop.country}`, {
-                      defaultValue: stop.country,
-                    })}
+                    countryLabel={getCountryName(stop.country, locale)}
                     dateRangeLabel={`${f.dateShort(stop.arrivalDate)} – ${f.dateShort(
                       stop.departureDate
                     )}`}
-                    nightsLabel={t('trip:nights', { count: stop.nights })}
-                    ratio={maxNights > 0 ? stop.nights / maxNights : 0}
+                    nightsLabel={t('trip:nights', { count: stopNights(stop) })}
+                    ratio={maxNights > 0 ? stopNights(stop) / maxNights : 0}
                     isMain={isMain}
                     mainLabel={t('trip:route.main')}
                     accommodationLabel={
@@ -213,12 +219,37 @@ export function RouteBuilder({
             </Button>
             <p className="text-caption text-muted-foreground">
               {t('trip:route.totalNights', {
-                nights: t('trip:nights', {
-                  count: stops.reduce((sum, s) => sum + s.nights, 0),
-                }),
+                nights: t('trip:nights', { count: totalRouteNights(stops) }),
               })}
             </p>
           </div>
+
+          {coverage.status === 'match' && (
+            <CoverageSummary
+              tone="success"
+              title={t('trip:route.coverage.match', {
+                nights: t('trip:nights', { count: coverage.routeNights }),
+              })}
+            />
+          )}
+          {coverage.status === 'under' && (
+            <CoverageSummary
+              tone="warning"
+              title={t('trip:route.coverage.under', {
+                route: coverage.routeNights,
+                trip: coverage.tripNights ?? 0,
+              })}
+            />
+          )}
+          {coverage.status === 'over' && (
+            <CoverageSummary
+              tone="warning"
+              title={t('trip:route.coverage.over', {
+                route: coverage.routeNights,
+                trip: coverage.tripNights ?? 0,
+              })}
+            />
+          )}
         </>
       )}
 
@@ -242,18 +273,14 @@ export function RouteBuilder({
               <Field
                 label={t('trip:route.fields.country')}
                 required
-                description={t('trip:destinations.countryPlaceholder')}
+                htmlFor="route-stop-country"
               >
-                <Input
+                <CountryCombobox
+                  id="route-stop-country"
+                  ariaLabel={t('trip:route.fields.country')}
                   value={draft.country}
-                  maxLength={2}
-                  placeholder="GR"
-                  className="font-mono uppercase"
-                  onChange={(e) =>
-                    setDraft({
-                      ...draft,
-                      country: e.target.value.toUpperCase(),
-                    })
+                  onValueChange={(code) =>
+                    setDraft({ ...draft, country: code })
                   }
                 />
               </Field>

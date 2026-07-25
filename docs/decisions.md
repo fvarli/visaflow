@@ -303,3 +303,29 @@ const passportValidAfterTrip = (dossier: Dossier): ValidationFinding[] => {
 - The single next action surfaces exactly one task with its reason and an effort estimate — never a list — so priority is unambiguous.
 
 **Implementation:** `src/pages/DashboardPage.tsx`; `src/components/dashboard/{ReadinessHero,NextAction,ConsistencyHealth,DocumentsSummary,DossierSnapshot}.tsx`. Reaffirms [ADR-017] (presentation adapter) and [ADR-016] (organizational, not predictive).
+
+## ADR-023: Country Values Persist as ISO Codes; Labels via an Intl Adapter
+
+**Decision:** Country fields store ISO 3166-1 alpha-2 codes only. Localized display names are resolved at the UI boundary through a single adapter (`src/lib/countries.ts`) that wraps `Intl.DisplayNames`; a searchable `CountryCombobox` replaces the free-text 2-letter inputs across Trip and Applicant.
+
+**Context:** Country was entered as an uppercase 2-letter text box (users had to know "GR"), and the i18n `countries` map held exactly one entry (`GR`). A real selector needs localized names for search and display in tr/en without either a network call or hundreds of hand-maintained name strings.
+
+**Rationale:**
+- `Intl.DisplayNames` (full ICU, offline, zero new dependency) gives correct tr-TR/en-GB names for every region; we bundle only the ISO code list. No 200+ names in translation JSON, so tr/en parity stays trivial and exported JSON remains language-independent.
+- The adapter caches one `DisplayNames` per locale, searches by localized name **and** code with Turkish-aware normalization, ranks exact code hits first, and falls back to the raw code for unknown/legacy codes or when `Intl.DisplayNames` is unavailable — so nothing ever renders blank.
+- Components never call `Intl.DisplayNames` directly (mirrors the `format.ts` "no direct Intl" rule).
+
+**Implementation:** `src/lib/countries.ts`, `src/components/ui/country-combobox.tsx`; adopted in `src/components/trip/*` and `src/components/applicant/*`. Persisted value is unchanged (still `CountryCodeSchema`), so schemaVersion 1.0.0 and import/export are untouched.
+
+## ADR-024: Itinerary Stops Are Overnight Stays; the Date Pair Is Canonical
+
+**Decision:** A route stop represents one overnight stay. Its `arrivalDate`/`departureDate` pair is the source of truth; the stored `nights` is a derived value kept in sync on write and always derived from the dates for display. Planned itinerary and reservation evidence remain separate concepts, and trip dates are the canonical boundary for dependent coverage checks.
+
+**Context:** `RouteStopSchema` redundantly stores `arrivalDate`, `departureDate` **and** `nights`, and the nights math was duplicated between `trip-model.ts` and the route builder. Redundant stored values can drift.
+
+**Rationale:**
+- One canonical definition (`src/features/trip/route-dates.ts`) removes the duplication and the drift: `computeNights`/`stopNights` derive from dates; `syncStopNights` rewrites the stored `nights` on every edit; imported legacy routes are read, never silently mutated.
+- Keeping the `nights` field (rather than dropping it) preserves schemaVersion 1.0.0 and import/export compatibility — no schema change.
+- Validation is unchanged (`trip.routeNightsMatchTotal` still sums the stored value); the route-coverage indicator is presentation only, so no finding outcome changes.
+
+**Implementation:** `src/features/trip/route-dates.ts`, consumed by `trip-model.ts`, `RouteBuilder`, `TripDateSummary`, `CoverageSummary`. Trip guidance (`src/features/trip/trip-guidance.ts`) is a pure info-only presentation layer (like `applicant-guidance.ts`), never a validation rule — reaffirms [ADR-016].

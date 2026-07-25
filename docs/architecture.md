@@ -45,6 +45,9 @@ src/
 │   └── layout/             # App shell (Header, Sidebar, …)
 ├── features/
 │   ├── dashboard/          # dashboard-model.ts — pure presentation adapter
+│   ├── applicant/          # applicant-wizard.ts + applicant-guidance.ts (pure)
+│   ├── trip/               # trip-model.ts, route-dates.ts, trip-guidance.ts (pure)
+│   ├── documents/          # documents-model.ts + filters + template-sync (pure)
 │   └── import-export/      # JSON import/export services
 ├── domain/
 │   ├── schemas/            # Zod schemas (source of truth for data shapes)
@@ -103,10 +106,15 @@ not:** write UI-language-dependent values into the file.
 (`src/components/ui/`), the widget-based dashboard (`src/components/dashboard/` over the pure
 adapter `src/features/dashboard/dashboard-model.ts`), the app shell, and internationalization.
 Pages read/write state through `DossierProvider`; formatting goes through `src/lib/format.ts`
-(never `Intl` directly); finding prose is resolved via `src/lib/finding-text.ts`. Dashboard
-detail: [dashboard-architecture.md](./dashboard-architecture.md). Reusable UI is demonstrated in
-the [Playground](./playground.md) before use. **Depends on:** all layers below. **Must not:** be
-depended *on* by them.
+(never `Intl` directly), and country names through `src/lib/countries.ts` (the sole
+`Intl.DisplayNames` wrapper — codes persist, labels are resolved for display; see [ADR-023]);
+finding prose is resolved via `src/lib/finding-text.ts`. Each guided experience has a pure
+feature adapter (`src/features/{dashboard,applicant,trip,documents}/*`): trip nights/coverage math
+lives in `route-dates.ts` (dates canonical, nights derived — [ADR-024]), and calm, non-validation
+guidance in `applicant-guidance.ts` / `trip-guidance.ts` (info-only, never affects readiness).
+Dashboard detail: [dashboard-architecture.md](./dashboard-architecture.md). Reusable UI is
+demonstrated in the [Playground](./playground.md) before use. **Depends on:** all layers below.
+**Must not:** be depended *on* by them.
 
 ### 6. Privacy (cross-cutting)
 
@@ -173,3 +181,5 @@ same pattern for the two non-personal preferences.
 [ADR-013]: ./decisions.md
 [ADR-014]: ./decisions.md
 [ADR-015]: ./decisions.md
+[ADR-023]: ./decisions.md
+[ADR-024]: ./decisions.md

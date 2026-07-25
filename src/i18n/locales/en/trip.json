@@ -100,6 +100,11 @@
       "arrival": "Arrival",
       "departure": "Departure",
       "purpose": "Purpose of stay"
+    },
+    "coverage": {
+      "match": "Your route covers the whole trip ({{nights}}).",
+      "under": "Your route covers {{route}} of {{trip}} trip nights.",
+      "over": "Your route has {{route}} nights but the trip is {{trip}}."
     }
   },
   "accommodation": {
@@ -120,6 +125,9 @@
       "reservationNumber": "Reservation number",
       "guestName": "Guest name",
       "status": "Status"
+    },
+    "coverage": {
+      "full": "Your stays cover the whole trip."
     }
   },
   "transportation": {
@@ -154,8 +162,8 @@
     },
     "coverageCaption": "coverage",
     "spansTrip": {
-      "full": "Covers the full trip",
-      "gap": "Does not cover the full trip"
+      "full": "The entered dates cover the full trip",
+      "gap": "The entered dates don't cover the full trip"
     },
     "fields": {
       "provider": "Provider",
@@ -184,7 +192,13 @@
     "insights": {
       "title": "Trip consistency",
       "description": "Organizational checks to help you spot gaps — not a decision on your application.",
-      "allClear": "No trip issues found. Everything looks consistent."
+      "allClear": "No trip issues found. Everything looks consistent.",
+      "goToFix": "Review this"
+    },
+    "status": {
+      "captured": "Captured",
+      "incomplete": "Incomplete",
+      "attention": "Needs review"
     }
   },
   "why": {
@@ -192,7 +206,8 @@
     "trigger": "Why do we ask this? — {{field}}",
     "disclaimer": "This is general information to help you prepare, not legal advice.",
     "mainDestination": "The main destination is usually where you spend the most nights, and it often determines which country's consulate you apply to.",
-    "insurance": "Travel health insurance is commonly expected to cover your whole stay. Recording the coverage window lets us flag gaps against your dates."
+    "insurance": "Travel health insurance is commonly expected to cover your whole stay. Recording the coverage window lets us flag gaps against your dates.",
+    "firstEntry": "The first entry country is the Schengen country you arrive in first. It can matter when your time is split evenly across countries."
   },
   "collection": {
     "edit": "Edit",
@@ -213,5 +228,19 @@
     "providerRequired": "Provider is required",
     "coverageStartRequired": "Coverage start is required",
     "coverageEndRequired": "Coverage end is required"
+  },
+  "guidance": {
+    "addOvernightLocations": "Add each overnight location so your accommodation coverage can be checked.",
+    "mainDestinationMeaning": "Your main destination is usually the country where you spend the most nights.",
+    "dayTripsNoStop": "Day trips normally don't need a separate overnight stop — add stops only where you sleep.",
+    "reservationsLater": "You can add reservations later — start with your intended plan.",
+    "dismiss": "Dismiss"
+  },
+  "dateSummary": {
+    "label": "Your trip",
+    "duration": "{{nights}} · {{days}}",
+    "days_one": "{{count}} day",
+    "days_other": "{{count}} days",
+    "appointment": "Appointment"
   }
 }

@@ -71,6 +71,7 @@ import { PageBody, Section, SectionHeader } from '@/components/ui/section'
 import { Field } from '@/components/ui/field'
 import { FieldHelp } from '@/components/ui/field-help'
 import { GuidanceNote } from '@/components/ui/guidance-note'
+import { CountryCombobox } from '@/components/ui/country-combobox'
 import { Stepper, type StepperStep } from '@/components/ui/stepper'
 import { CollectionEditor } from '@/components/ui/collection-editor'
 import { TripHero } from '@/components/trip/TripHero'
@@ -909,6 +910,7 @@ function Onboarding() {
   const { t } = useTranslation(['playground', 'applicant', 'common'])
   const [step, setStep] = useState(1)
   const [records, setRecords] = useState<DemoRecord[]>([])
+  const [country, setCountry] = useState('GR')
 
   const titles = [
     t('applicant:steps.personal.title'),
@@ -959,6 +961,18 @@ function Onboarding() {
             }
           >
             <Input type="date" />
+          </Field>
+        </div>
+      </Row>
+
+      <Row label={t('playground:rows.countryCombobox')} align="start">
+        <div className="w-full max-w-xs">
+          <Field label={t('applicant:fields.nationality')}>
+            <CountryCombobox
+              value={country}
+              onValueChange={setCountry}
+              ariaLabel={t('applicant:fields.nationality')}
+            />
           </Field>
         </div>
       </Row>

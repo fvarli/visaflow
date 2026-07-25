@@ -11,7 +11,10 @@ import { useDossier } from '@/app/providers/DossierProvider'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { DataList, DataListItem } from '@/components/ui/data-list'
+import { StatusBadge, type StatusTone } from '@/components/ui/status-badge'
 import { useFormatters } from '@/lib/format'
+import { useLocale } from '@/app/providers/LocaleProvider'
+import { getCountryName } from '@/lib/countries'
 import { dynamicT } from '@/lib/i18n-dynamic'
 import { useFindingText } from '@/lib/finding-text'
 import type { ValidationFinding } from '@/domain/rules/types'
@@ -27,23 +30,37 @@ interface TripReviewStepProps {
   onEdit: (stepIndex: number) => void
 }
 
+interface SectionStatus {
+  label: string
+  tone: StatusTone
+}
+
 function ReviewSection({
   title,
   stepIndex,
   onEdit,
   editLabel,
+  status,
   children,
 }: {
   title: string
   stepIndex: number
   onEdit: (stepIndex: number) => void
   editLabel: string
+  status?: SectionStatus
   children: React.ReactNode
 }) {
   return (
     <section className="space-y-3">
       <div className="flex items-center justify-between gap-3">
-        <h3 className="text-heading text-foreground">{title}</h3>
+        <div className="flex items-center gap-2.5">
+          <h3 className="text-heading text-foreground">{title}</h3>
+          {status && (
+            <StatusBadge tone={status.tone} dot>
+              {status.label}
+            </StatusBadge>
+          )}
+        </div>
         <Button
           variant="ghost"
           size="sm"
@@ -57,6 +74,21 @@ function ReviewSection({
       {children}
     </section>
   )
+}
+
+/** Map a trip finding to the wizard step that resolves it, for a jump action. */
+function findingStepIndex(finding: ValidationFinding): number {
+  const field = finding.relatedFields[0] ?? ''
+  if (field.startsWith('trip.insurance')) return 4
+  if (field.startsWith('trip.accommodation')) return 2
+  if (field.startsWith('trip.transportReservations')) return 3
+  if (
+    field.startsWith('trip.route') ||
+    field.startsWith('trip.mainDestinationCountry') ||
+    field.startsWith('trip.firstEntryCountry')
+  )
+    return 1
+  return 0
 }
 
 const SEVERITY_ICON: Record<
@@ -83,6 +115,7 @@ export function TripReviewStep({ onEdit }: TripReviewStepProps) {
   const { t } = useTranslation(['trip', 'visa-domain'])
   const td = dynamicT(t)
   const f = useFormatters()
+  const { locale } = useLocale()
   const model = useTripModel()
   const findingText = useFindingText()
 
@@ -93,6 +126,41 @@ export function TripReviewStep({ onEdit }: TripReviewStepProps) {
   const editLabel = t('trip:review.edit')
   const none = t('trip:review.none')
   const notProvided = t('trip:review.notProvided')
+
+  const captured: SectionStatus = {
+    label: t('trip:review.status.captured'),
+    tone: 'success',
+  }
+  const incomplete: SectionStatus = {
+    label: t('trip:review.status.incomplete'),
+    tone: 'neutral',
+  }
+  const attention: SectionStatus = {
+    label: t('trip:review.status.attention'),
+    tone: 'warning',
+  }
+  const hasFindingFor = (stepIndex: number) =>
+    model.insights.findings.some(
+      (finding) => findingStepIndex(finding) === stepIndex
+    )
+
+  const sectionStatus = (
+    stepIndex: number,
+    complete: boolean
+  ): SectionStatus =>
+    hasFindingFor(stepIndex) ? attention : complete ? captured : incomplete
+
+  const datesStatus = sectionStatus(0, Boolean(trip.entryDate && trip.exitDate))
+  const routeStatus = sectionStatus(1, model.route.length > 0)
+  const accommodationStatus = sectionStatus(
+    2,
+    trip.accommodationReservations.length > 0
+  )
+  const transportStatus = sectionStatus(
+    3,
+    trip.transportReservations.length > 0
+  )
+  const insuranceStatus = sectionStatus(4, Boolean(trip.insurance))
 
   return (
     <div className="space-y-8">
@@ -105,6 +173,7 @@ export function TripReviewStep({ onEdit }: TripReviewStepProps) {
         stepIndex={0}
         onEdit={onEdit}
         editLabel={editLabel}
+        status={datesStatus}
       >
         <DataList>
           <DataListItem
@@ -137,6 +206,7 @@ export function TripReviewStep({ onEdit }: TripReviewStepProps) {
         stepIndex={1}
         onEdit={onEdit}
         editLabel={editLabel}
+        status={routeStatus}
       >
         {model.route.length === 0 ? (
           <p className="text-body text-muted-foreground">{none}</p>
@@ -150,9 +220,7 @@ export function TripReviewStep({ onEdit }: TripReviewStepProps) {
               >
                 <DestinationCard
                   city={stop.city}
-                  countryLabel={td(`visa-domain:countries.${stop.country}`, {
-                    defaultValue: stop.country,
-                  })}
+                  countryLabel={getCountryName(stop.country, locale)}
                   dateRangeLabel={`${f.dateShort(stop.arrivalDate)} – ${f.dateShort(
                     stop.departureDate
                   )}`}
@@ -172,6 +240,7 @@ export function TripReviewStep({ onEdit }: TripReviewStepProps) {
         stepIndex={2}
         onEdit={onEdit}
         editLabel={editLabel}
+        status={accommodationStatus}
       >
         {trip.accommodationReservations.length === 0 ? (
           <p className="text-body text-muted-foreground">{none}</p>
@@ -193,6 +262,7 @@ export function TripReviewStep({ onEdit }: TripReviewStepProps) {
         stepIndex={3}
         onEdit={onEdit}
         editLabel={editLabel}
+        status={transportStatus}
       >
         {trip.transportReservations.length === 0 ? (
           <p className="text-body text-muted-foreground">{none}</p>
@@ -228,6 +298,7 @@ export function TripReviewStep({ onEdit }: TripReviewStepProps) {
         stepIndex={4}
         onEdit={onEdit}
         editLabel={editLabel}
+        status={insuranceStatus}
       >
         {trip.insurance ? (
           <CoverageCard
@@ -283,13 +354,21 @@ export function TripReviewStep({ onEdit }: TripReviewStepProps) {
                     className={`mt-0.5 size-4 shrink-0 ${SEVERITY_CLASS[finding.severity]}`}
                     aria-hidden
                   />
-                  <div className="min-w-0 space-y-0.5">
+                  <div className="min-w-0 flex-1 space-y-1">
                     <p className="text-body text-foreground font-medium">
                       {text.title}
                     </p>
                     <p className="text-caption text-muted-foreground">
                       {text.description}
                     </p>
+                    <Button
+                      variant="link"
+                      size="sm"
+                      className="h-auto p-0"
+                      onClick={() => onEdit(findingStepIndex(finding))}
+                    >
+                      {t('trip:review.insights.goToFix')}
+                    </Button>
                   </div>
                 </li>
               )

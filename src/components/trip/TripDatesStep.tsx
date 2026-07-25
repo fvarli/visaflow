@@ -13,6 +13,7 @@ import {
 } from '@/components/ui/card'
 import { Field } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
+import { TripDateSummary } from '@/components/trip/TripDateSummary'
 
 interface DatesFormData {
   entryDate: string
@@ -79,8 +80,18 @@ export function TripDatesStep() {
     return () => sub.unsubscribe()
   }, [watch, updateTrip, updateAppointment])
 
+  const entryDate = watch('entryDate')
+  const exitDate = watch('exitDate')
+  const appointmentDate = watch('appointmentDate')
+
   return (
     <div className="space-y-6">
+      <TripDateSummary
+        entryDate={entryDate || null}
+        exitDate={exitDate || null}
+        appointmentDate={appointmentDate || null}
+      />
+
       <Card>
         <CardHeader>
           <CardTitle>{t('trip:dates.title')}</CardTitle>

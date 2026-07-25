@@ -123,6 +123,25 @@ completeness, missing required documents, documents needing updates,
 consistency findings (TR: dosya hazırlık düzeyi, başvuru tamamlanma durumu,
 eksik zorunlu belgeler, güncellenmesi gereken belgeler, tutarlılık bulguları).
 
+## Route & date semantics
+
+- **Trip dates are the canonical boundary.** `entryDate`/`exitDate` define the trip; everything derived
+  (total nights, accommodation/insurance/leave coverage, timeline, findings) refers to them. Do not
+  re-derive trip boundaries in components — use `src/features/trip/route-dates.ts`.
+- **Nights vs days.** Nights = calendar days between two dates (`differenceInDays`); days = nights + 1.
+  Example: 26 Sep → 3 Oct is **7 nights · 8 days**. Duration is always *derived*, never entered, so there
+  is no off-by-one to reconcile.
+- **Route stops represent overnight stays**, not every sightseeing location. A stop is one place you
+  sleep; day trips don't need a stop. Sequence is the array order.
+- **A stop's date pair is canonical; `nights` is derived.** `RouteStopSchema` stores `arrivalDate`,
+  `departureDate` **and** `nights` (all required, for schemaVersion 1.0.0 compatibility), but `nights` is
+  recomputed from the dates on every write (`syncStopNights`) and always derived from the dates for
+  display, so the stored value can never conflict. Imported legacy routes are read, not mutated on load.
+- **Country values persist as ISO 3166-1 alpha-2 codes**; localized names are resolved for display only
+  (`src/lib/countries.ts`, via `Intl.DisplayNames`). Exported JSON stays language-independent.
+- **Planned itinerary and reservation evidence are separate.** A user can plan a route before holding any
+  flight/hotel/ferry reservation; reservation status (`pending`/`confirmed`/…) is layered on later.
+
 ## Requirement vs document instance
 
 - **Document requirement** (`src/config/types.ts`) — template/configuration

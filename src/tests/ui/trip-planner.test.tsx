@@ -37,13 +37,13 @@ function Seed({
   return <>{children}</>
 }
 
-function renderTrip(seed: Dossier) {
+function renderTrip(seed: Dossier, entry = '/trip') {
   return render(
     <LocaleProvider>
       <ThemeProvider>
         <DossierProvider>
           <TooltipProvider>
-            <MemoryRouter initialEntries={['/trip']}>
+            <MemoryRouter initialEntries={[entry]}>
               <Seed data={seed}>
                 <TripPage />
               </Seed>
@@ -143,6 +143,79 @@ describe('Trip planner — interaction', () => {
     )
     expect(
       await screen.findByText(i18n.t('trip:accommodation.empty.title'))
+    ).toBeInTheDocument()
+  })
+})
+
+describe('Trip planner — review & deep-links', () => {
+  /** Insurance ends before the trip → a real trip-consistency finding. */
+  const GAP_SEED: Dossier = {
+    ...SEED,
+    application: SEED.application
+      ? {
+          ...SEED.application,
+          trip: SEED.application.trip
+            ? {
+                ...SEED.application.trip,
+                insurance: SEED.application.trip.insurance
+                  ? {
+                      ...SEED.application.trip.insurance,
+                      coverageEndDate: '2020-01-01',
+                    }
+                  : undefined,
+              }
+            : undefined,
+        }
+      : SEED.application,
+  }
+
+  it('opens directly on a step via ?step= without breaking the URL', async () => {
+    renderTrip(SEED, '/trip?step=review')
+
+    expect(
+      await screen.findByRole('heading', {
+        level: 2,
+        name: i18n.t('trip:steps.review.title'),
+      })
+    ).toBeInTheDocument()
+    // Captured essentials show a status badge.
+    expect(
+      screen.getAllByText(i18n.t('trip:review.status.captured')).length
+    ).toBeGreaterThan(0)
+  })
+
+  it('surfaces a consistency finding in review with a jump-to-fix action', async () => {
+    const user = userEvent.setup()
+    renderTrip(GAP_SEED, '/trip?step=review')
+
+    await screen.findByRole('heading', {
+      level: 2,
+      name: i18n.t('trip:steps.review.title'),
+    })
+
+    // The insurance section is flagged for review.
+    expect(
+      screen.getAllByText(i18n.t('trip:review.status.attention')).length
+    ).toBeGreaterThan(0)
+
+    // The finding surfaced with a jump-to-fix action…
+    expect(
+      screen.getAllByRole('button', {
+        name: i18n.t('trip:review.insights.goToFix'),
+      }).length
+    ).toBeGreaterThan(0)
+
+    // …and the insurance section's edit jumps straight to that step (no dead end).
+    await user.click(
+      screen.getByRole('button', {
+        name: `${i18n.t('trip:review.edit')} — ${i18n.t('trip:review.headings.insurance')}`,
+      })
+    )
+    expect(
+      await screen.findByRole('heading', {
+        level: 2,
+        name: i18n.t('trip:steps.insurance.title'),
+      })
     ).toBeInTheDocument()
   })
 })

@@ -100,6 +100,11 @@
       "arrival": "Varış",
       "departure": "Ayrılış",
       "purpose": "Kalış amacı"
+    },
+    "coverage": {
+      "match": "Rotanız tüm seyahati kapsıyor ({{nights}}).",
+      "under": "Rotanız {{trip}} gecenin {{route}} tanesini kapsıyor.",
+      "over": "Rotanızda {{route}} gece var ancak seyahat {{trip}} gece."
     }
   },
   "accommodation": {
@@ -120,6 +125,9 @@
       "reservationNumber": "Rezervasyon numarası",
       "guestName": "Misafir adı",
       "status": "Durum"
+    },
+    "coverage": {
+      "full": "Konaklamalarınız tüm seyahati kapsıyor."
     }
   },
   "transportation": {
@@ -154,8 +162,8 @@
     },
     "coverageCaption": "teminat",
     "spansTrip": {
-      "full": "Tüm seyahati kapsıyor",
-      "gap": "Tüm seyahati kapsamıyor"
+      "full": "Girilen tarihler tüm seyahati kapsıyor",
+      "gap": "Girilen tarihler tüm seyahati kapsamıyor"
     },
     "fields": {
       "provider": "Sağlayıcı",
@@ -184,7 +192,13 @@
     "insights": {
       "title": "Seyahat tutarlılığı",
       "description": "Eksikleri fark etmenize yardımcı olacak düzenleyici kontroller — başvurunuz hakkında bir karar değildir.",
-      "allClear": "Seyahatle ilgili sorun bulunamadı. Her şey tutarlı görünüyor."
+      "allClear": "Seyahatle ilgili sorun bulunamadı. Her şey tutarlı görünüyor.",
+      "goToFix": "Bunu incele"
+    },
+    "status": {
+      "captured": "Alındı",
+      "incomplete": "Eksik",
+      "attention": "Gözden geçirin"
     }
   },
   "why": {
@@ -192,7 +206,8 @@
     "trigger": "Bunu neden soruyoruz? — {{field}}",
     "disclaimer": "Bu, hazırlanmanıza yardımcı olacak genel bilgidir; hukuki tavsiye değildir.",
     "mainDestination": "Ana destinasyon genellikle en çok gece geçirdiğiniz yerdir ve çoğu zaman hangi ülkenin konsolosluğuna başvuracağınızı belirler.",
-    "insurance": "Seyahat sağlık sigortasının tüm kalışınızı kapsaması yaygın olarak beklenir. Teminat aralığını kaydetmek, tarihlerinize göre boşlukları işaretlememizi sağlar."
+    "insurance": "Seyahat sağlık sigortasının tüm kalışınızı kapsaması yaygın olarak beklenir. Teminat aralığını kaydetmek, tarihlerinize göre boşlukları işaretlememizi sağlar.",
+    "firstEntry": "İlk giriş ülkesi, Schengen alanına ilk girdiğiniz ülkedir. Süreniz ülkelere eşit dağıldığında önem taşıyabilir."
   },
   "collection": {
     "edit": "Düzenle",
@@ -213,5 +228,19 @@
     "providerRequired": "Sağlayıcı zorunludur",
     "coverageStartRequired": "Teminat başlangıcı zorunludur",
     "coverageEndRequired": "Teminat bitişi zorunludur"
+  },
+  "guidance": {
+    "addOvernightLocations": "Konaklama kapsamının denetlenebilmesi için her gecelemeyi ayrı ayrı ekleyin.",
+    "mainDestinationMeaning": "Ana varış noktanız genellikle en çok gece geçirdiğiniz ülkedir.",
+    "dayTripsNoStop": "Günübirlik geziler genellikle ayrı bir konaklama durağı gerektirmez — yalnızca uyuduğunuz yerleri ekleyin.",
+    "reservationsLater": "Rezervasyonları daha sonra ekleyebilirsiniz — önce planınızla başlayın.",
+    "dismiss": "Kapat"
+  },
+  "dateSummary": {
+    "label": "Seyahatiniz",
+    "duration": "{{nights}} · {{days}}",
+    "days_one": "{{count}} gün",
+    "days_other": "{{count}} gün",
+    "appointment": "Randevu"
   }
 }

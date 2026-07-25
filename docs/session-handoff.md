@@ -573,3 +573,60 @@ add-a-visa flow now clicks "Yes" first (proves no data loss). Both locales; stil
 - Previous passports remain unsurfaced by design (future advanced-workflow iteration).
 - Verified via bilingual render tests, not a browser — re-verify at 1440/834/390 × light/dark × tr/en
   (accordion disclosure, Yes/No gates, long Turkish guidance copy).
+
+## Iteration 11 handoff (2026-07-27) — Trip planner redesign + CountryCombobox
+
+Deepened the Trip wizard into a calm itinerary workspace and introduced a shared searchable country
+selector, adopted in Trip AND Applicant. **No schema, import/export, or validation-outcome change.**
+
+### Baseline recorded
+`format:check` ✓ · `lint` 0/50 ✓ · `typecheck` ✓ · `test` **170/170 warm** (cold first-run flaked on 2
+heavy-transform tests — known, passes warm) · build main index ~108.4 kB gzip.
+
+### Country selection (ADR-023)
+`src/lib/countries.ts` — persist ISO alpha-2 only; localize via cached `Intl.DisplayNames` (tr-TR/en-GB),
+bundle only the ISO code list (no country names in i18n JSON, no new dependency). `getCountryName`,
+`getCountryOptions`, `searchCountries` (name + code, Turkish-aware normalize, exact-code ranked first,
+unknown/no-Intl → raw code), `useCountryName`. New `src/components/ui/country-combobox.tsx` (Popover +
+filtered listbox, keyboard, clear, empty state; demoed in `/playground`). Adopted in Trip (firstEntry,
+mainDestination, route-stop country) and Applicant (nationality, residence, address, issuing, prev-visa,
+travel-history) — same stored codes, so imports/exports are unchanged.
+
+### Route/date semantics (ADR-024)
+`src/features/trip/route-dates.ts` — the date pair is canonical, `nights` derived (`computeNights`,
+`stopNights`, `syncStopNights` on write, `tripNights`, `totalRouteNights`, `maxStopNights`,
+`routeCoverage`). Consolidated math previously duplicated in `trip-model.ts` + `RouteBuilder`. Legacy
+routes read, never mutated on load. Validation untouched (still sums stored `nights`); coverage UI is
+presentation only.
+
+### Trip step enrichment
+`TripDateSummary` (derived "7 nights · 8 days", sr-announced), `CoverageSummary` (calm status row).
+RouteStep + RouteBuilder use `CountryCombobox` + route-dates + a coverage indicator; TripDatesStep leads
+with the date summary; AccommodationStep surfaces the accommodation coverage finding with a jump; the
+review step gained per-section status badges (captured/incomplete/needs review) and finding jump-to-fix;
+`trip-guidance.ts` adds calm info-only route/reservation hints. TripPage reads optional `?step=<id>`
+(existing `/trip` links still work; Dashboard/Documents untouched).
+
+### i18n
+`common.json` `countryCombobox.*`; `trip.json` `dateSummary.*`, `guidance.*`, `route.coverage.*`,
+`accommodation.coverage.full`, `review.status.*`, `review.insights.goToFix`, `why.firstEntry` (both
+locales, parity kept); `playground.json` `rows.countryCombobox`. `visa-domain:countries` NOT expanded.
+
+### Gates (this iteration)
+`format:check` ✓ · `lint` 0 errors / 50 warnings ✓ · `typecheck` ✓ · `test` **199/199** (170 + 29 new)
+· `build` ✓ (TripPage lazy ~10.0 kB gzip; main index ~108.7 kB gzip, +~0.34 kB, no new dep). `git diff
+--check` clean. Not committed, not pushed.
+
+### Tests
+Pure: `route-dates` (nights/days, coverage match/under/over, legacy sync), `countries` (tr/en labels,
+name+code + Turkish search, unknown→code, ISO persistence), `trip-guidance` (info-only, stage filter).
+Render: `country-combobox` (localized label, stores ISO, keyboard select, empty state); `trip-planner`
+extended (`?step=` deep-link, review status + finding jump-to-fix); `route-builder` + `applicant-wizard`
+updated to drive the combobox. Existing suites green.
+
+### Known limitations / next
+- Transport/accommodation optional `country` fields are still not surfaced in their forms (combobox is
+  wired only where a country input already existed); a future pass could add them.
+- Cities remain free text (no city database, by design).
+- No browser pass (no connected Chrome) — re-verify at 1440/390 × tr light/dark + en: combobox open/
+  filter/keyboard, route editing, coverage states, long Turkish labels.

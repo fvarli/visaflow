@@ -124,5 +124,11 @@
     "notLegalGuarantee": "Doğrulama durumu, bu şablonun bir sorumlu tarafından en son ne zaman kontrol edildiğini belirtir. Hukuki bir garanti değildir; VisaFlow bir büyükelçilik veya yetkili vize merkezi değildir.",
     "type": "Kaynak türü",
     "notes": "Notlar"
+  },
+  "countryCombobox": {
+    "placeholder": "Ülke seçin",
+    "search": "Ülke ara",
+    "empty": "Ülke bulunamadı",
+    "clear": "Seçimi temizle"
   }
 }

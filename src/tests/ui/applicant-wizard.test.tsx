@@ -192,11 +192,17 @@ describe('Applicant wizard — interaction', () => {
         name: i18n.t('applicant:previousVisas.add'),
       })
     )
+    // Country is a searchable combobox: open, filter by code, select.
+    await user.click(
+      screen.getByRole('button', {
+        name: i18n.t('applicant:fields.visaCountry'),
+      })
+    )
     await user.type(
-      screen.getByLabelText(i18n.t('applicant:fields.visaCountry'), {
-        exact: false,
+      await screen.findByRole('combobox', {
+        name: i18n.t('common:countryCombobox.search'),
       }),
-      'GR'
+      'GR{Enter}'
     )
     await user.type(
       screen.getByLabelText(i18n.t('applicant:fields.visaType'), {

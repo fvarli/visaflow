@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Label } from '@/components/ui/label'
 import { SegmentedControl } from '@/components/ui/segmented-control'
+import { CountryCombobox } from '@/components/ui/country-combobox'
 import { GuidanceNote } from '@/components/ui/guidance-note'
 import { useFormatters } from '@/lib/format'
 import { dynamicT } from '@/lib/i18n-dynamic'
@@ -102,18 +103,14 @@ export function TravelHistoryStep() {
               <Field
                 label={t('fields.travelCountry')}
                 required
-                description={t('hints.countryCode')}
+                htmlFor="travel-country"
               >
-                <Input
+                <CountryCombobox
+                  id="travel-country"
+                  ariaLabel={t('fields.travelCountry')}
                   value={draft.country}
-                  maxLength={2}
-                  placeholder="GR"
-                  className="font-mono uppercase"
-                  onChange={(e) =>
-                    setDraft({
-                      ...draft,
-                      country: e.target.value.toUpperCase(),
-                    })
+                  onValueChange={(code) =>
+                    setDraft({ ...draft, country: code })
                   }
                 />
               </Field>

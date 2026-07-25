@@ -7,6 +7,7 @@ import { useDossier } from '@/app/providers/DossierProvider'
 import { Field } from '@/components/ui/field'
 import { FieldHelp } from '@/components/ui/field-help'
 import { Input } from '@/components/ui/input'
+import { CountryCombobox } from '@/components/ui/country-combobox'
 import {
   Accordion,
   AccordionContent,
@@ -212,7 +213,7 @@ export function PersonalInfoStep() {
         <Field
           label={t('applicant:fields.nationality')}
           required
-          description={t('applicant:hints.countryCode')}
+          htmlFor="applicant-nationality"
           error={errors.nationality?.message}
           help={
             <FieldHelp
@@ -225,11 +226,16 @@ export function PersonalInfoStep() {
             </FieldHelp>
           }
         >
-          <Input
-            {...register('nationality')}
-            maxLength={2}
-            placeholder="TR"
-            className="font-mono uppercase"
+          <CountryCombobox
+            id="applicant-nationality"
+            ariaLabel={t('applicant:fields.nationality')}
+            value={watch('nationality') || ''}
+            onValueChange={(code) =>
+              setValue('nationality', code, {
+                shouldDirty: true,
+                shouldValidate: true,
+              })
+            }
           />
         </Field>
       </div>
@@ -282,13 +288,15 @@ export function PersonalInfoStep() {
 
               <Field
                 label={t('applicant:fields.addressCountry')}
-                description={t('applicant:hints.countryCode')}
+                htmlFor="applicant-address-country"
               >
-                <Input
-                  {...register('addressCountry')}
-                  maxLength={2}
-                  placeholder="TR"
-                  className="font-mono uppercase"
+                <CountryCombobox
+                  id="applicant-address-country"
+                  ariaLabel={t('applicant:fields.addressCountry')}
+                  value={watch('addressCountry') || ''}
+                  onValueChange={(code) =>
+                    setValue('addressCountry', code, { shouldDirty: true })
+                  }
                 />
               </Field>
             </div>
@@ -314,7 +322,7 @@ export function PersonalInfoStep() {
             <div className="grid gap-4 sm:grid-cols-2">
               <Field
                 label={t('applicant:fields.countryOfResidence')}
-                description={t('applicant:hints.countryCode')}
+                htmlFor="applicant-residence"
                 help={
                   <FieldHelp
                     label={t('applicant:why.trigger', {
@@ -326,11 +334,13 @@ export function PersonalInfoStep() {
                   </FieldHelp>
                 }
               >
-                <Input
-                  {...register('countryOfResidence')}
-                  maxLength={2}
-                  placeholder="TR"
-                  className="font-mono uppercase"
+                <CountryCombobox
+                  id="applicant-residence"
+                  ariaLabel={t('applicant:fields.countryOfResidence')}
+                  value={watch('countryOfResidence') || ''}
+                  onValueChange={(code) =>
+                    setValue('countryOfResidence', code, { shouldDirty: true })
+                  }
                 />
               </Field>
 

@@ -124,5 +124,11 @@
     "notLegalGuarantee": "Review status describes how recently this template was checked by a maintainer. It is not a legal guarantee and VisaFlow is not an embassy or authorized visa centre.",
     "type": "Source type",
     "notes": "Notes"
+  },
+  "countryCombobox": {
+    "placeholder": "Select a country",
+    "search": "Search countries",
+    "empty": "No countries found",
+    "clear": "Clear selection"
   }
 }
