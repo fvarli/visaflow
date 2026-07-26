@@ -74,10 +74,18 @@ Last updated: 2026-07-27
 - [x] Documents workspace — overview hero, reusable filters + Cards/List/Table
       view switch, category-grouped cards, and a side panel (open without
       navigation) that surfaces requirement context + related findings
+- [x] Validation Center — the dossier review workspace: a review hero (readiness
+      + checks passed + items needing attention + one suggested next step),
+      findings grouped by domain with a calm health label and a direct
+      "take me there" deep-link, a "what already looks good" list, and a
+      section-by-section summary. A pure adapter (`src/features/validation/*`)
+      over `runValidation` — no re-encoded rule, no changed outcome, calm
+      severity wording only (ADR-025)
 - [x] Reusable primitives: `Stepper`, `FieldHelp`, `GuidanceNote`,
       `CountryCombobox` (searchable, ISO-code + `Intl.DisplayNames` labels),
-      generic `CollectionEditor`, `SegmentedControl`, plus trip & document card
-      families — all in `/playground`
+      generic `CollectionEditor`, `SegmentedControl`, plus trip, document and
+      validation (`ValidationHero`, `FindingCard`, `FindingGroup`,
+      `ReadinessSummary`, `ReviewProgress`) card families — all in `/playground`
 - [x] Add custom documents / re-add template requirements / additive template
       sync (never deletes applicant data); custom docs use a stable `CUSTOM-` code
 
@@ -127,7 +135,7 @@ All checks pass:
 - `pnpm format:check` - PASS
 - `pnpm lint` - 0 errors (warnings acceptable, see below)
 - `pnpm typecheck` - PASS (`tsc -b`)
-- `pnpm test` - 199/199 PASS
+- `pnpm test` - 217/217 PASS
 - `pnpm build` - SUCCESS
 
 Note: an earlier version of this file claimed 23/23 tests and `tsc --noEmit`;

@@ -630,3 +630,65 @@ updated to drive the combobox. Existing suites green.
 - Cities remain free text (no city database, by design).
 - No browser pass (no connected Chrome) — re-verify at 1440/390 × tr light/dark + en: combobox open/
   filter/keyboard, route editing, coverage states, long Turkish labels.
+
+## Iteration 12 handoff (2026-07-27) — Validation Center redesign
+
+Transformed the **Consistency Checks** page from a compiler-style error list (three count cards,
+raw `Error`/`Warning`/`Info` badges, an accordion of findings with raw `relatedFields` chips) into
+a calm **dossier review workspace**. No dossier-schema, import/export, or validation-outcome change —
+findings, severities and counts come verbatim from `runValidation`.
+
+### Baseline recorded (real, from code)
+`format:check` ✓ · `lint` 0 errors / 50 warnings ✓ · `typecheck` ✓ · `test` **199/199** (24 files)
+· build main index ~108.7 kB gzip. (`docs/project-context.md` referenced by the brief does not
+exist — it was removed in Iteration 5 and merged into `vision.md`.)
+
+### Architecture — pure adapter over the engine (ADR-025)
+`src/features/validation/` (all pure, unit-tested, React-free):
+- `finding-presentation.ts` — `categoryForRuleId`/`areaForRuleId` (classify by stable ruleId, not
+  prose), `healthFromSeverities`, calm `SEVERITY_LABEL_KEY`/`HEALTH_LABEL_KEY`, tone maps.
+- `finding-actions.ts` — `findingAction(finding)` deep-link; trip/insurance/accommodation →
+  `/trip?step=<step>`, passport → `/applicant?step=passport`, plus `/documents`/`/employment`/
+  `/sponsors`, with a relatedFields fallback so no rule is ever a dead end.
+- `validation-model.ts` — `buildValidationModel`/`useValidationModel`: a review hero
+  (completion% via the Documents feature's `buildDocumentBuckets5`, checks passed, attention count,
+  one next recommendation), findings grouped by domain (`CategoryGroup` with worst-severity health),
+  a per-area review summary (`captured`/`needsReview`/`incomplete`; core areas always shown,
+  employment/sponsors only when relevant), and the ready subset. Re-encodes no rule.
+
+### Components (`src/components/validation/`, prop-driven, in `/playground`)
+`ValidationHero` (ReadinessRing + calm verdict + counts + next-step CTA), `FindingCard`
+(what/why/how + "Take me there"), `FindingGroup` (collapsible domain section, `aria-expanded`,
+category icon + health badge), `ReadinessSummary` ("what already looks good"), `ReviewProgress`
+(section-by-section status). Severity/health render as calm labels; even blocking findings use the
+amber tone, never a red wall. `ConsistencyChecksPage` is now a thin composition over the model.
+
+### Sanctioned cross-page touch
+`ApplicantPage` gained the same optional `?step=` deep-link reader `TripPage` already had, so a
+passport finding lands on the passport step. Same pattern, ~12 lines, additive. `/consistency-checks`
+route and all existing `/trip`, `/applicant` links still work; Dashboard/Documents/Trip unchanged.
+
+### i18n (`validation.json` `center.*`, both locales, parity kept)
+`center.{title,subtitle,disclaimer}`, `hero.*` (verdict/headline/counts/next), `categories.*`,
+`areas.*`, `health.*`, `severity.*`, `finding.*`, `ready.*`, `review.status.*`, `guidance.*`,
+`actions.goThere`. `playground.json` `sections.validation` + blurb. Values stay raw/ISO → exported
+JSON unchanged.
+
+### Gates (this iteration)
+`format:check` ✓ · `lint` 0 errors / 50 warnings ✓ · `typecheck` ✓ · `test` **217/217** (199 + 18
+new, 26 files) · `build` ✓ (ConsistencyChecksPage lazy ~0.49 kB gzip; main index ~109.2 kB gzip,
++~0.5 kB, **no new dependency**). `git diff --check` clean. Not committed, not pushed.
+
+### Tests
+`src/tests/features/validation-model.test.ts` — category/area mapping, health, deep links (incl.
+`?step=`), empty/no-data, all-clear (captured areas), with-findings (grouping, hero verdict + next
+recommendation, per-area needsReview/incomplete). `src/tests/ui/validation-center.test.tsx` — both
+locales: no-dossier state, single h1 + review hero + section summary, and an insurance-gap seed that
+surfaces a Trip group with a working `/trip?step=insurance` jump-to-fix.
+
+### Known limitations / next
+- No `finance`/`timeline` rules exist yet, so those two categories never render (the union is
+  forward-compatible). Employment/sponsor rules are sparse.
+- Guidance/health are a live snapshot; nothing persisted.
+- No browser pass (no connected Chrome) — re-verify at 1440/390 × tr light/dark + en: hero wrap,
+  group collapse, long Turkish health labels, ready chips, the section summary.

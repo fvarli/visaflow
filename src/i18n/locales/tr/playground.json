@@ -16,7 +16,8 @@
     "travel": "Seyahat",
     "documents": "Belgeler",
     "composition": "Kompozisyon",
-    "dashboard": "Genel bakış"
+    "dashboard": "Genel bakış",
+    "validation": "Doğrulama merkezi"
   },
   "rows": {
     "surfaces": "Yüzeyler",
@@ -124,6 +125,7 @@
     "overlays": "İletişim kutusu, ipucu ve akordiyon. Odak hapsi ve Esc davranışını burada kontrol edin.",
     "composition": "Sayfa düzeyindeki parçaların bir araya gelişi. Her sayfanın devralması gereken ritim budur.",
     "dashboard": "Türetilmiş genel bakış modelini kurgusal bir örnek dosya üzerinden kullanan, bir araya getirilmiş komuta merkezi bileşenleri.",
+    "validation": "Dosya inceleme bileşenleri: inceleme kartı, alanlara göre gruplanmış ve sakin bir durum etiketiyle doğrudan \"oraya git\" bağlantısı taşıyan bulgular, \"iyi görünüyor\" listesi ve bölüm bölüm özet.",
     "onboarding": "Rehberli akışın yapı taşları: adım göstergesi, \"Bunu neden soruyoruz?\" balonu ve genel koleksiyon düzenleyici.",
     "travel": "Seyahat planlayıcı yapı taşları: genel bakış kartı, destinasyon kartlarıyla bağlı yolculuk zaman çizelgesi, ulaşım bölümleri ve sigorta teminat kartı.",
     "documents": "Belge çalışma alanı yapı taşları: bölümlü görünüm anahtarı, hazırlık genel bakış kartı ve belge kartının şablon, özel ve sorunlu durumları."

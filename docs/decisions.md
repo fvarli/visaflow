@@ -329,3 +329,17 @@ const passportValidAfterTrip = (dossier: Dossier): ValidationFinding[] => {
 - Validation is unchanged (`trip.routeNightsMatchTotal` still sums the stored value); the route-coverage indicator is presentation only, so no finding outcome changes.
 
 **Implementation:** `src/features/trip/route-dates.ts`, consumed by `trip-model.ts`, `RouteBuilder`, `TripDateSummary`, `CoverageSummary`. Trip guidance (`src/features/trip/trip-guidance.ts`) is a pure info-only presentation layer (like `applicant-guidance.ts`), never a validation rule — reaffirms [ADR-016].
+
+## ADR-025: Validation Center Is a Presentation Layer over the Engine (Calm Severity Wording)
+
+**Decision:** The Validation Center ("Consistency checks" page) is a thin presentation composition over `runValidation` and a pure adapter (`src/features/validation/`). It organizes findings by domain group and dossier area, derives a per-group/area *health*, and re-labels engine severities in calm, review-specialist language — "Needs attention" / "Review recommended" / "Good to know" — while the underlying `error`/`warning`/`info` severity is left completely unchanged.
+
+**Context:** The page read like a compiler error list: three count cards, raw `Error`/`Warning`/`Info` badges in saturated red/amber/blue, an accordion of findings, and raw `relatedFields` chips. That increases anxiety and answers none of "how ready am I / what needs attention / what already looks good / what should I do next?".
+
+**Rationale:**
+- **No re-encoded logic, no new outcomes.** Grouping, health, and severity *labels* are presentation only; findings, severities, and counts come verbatim from the engine — so no validation outcome changes (a hard sprint constraint). The adapter is pure and unit-tested without React.
+- **Coherence, never prediction.** Health and hero wording describe internal consistency and completeness, never approval odds — even a blocking finding uses the calm amber tone rather than an alarming red wall ([ADR-016]).
+- **No dead ends.** Every actionable finding resolves to a deep link via `finding-actions.ts`, reusing the `?step=` deep-link the Trip (and now Applicant) wizards already read — trip findings land on the exact step, passport findings on the passport step.
+- **Reuse.** Completion comes from the Documents feature's canonical `buildDocumentBuckets5`; the ring is the existing `ReadinessRing`; chips are `StatusBadge`. New reusable widgets (`ValidationHero`, `FindingCard`, `FindingGroup`, `ReadinessSummary`, `ReviewProgress`) are demonstrated in `/playground`.
+
+**Implementation:** `src/features/validation/{finding-presentation,finding-actions,validation-model}.ts` (pure), `src/components/validation/*` (presentation), `src/pages/ConsistencyChecksPage.tsx` (thin shell). A small sanctioned deep-link addition gave `ApplicantPage` the same optional `?step=` reader `TripPage` already had. No schema, import/export, or rule change.

@@ -109,7 +109,12 @@ import { DocumentsSummary } from '@/components/dashboard/DocumentsSummary'
 import { TripSummary } from '@/components/dashboard/TripSummary'
 import { DossierSnapshot } from '@/components/dashboard/DossierSnapshot'
 import { DashboardSkeleton } from '@/components/dashboard/DashboardSkeleton'
+import { ValidationHero } from '@/components/validation/ValidationHero'
+import { FindingGroup } from '@/components/validation/FindingGroup'
+import { ReadinessSummary } from '@/components/validation/ReadinessSummary'
+import { ReviewProgress } from '@/components/validation/ReviewProgress'
 import { buildDashboardModel } from '@/features/dashboard/dashboard-model'
+import { buildValidationModel } from '@/features/validation/validation-model'
 import { useFormatters } from '@/lib/format'
 import { dynamicT } from '@/lib/i18n-dynamic'
 import type { RequirementSource } from '@/config/types'
@@ -163,6 +168,7 @@ export default function PlaygroundPage() {
       <Overlays />
       <Composition />
       <Dashboard />
+      <Validation />
     </PageBody>
   )
 }
@@ -186,6 +192,7 @@ const SECTIONS = [
   'overlays',
   'composition',
   'dashboard',
+  'validation',
 ] as const
 
 function Nav() {
@@ -1831,6 +1838,35 @@ function Dashboard() {
           <DashboardSkeleton />
         </div>
       </Row>
+    </Block>
+  )
+}
+
+const DEMO_VALIDATION_MODEL = buildValidationModel({
+  applicant: DEMO_APPLICANT,
+  application: DEMO_APPLICATION,
+  documents: DEMO_DOCUMENTS,
+  sponsors: [],
+})
+
+function Validation() {
+  const { t } = useTranslation(['playground', 'validation', 'common'])
+  const m = DEMO_VALIDATION_MODEL
+
+  return (
+    <Block
+      id="validation"
+      title={t('playground:sections.validation')}
+      description={t('playground:blurbs.validation')}
+    >
+      <div className="flex flex-col gap-6">
+        <ValidationHero hero={m.hero} />
+        {m.groups.map((group) => (
+          <FindingGroup key={group.id} group={group} />
+        ))}
+        <ReadinessSummary ready={m.ready} />
+        <ReviewProgress review={m.review} />
+      </div>
     </Block>
   )
 }

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { ArrowLeft, ArrowRight } from 'lucide-react'
 import { useDossier } from '@/app/providers/DossierProvider'
@@ -31,7 +31,16 @@ export default function ApplicantPage() {
   const { state, hasData } = useDossier()
   const { t } = useTranslation(['applicant', 'common'])
   const td = dynamicT(t)
-  const [current, setCurrent] = useState(0)
+  const [searchParams] = useSearchParams()
+  // Optional deep-link: /applicant?step=<id> opens directly on that step (e.g.
+  // a passport finding in the Validation Center links to ?step=passport).
+  // Existing /applicant links (no param) start at the first step — nothing breaks.
+  const initialStep = (() => {
+    const id = searchParams.get('step')
+    const index = id ? WIZARD_STEP_IDS.indexOf(id as WizardStepId) : -1
+    return index >= 0 ? index : 0
+  })()
+  const [current, setCurrent] = useState(initialStep)
   const headingRef = useRef<HTMLHeadingElement>(null)
 
   // Move focus to the step heading on change so keyboard and screen-reader

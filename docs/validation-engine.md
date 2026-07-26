@@ -84,7 +84,7 @@ Dossier ──▶ runValidation() ──▶ ValidationFinding[]  (keys + params,
                          useFindingText()  ──▶  localized {title, description, action}
                                       │
                                       ▼
-              ConsistencyChecksPage · Dashboard ValidationSummary
+          Validation Center (features/validation) · Dashboard ConsistencyHealth
 ```
 
 ## Adding a rule

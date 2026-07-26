@@ -28,6 +28,86 @@
     "suggestedAction": "Önerilen işlem",
     "relatedFields": "İlgili alanlar"
   },
+  "center": {
+    "title": "Dosya incelemesi",
+    "subtitle": "Başvurudan önce dosyanızın bölüm bölüm sakin bir incelemesi — neler şimdiden iyi görünüyor ve neler hâlâ dikkatinizi bekliyor.",
+    "disclaimer": "Bu kontroller yalnızca düzenlemeye yardımcı olur, resmî gereklilik değildir. Gereklilikleri her zaman yetkili konsolosluk veya vize merkezinden doğrulayın.",
+    "hero": {
+      "readinessLabel": "Dosya tamamlanma düzeyi",
+      "nextRecommendation": "Önerilen sonraki adım",
+      "allClearBody": "Kontrol edebildiğimiz her şey tutarlı görünüyor. Randevunuzdan önce her ayrıntıyı yine de teyit etmeyi unutmayın.",
+      "checksPassed_one": "{{total}} kontrolden {{count}} tanesi başarılı",
+      "checksPassed_other": "{{total}} kontrolden {{count}} tanesi başarılı",
+      "needAttention_one": "{{count}} madde dikkat istiyor",
+      "needAttention_other": "{{count}} madde dikkat istiyor",
+      "notes_one": "{{count}} not",
+      "notes_other": "{{count}} not",
+      "verdict": {
+        "clear": "Tutarlı görünüyor",
+        "notes": "İyi ilerliyor",
+        "review": "Gözden geçirilecek birkaç nokta",
+        "attention": "İlgilenilecek birkaç madde"
+      },
+      "headline": {
+        "clear": "Dosyanız tutarlı görünüyor",
+        "notes": "Dosyanız iyi ilerliyor",
+        "review": "Dosyanız şekilleniyor",
+        "attention": "Birkaç madde dikkatinizi bekliyor"
+      }
+    },
+    "categories": {
+      "applicant": "Başvuru sahibi",
+      "trip": "Seyahat",
+      "documents": "Belgeler",
+      "employment": "İstihdam",
+      "finance": "Finans",
+      "sponsors": "Sponsorlar",
+      "timeline": "Zaman çizelgesi"
+    },
+    "areas": {
+      "passport": "Pasaport",
+      "trip": "Seyahat tarihleri ve rota",
+      "accommodation": "Konaklama",
+      "insurance": "Sigorta",
+      "appointment": "Randevu",
+      "documents": "Belgeler",
+      "employment": "İstihdam",
+      "sponsors": "Sponsorlar"
+    },
+    "health": {
+      "attention": "Dikkat gerekiyor",
+      "review": "Gözden geçirilmesi önerilir",
+      "notes": "Bilginize",
+      "clear": "İyi görünüyor"
+    },
+    "severity": {
+      "attention": "Dikkat gerekiyor",
+      "review": "Gözden geçirilmesi önerilir",
+      "note": "Bilmekte fayda var"
+    },
+    "finding": {
+      "howToFix": "Nasıl düzeltilir:",
+      "count_one": "{{count}} madde",
+      "count_other": "{{count}} madde"
+    },
+    "ready": {
+      "title": "Bunlar şimdiden iyi görünüyor"
+    },
+    "review": {
+      "title": "Dosya özeti",
+      "status": {
+        "captured": "Girildi",
+        "needsReview": "Gözden geçirilmeli",
+        "incomplete": "Başlanmadı"
+      }
+    },
+    "guidance": {
+      "body": "Planlama aşamasında küçük tutarsızlıklar olağandır. İsteğe bağlı ayrıntıları tamamlamak için istediğiniz zaman geri dönebilirsiniz — buradaki hiçbir şey başvurunuz hakkında bir hüküm değildir."
+    },
+    "actions": {
+      "goThere": "Oraya git"
+    }
+  },
   "findings": {
     "noAccommodation": {
       "title": "Konaklama rezervasyonu yok",

@@ -28,6 +28,86 @@
     "suggestedAction": "Suggested action",
     "relatedFields": "Related fields"
   },
+  "center": {
+    "title": "Dossier review",
+    "subtitle": "A calm, section-by-section review of your dossier — what already looks good, and what still needs your attention before you submit.",
+    "disclaimer": "These checks are organizational aids, not official requirements. Always verify requirements with the official embassy or visa center.",
+    "hero": {
+      "readinessLabel": "Dossier completeness",
+      "nextRecommendation": "Suggested next step",
+      "allClearBody": "Everything we can check looks consistent. Remember to verify each detail before your appointment.",
+      "checksPassed_one": "{{count}} of {{total}} check passed",
+      "checksPassed_other": "{{count}} of {{total}} checks passed",
+      "needAttention_one": "{{count}} item needs attention",
+      "needAttention_other": "{{count}} items need attention",
+      "notes_one": "{{count}} note",
+      "notes_other": "{{count}} notes",
+      "verdict": {
+        "clear": "Looking consistent",
+        "notes": "Progressing well",
+        "review": "A few things to review",
+        "attention": "A few items to address"
+      },
+      "headline": {
+        "clear": "Your dossier looks consistent",
+        "notes": "Your dossier is progressing well",
+        "review": "Your dossier is coming together",
+        "attention": "A few items need your attention"
+      }
+    },
+    "categories": {
+      "applicant": "Applicant",
+      "trip": "Trip",
+      "documents": "Documents",
+      "employment": "Employment",
+      "finance": "Finance",
+      "sponsors": "Sponsors",
+      "timeline": "Timeline"
+    },
+    "areas": {
+      "passport": "Passport",
+      "trip": "Travel dates & route",
+      "accommodation": "Accommodation",
+      "insurance": "Insurance",
+      "appointment": "Appointment",
+      "documents": "Documents",
+      "employment": "Employment",
+      "sponsors": "Sponsors"
+    },
+    "health": {
+      "attention": "Needs attention",
+      "review": "Review recommended",
+      "notes": "For your information",
+      "clear": "Looks good"
+    },
+    "severity": {
+      "attention": "Needs attention",
+      "review": "Review recommended",
+      "note": "Good to know"
+    },
+    "finding": {
+      "howToFix": "How to fix:",
+      "count_one": "{{count}} item",
+      "count_other": "{{count}} items"
+    },
+    "ready": {
+      "title": "These already look good"
+    },
+    "review": {
+      "title": "Dossier summary",
+      "status": {
+        "captured": "Captured",
+        "needsReview": "Needs review",
+        "incomplete": "Not started"
+      }
+    },
+    "guidance": {
+      "body": "Small inconsistencies are common while planning. You can return any time to complete optional details — nothing here is a verdict on your application."
+    },
+    "actions": {
+      "goThere": "Take me there"
+    }
+  },
   "findings": {
     "noAccommodation": {
       "title": "No accommodation reservations",
