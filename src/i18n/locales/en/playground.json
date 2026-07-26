@@ -18,7 +18,8 @@
     "composition": "Composition",
     "dashboard": "Dashboard",
     "validation": "Validation center",
-    "employment": "Employment"
+    "employment": "Employment",
+    "finance": "Finance"
   },
   "rows": {
     "surfaces": "Surfaces",
@@ -69,6 +70,9 @@
     "countryCombobox": "Country combobox",
     "employmentStatus": "Employment status selector",
     "employmentTenure": "Derived tenure",
+    "fundingSource": "Funding source selector",
+    "financeIncome": "Income overview",
+    "financeSponsor": "Sponsor summary card",
     "collectionEditor": "Collection editor",
     "tripHero": "TripHero",
     "journeyTimeline": "JourneyTimeline",
@@ -130,6 +134,7 @@
     "dashboard": "Composed command-center widgets, driven by the derived dashboard model over a fictional demo dossier.",
     "validation": "Dossier-review building blocks: the review hero, findings grouped by domain with a calm health label and a direct \"take me there\" link, the \"looks good\" list, and the section-by-section summary.",
     "employment": "Employment-workspace building blocks: the status selector, derived current-employer tenure, leave coverage against the trip, the employment-document summary + HR request list, and the review.",
+    "finance": "Financial-evidence building blocks: the funding-source selector, the read-only income overview, a sponsor summary card, the grouped financial-document summary + evidence-to-gather copy list, and the review.",
     "onboarding": "Guided-flow building blocks: the step rail, the \"Why do we ask this?\" popover, and the generic collection editor.",
     "travel": "Trip-planner building blocks: the overview hero, the connected journey timeline with destination cards, transport segments and the insurance coverage card.",
     "documents": "Document-workspace building blocks: the segmented view switch, the readiness overview hero, and the document card in its template, custom and with-findings states."

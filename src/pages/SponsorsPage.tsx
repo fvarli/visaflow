@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useDossier } from '@/app/providers/DossierProvider'
 import {
@@ -106,6 +107,36 @@ export default function SponsorsPage() {
     setDialogOpen(true)
   }
 
+  // Deep-link support (additive): `?sponsor=<id>` opens that sponsor's editor
+  // (e.g. from the Finance workspace's sponsor summary). No param → the page
+  // behaves exactly as before; an unknown id is ignored, never a crash. Closing
+  // the dialog clears only `sponsor`, keeping any other params.
+  const [searchParams, setSearchParams] = useSearchParams()
+  const sponsorParam = searchParams.get('sponsor')
+  const seededSponsor = useRef<string | null>(null)
+
+  const clearSponsorParam = () =>
+    setSearchParams((prev) => {
+      const next = new URLSearchParams(prev)
+      next.delete('sponsor')
+      return next
+    })
+
+  useEffect(() => {
+    if (!sponsorParam) {
+      seededSponsor.current = null
+      return
+    }
+    if (seededSponsor.current === sponsorParam) return
+    const match = state.sponsors.find((s) => s.id === sponsorParam)
+    if (match) {
+      seededSponsor.current = sponsorParam
+      // Defer opening out of the synchronous effect pass so the three form
+      // setters don't cascade renders; it still resolves before paint.
+      queueMicrotask(() => handleEdit(match))
+    }
+  }, [sponsorParam, state.sponsors])
+
   if (!hasData) {
     return <NoDossierState section={t('sponsors:title')} />
   }
@@ -122,7 +153,10 @@ export default function SponsorsPage() {
           open={dialogOpen}
           onOpenChange={(open) => {
             setDialogOpen(open)
-            if (!open) resetForm()
+            if (!open) {
+              resetForm()
+              if (sponsorParam) clearSponsorParam()
+            }
           }}
         >
           <DialogTrigger asChild>

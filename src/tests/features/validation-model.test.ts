@@ -93,9 +93,19 @@ describe('finding actions — deep links (no dead ends)', () => {
     expect(findingAction(finding('employment.leaveCoversTrip'))?.route).toBe(
       '/employment?step=leave'
     )
+    // Per-sponsor rules land on the Sponsors page (where the record is edited).
     expect(findingAction(finding('sponsor.hasDocuments'))?.route).toBe(
       '/sponsors'
     )
+    expect(findingAction(finding('sponsor.relationshipProof'))?.route).toBe(
+      '/sponsors'
+    )
+  })
+
+  it('links the funding-strategy finding to the Finance sponsors step', () => {
+    expect(
+      findingAction(finding('sponsor.requiredForSponsoredFunding'))?.route
+    ).toBe('/finance?step=sponsors')
   })
 
   it('falls back to the first related field for an unknown rule', () => {
@@ -103,6 +113,11 @@ describe('finding actions — deep links (no dead ends)', () => {
       findingAction(finding('mystery.rule', 'warning', ['applicant.foo']))
         ?.route
     ).toBe('/applicant')
+    // A financing-related field routes to the Finance source step.
+    expect(
+      findingAction(finding('mystery.rule', 'warning', ['financing.source']))
+        ?.route
+    ).toBe('/finance?step=source')
     expect(findingAction(finding('mystery.rule', 'warning', []))).toBeNull()
   })
 })

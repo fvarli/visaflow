@@ -2,12 +2,54 @@
   "title": "Finance",
   "description": "How this trip will be funded",
   "shortDescription": "How you will finance your trip",
+  "wizard": {
+    "title": "Financial evidence",
+    "description": "Show how the trip is funded and which financial evidence is ready — clearly and consistently, without guessing at outcomes."
+  },
+  "nav": {
+    "rail": "Finance steps",
+    "stepProgress": "Step {{current}} of {{total}}",
+    "back": "Back",
+    "continue": "Continue"
+  },
+  "steps": {
+    "source": {
+      "title": "Funding source",
+      "description": "Tell us who will cover the costs of this trip."
+    },
+    "personal": {
+      "title": "Personal finances",
+      "description": "Your own funds and what your income shows."
+    },
+    "sponsors": {
+      "title": "Sponsors",
+      "description": "Anyone contributing to the trip and their evidence."
+    },
+    "documents": {
+      "title": "Financial documents",
+      "description": "The financial evidence for your dossier and what's still to gather."
+    },
+    "consistency": {
+      "title": "Consistency",
+      "description": "How your funding, income, and evidence line up — plain facts, no scoring."
+    },
+    "review": {
+      "title": "Review",
+      "description": "A summary of your funding strategy and financial evidence."
+    }
+  },
   "source": {
     "title": "Funding source",
     "description": "Who will cover the expenses for this trip?",
     "label": "Primary funding source",
     "placeholder": "Select source",
-    "required": "Funding source is required"
+    "required": "Funding source is required",
+    "context": {
+      "self": "You'll fund the trip from your own resources. Your bank statement and income show the funds are available — there's no sponsor to document.",
+      "sponsor": "Someone else will fund the trip. Their sponsorship letter, bank statement, and proof of your relationship document who is supporting you and how.",
+      "employer": "Your employer will cover the trip (for example, business travel). Employer confirmation of coverage documents this; personal-bank evidence is less central.",
+      "mixed": "You and a sponsor will share the costs. Note clearly which expenses you cover and which your sponsor covers, and prepare evidence for both."
+    }
   },
   "personal": {
     "title": "Personal finances",
@@ -16,6 +58,120 @@
     "bankNamePlaceholder": "Your primary bank",
     "statementDate": "Statement date",
     "accountBalance": "Account balance",
-    "currency": "Currency"
+    "currency": "Currency",
+    "balanceHint": "This figure is only recorded for your own reference. It is never judged as sufficient or insufficient."
+  },
+  "income": {
+    "title": "Income overview",
+    "description": "Read from your Employment section — nothing to enter here.",
+    "monthlyNetIncome": "Monthly net income",
+    "status": "Employment status",
+    "open": "Open Employment",
+    "none": "No employment income is recorded yet. Add it in the Employment section if it applies to you."
+  },
+  "sponsors": {
+    "title": "Sponsors",
+    "description": "People contributing to the trip, summarized here. Add and edit them in the Sponsors workspace.",
+    "none": "No sponsors added yet.",
+    "noneHint": "You chose funding that involves a sponsor. Add at least one sponsor so their support can be documented.",
+    "count_one": "{{count}} sponsor",
+    "count_other": "{{count}} sponsors",
+    "monthlyIncome": "Monthly income",
+    "covers": "Covers",
+    "documentsAvailable_one": "{{count}} document on file",
+    "documentsAvailable_other": "{{count}} documents on file",
+    "noDocuments": "No sponsor documents on file yet",
+    "missingFinanceInfo": "No financial information recorded yet",
+    "nextAction": "Next step",
+    "openSponsor": "Open in Sponsors",
+    "openSponsors": "Manage sponsors",
+    "addSponsor": "Add a sponsor",
+    "openInDocuments": "Sponsor documents"
+  },
+  "documents": {
+    "none": "No financial documents apply to your current funding source.",
+    "readyCount": "{{ready}} of {{total}} financial documents ready",
+    "open": "Open",
+    "openInDocumentsFor": "Open {{document}} in Documents",
+    "groups": {
+      "bank": "Bank",
+      "income": "Employment income",
+      "sponsor": "Sponsor evidence",
+      "employer": "Employer evidence",
+      "other": "Other"
+    },
+    "docStatus": {
+      "not_started": "Not started",
+      "requested": "Requested",
+      "received": "Received",
+      "needs_update": "Needs update",
+      "ready": "Ready",
+      "not_applicable": "Not applicable",
+      "not_instantiated": "Not added yet"
+    },
+    "gather": {
+      "title": "Financial evidence to gather",
+      "description": "The financial documents not yet in hand. Copy the list to share with yourself, a sponsor, or a family member.",
+      "heading": "Financial evidence to gather",
+      "copy": "Copy list",
+      "copied": "Copied",
+      "empty": "All applicable financial evidence is in hand — nothing left to gather.",
+      "groups": {
+        "personal": "Personal financial evidence",
+        "sponsor": "Sponsor evidence",
+        "employer": "Employer-funded evidence"
+      }
+    }
+  },
+  "consistency": {
+    "title": "Consistency",
+    "description": "Factual relationships between the sections you've filled in. Nothing here predicts an outcome.",
+    "allClear": "Your funding, income, and evidence are consistent so far.",
+    "employmentIncomeSupports": "Your employment income (from the Employment section) supports your declared self-funding.",
+    "noEmploymentIncomeOnRecord": "No employment income is recorded in the Employment section. If you're employed, adding it helps your funding line up.",
+    "bankStatementPending": "Your self-funding relies on a bank statement, which isn't ready yet.",
+    "mixedWhoCovers": "For mixed funding, note clearly which costs you cover and which your sponsor covers.",
+    "employerCovers": "This trip is recorded as employer-funded. Prepare your employer's confirmation that it covers the costs."
+  },
+  "why": {
+    "title": "Why do we ask this?",
+    "trigger": "Why do we ask for {{field}}?",
+    "bankName": "Naming the bank that holds your funds lets your statement line up with your declared account.",
+    "accountBalance": "Recording the balance is for your own reference only — it helps you keep track, and is never judged.",
+    "statementDate": "A recent statement date shows the funds are current."
+  },
+  "guidance": {
+    "bankStatementDemonstrates": "A recent bank statement demonstrates that funds are available for the trip.",
+    "salaryAccountConsistency": "If your salary arrives in this account, the statement ties your income to your available funds.",
+    "sponsorLetterDemonstrates": "A sponsorship letter documents who is supporting you, and their bank statement shows the funds are available.",
+    "employerCoverageContext": "For an employer-funded trip, a letter confirming the employer covers your costs is the key piece of evidence.",
+    "evidenceFromDocuments": "These come from your Documents workspace — this page reflects their status, it doesn't store a separate copy."
+  },
+  "notApplicable": {
+    "personal": {
+      "title": "No personal-bank evidence needed",
+      "description": "Your funding source doesn't rely on your own bank funds. Anything you entered before is kept if you change the source later."
+    },
+    "sponsors": {
+      "title": "No sponsors needed",
+      "description": "You chose funding that doesn't involve a sponsor. You can add one anytime by changing the funding source."
+    },
+    "documents": {
+      "title": "No financial documents needed",
+      "description": "Your funding source doesn't require financial documents here. Any required documents live in the Documents workspace."
+    }
+  },
+  "review": {
+    "status": {
+      "captured": "Captured",
+      "incomplete": "Incomplete",
+      "needsReview": "Needs review",
+      "notApplicable": "Not applicable"
+    },
+    "edit": "Edit",
+    "attention": "Worth a look",
+    "goToFix": "Go to fix",
+    "gatherRemaining_one": "{{count}} document still to gather",
+    "gatherRemaining_other": "{{count}} documents still to gather"
   }
 }

@@ -1,238 +1,153 @@
-import { useForm } from 'react-hook-form'
+import { useEffect, useRef, useState } from 'react'
+import { Link, useSearchParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { z } from 'zod'
+import { ArrowLeft, ArrowRight } from 'lucide-react'
 import { useDossier } from '@/app/providers/DossierProvider'
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card'
+import { PageHeader } from '@/components/ui/page-header'
+import { PageBody } from '@/components/ui/section'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
-import { Alert, AlertDescription } from '@/components/ui/alert'
-import { AlertCircle } from 'lucide-react'
+import { Stepper, type StepperStep } from '@/components/ui/stepper'
 import { NoDossierState } from '@/components/NoDossierState'
 import { dynamicT } from '@/lib/i18n-dynamic'
-import { useEffect } from 'react'
+import {
+  FINANCE_STEP_IDS,
+  deriveStepStatuses,
+  type FinanceStepId,
+} from '@/features/finance/finance-wizard'
+import { SourceStep } from '@/components/finance/SourceStep'
+import { PersonalFinancesStep } from '@/components/finance/PersonalFinancesStep'
+import { SponsorsStep } from '@/components/finance/SponsorsStep'
+import { FinancialDocumentsStep } from '@/components/finance/FinancialDocumentsStep'
+import { ConsistencyStep } from '@/components/finance/ConsistencyStep'
+import { FinanceReviewStep } from '@/components/finance/FinanceReviewStep'
 
-const formSchema = z.object({
-  source: z.string().min(1, 'Funding source is required'),
-  selfFundedAmount: z.string().optional(),
-  bankName: z.string().optional(),
-  accountBalance: z.string().optional(),
-  statementDate: z.string().optional(),
-  currency: z.string().optional(),
-})
-
-type FormData = z.infer<typeof formSchema>
-
+/**
+ * The finance experience as a guided, six-step "financial evidence" workspace
+ * rather than one flat form. This page owns only orchestration — the active
+ * step, the rail, the heading, and forward/back navigation. Each step reads and
+ * autosaves the dossier itself (shallow-merge via `updateFinancing`, so source
+ * changes never delete data), so there is no submit button; the shell never
+ * touches the schema or validation logic.
+ */
 export default function FinancePage() {
-  const { state, updateFinancing, hasData } = useDossier()
-  const { t } = useTranslation(['finance', 'common', 'visa-domain'])
+  const { state, hasData } = useDossier()
+  const { t } = useTranslation(['finance', 'common'])
   const td = dynamicT(t)
+  const [searchParams] = useSearchParams()
+  // Optional deep-link: /finance?step=<id> opens directly on that step (e.g. a
+  // sponsor-funding finding in the Validation Center links to ?step=sponsors).
+  // Existing /finance links (no param) start at the first step — nothing breaks.
+  const initialStep = (() => {
+    const id = searchParams.get('step')
+    const index = id ? FINANCE_STEP_IDS.indexOf(id as FinanceStepId) : -1
+    return index >= 0 ? index : 0
+  })()
+  const [current, setCurrent] = useState(initialStep)
+  const headingRef = useRef<HTMLHeadingElement>(null)
 
-  const {
-    register,
-    handleSubmit,
-    setValue,
-    watch,
-    formState: { errors },
-  } = useForm<FormData>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      source: state.application?.financing?.source ?? '',
-      selfFundedAmount:
-        state.application?.financing?.selfFundedAmount?.toString() ?? '',
-      bankName: state.application?.financing?.bankName ?? '',
-      accountBalance:
-        state.application?.financing?.accountBalance?.toString() ?? '',
-      statementDate: state.application?.financing?.statementDate ?? '',
-      currency: state.application?.financing?.currency ?? 'EUR',
-    },
-  })
-
-  const source = watch('source')
-
+  // Move focus to the step heading on change so keyboard and screen-reader
+  // users land at the top of the new step (skip the initial mount).
+  const mounted = useRef(false)
   useEffect(() => {
-    if (state.application?.financing) {
-      const fin = state.application.financing
-      setValue('source', fin.source)
-      setValue('selfFundedAmount', fin.selfFundedAmount?.toString() ?? '')
-      setValue('bankName', fin.bankName ?? '')
-      setValue('accountBalance', fin.accountBalance?.toString() ?? '')
-      setValue('statementDate', fin.statementDate ?? '')
-      setValue('currency', fin.currency)
+    if (!mounted.current) {
+      mounted.current = true
+      return
     }
-  }, [state.application?.financing, setValue])
+    headingRef.current?.focus()
+  }, [current])
 
-  const onSubmit = (data: FormData) => {
-    updateFinancing({
-      source: data.source as 'self' | 'sponsor' | 'employer' | 'mixed',
-      selfFundedAmount: data.selfFundedAmount
-        ? parseFloat(data.selfFundedAmount)
-        : undefined,
-      bankName: data.bankName,
-      accountBalance: data.accountBalance
-        ? parseFloat(data.accountBalance)
-        : undefined,
-      statementDate: data.statementDate,
-      currency: data.currency as
-        | 'EUR'
-        | 'USD'
-        | 'GBP'
-        | 'TRY'
-        | 'CHF'
-        | 'JPY'
-        | 'CAD'
-        | 'AUD'
-        | 'CNY'
-        | 'INR'
-        | 'OTHER',
-    })
+  if (!hasData || !state.application) {
+    return (
+      <PageBody>
+        <NoDossierState section={t('finance:title')} />
+      </PageBody>
+    )
   }
 
-  if (!hasData) {
-    return <NoDossierState section={t('finance:title')} />
-  }
+  const total = FINANCE_STEP_IDS.length
+  const statuses = deriveStepStatuses(
+    state.application,
+    current,
+    state.sponsors.length
+  )
+  const steps: StepperStep[] = FINANCE_STEP_IDS.map((id, index) => ({
+    id,
+    title: td(`finance:steps.${id}.title`),
+    status: statuses[index] ?? 'upcoming',
+  }))
+  const activeId: FinanceStepId =
+    FINANCE_STEP_IDS[current] ?? FINANCE_STEP_IDS[0]
+  const isLast = current === total - 1
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold">{t('finance:title')}</h1>
-        <p className="text-muted-foreground">{t('finance:shortDescription')}</p>
-      </div>
+    <PageBody>
+      <PageHeader
+        title={t('finance:wizard.title')}
+        description={t('finance:wizard.description')}
+      />
 
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>{t('finance:source.title')}</CardTitle>
-            <CardDescription>{t('finance:source.description')}</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="source">{t('finance:source.label')} *</Label>
-              <Select
-                value={source}
-                onValueChange={(value) => setValue('source', value)}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder={t('finance:source.placeholder')} />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="self">
-                    {td('visa-domain:financingSource.self')}
-                  </SelectItem>
-                  <SelectItem value="sponsor">
-                    {td('visa-domain:financingSource.sponsor')}
-                  </SelectItem>
-                  <SelectItem value="employer">
-                    {td('visa-domain:financingSource.employer')}
-                  </SelectItem>
-                  <SelectItem value="mixed">
-                    {td('visa-domain:financingSource.mixed')}
-                  </SelectItem>
-                </SelectContent>
-              </Select>
-              {errors.source && (
-                <p className="text-sm text-red-500">{errors.source.message}</p>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-
-        {(source === 'self' || source === 'mixed') && (
-          <Card>
-            <CardHeader>
-              <CardTitle>{t('finance:personal.title')}</CardTitle>
-              <CardDescription>
-                Your personal financial information
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid gap-4 md:grid-cols-2">
-                <div className="space-y-2">
-                  <Label htmlFor="bankName">
-                    {t('finance:personal.bankName')}
-                  </Label>
-                  <Input
-                    id="bankName"
-                    {...register('bankName')}
-                    placeholder={t('finance:personal.bankNamePlaceholder')}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="statementDate">
-                    {t('finance:personal.statementDate')}
-                  </Label>
-                  <Input
-                    id="statementDate"
-                    type="date"
-                    {...register('statementDate')}
-                  />
-                </div>
-              </div>
-
-              <div className="grid gap-4 md:grid-cols-2">
-                <div className="space-y-2">
-                  <Label htmlFor="accountBalance">
-                    {t('finance:personal.accountBalance')}
-                  </Label>
-                  <Input
-                    id="accountBalance"
-                    type="number"
-                    {...register('accountBalance')}
-                    placeholder="0.00"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="currency">
-                    {t('finance:personal.currency')}
-                  </Label>
-                  <Select
-                    value={watch('currency')}
-                    onValueChange={(value) => setValue('currency', value)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="EUR">EUR</SelectItem>
-                      <SelectItem value="USD">USD</SelectItem>
-                      <SelectItem value="TRY">TRY</SelectItem>
-                      <SelectItem value="GBP">GBP</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        {(source === 'sponsor' || source === 'mixed') && (
-          <Alert>
-            <AlertCircle className="h-4 w-4" />
-            <AlertDescription>
-              For sponsor-funded trips, add sponsor details in the Sponsors
-              section.
-            </AlertDescription>
-          </Alert>
-        )}
-
-        <div className="flex justify-end">
-          <Button type="submit">{t('common:actions.saveChanges')}</Button>
+      <div className="grid gap-8 lg:grid-cols-[15rem_1fr] lg:gap-12">
+        <div className="lg:pt-1">
+          <Stepper
+            steps={steps}
+            current={current}
+            onSelect={setCurrent}
+            ariaLabel={t('finance:nav.rail')}
+            progressLabel={t('finance:nav.stepProgress', {
+              current: current + 1,
+              total,
+            })}
+          />
         </div>
-      </form>
-    </div>
+
+        <div className="min-w-0 space-y-6">
+          <div className="space-y-1">
+            <h2
+              ref={headingRef}
+              tabIndex={-1}
+              className="text-heading text-foreground outline-none"
+            >
+              {td(`finance:steps.${activeId}.title`)}
+            </h2>
+            <p className="text-body text-muted-foreground text-pretty">
+              {td(`finance:steps.${activeId}.description`)}
+            </p>
+          </div>
+
+          <div key={activeId} className="animate-fade-in">
+            {activeId === 'source' && <SourceStep />}
+            {activeId === 'personal' && <PersonalFinancesStep />}
+            {activeId === 'sponsors' && <SponsorsStep />}
+            {activeId === 'documents' && <FinancialDocumentsStep />}
+            {activeId === 'consistency' && <ConsistencyStep />}
+            {activeId === 'review' && <FinanceReviewStep onEdit={setCurrent} />}
+          </div>
+
+          <div className="flex items-center justify-between gap-3 border-t pt-6">
+            <Button
+              variant="ghost"
+              onClick={() => setCurrent((c) => Math.max(0, c - 1))}
+              disabled={current === 0}
+            >
+              <ArrowLeft />
+              {t('finance:nav.back')}
+            </Button>
+
+            {isLast ? (
+              <Button asChild>
+                <Link to="/dashboard">{t('common:actions.goToDashboard')}</Link>
+              </Button>
+            ) : (
+              <Button
+                onClick={() => setCurrent((c) => Math.min(total - 1, c + 1))}
+              >
+                {t('finance:nav.continue')}
+                <ArrowRight />
+              </Button>
+            )}
+          </div>
+        </div>
+      </div>
+    </PageBody>
   )
 }

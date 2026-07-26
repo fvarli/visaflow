@@ -119,6 +119,15 @@ import { LeaveCoverageSummary } from '@/components/employment/LeaveCoverageSumma
 import { EmploymentDocumentsSummary } from '@/components/employment/EmploymentDocumentsSummary'
 import { HrRequestChecklist } from '@/components/employment/HrRequestChecklist'
 import { EmploymentReview } from '@/components/employment/EmploymentReview'
+import { FundingSourceSelector } from '@/components/finance/FundingSourceSelector'
+import { IncomeOverview } from '@/components/finance/IncomeOverview'
+import { SponsorSummaryCard } from '@/components/finance/SponsorSummaryCard'
+import { FinanceDocumentsSummary } from '@/components/finance/FinanceDocumentsSummary'
+import { FinanceGatherChecklist } from '@/components/finance/FinanceGatherChecklist'
+import { FinanceReview } from '@/components/finance/FinanceReview'
+import { buildFinanceModel } from '@/features/finance/finance-model'
+import type { FinancingSource } from '@/domain/types/common'
+import type { Sponsor } from '@/domain/schemas/sponsor.schema'
 import { buildDashboardModel } from '@/features/dashboard/dashboard-model'
 import { buildValidationModel } from '@/features/validation/validation-model'
 import { buildEmploymentModel } from '@/features/employment/employment-model'
@@ -179,6 +188,7 @@ export default function PlaygroundPage() {
       <Dashboard />
       <Validation />
       <Employment />
+      <Finance />
     </PageBody>
   )
 }
@@ -204,6 +214,7 @@ const SECTIONS = [
   'dashboard',
   'validation',
   'employment',
+  'finance',
 ] as const
 
 function Nav() {
@@ -1936,6 +1947,82 @@ function Employment() {
           employment={DEMO_EMPLOYMENT}
           onEdit={() => {}}
         />
+      </div>
+    </Block>
+  )
+}
+
+const DEMO_FINANCE_SPONSORS: Sponsor[] = [
+  {
+    id: 'demo-sponsor',
+    relationship: 'parent',
+    firstName: 'Demo',
+    lastName: 'Sponsor',
+    monthlyIncome: 5200,
+    currency: 'EUR',
+    coveredExpenses: ['accommodation', 'food'],
+    investments: [],
+    ownedAssets: [],
+    documentIds: [],
+    sponsorshipLetter: false,
+    proofOfRelationship: false,
+  },
+]
+
+const DEMO_FINANCE_MODEL = buildFinanceModel({
+  applicant: DEMO_APPLICANT,
+  application: {
+    ...DEMO_APPLICATION,
+    employment: DEMO_EMPLOYMENT,
+    financing: {
+      source: 'mixed',
+      currency: 'EUR',
+      bankName: 'Demo Bank',
+      accountBalance: 12000,
+      statementDate: '2027-01-15',
+    },
+  },
+  documents: DEMO_DOCUMENTS,
+  sponsors: DEMO_FINANCE_SPONSORS,
+})
+
+function Finance() {
+  const { t } = useTranslation(['playground', 'finance', 'visa-domain'])
+  const m = DEMO_FINANCE_MODEL
+  const [source, setSource] = useState<FinancingSource>('mixed')
+
+  return (
+    <Block
+      id="finance"
+      title={t('playground:sections.finance')}
+      description={t('playground:blurbs.finance')}
+    >
+      <Row label={t('playground:rows.fundingSource')} align="start">
+        <div className="w-full max-w-sm">
+          <FundingSourceSelector value={source} onValueChange={setSource} />
+        </div>
+      </Row>
+
+      <Row label={t('playground:rows.financeIncome')} align="start">
+        <div className="w-full max-w-md">
+          <IncomeOverview income={m.income} />
+        </div>
+      </Row>
+
+      <Row label={t('playground:rows.financeSponsor')} align="start">
+        <div className="w-full max-w-md">
+          {m.sponsors.list[0] && (
+            <SponsorSummaryCard sponsor={m.sponsors.list[0]} />
+          )}
+        </div>
+      </Row>
+
+      <Separator />
+
+      <div className="flex flex-col gap-6">
+        <FinanceDocumentsSummary documents={m.documents} />
+        <FinanceGatherChecklist gather={m.documents.gather} />
+        <FinanceReview model={m} onEdit={() => {}} />
       </div>
     </Block>
   )

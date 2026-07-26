@@ -166,6 +166,39 @@ eksik zorunlu belgeler, güncellenmesi gereken belgeler, tutarlılık bulguları
   consumes those findings, it does not re-derive coverage. Leave only applies to the
   `employed` status; other statuses raise no employment findings.
 
+## Financing: source-driven evidence, balance is recorded not judged
+
+- **Applicability is funding-source-driven.** `financing.source` (self / sponsor /
+  employer / mixed) decides which sections carry evidence: self/mixed → personal
+  bank funds; sponsor/mixed → sponsors; employer → employer coverage context. All
+  four values stay editable so an imported dossier is never left with an unreachable
+  source. Non-applicable sections show calm "not needed" states, never errors
+  (ADR-027).
+- **Account balance is *recorded*, never judged.** The schema keeps `accountBalance`
+  + `currency` for the applicant's own reference. Never compare it to a threshold,
+  never label it sufficient/insufficient, never imply more money helps approval
+  (ADR-016). Persist the raw number + ISO currency; format for display only.
+- **Personal funds ≠ employment income.** Monthly income lives only on
+  `employment.monthlyNetIncome` — the Finance page **reads** it (a read-only income
+  overview that links to Employment) and never copies or re-enters it. `Financing`
+  has no income figure, so there is no conflict.
+- **Financing data ≠ financial documents.** `financing.*` fields describe the
+  strategy; the evidence (bank statement, sponsor letter, sponsor bank statement,
+  relationship proof, income proofs) are **Document instances** in the Documents
+  workspace. The Finance page groups applicable finance requirements (Bank /
+  Employment income / Sponsor / Employer / Other) and never stores document status.
+- **Sponsors are summarized in a funding context; editing is owned by `/sponsors`.**
+  Finance reads `dossier.sponsors` directly (single-app MVP; `application.sponsorIds`
+  is unwired) and links to a specific sponsor via the additive `/sponsors?sponsor=<id>`.
+- **Consistency reuses findings + factual notes.** Funding-consistency findings come
+  from the engine's `sponsor.*` rules (including `sponsor.requiredForSponsoredFunding`,
+  which treats `sponsor` *and* `mixed` as sponsored); the Finance page adds only
+  net-new *factual* observations (e.g. "a bank statement is still pending"), never a
+  prediction. Known gap: the Greece pack keys sponsor documents on
+  `financing.source == 'sponsor'` only, so `mixed` does not surface sponsor-document
+  *requirements* — the rule still flags it, and fixing the pack would change readiness
+  outcomes (out of scope).
+
 ## Requirement vs document instance
 
 - **Document requirement** (`src/config/types.ts`) — template/configuration

@@ -769,3 +769,92 @@ writes localized names + accessible feedback, no-dossier), `documents-deeplink` 
 - Salary bank is free text (no bank dataset, by design); a future bank selector is possible.
 - No browser pass (no connected Chrome) — re-verify at 1440/390 × tr light/dark + en: status disclosure,
   tenure wording, leave-vs-trip comparison, HR list + copy, review, long Turkish employer/document names.
+
+## Iteration 14 handoff (2026-07-27) — Finance experience redesign (Financial Evidence Workspace)
+
+Turned the flat Finance form (a Save-button CRUD screen that only revealed personal-finance fields for
+`self`/`mixed`, hard-capped the currency list, and carried hardcoded English strings) into a calm,
+guided **Financial Evidence Workspace**. No dossier-schema, import/export, or validation-outcome change —
+every field already existed on `FinancingSchema` / `SponsorSchema`.
+
+### Baseline recorded (real, from code)
+`format:check` ✓ · `lint` 0 errors / 55 warnings ✓ · `typecheck` ✓ · `test` **251/251** (32 files) ·
+`build` main index ~109.38 kB gzip.
+
+### Architecture — pure adapters (ADR-027), `src/features/finance/`
+- `finance-wizard.ts` — `FINANCE_STEP_IDS` (source·personal·sponsors·documents·consistency·review) +
+  source-aware predicates (`personalApplies`/`sponsorApplies`/`employerApplies`) + `deriveStepStatuses`
+  (non-applicable steps count complete; takes an explicit `sponsorCount` since sponsors live on the
+  dossier, not the application).
+- `finance-documents.ts` — `financeDocGroup` (Bank/Income/Sponsor/Employer/Other; income by code even
+  when category is `financial`), `buildFinanceDocuments` (finance-only buckets via `buildDocumentBuckets5`
+  + `applicableRequirements`; grouped rows; `gather` = applicable *missing* rolled into Personal/Sponsor/
+  Employer), `financeClipboardText` (grouped, names only).
+- `finance-guidance.ts` — info-only `FinanceGuidanceHint`s (what bank statement / sponsor letter /
+  employer coverage / employment income demonstrate), source-gated.
+- `finance-consistency.ts` — `deriveConsistency` → *factual* observations only (employment-income-supports,
+  no-income-on-record, bank-statement-pending, mixed-who-covers, employer-covers); rule-based issues are
+  surfaced from findings, never re-derived. No threshold/strength/prediction.
+- `finance-model.ts` — `buildFinanceModel`/`useFinanceModel`: source, personal snapshot, read-only income
+  overview, sponsors summary (per-sponsor `sponsor.*` findings), documents view, consistency (dossier-level
+  findings + observations), per-section review. Filters `runValidation` to `sponsor.*`.
+
+### Components (`src/components/finance/`, in `/playground`)
+Reusable: `FundingSourceSelector` (Radix Select over all 4 sources — chosen over a segmented row for the
+long bilingual labels), `IncomeOverview` (read-only, links to Employment), `SponsorSummaryCard` (read-only,
+links to `/sponsors?sponsor=<id>` + `/documents?category=sponsor`), `FinanceDocumentsSummary` (grouped +
+per-doc deep-links), `FinanceGatherChecklist` (grouped accessible Copy — localized names only, inline
+sr-announced feedback, focus preserved, hidden when empty), `FinanceReview`. Step components
+(Source/Personal/Sponsors/Documents/Consistency/Review) autosave via `updateFinancing` (shallow merge →
+non-destructive on source change), no Save button. `FinancePage` is a thin shell mirroring
+Employment/Trip: `PageHeader` + `Stepper` + focus-to-h2 + `?step=` reader.
+
+### Sanctioned cross-page deep-links (additive)
+- `finding-actions.ts` — `sponsor.requiredForSponsoredFunding` → `/finance?step=sponsors`; `financing.`
+  field fallback → `/finance?step=source`; per-sponsor `sponsor.*` findings still → `/sponsors`.
+- `SponsorsPage.tsx` — additive `useSearchParams`: `?sponsor=<id>` opens that sponsor's existing edit
+  dialog pre-filled (seed-once ref; opening deferred via `queueMicrotask` to satisfy the
+  set-state-in-effect rule; closing clears only `sponsor`; unknown id ignored; no param → byte-for-byte
+  the old behavior). Dashboard, Applicant, Trip, Employment, Validation Center untouched.
+
+### Product guarantees
+No schema change; account balance is *recorded, never judged* (no threshold/sufficiency/strength/source
+ranking / "more money helps"); employment income is *read* from Employment, never copied; financing fields
+vs financial documents stay separate (Documents is the single status store); sponsors are summary +
+deep-link only (editing owned by `/sponsors`, no second sponsor store); guidance/consistency never affect
+readiness or predict an outcome (ADR-016). All four `source` values stay editable so imported
+`employer`-funded dossiers are never stranded.
+
+### i18n
+`finance.json` expanded in both locales (wizard/nav/steps/source.context/personal/income/sponsors/
+documents+groups+gather/consistency/guidance/why/notApplicable/review) with tr/en parity; `playground.json`
+`sections.finance` + blurb + row labels. Enum labels reuse `visa-domain:financingSource.*`. Values stay
+raw/ISO → exported JSON unchanged.
+
+### Gates (this iteration)
+`format:check` ✓ · `lint` 0 errors / 59 warnings (baseline 55; +4 acceptable — test `!` assertions) ·
+`typecheck` ✓ · `test` **308/308** (251 + 57 new, 39 files) · `build` ✓ (FinancePage lazy ~2.64 kB gzip;
+shared FinanceReview chunk ~4.98 kB gzip; SponsorsPage ~1.84 kB gzip; main index ~110.21 kB gzip,
++~0.83 kB, no new dependency). `git diff --check` clean. Not committed, not pushed.
+
+### Tests
+Pure: `finance-wizard` (steps, source-aware statuses, predicates), `finance-documents` (group mapping,
+finance-only buckets, gather grouping, `financeClipboardText` grouped/privacy-safe/empty),
+`finance-consistency` (per-source observations, no numeric params), `finance-guidance` (info-only, step
+filter), `finance-model` (self/sponsor/employer review states, funding finding → consistency, per-sponsor
+findings on the card, imported employer dossier editable). Render: `finance-page` (both locales single h1
++ no Save button, `?step=sponsors` deep-link, not-applicable personal for sponsor funding, grouped Copy
+list accessible + privacy-safe, non-destructive source switching via a provider probe, no-dossier),
+`sponsors-deeplink` (`?sponsor=` opens pre-filled editor, unknown id no crash, no-param backward-compat).
+`validation-model` assertions updated for the new finance routes.
+
+### Known limitations / next
+- Greece pack keys sponsor documents on `financing.source == 'sponsor'` only, so `mixed` funding doesn't
+  surface sponsor-document *requirements* via `applicableRequirements` (the funding rule still flags it,
+  and the consistency step catches it). Fixing the pack would change readiness outcomes — out of scope.
+- `application.sponsorIds` remains unwired (single-app MVP); Finance reads `dossier.sponsors` directly.
+- No employer-coverage document requirement exists in the pack, so employer-funded evidence surfaces only
+  as employer company records + bank statement; a dedicated "employer covers costs" requirement is future.
+- No browser pass (no connected Chrome) — re-verify at 1440/390 × tr light/dark + en: source disclosure
+  across all four sources, income overview, sponsor summary + deep-links, grouped documents + Copy list,
+  consistency tones, review, long Turkish document/group labels.

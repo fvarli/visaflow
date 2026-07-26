@@ -81,6 +81,15 @@ Last updated: 2026-07-27
       dates, an employment-document summary + "what to request from HR" checklist
       (with accessible copy) that reuse the Documents feature, and a calm review.
       Pure adapters in `src/features/employment/*`; no schema/rule change (ADR-026)
+- [x] Finance workspace — a guided six-step "financial evidence" wizard (source →
+      personal → sponsors → documents → consistency → review): funding-source-aware
+      progressive disclosure across all four sources (non-destructive), a recorded
+      account balance that is never judged, a read-only employment-income overview,
+      financial documents grouped (Bank / Employment income / Sponsor / Employer /
+      Other) from the Documents feature with a privacy-safe "evidence to gather"
+      copy list, a sponsor summary that defers editing to `/sponsors`, and a
+      consistency step that reuses `sponsor.*` findings plus net-new factual notes.
+      Pure adapters in `src/features/finance/*`; no schema/rule change (ADR-027)
 - [x] Validation Center — the dossier review workspace: a review hero (readiness
       + checks passed + items needing attention + one suggested next step),
       findings grouped by domain with a calm health label and a direct
@@ -94,7 +103,9 @@ Last updated: 2026-07-27
       validation (`ValidationHero`, `FindingCard`, `FindingGroup`,
       `ReadinessSummary`, `ReviewProgress`) and employment
       (`EmploymentStatusSelector`, `EmploymentTenure`, `LeaveCoverageSummary`,
-      `EmploymentDocumentsSummary`, `HrRequestChecklist`, `EmploymentReview`)
+      `EmploymentDocumentsSummary`, `HrRequestChecklist`, `EmploymentReview`) and
+      finance (`FundingSourceSelector`, `IncomeOverview`, `SponsorSummaryCard`,
+      `FinanceDocumentsSummary`, `FinanceGatherChecklist`, `FinanceReview`)
       families — all in `/playground`
 - [x] Add custom documents / re-add template requirements / additive template
       sync (never deletes applicant data); custom docs use a stable `CUSTOM-` code
@@ -145,7 +156,7 @@ All checks pass:
 - `pnpm format:check` - PASS
 - `pnpm lint` - 0 errors (warnings acceptable, see below)
 - `pnpm typecheck` - PASS (`tsc -b`)
-- `pnpm test` - 251/251 PASS
+- `pnpm test` - 308/308 PASS
 - `pnpm build` - SUCCESS
 
 Note: an earlier version of this file claimed 23/23 tests and `tsc --noEmit`;

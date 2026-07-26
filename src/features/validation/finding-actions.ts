@@ -39,6 +39,18 @@ function employmentStepForRuleId(ruleId: string): string {
   return 'status'
 }
 
+/**
+ * Finance wizard step ids for the money-relevant `sponsor.*` rules. Only the
+ * funding-strategy rule (`sponsor.requiredForSponsoredFunding`) belongs on the
+ * Finance page — it is about *how* the trip is funded. Per-sponsor rules
+ * (missing sponsor documents, relationship proof) are edited on the Sponsors
+ * page and are handled separately below.
+ */
+function financingStepForRuleId(ruleId: string): string {
+  if (ruleId === 'sponsor.requiredForSponsoredFunding') return 'sponsors'
+  return 'source'
+}
+
 export function findingAction(
   finding: ValidationFinding
 ): FindingAction | null {
@@ -50,6 +62,11 @@ export function findingAction(
   if (ruleId.startsWith('document.')) return { route: '/documents' }
   if (ruleId.startsWith('employment.')) {
     return { route: `/employment?step=${employmentStepForRuleId(ruleId)}` }
+  }
+  // The funding-strategy rule lands on the Finance page; per-sponsor rules land
+  // on the Sponsors page where the sponsor record is edited.
+  if (ruleId === 'sponsor.requiredForSponsoredFunding') {
+    return { route: `/finance?step=${financingStepForRuleId(ruleId)}` }
   }
   if (ruleId.startsWith('sponsor.')) return { route: '/sponsors' }
   if (
@@ -66,8 +83,8 @@ export function findingAction(
   if (field.startsWith('applicant.')) return { route: '/applicant' }
   if (field.startsWith('documents.')) return { route: '/documents' }
   if (field.startsWith('employment.')) return { route: '/employment' }
-  if (field.startsWith('sponsors.') || field.startsWith('financing.'))
-    return { route: '/sponsors' }
+  if (field.startsWith('financing.')) return { route: '/finance?step=source' }
+  if (field.startsWith('sponsors.')) return { route: '/sponsors' }
   if (field.startsWith('trip.') || field.startsWith('appointment.'))
     return { route: '/trip' }
 

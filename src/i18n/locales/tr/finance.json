@@ -2,12 +2,54 @@
   "title": "Finansman",
   "description": "Bu seyahatin nasıl finanse edileceği",
   "shortDescription": "Seyahatinizi nasıl finanse edeceğiniz",
+  "wizard": {
+    "title": "Mali kanıtlar",
+    "description": "Seyahatin nasıl finanse edildiğini ve hangi mali kanıtların hazır olduğunu; sonuç tahmini yapmadan, açık ve tutarlı biçimde gösterin."
+  },
+  "nav": {
+    "rail": "Finansman adımları",
+    "stepProgress": "Adım {{current}} / {{total}}",
+    "back": "Geri",
+    "continue": "Devam"
+  },
+  "steps": {
+    "source": {
+      "title": "Finansman kaynağı",
+      "description": "Bu seyahatin masraflarını kimin karşılayacağını belirtin."
+    },
+    "personal": {
+      "title": "Kişisel mali durum",
+      "description": "Kendi kaynaklarınız ve gelirinizin gösterdikleri."
+    },
+    "sponsors": {
+      "title": "Sponsorlar",
+      "description": "Seyahate katkıda bulunan kişiler ve kanıtları."
+    },
+    "documents": {
+      "title": "Mali belgeler",
+      "description": "Dosyanız için mali kanıtlar ve hâlâ toplanması gerekenler."
+    },
+    "consistency": {
+      "title": "Tutarlılık",
+      "description": "Finansmanınızın, gelirinizin ve kanıtlarınızın nasıl örtüştüğü — puanlama değil, yalın gerçekler."
+    },
+    "review": {
+      "title": "Özet",
+      "description": "Finansman stratejinizin ve mali kanıtlarınızın bir özeti."
+    }
+  },
   "source": {
     "title": "Finansman kaynağı",
     "description": "Bu seyahatin masraflarını kim karşılayacak?",
     "label": "Birincil finansman kaynağı",
     "placeholder": "Kaynak seçin",
-    "required": "Finansman kaynağı zorunludur"
+    "required": "Finansman kaynağı zorunludur",
+    "context": {
+      "self": "Seyahati kendi kaynaklarınızla finanse edeceksiniz. Banka hesap dökümünüz ve geliriniz paranın mevcut olduğunu gösterir — belgelenecek bir sponsor yoktur.",
+      "sponsor": "Seyahati bir başkası finanse edecek. Sponsor dilekçesi, banka hesap dökümü ve yakınlık belgesi; sizi kimin, nasıl desteklediğini belgeler.",
+      "employer": "Seyahati işvereniniz karşılayacak (örneğin iş seyahati). Bunu işverenin masrafı karşıladığını gösteren bir yazı belgeler; kişisel banka kanıtları daha ikincildir.",
+      "mixed": "Masrafları siz ve bir sponsor paylaşacaksınız. Hangi masrafları sizin, hangilerini sponsorunuzun karşıladığını açıkça belirtin ve her ikisi için kanıt hazırlayın."
+    }
   },
   "personal": {
     "title": "Kişisel mali durum",
@@ -16,6 +58,120 @@
     "bankNamePlaceholder": "Birincil bankanız",
     "statementDate": "Döküm tarihi",
     "accountBalance": "Hesap bakiyesi",
-    "currency": "Para birimi"
+    "currency": "Para birimi",
+    "balanceHint": "Bu tutar yalnızca kendi kaydınız için tutulur. Asla yeterli veya yetersiz olarak değerlendirilmez."
+  },
+  "income": {
+    "title": "Gelir özeti",
+    "description": "İstihdam bölümünüzden okunur — burada girilecek bir şey yoktur.",
+    "monthlyNetIncome": "Aylık net gelir",
+    "status": "Çalışma durumu",
+    "open": "İstihdam'ı aç",
+    "none": "Henüz kayıtlı bir istihdam geliri yok. Sizin için geçerliyse İstihdam bölümünde ekleyin."
+  },
+  "sponsors": {
+    "title": "Sponsorlar",
+    "description": "Seyahate katkıda bulunan kişiler burada özetlenir. Ekleme ve düzenleme Sponsorlar çalışma alanında yapılır.",
+    "none": "Henüz sponsor eklenmedi.",
+    "noneHint": "Sponsor içeren bir finansman seçtiniz. Desteklerinin belgelenebilmesi için en az bir sponsor ekleyin.",
+    "count_one": "{{count}} sponsor",
+    "count_other": "{{count}} sponsor",
+    "monthlyIncome": "Aylık gelir",
+    "covers": "Karşıladıkları",
+    "documentsAvailable_one": "Dosyada {{count}} belge",
+    "documentsAvailable_other": "Dosyada {{count}} belge",
+    "noDocuments": "Henüz sponsor belgesi yok",
+    "missingFinanceInfo": "Henüz mali bilgi kaydedilmedi",
+    "nextAction": "Sonraki adım",
+    "openSponsor": "Sponsorlar'da aç",
+    "openSponsors": "Sponsorları yönet",
+    "addSponsor": "Sponsor ekle",
+    "openInDocuments": "Sponsor belgeleri"
+  },
+  "documents": {
+    "none": "Mevcut finansman kaynağınıza uygun mali belge bulunmuyor.",
+    "readyCount": "{{total}} mali belgeden {{ready}} tanesi hazır",
+    "open": "Aç",
+    "openInDocumentsFor": "{{document}} belgesini Belgeler'de aç",
+    "groups": {
+      "bank": "Banka",
+      "income": "İstihdam geliri",
+      "sponsor": "Sponsor kanıtları",
+      "employer": "İşveren kanıtları",
+      "other": "Diğer"
+    },
+    "docStatus": {
+      "not_started": "Başlanmadı",
+      "requested": "Talep edildi",
+      "received": "Alındı",
+      "needs_update": "Güncelleme gerekiyor",
+      "ready": "Hazır",
+      "not_applicable": "Geçerli değil",
+      "not_instantiated": "Henüz eklenmedi"
+    },
+    "gather": {
+      "title": "Toplanacak mali kanıtlar",
+      "description": "Henüz elinizde olmayan mali belgeler. Listeyi kendinizle, sponsorunuzla veya bir aile üyesiyle paylaşmak için kopyalayın.",
+      "heading": "Toplanacak mali kanıtlar",
+      "copy": "Listeyi kopyala",
+      "copied": "Kopyalandı",
+      "empty": "Geçerli tüm mali kanıtlar elinizde — toplanacak bir şey kalmadı.",
+      "groups": {
+        "personal": "Kişisel mali belgeler",
+        "sponsor": "Sponsor belgeleri",
+        "employer": "İşveren finansmanı belgeleri"
+      }
+    }
+  },
+  "consistency": {
+    "title": "Tutarlılık",
+    "description": "Doldurduğunuz bölümler arasındaki gerçeğe dayalı ilişkiler. Buradaki hiçbir şey bir sonucu tahmin etmez.",
+    "allClear": "Finansmanınız, geliriniz ve kanıtlarınız şimdilik tutarlı.",
+    "employmentIncomeSupports": "İstihdam geliriniz (İstihdam bölümünden), beyan ettiğiniz kendi imkânlarıyla finansmanı destekler.",
+    "noEmploymentIncomeOnRecord": "İstihdam bölümünde kayıtlı bir gelir yok. Çalışıyorsanız bunu eklemek finansmanınızın örtüşmesine yardımcı olur.",
+    "bankStatementPending": "Kendi imkânlarıyla finansmanınız bir banka hesap dökümüne dayanıyor ve bu henüz hazır değil.",
+    "mixedWhoCovers": "Karma finansmanda, hangi masrafları sizin, hangilerini sponsorunuzun karşıladığını açıkça belirtin.",
+    "employerCovers": "Bu seyahat işveren finansmanlı olarak kayıtlı. İşvereninizin masrafları karşıladığını gösteren yazıyı hazırlayın."
+  },
+  "why": {
+    "title": "Bunu neden soruyoruz?",
+    "trigger": "{{field}} bilgisini neden istiyoruz?",
+    "bankName": "Paranızın bulunduğu bankayı belirtmek, dökümünüzün beyan ettiğiniz hesapla örtüşmesini sağlar.",
+    "accountBalance": "Bakiyenin kaydedilmesi yalnızca kendi referansınız içindir — takip etmenize yardımcı olur ve asla değerlendirilmez.",
+    "statementDate": "Yakın tarihli bir döküm, paranın güncel olduğunu gösterir."
+  },
+  "guidance": {
+    "bankStatementDemonstrates": "Yakın tarihli bir banka hesap dökümü, seyahat için paranın mevcut olduğunu gösterir.",
+    "salaryAccountConsistency": "Maaşınız bu hesaba yatıyorsa, döküm gelirinizi mevcut paranıza bağlar.",
+    "sponsorLetterDemonstrates": "Bir sponsor dilekçesi sizi kimin desteklediğini belgeler; banka hesap dökümü ise paranın mevcut olduğunu gösterir.",
+    "employerCoverageContext": "İşveren finansmanlı bir seyahatte, işverenin masraflarınızı karşıladığını doğrulayan bir yazı en önemli kanıttır.",
+    "evidenceFromDocuments": "Bunlar Belgeler çalışma alanınızdan gelir — bu sayfa yalnızca durumlarını yansıtır, ayrı bir kopya tutmaz."
+  },
+  "notApplicable": {
+    "personal": {
+      "title": "Kişisel banka kanıtı gerekmiyor",
+      "description": "Finansman kaynağınız kendi banka paranıza dayanmıyor. Daha önce girdikleriniz, kaynağı sonradan değiştirirseniz korunur."
+    },
+    "sponsors": {
+      "title": "Sponsor gerekmiyor",
+      "description": "Sponsor içermeyen bir finansman seçtiniz. Finansman kaynağını değiştirerek dilediğiniz zaman ekleyebilirsiniz."
+    },
+    "documents": {
+      "title": "Mali belge gerekmiyor",
+      "description": "Finansman kaynağınız burada mali belge gerektirmiyor. Gerekli belgeler Belgeler çalışma alanında yer alır."
+    }
+  },
+  "review": {
+    "status": {
+      "captured": "Girildi",
+      "incomplete": "Eksik",
+      "needsReview": "Gözden geçirin",
+      "notApplicable": "Geçerli değil"
+    },
+    "edit": "Düzenle",
+    "attention": "Göz atmakta fayda var",
+    "goToFix": "Düzeltmeye git",
+    "gatherRemaining_one": "Toplanacak {{count}} belge kaldı",
+    "gatherRemaining_other": "Toplanacak {{count}} belge kaldı"
   }
 }

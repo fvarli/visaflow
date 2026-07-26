@@ -111,7 +111,7 @@ Pages read/write state through `DossierProvider`; formatting goes through `src/l
 (never `Intl` directly), and country names through `src/lib/countries.ts` (the sole
 `Intl.DisplayNames` wrapper — codes persist, labels are resolved for display; see [ADR-023]);
 finding prose is resolved via `src/lib/finding-text.ts`. Each guided experience has a pure
-feature adapter (`src/features/{dashboard,applicant,trip,documents}/*`): trip nights/coverage math
+feature adapter (`src/features/{dashboard,applicant,trip,documents,employment,finance}/*`): trip nights/coverage math
 lives in `route-dates.ts` (dates canonical, nights derived — [ADR-024]), and calm, non-validation
 guidance in `applicant-guidance.ts` / `trip-guidance.ts` (info-only, never affects readiness).
 The Validation Center is a thin composition over `src/features/validation/*` — a pure adapter that
@@ -120,6 +120,11 @@ links) without re-encoding a rule or changing an outcome ([ADR-025]). The Employ
 guided six-step wizard over `src/features/employment/*` — derived current-employer tenure, info-only
 guidance, an employment-document summary + HR-request checklist that reuse the Documents feature, and a
 review that consumes `employment.leaveCoversTrip` findings; it stores no new data ([ADR-026]).
+The Finance workspace is a guided six-step wizard over `src/features/finance/*` — funding-source-aware
+applicability, a recorded (never judged) account balance, employment income *read* from the Employment
+section, financial documents grouped from the Documents feature with a privacy-safe "evidence to gather"
+copy list, a sponsor summary that defers all editing to `/sponsors`, and a consistency step that reuses
+the `sponsor.*` findings plus net-new factual observations; it stores no new data ([ADR-027]).
 Dashboard detail: [dashboard-architecture.md](./dashboard-architecture.md). Reusable UI is
 demonstrated in the [Playground](./playground.md) before use. **Depends on:** all layers below.
 **Must not:** be depended *on* by them.
