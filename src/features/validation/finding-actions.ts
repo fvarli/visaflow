@@ -33,6 +33,12 @@ function tripStepForRuleId(ruleId: string): string {
   return 'dates'
 }
 
+/** Employment wizard step ids (matched by ruleId). Leave is the only rule today. */
+function employmentStepForRuleId(ruleId: string): string {
+  if (ruleId === 'employment.leaveCoversTrip') return 'leave'
+  return 'status'
+}
+
 export function findingAction(
   finding: ValidationFinding
 ): FindingAction | null {
@@ -42,7 +48,9 @@ export function findingAction(
     return { route: '/applicant?step=passport' }
   }
   if (ruleId.startsWith('document.')) return { route: '/documents' }
-  if (ruleId.startsWith('employment.')) return { route: '/employment' }
+  if (ruleId.startsWith('employment.')) {
+    return { route: `/employment?step=${employmentStepForRuleId(ruleId)}` }
+  }
   if (ruleId.startsWith('sponsor.')) return { route: '/sponsors' }
   if (
     ruleId.startsWith('trip.') ||

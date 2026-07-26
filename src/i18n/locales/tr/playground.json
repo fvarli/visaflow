@@ -17,7 +17,8 @@
     "documents": "Belgeler",
     "composition": "Kompozisyon",
     "dashboard": "Genel bakış",
-    "validation": "Doğrulama merkezi"
+    "validation": "Doğrulama merkezi",
+    "employment": "Çalışma durumu"
   },
   "rows": {
     "surfaces": "Yüzeyler",
@@ -66,6 +67,8 @@
     "fieldHelp": "Alan yardımı",
     "guidanceNote": "Rehberlik notu",
     "countryCombobox": "Ülke seçici",
+    "employmentStatus": "Çalışma durumu seçici",
+    "employmentTenure": "Türetilen çalışma süresi",
     "collectionEditor": "Koleksiyon düzenleyici",
     "tripHero": "TripHero",
     "journeyTimeline": "JourneyTimeline",
@@ -126,6 +129,7 @@
     "composition": "Sayfa düzeyindeki parçaların bir araya gelişi. Her sayfanın devralması gereken ritim budur.",
     "dashboard": "Türetilmiş genel bakış modelini kurgusal bir örnek dosya üzerinden kullanan, bir araya getirilmiş komuta merkezi bileşenleri.",
     "validation": "Dosya inceleme bileşenleri: inceleme kartı, alanlara göre gruplanmış ve sakin bir durum etiketiyle doğrudan \"oraya git\" bağlantısı taşıyan bulgular, \"iyi görünüyor\" listesi ve bölüm bölüm özet.",
+    "employment": "Çalışma alanı bileşenleri: durum seçici, türetilen mevcut işveren süresi, seyahate karşı izin kapsamı, işveren belge özeti ve İK talep listesi ile özet.",
     "onboarding": "Rehberli akışın yapı taşları: adım göstergesi, \"Bunu neden soruyoruz?\" balonu ve genel koleksiyon düzenleyici.",
     "travel": "Seyahat planlayıcı yapı taşları: genel bakış kartı, destinasyon kartlarıyla bağlı yolculuk zaman çizelgesi, ulaşım bölümleri ve sigorta teminat kartı.",
     "documents": "Belge çalışma alanı yapı taşları: bölümlü görünüm anahtarı, hazırlık genel bakış kartı ve belge kartının şablon, özel ve sorunlu durumları."

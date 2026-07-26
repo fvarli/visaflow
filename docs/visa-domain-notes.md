@@ -142,6 +142,30 @@ eksik zorunlu belgeler, güncellenmesi gereken belgeler, tutarlılık bulguları
 - **Planned itinerary and reservation evidence are separate.** A user can plan a route before holding any
   flight/hotel/ferry reservation; reservation status (`pending`/`confirmed`/…) is layered on later.
 
+## Employment: tenure, income, and evidence
+
+- **Current-employer tenure is derived, never stored.** The dossier keeps only
+  `employment.startDate`; tenure ("1 year 3 months at current employer") is a live
+  derivation (`src/features/employment/employment-tenure.ts`, `computeTenure`).
+  Handle future / missing / <1 month / exact-year / partial cases; a future start
+  date shows a calm data-quality note, not a negative duration (no validation change).
+- **Total career experience is not modeled.** There is no schema field for it; it
+  belongs to notes or cover-letter context only. Do not invent or persist it.
+- **Employment data ≠ employment documents.** `employment.*` fields describe the
+  applicant's situation (employer, role, income, salary bank, approved leave).
+  Supporting evidence (employer letter, approved-leave letter, payslips,
+  social-security record, company registry / signature circular) are **Document
+  instances** tracked in the Documents workspace, resolved from the country
+  template by `code`. The Employment page never stores document status; it reads
+  applicable requirements + instances and links into Documents (ADR-026).
+- **Income is net only.** The schema stores `monthlyNetIncome` + `currency`; label
+  it honestly as net. Persist the raw number + ISO currency code; format for display
+  only. No gross field, no "financial strength" score.
+- **Approved leave is compared against the canonical Trip dates** (`trip.entryDate`/
+  `exitDate`) by the existing `employment.leaveCoversTrip` rule — the Employment page
+  consumes those findings, it does not re-derive coverage. Leave only applies to the
+  `employed` status; other statuses raise no employment findings.
+
 ## Requirement vs document instance
 
 - **Document requirement** (`src/config/types.ts`) — template/configuration

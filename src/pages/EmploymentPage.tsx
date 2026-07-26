@@ -1,304 +1,151 @@
-import { useForm } from 'react-hook-form'
+import { useEffect, useRef, useState } from 'react'
+import { Link, useSearchParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { z } from 'zod'
+import { ArrowLeft, ArrowRight } from 'lucide-react'
 import { useDossier } from '@/app/providers/DossierProvider'
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card'
+import { PageHeader } from '@/components/ui/page-header'
+import { PageBody } from '@/components/ui/section'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
+import { Stepper, type StepperStep } from '@/components/ui/stepper'
 import { NoDossierState } from '@/components/NoDossierState'
 import { dynamicT } from '@/lib/i18n-dynamic'
-import { useEffect } from 'react'
+import {
+  EMPLOYMENT_STEP_IDS,
+  deriveStepStatuses,
+  type EmploymentStepId,
+} from '@/features/employment/employment-wizard'
+import { StatusStep } from '@/components/employment/StatusStep'
+import { EmployerStep } from '@/components/employment/EmployerStep'
+import { IncomeStep } from '@/components/employment/IncomeStep'
+import { LeaveStep } from '@/components/employment/LeaveStep'
+import { DocumentsStep } from '@/components/employment/DocumentsStep'
+import { EmploymentReviewStep } from '@/components/employment/EmploymentReviewStep'
 
-const formSchema = z.object({
-  employmentStatus: z.string().min(1, 'Employment status is required'),
-  employerName: z.string().optional(),
-  jobTitle: z.string().optional(),
-  startDate: z.string().optional(),
-  monthlyNetIncome: z.string().optional(),
-  currency: z.string().optional(),
-  approvedLeaveStart: z.string().optional(),
-  approvedLeaveEnd: z.string().optional(),
-})
-
-type FormData = z.infer<typeof formSchema>
-
+/**
+ * The employment experience as a guided, six-step workspace rather than one flat
+ * form. This page owns only orchestration — the active step, the rail, the
+ * heading, and forward/back navigation. Each step reads and autosaves the
+ * dossier itself (shallow-merge via `updateEmployment`, so status changes never
+ * delete data), so there is no submit button; the shell never touches the schema
+ * or validation logic.
+ */
 export default function EmploymentPage() {
-  const { state, updateEmployment, hasData } = useDossier()
-  const { t } = useTranslation(['employment', 'common', 'visa-domain'])
+  const { state, hasData } = useDossier()
+  const { t } = useTranslation(['employment', 'common'])
   const td = dynamicT(t)
+  const [searchParams] = useSearchParams()
+  // Optional deep-link: /employment?step=<id> opens directly on that step (e.g.
+  // a leave finding in the Validation Center links to ?step=leave). Existing
+  // /employment links (no param) start at the first step — nothing breaks.
+  const initialStep = (() => {
+    const id = searchParams.get('step')
+    const index = id ? EMPLOYMENT_STEP_IDS.indexOf(id as EmploymentStepId) : -1
+    return index >= 0 ? index : 0
+  })()
+  const [current, setCurrent] = useState(initialStep)
+  const headingRef = useRef<HTMLHeadingElement>(null)
 
-  const {
-    register,
-    handleSubmit,
-    setValue,
-    watch,
-    formState: { errors },
-  } = useForm<FormData>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      employmentStatus: state.application?.employment?.employmentStatus ?? '',
-      employerName: state.application?.employment?.employerName ?? '',
-      jobTitle: state.application?.employment?.jobTitle ?? '',
-      startDate: state.application?.employment?.startDate ?? '',
-      monthlyNetIncome:
-        state.application?.employment?.monthlyNetIncome?.toString() ?? '',
-      currency: state.application?.employment?.currency ?? 'EUR',
-      approvedLeaveStart:
-        state.application?.employment?.approvedLeaveStart ?? '',
-      approvedLeaveEnd: state.application?.employment?.approvedLeaveEnd ?? '',
-    },
-  })
-
-  const employmentStatus = watch('employmentStatus')
-
+  // Move focus to the step heading on change so keyboard and screen-reader
+  // users land at the top of the new step (skip the initial mount).
+  const mounted = useRef(false)
   useEffect(() => {
-    if (state.application?.employment) {
-      const emp = state.application.employment
-      setValue('employmentStatus', emp.employmentStatus)
-      setValue('employerName', emp.employerName ?? '')
-      setValue('jobTitle', emp.jobTitle ?? '')
-      setValue('startDate', emp.startDate ?? '')
-      setValue('monthlyNetIncome', emp.monthlyNetIncome?.toString() ?? '')
-      setValue('currency', emp.currency)
-      setValue('approvedLeaveStart', emp.approvedLeaveStart ?? '')
-      setValue('approvedLeaveEnd', emp.approvedLeaveEnd ?? '')
+    if (!mounted.current) {
+      mounted.current = true
+      return
     }
-  }, [state.application?.employment, setValue])
+    headingRef.current?.focus()
+  }, [current])
 
-  const onSubmit = (data: FormData) => {
-    updateEmployment({
-      employmentStatus: data.employmentStatus as
-        | 'employed'
-        | 'self_employed'
-        | 'unemployed'
-        | 'retired'
-        | 'student'
-        | 'homemaker'
-        | 'other',
-      employerName: data.employerName,
-      jobTitle: data.jobTitle,
-      startDate: data.startDate,
-      monthlyNetIncome: data.monthlyNetIncome
-        ? parseFloat(data.monthlyNetIncome)
-        : undefined,
-      currency: data.currency as
-        | 'EUR'
-        | 'USD'
-        | 'GBP'
-        | 'TRY'
-        | 'CHF'
-        | 'JPY'
-        | 'CAD'
-        | 'AUD'
-        | 'CNY'
-        | 'INR'
-        | 'OTHER',
-      approvedLeaveStart: data.approvedLeaveStart,
-      approvedLeaveEnd: data.approvedLeaveEnd,
-    })
+  if (!hasData || !state.application) {
+    return (
+      <PageBody>
+        <NoDossierState section={t('employment:title')} />
+      </PageBody>
+    )
   }
 
-  if (!hasData) {
-    return <NoDossierState section={t('employment:title')} />
-  }
+  const total = EMPLOYMENT_STEP_IDS.length
+  const statuses = deriveStepStatuses(state.application, current)
+  const steps: StepperStep[] = EMPLOYMENT_STEP_IDS.map((id, index) => ({
+    id,
+    title: td(`employment:steps.${id}.title`),
+    status: statuses[index] ?? 'upcoming',
+  }))
+  const activeId: EmploymentStepId =
+    EMPLOYMENT_STEP_IDS[current] ?? EMPLOYMENT_STEP_IDS[0]
+  const isLast = current === total - 1
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold">{t('employment:title')}</h1>
-        <p className="text-muted-foreground">
-          {t('employment:shortDescription')}
-        </p>
-      </div>
+    <PageBody>
+      <PageHeader
+        title={t('employment:wizard.title')}
+        description={t('employment:wizard.description')}
+      />
 
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>{t('employment:status.title')}</CardTitle>
-            <CardDescription>
-              {t('employment:status.description')}
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="employmentStatus">
-                {t('employment:status.label')} *
-              </Label>
-              <Select
-                value={employmentStatus}
-                onValueChange={(value) => setValue('employmentStatus', value)}
-              >
-                <SelectTrigger>
-                  <SelectValue
-                    placeholder={t('employment:status.placeholder')}
-                  />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="employed">
-                    {td('visa-domain:employmentStatus.employed')}
-                  </SelectItem>
-                  <SelectItem value="self_employed">
-                    {td('visa-domain:employmentStatus.self_employed')}
-                  </SelectItem>
-                  <SelectItem value="unemployed">
-                    {td('visa-domain:employmentStatus.unemployed')}
-                  </SelectItem>
-                  <SelectItem value="retired">
-                    {td('visa-domain:employmentStatus.retired')}
-                  </SelectItem>
-                  <SelectItem value="student">
-                    {td('visa-domain:employmentStatus.student')}
-                  </SelectItem>
-                  <SelectItem value="homemaker">
-                    {td('visa-domain:employmentStatus.homemaker')}
-                  </SelectItem>
-                  <SelectItem value="other">
-                    {td('visa-domain:employmentStatus.other')}
-                  </SelectItem>
-                </SelectContent>
-              </Select>
-              {errors.employmentStatus && (
-                <p className="text-sm text-red-500">
-                  {errors.employmentStatus.message}
-                </p>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-
-        {employmentStatus === 'employed' && (
-          <>
-            <Card>
-              <CardHeader>
-                <CardTitle>{t('employment:employer.title')}</CardTitle>
-                <CardDescription>
-                  {t('employment:employer.description')}
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid gap-4 md:grid-cols-2">
-                  <div className="space-y-2">
-                    <Label htmlFor="employerName">
-                      {t('employment:employer.name')}
-                    </Label>
-                    <Input
-                      id="employerName"
-                      {...register('employerName')}
-                      placeholder={t('employment:employer.namePlaceholder')}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="jobTitle">
-                      {t('employment:employer.jobTitle')}
-                    </Label>
-                    <Input
-                      id="jobTitle"
-                      {...register('jobTitle')}
-                      placeholder={t('employment:employer.jobTitlePlaceholder')}
-                    />
-                  </div>
-                </div>
-
-                <div className="grid gap-4 md:grid-cols-3">
-                  <div className="space-y-2">
-                    <Label htmlFor="startDate">
-                      {t('employment:employer.startDate')}
-                    </Label>
-                    <Input
-                      id="startDate"
-                      type="date"
-                      {...register('startDate')}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="monthlyNetIncome">
-                      {t('employment:employer.monthlyNetIncome')}
-                    </Label>
-                    <Input
-                      id="monthlyNetIncome"
-                      type="number"
-                      {...register('monthlyNetIncome')}
-                      placeholder="0.00"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="currency">
-                      {t('employment:employer.currency')}
-                    </Label>
-                    <Select
-                      value={watch('currency')}
-                      onValueChange={(value) => setValue('currency', value)}
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="EUR">EUR</SelectItem>
-                        <SelectItem value="USD">USD</SelectItem>
-                        <SelectItem value="GBP">GBP</SelectItem>
-                        <SelectItem value="TRY">TRY</SelectItem>
-                        <SelectItem value="OTHER">Other</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>{t('employment:leave.title')}</CardTitle>
-                <CardDescription>
-                  Leave period approved by your employer for this trip
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid gap-4 md:grid-cols-2">
-                  <div className="space-y-2">
-                    <Label htmlFor="approvedLeaveStart">
-                      {t('employment:leave.startDate')}
-                    </Label>
-                    <Input
-                      id="approvedLeaveStart"
-                      type="date"
-                      {...register('approvedLeaveStart')}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="approvedLeaveEnd">
-                      {t('employment:leave.endDate')}
-                    </Label>
-                    <Input
-                      id="approvedLeaveEnd"
-                      type="date"
-                      {...register('approvedLeaveEnd')}
-                    />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </>
-        )}
-
-        <div className="flex justify-end">
-          <Button type="submit">{t('common:actions.saveChanges')}</Button>
+      <div className="grid gap-8 lg:grid-cols-[15rem_1fr] lg:gap-12">
+        <div className="lg:pt-1">
+          <Stepper
+            steps={steps}
+            current={current}
+            onSelect={setCurrent}
+            ariaLabel={t('employment:nav.rail')}
+            progressLabel={t('employment:nav.stepProgress', {
+              current: current + 1,
+              total,
+            })}
+          />
         </div>
-      </form>
-    </div>
+
+        <div className="min-w-0 space-y-6">
+          <div className="space-y-1">
+            <h2
+              ref={headingRef}
+              tabIndex={-1}
+              className="text-heading text-foreground outline-none"
+            >
+              {td(`employment:steps.${activeId}.title`)}
+            </h2>
+            <p className="text-body text-muted-foreground text-pretty">
+              {td(`employment:steps.${activeId}.description`)}
+            </p>
+          </div>
+
+          <div key={activeId} className="animate-fade-in">
+            {activeId === 'status' && <StatusStep />}
+            {activeId === 'employer' && <EmployerStep />}
+            {activeId === 'income' && <IncomeStep />}
+            {activeId === 'leave' && <LeaveStep />}
+            {activeId === 'documents' && <DocumentsStep />}
+            {activeId === 'review' && (
+              <EmploymentReviewStep onEdit={setCurrent} />
+            )}
+          </div>
+
+          <div className="flex items-center justify-between gap-3 border-t pt-6">
+            <Button
+              variant="ghost"
+              onClick={() => setCurrent((c) => Math.max(0, c - 1))}
+              disabled={current === 0}
+            >
+              <ArrowLeft />
+              {t('employment:nav.back')}
+            </Button>
+
+            {isLast ? (
+              <Button asChild>
+                <Link to="/dashboard">{t('common:actions.goToDashboard')}</Link>
+              </Button>
+            ) : (
+              <Button
+                onClick={() => setCurrent((c) => Math.min(total - 1, c + 1))}
+              >
+                {t('employment:nav.continue')}
+                <ArrowRight />
+              </Button>
+            )}
+          </div>
+        </div>
+      </div>
+    </PageBody>
   )
 }

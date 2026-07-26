@@ -113,8 +113,17 @@ import { ValidationHero } from '@/components/validation/ValidationHero'
 import { FindingGroup } from '@/components/validation/FindingGroup'
 import { ReadinessSummary } from '@/components/validation/ReadinessSummary'
 import { ReviewProgress } from '@/components/validation/ReviewProgress'
+import { EmploymentStatusSelector } from '@/components/employment/EmploymentStatusSelector'
+import { EmploymentTenure } from '@/components/employment/EmploymentTenure'
+import { LeaveCoverageSummary } from '@/components/employment/LeaveCoverageSummary'
+import { EmploymentDocumentsSummary } from '@/components/employment/EmploymentDocumentsSummary'
+import { HrRequestChecklist } from '@/components/employment/HrRequestChecklist'
+import { EmploymentReview } from '@/components/employment/EmploymentReview'
 import { buildDashboardModel } from '@/features/dashboard/dashboard-model'
 import { buildValidationModel } from '@/features/validation/validation-model'
+import { buildEmploymentModel } from '@/features/employment/employment-model'
+import { computeTenure } from '@/features/employment/employment-tenure'
+import type { Employment } from '@/domain/schemas/employment.schema'
 import { useFormatters } from '@/lib/format'
 import { dynamicT } from '@/lib/i18n-dynamic'
 import type { RequirementSource } from '@/config/types'
@@ -169,6 +178,7 @@ export default function PlaygroundPage() {
       <Composition />
       <Dashboard />
       <Validation />
+      <Employment />
     </PageBody>
   )
 }
@@ -193,6 +203,7 @@ const SECTIONS = [
   'composition',
   'dashboard',
   'validation',
+  'employment',
 ] as const
 
 function Nav() {
@@ -1866,6 +1877,65 @@ function Validation() {
         ))}
         <ReadinessSummary ready={m.ready} />
         <ReviewProgress review={m.review} />
+      </div>
+    </Block>
+  )
+}
+
+const DEMO_EMPLOYMENT: Employment = {
+  employmentStatus: 'employed',
+  employerName: 'Acme Yazılım A.Ş.',
+  jobTitle: 'Software developer',
+  startDate: '2024-03-01',
+  monthlyNetIncome: 4200,
+  currency: 'EUR',
+  salaryBank: 'Demo Bank',
+  approvedLeaveStart: '2027-05-01',
+  approvedLeaveEnd: '2027-05-08',
+}
+
+const DEMO_EMPLOYMENT_MODEL = buildEmploymentModel({
+  applicant: DEMO_APPLICANT,
+  application: { ...DEMO_APPLICATION, employment: DEMO_EMPLOYMENT },
+  documents: DEMO_DOCUMENTS,
+  sponsors: [],
+})
+
+function Employment() {
+  const { t } = useTranslation(['playground', 'employment', 'visa-domain'])
+  const m = DEMO_EMPLOYMENT_MODEL
+  const [status, setStatus] = useState(DEMO_EMPLOYMENT.employmentStatus)
+
+  return (
+    <Block
+      id="employment"
+      title={t('playground:sections.employment')}
+      description={t('playground:blurbs.employment')}
+    >
+      <Row label={t('playground:rows.employmentStatus')} align="start">
+        <div className="w-full max-w-sm">
+          <EmploymentStatusSelector value={status} onValueChange={setStatus} />
+        </div>
+      </Row>
+
+      <Row label={t('playground:rows.employmentTenure')} align="start">
+        <div className="flex flex-col gap-1">
+          <EmploymentTenure tenure={computeTenure('2024-03-01')} />
+          <EmploymentTenure tenure={computeTenure('2027-01-01')} />
+        </div>
+      </Row>
+
+      <Separator />
+
+      <div className="flex flex-col gap-6">
+        <LeaveCoverageSummary leave={m.leave} />
+        <EmploymentDocumentsSummary documents={m.documents} />
+        <HrRequestChecklist requests={m.documents.hrRequests} />
+        <EmploymentReview
+          model={m}
+          employment={DEMO_EMPLOYMENT}
+          onEdit={() => {}}
+        />
       </div>
     </Block>
   )

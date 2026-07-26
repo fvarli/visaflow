@@ -1,29 +1,161 @@
 {
   "title": "Çalışma durumu",
-  "description": "Güncel çalışma durumunuz ve konsolosluğun isteyeceği bilgiler",
-  "shortDescription": "Güncel çalışma durumunuz ve bilgileriniz",
-  "status": {
+  "wizard": {
     "title": "Çalışma durumu",
-    "description": "Mevcut çalışma durumunuzu seçin",
-    "label": "Durum",
-    "placeholder": "Durum seçin",
-    "required": "Çalışma durumu zorunludur"
+    "description": "Çalışma durumunuzu ve onaylı izninizi dosyanız için net ve tutarlı bir kanıt olarak belgeleyin."
+  },
+  "nav": {
+    "rail": "Çalışma adımları",
+    "stepProgress": "Adım {{current}} / {{total}}",
+    "back": "Geri",
+    "continue": "Devam et"
+  },
+  "steps": {
+    "status": {
+      "title": "Durum",
+      "description": "Mevcut çalışma durumunuzu belirtin."
+    },
+    "employer": {
+      "title": "İşveren ve görev",
+      "description": "Mevcut işvereniniz, göreviniz ve ne kadar süredir çalıştığınız."
+    },
+    "income": {
+      "title": "Gelir ve maaş bankası",
+      "description": "Belgelenen aylık gelir ve maaşın yatırıldığı banka."
+    },
+    "leave": {
+      "title": "Onaylı izin",
+      "description": "Bu seyahat için onaylanan izin, seyahat tarihlerinizle karşılaştırılır."
+    },
+    "documents": {
+      "title": "İşveren belgeleri",
+      "description": "Destekleyici çalışma belgeleri ve İK'dan talep edilecekler."
+    },
+    "review": {
+      "title": "Özet",
+      "description": "Çalışma bilgilerinizin ve tutarlılığının özeti."
+    }
+  },
+  "status": {
+    "label": "Çalışma durumu",
+    "placeholder": "Durumunuzu seçin",
+    "description": "Bu, hangi işveren bilgilerinin geçerli olduğunu belirler.",
+    "context": {
+      "employed": "Ücretli bir çalışan olarak; işveren yazınız, onaylı izniniz ve maaş bordrolarınız mevcut mesleki bağlarınızı ve işe dönüş planınızı belgelemeye yardımcı olur.",
+      "self_employed": "Serbest çalışan olarak; ticaret sicil ve vergi kayıtlarınız mesleki durumunuzu belgeler. Çalışana özgü bazı alanlar sizin için geçerli değildir.",
+      "unemployed": "Şu anda çalışmadığınız için işveren ve izin bilgileri gerekmez. Durumunuz ve finansmanınız dosyanızın diğer bölümlerinde belgelenir.",
+      "retired": "Emekli olarak işveren ve izin bilgileri gerekmez. Gelirinizi bir emeklilik belgesi (Belgeler bölümünde izlenir) belgeler.",
+      "student": "Öğrenci olarak işveren ve izin bilgileri gerekmez. Durumunuzu bir öğrenci belgesi (Belgeler bölümünde izlenir) belgeler.",
+      "homemaker": "Durumunuz için işveren ve izin bilgileri gerekmez. Durumunuz ve finansmanınız dosyanızın diğer bölümlerinde belgelenir.",
+      "other": "Seçtiğiniz durum için işveren ve izin bilgileri gerekmez. Durumunuz dosyanızın diğer bölümlerinde belgelenir."
+    }
   },
   "employer": {
-    "title": "İşveren bilgileri",
-    "description": "Çalıştığınız kurum hakkında bilgiler",
-    "name": "İşveren adı",
-    "namePlaceholder": "Şirket adı",
+    "additionalDetails": "Ek işveren bilgileri"
+  },
+  "fields": {
+    "employerName": "İşverenin yasal adı",
+    "employerNamePlaceholder": "örn. Acme Yazılım A.Ş.",
     "jobTitle": "Görev",
-    "jobTitlePlaceholder": "Pozisyonunuz",
-    "startDate": "İşe giriş tarihi",
+    "jobTitlePlaceholder": "örn. Yazılım geliştirici",
+    "startDate": "İşe başlangıç tarihi",
+    "department": "Departman",
+    "employerPhone": "İşveren telefonu",
+    "employerAddress": "İşveren adresi",
+    "socialSecurityNumber": "Sosyal güvenlik numarası",
+    "taxId": "Vergi numarası",
     "monthlyNetIncome": "Aylık net gelir",
-    "currency": "Para birimi"
+    "currency": "Para birimi",
+    "salaryBank": "Maaş bankası",
+    "salaryBankPlaceholder": "örn. maaşınızı yatıran banka",
+    "leaveStart": "İzin başlangıç tarihi",
+    "leaveEnd": "İzin bitiş tarihi"
+  },
+  "tenure": {
+    "label": "Mevcut işyerindeki süre",
+    "years_one": "{{count}} yıl",
+    "years_other": "{{count}} yıl",
+    "months_one": "{{count}} ay",
+    "months_other": "{{count}} ay",
+    "lessThanMonth": "Bir aydan az",
+    "atCurrentEmployer": "Mevcut işvereninizde {{duration}}",
+    "future": "Başlangıç tarihi gelecekte — amaçlanan bu değilse kontrol edin."
+  },
+  "why": {
+    "title": "Bunu neden soruyoruz?",
+    "trigger": "{{field}} bilgisini neden soruyoruz?",
+    "employerName": "İşverenin yasal adı, işveren yazınız ve resmî şirket kayıtlarınızla eşleşmelidir.",
+    "startDate": "Başlangıç tarihiniz, mevcut işvereninizde ne kadar süredir çalıştığınızı göstermek için kullanılır.",
+    "income": "Belgelenen gelir, ekonomik bağlarınızı göstermeye yardımcı olur. Maaş bordrolarınız ve banka kayıtlarınızla desteklenen tutarı kullanın.",
+    "salaryBank": "Maaşınızı yatıran bankayı belirtmek, maaş hesabı ekstrelerinizin beyan ettiğiniz işveren ve gelirle uyumlu olmasını sağlar."
+  },
+  "guidance": {
+    "employerNameMatch": "Her şeyin eşleşmesi için işverenin yasal adını, işveren yazınızda ve resmî şirket kayıtlarında göründüğü şekliyle birebir kullanın.",
+    "netVsGross": "Net (elinize geçen) gelirinizi girin — brüt tutarı değil, maaş bordrolarınız ve maaş hesabınızda görünen tutarı.",
+    "salaryConsistency": "Son maaş bordrolarınız ve maaş hesabı ekstreleriniz, buraya girdiğiniz gelirle tutarlı olmalıdır.",
+    "companyDocsSupporting": "Şirket belgeleri (sicil, imza sirküleri, vergi kayıtları) destekleyici işveren kaydı olarak sunulur — konsolosluk isterse İK'dan talep edin.",
+    "noEmployerNeeded": "Durumunuz için işveren ve izin bilgileri gerekmez. Hazır olduğunuzda özete geçebilirsiniz.",
+    "leaveDatesMatchTrip": "Onaylı izin yazınız, dosyanızın geri kalanıyla aynı seyahat tarihlerini kullanmalıdır."
+  },
+  "notApplicable": {
+    "employer": {
+      "title": "İşveren bilgisi gerekmiyor",
+      "description": "Seçtiğiniz durum bir işveren içermiyor. Daha önce girdiğiniz bilgiler, durumu sonradan değiştirirseniz korunur."
+    },
+    "income": {
+      "title": "Belgelenecek işveren geliri yok",
+      "description": "Çalışmadan elde edilen gelir bu durumun parçası değildir. Finansman dosyanızın başka bir bölümünde belgelenir."
+    },
+    "leave": {
+      "title": "Onaylı izin geçerli değil",
+      "description": "Onaylı izin yalnızca ücretli çalışanlar için geçerlidir. Durumunuz için burada girilecek bir şey yok."
+    },
+    "documents": {
+      "title": "İşveren belgesi gerekmiyor",
+      "description": "Seçtiğiniz durum işveren belgesi gerektirmiyor. Gerekli diğer belgeler Belgeler çalışma alanında yer alır."
+    }
   },
   "leave": {
-    "title": "Onaylı izin",
-    "description": "İşvereninizin bu seyahat için onayladığı izin",
-    "startDate": "İzin başlangıç tarihi",
-    "endDate": "İzin bitiş tarihi"
+    "tripDates": "Seyahat tarihleri",
+    "leaveDates": "Onaylı izin",
+    "coverageFull": "Onaylı izin, seyahatin tamamını kapsıyor.",
+    "noTrip": "Henüz seyahat tarihi yok",
+    "noTripHint": "Onaylı iznin karşılaştırılabilmesi için seyahat tarihlerinizi ekleyin.",
+    "editDates": "İzin tarihlerini düzenle",
+    "openTrip": "Seyahat tarihlerini aç"
+  },
+  "documents": {
+    "none": "Mevcut durumunuz için geçerli bir işveren belgesi yok.",
+    "readyCount": "{{total}} işveren belgesinden {{ready}} tanesi hazır",
+    "open": "Aç",
+    "openInDocumentsFor": "{{document}} belgesini Belgeler'de aç",
+    "docStatus": {
+      "not_started": "Başlanmadı",
+      "requested": "Talep edildi",
+      "received": "Alındı",
+      "needs_update": "Güncellenmeli",
+      "ready": "Hazır",
+      "not_applicable": "Geçerli değil",
+      "not_instantiated": "Henüz eklenmedi"
+    },
+    "hr": {
+      "title": "İK'dan talep edilecekler",
+      "description": "Henüz hazır olmayan işveren belgeleri. Bunları İK'dan veya işvereninizden isteyin.",
+      "heading": "İK'dan talep edilecek belgeler:",
+      "copy": "Listeyi kopyala",
+      "copied": "Kopyalandı",
+      "empty": "Geçerli tüm işveren belgeleri elinizde — talep edilecek bir şey yok."
+    }
+  },
+  "review": {
+    "status": {
+      "captured": "Girildi",
+      "incomplete": "Eksik",
+      "needsReview": "Gözden geçirilmeli",
+      "notApplicable": "Geçerli değil"
+    },
+    "edit": "Düzenle",
+    "attention": "İncelemeye değer",
+    "goToFix": "Düzeltmeye git"
   }
 }

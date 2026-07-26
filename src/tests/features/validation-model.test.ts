@@ -91,7 +91,7 @@ describe('finding actions — deep links (no dead ends)', () => {
       '/documents'
     )
     expect(findingAction(finding('employment.leaveCoversTrip'))?.route).toBe(
-      '/employment'
+      '/employment?step=leave'
     )
     expect(findingAction(finding('sponsor.hasDocuments'))?.route).toBe(
       '/sponsors'

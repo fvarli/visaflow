@@ -1,29 +1,161 @@
 {
   "title": "Employment",
-  "description": "Your current employment status and the details an embassy will ask for",
-  "shortDescription": "Your current employment status and details",
+  "wizard": {
+    "title": "Employment",
+    "description": "Document your employment and approved leave as clear, consistent proof for your dossier."
+  },
+  "nav": {
+    "rail": "Employment steps",
+    "stepProgress": "Step {{current}} of {{total}}",
+    "back": "Back",
+    "continue": "Continue"
+  },
+  "steps": {
+    "status": {
+      "title": "Status",
+      "description": "Tell us your current employment situation."
+    },
+    "employer": {
+      "title": "Employer & role",
+      "description": "Your current employer, role, and how long you've been there."
+    },
+    "income": {
+      "title": "Income & salary bank",
+      "description": "Documented monthly income and the bank that receives it."
+    },
+    "leave": {
+      "title": "Approved leave",
+      "description": "Leave approved for this trip, checked against your travel dates."
+    },
+    "documents": {
+      "title": "Employer documents",
+      "description": "Supporting employment documents and what to request from HR."
+    },
+    "review": {
+      "title": "Review",
+      "description": "A summary of your employment details and their consistency."
+    }
+  },
   "status": {
-    "title": "Employment status",
-    "description": "Select your current employment situation",
-    "label": "Status",
-    "placeholder": "Select status",
-    "required": "Employment status is required"
+    "label": "Employment status",
+    "placeholder": "Select your status",
+    "description": "This determines which employer details apply.",
+    "context": {
+      "employed": "As a salaried employee, your employer letter, approved leave, and payslips help document your ongoing professional ties and planned return to work.",
+      "self_employed": "As a self-employed applicant, your business registration and tax records document your professional situation. Some employee-specific fields don't apply.",
+      "unemployed": "You're not currently employed, so employer and leave details aren't needed. Other parts of your dossier document your situation and funding.",
+      "retired": "As a retiree, employer and leave details aren't needed. A pension statement (tracked in Documents) documents your income.",
+      "student": "As a student, employer and leave details aren't needed. A student certificate (tracked in Documents) documents your situation.",
+      "homemaker": "Employer and leave details aren't needed for your status. Other parts of your dossier document your situation and funding.",
+      "other": "Employer and leave details aren't needed for the status you selected. Other parts of your dossier document your situation."
+    }
   },
   "employer": {
-    "title": "Employer details",
-    "description": "Information about your current employer",
-    "name": "Employer name",
-    "namePlaceholder": "Company name",
+    "additionalDetails": "Additional employer details"
+  },
+  "fields": {
+    "employerName": "Employer legal name",
+    "employerNamePlaceholder": "e.g. Acme Yazılım A.Ş.",
     "jobTitle": "Job title",
-    "jobTitlePlaceholder": "Your position",
-    "startDate": "Start date",
+    "jobTitlePlaceholder": "e.g. Software developer",
+    "startDate": "Employment start date",
+    "department": "Department",
+    "employerPhone": "Employer phone",
+    "employerAddress": "Employer address",
+    "socialSecurityNumber": "Social-security number",
+    "taxId": "Tax ID",
     "monthlyNetIncome": "Monthly net income",
-    "currency": "Currency"
+    "currency": "Currency",
+    "salaryBank": "Salary bank",
+    "salaryBankPlaceholder": "e.g. the bank that pays your salary",
+    "leaveStart": "Leave start date",
+    "leaveEnd": "Leave end date"
+  },
+  "tenure": {
+    "label": "Time at current employer",
+    "years_one": "{{count}} year",
+    "years_other": "{{count}} years",
+    "months_one": "{{count}} month",
+    "months_other": "{{count}} months",
+    "lessThanMonth": "Less than a month",
+    "atCurrentEmployer": "{{duration}} at current employer",
+    "future": "The start date is in the future — check it if that isn't intended."
+  },
+  "why": {
+    "title": "Why do we ask this?",
+    "trigger": "Why do we ask for {{field}}?",
+    "employerName": "The employer's legal name should match your employment letter and official company records.",
+    "startDate": "Your start date is used to show how long you've worked at your current employer.",
+    "income": "Documented income helps show your economic ties. Use the amount supported by your payslips and bank records.",
+    "salaryBank": "Naming the bank that receives your salary lets your salary-account statements line up with your declared employer and income."
+  },
+  "guidance": {
+    "employerNameMatch": "Use the employer's legal name exactly as it appears on your employment letter and official company records, so everything matches.",
+    "netVsGross": "Enter your net (take-home) income — the amount your payslips and salary account actually show, not the gross figure.",
+    "salaryConsistency": "Your recent payslips and salary-account statements should be consistent with the income you enter here.",
+    "companyDocsSupporting": "Company documents (registry, signature circular, tax records) are supplied as supporting employer records — request them from HR if your consulate asks.",
+    "noEmployerNeeded": "Employer and leave details aren't needed for your status. You can continue to the review whenever you're ready.",
+    "leaveDatesMatchTrip": "Your approved-leave letter should use the same travel dates as the rest of your dossier."
+  },
+  "notApplicable": {
+    "employer": {
+      "title": "No employer details needed",
+      "description": "The status you selected doesn't involve an employer. Any details you entered before are kept if you change status later."
+    },
+    "income": {
+      "title": "No employer income to document",
+      "description": "Income from employment isn't part of this status. Funding is documented elsewhere in your dossier."
+    },
+    "leave": {
+      "title": "Approved leave doesn't apply",
+      "description": "Approved leave is only relevant for salaried employees. There's nothing to enter here for your status."
+    },
+    "documents": {
+      "title": "No employer documents needed",
+      "description": "The status you selected doesn't require employer documents. Any other required documents live in the Documents workspace."
+    }
   },
   "leave": {
-    "title": "Approved leave",
-    "description": "The leave your employer has approved for this trip",
-    "startDate": "Leave start date",
-    "endDate": "Leave end date"
+    "tripDates": "Trip dates",
+    "leaveDates": "Approved leave",
+    "coverageFull": "Approved leave covers the full trip.",
+    "noTrip": "No trip dates yet",
+    "noTripHint": "Add your travel dates so approved leave can be checked against them.",
+    "editDates": "Edit leave dates",
+    "openTrip": "Open trip dates"
+  },
+  "documents": {
+    "none": "No employer documents apply to your current status.",
+    "readyCount": "{{ready}} of {{total}} employer documents ready",
+    "open": "Open",
+    "openInDocumentsFor": "Open {{document}} in Documents",
+    "docStatus": {
+      "not_started": "Not started",
+      "requested": "Requested",
+      "received": "Received",
+      "needs_update": "Needs update",
+      "ready": "Ready",
+      "not_applicable": "Not applicable",
+      "not_instantiated": "Not added yet"
+    },
+    "hr": {
+      "title": "What to request from HR",
+      "description": "The employer documents you don't have ready yet. Ask HR or your employer for these.",
+      "heading": "Documents to request from HR:",
+      "copy": "Copy list",
+      "copied": "Copied",
+      "empty": "All applicable employer documents are in hand — nothing to request."
+    }
+  },
+  "review": {
+    "status": {
+      "captured": "Captured",
+      "incomplete": "Incomplete",
+      "needsReview": "Needs review",
+      "notApplicable": "Not applicable"
+    },
+    "edit": "Edit",
+    "attention": "Worth a look",
+    "goToFix": "Go to fix"
   }
 }

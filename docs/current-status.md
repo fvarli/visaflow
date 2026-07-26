@@ -74,6 +74,13 @@ Last updated: 2026-07-27
 - [x] Documents workspace — overview hero, reusable filters + Cards/List/Table
       view switch, category-grouped cards, and a side panel (open without
       navigation) that surfaces requirement context + related findings
+- [x] Employment workspace — a guided six-step wizard (status → employer →
+      income → leave → documents → review): derived current-employer tenure
+      (never stored), progressive status-aware disclosure (non-destructive),
+      leave coverage read from validation findings against the canonical Trip
+      dates, an employment-document summary + "what to request from HR" checklist
+      (with accessible copy) that reuse the Documents feature, and a calm review.
+      Pure adapters in `src/features/employment/*`; no schema/rule change (ADR-026)
 - [x] Validation Center — the dossier review workspace: a review hero (readiness
       + checks passed + items needing attention + one suggested next step),
       findings grouped by domain with a calm health label and a direct
@@ -85,7 +92,10 @@ Last updated: 2026-07-27
       `CountryCombobox` (searchable, ISO-code + `Intl.DisplayNames` labels),
       generic `CollectionEditor`, `SegmentedControl`, plus trip, document and
       validation (`ValidationHero`, `FindingCard`, `FindingGroup`,
-      `ReadinessSummary`, `ReviewProgress`) card families — all in `/playground`
+      `ReadinessSummary`, `ReviewProgress`) and employment
+      (`EmploymentStatusSelector`, `EmploymentTenure`, `LeaveCoverageSummary`,
+      `EmploymentDocumentsSummary`, `HrRequestChecklist`, `EmploymentReview`)
+      families — all in `/playground`
 - [x] Add custom documents / re-add template requirements / additive template
       sync (never deletes applicant data); custom docs use a stable `CUSTOM-` code
 
@@ -135,7 +145,7 @@ All checks pass:
 - `pnpm format:check` - PASS
 - `pnpm lint` - 0 errors (warnings acceptable, see below)
 - `pnpm typecheck` - PASS (`tsc -b`)
-- `pnpm test` - 217/217 PASS
+- `pnpm test` - 251/251 PASS
 - `pnpm build` - SUCCESS
 
 Note: an earlier version of this file claimed 23/23 tests and `tsc --noEmit`;

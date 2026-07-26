@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { FilePlus2, FileText, RefreshCw } from 'lucide-react'
 import { useDossier } from '@/app/providers/DossierProvider'
@@ -21,6 +22,8 @@ import { NoDossierState } from '@/components/NoDossierState'
 import { documentLabel } from '@/lib/document-label'
 import { dynamicT } from '@/lib/i18n-dynamic'
 import { useFormatters } from '@/lib/format'
+import { DocumentCategorySchema } from '@/domain/types/common'
+import type { DocumentCategory } from '@/domain/types/common'
 import type { Document } from '@/domain/schemas/document.schema'
 import type { ValidationFinding } from '@/domain/rules/types'
 import {
@@ -73,8 +76,38 @@ export default function DocumentsPage() {
   const { filters, update, reset, applyQuickFilter, activeCount } =
     useDocumentFilters()
   const [view, setView] = useState<DocumentView>('cards')
-  const [selectedDocId, setSelectedDocId] = useState<string | null>(null)
   const [addOpen, setAddOpen] = useState(false)
+
+  // Deep-link support (additive): `?doc=<id>` drives the detail panel so browser
+  // Back/Forward opens and closes it; `?category=` seeds the filter once. No
+  // params → the workspace behaves exactly as before.
+  const [searchParams, setSearchParams] = useSearchParams()
+  const selectedDocId = searchParams.get('doc')
+
+  const openDoc = (id: string) =>
+    setSearchParams((prev) => {
+      const next = new URLSearchParams(prev)
+      next.set('doc', id)
+      return next
+    })
+  const closeDoc = () =>
+    setSearchParams((prev) => {
+      // Remove only `doc`; keep any other active params (e.g. category).
+      const next = new URLSearchParams(prev)
+      next.delete('doc')
+      return next
+    })
+
+  const categorySeeded = useRef(false)
+  useEffect(() => {
+    if (categorySeeded.current) return
+    categorySeeded.current = true
+    const category = searchParams.get('category')
+    if (category && DocumentCategorySchema.safeParse(category).success) {
+      update('category', category as DocumentCategory)
+    }
+  }, [searchParams, update])
+
   const [addKey, setAddKey] = useState(0)
   const [syncOpen, setSyncOpen] = useState(false)
 
@@ -217,7 +250,7 @@ export default function DocumentsPage() {
           : undefined,
       findingTone: findingTone(findings),
       openLabel: t('documents:card.open'),
-      onOpen: () => setSelectedDocId(doc.id),
+      onOpen: () => openDoc(doc.id),
       selected: selectedDocId === doc.id,
     }
   }
@@ -284,7 +317,9 @@ export default function DocumentsPage() {
         onBucketClick={applyQuickFilter}
         onOpenNext={
           model.nextDocument
-            ? () => setSelectedDocId(model.nextDocument?.id ?? null)
+            ? () => {
+                if (model.nextDocument) openDoc(model.nextDocument.id)
+              }
             : undefined
         }
       />
@@ -341,7 +376,7 @@ export default function DocumentsPage() {
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => setSelectedDocId(doc.id)}
+                      onClick={() => openDoc(doc.id)}
                     >
                       {t('documents:card.open')}
                     </Button>
@@ -389,7 +424,7 @@ export default function DocumentsPage() {
                         }
                         findingCount={findings.length}
                         openLabel={t('documents:card.open')}
-                        onOpen={() => setSelectedDocId(doc.id)}
+                        onOpen={() => openDoc(doc.id)}
                         selected={selectedDocId === doc.id}
                       />
                     )
@@ -409,7 +444,9 @@ export default function DocumentsPage() {
         template={template}
         countryCode={countryCode}
         open={selectedDoc !== null}
-        onOpenChange={(open) => !open && setSelectedDocId(null)}
+        onOpenChange={(open) => {
+          if (!open) closeDoc()
+        }}
       />
 
       <AddDocumentDialog

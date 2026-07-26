@@ -49,6 +49,7 @@ src/
 │   ├── trip/               # trip-model.ts, route-dates.ts, trip-guidance.ts (pure)
 │   ├── documents/          # documents-model.ts + filters + template-sync (pure)
 │   ├── validation/         # validation-model + finding-presentation/actions (pure)
+│   ├── employment/         # employment-model/wizard/tenure/guidance/documents (pure)
 │   └── import-export/      # JSON import/export services
 ├── domain/
 │   ├── schemas/            # Zod schemas (source of truth for data shapes)
@@ -115,7 +116,10 @@ lives in `route-dates.ts` (dates canonical, nights derived — [ADR-024]), and c
 guidance in `applicant-guidance.ts` / `trip-guidance.ts` (info-only, never affects readiness).
 The Validation Center is a thin composition over `src/features/validation/*` — a pure adapter that
 *organizes* `runValidation` output (grouping by domain, per-area health, calm severity labels, deep
-links) without re-encoding a rule or changing an outcome ([ADR-025]).
+links) without re-encoding a rule or changing an outcome ([ADR-025]). The Employment workspace is a
+guided six-step wizard over `src/features/employment/*` — derived current-employer tenure, info-only
+guidance, an employment-document summary + HR-request checklist that reuse the Documents feature, and a
+review that consumes `employment.leaveCoversTrip` findings; it stores no new data ([ADR-026]).
 Dashboard detail: [dashboard-architecture.md](./dashboard-architecture.md). Reusable UI is
 demonstrated in the [Playground](./playground.md) before use. **Depends on:** all layers below.
 **Must not:** be depended *on* by them.

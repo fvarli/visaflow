@@ -692,3 +692,80 @@ surfaces a Trip group with a working `/trip?step=insurance` jump-to-fix.
 - Guidance/health are a live snapshot; nothing persisted.
 - No browser pass (no connected Chrome) — re-verify at 1440/390 × tr light/dark + en: hero wrap,
   group collapse, long Turkish health labels, ready chips, the section summary.
+
+## Iteration 13 handoff (2026-07-27) — Employment experience redesign
+
+Turned the flat Employment form (a Save-button CRUD screen that only revealed employer fields for the
+`employed` status) into a calm, guided **employment-dossier workspace**. No dossier-schema,
+import/export, or validation-outcome change — every field already existed on `EmploymentSchema`.
+
+### Baseline recorded (real, from code)
+`format:check` ✓ · `lint` 0 errors / 50 warnings ✓ · `typecheck` ✓ · `test` **217/217** (26 files) ·
+`build` main index ~109.21 kB gzip. (`docs/project-context.md` referenced by the brief does not exist —
+removed in Iteration 5, merged into `vision.md`.)
+
+### Architecture — pure adapters (ADR-026), `src/features/employment/`
+- `employment-wizard.ts` — `EMPLOYMENT_STEP_IDS` (status·employer·income·leave·documents·review) +
+  status-aware `deriveStepStatuses` (non-employer statuses mark employer/income/leave/documents
+  complete, so the rail never nags).
+- `employment-tenure.ts` — `computeTenure(startDate, now?)` (derived, never stored; future/missing/
+  <1-month/exact-year/partial).
+- `employment-guidance.ts` — info-only `EmploymentGuidanceHint`s (employer-name match, net-vs-gross,
+  salary consistency, company-docs-supporting, leave-dates-match-trip; reassurance for non-employers).
+- `employment-documents.ts` — `buildEmploymentDocuments` (employment-only buckets via
+  `buildDocumentBuckets5` + `applicableRequirements`, per-requirement rows with real doc ids or
+  `not_instantiated`, `hrRequests` = applicable *missing* only) + `hrClipboardText` (names only).
+- `employment-model.ts` — `buildEmploymentModel`/`useEmploymentModel`: tenure, leave coverage (from
+  `employment.leaveCoversTrip` findings, never re-derived, vs canonical Trip dates), document view,
+  per-section review (captured/incomplete/needsReview/notApplicable). Pure, unit-tested.
+
+### Components (`src/components/employment/`, in `/playground`)
+Reusable: `EmploymentStatusSelector`, `EmploymentTenure`, `LeaveCoverageSummary`,
+`EmploymentDocumentsSummary`, `HrRequestChecklist` (accessible Copy — localized names only, inline
+sr-announced feedback, focus preserved, hidden when nothing missing), `EmploymentReview`. Step
+components (Status/Employer/Income/Leave/Documents/Review) use controlled inputs + `updateEmployment`
+autosave (shallow merge → non-destructive on status change), no Save button. `EmploymentPage` is a thin
+shell mirroring Trip/Applicant: `PageHeader` + `Stepper` + focus-to-h2 + `?step=` reader.
+
+### Sanctioned cross-page deep-links (additive)
+- `finding-actions.ts` — `employment.leaveCoversTrip` findings → `/employment?step=leave`.
+- `DocumentsPage.tsx` — additive `useSearchParams`: `?category=` seeds the filter once, `?doc=` drives
+  the detail Sheet (Back/Forward-safe; close removes only `doc`; unknown id renders normally, no crash;
+  no params → byte-for-byte the old behavior). Employment links use `/documents?category=employment`
+  (+ `&doc=<realId>` when instantiated; category-only + named requirement otherwise). Dashboard,
+  Applicant, Trip, Validation untouched.
+
+### Product guarantees
+No schema change (net-only income kept honest, no gross field); employment fields vs employment
+documents stay separate (Documents is the single status store); guidance never affects readiness or a
+finding; non-employed applicants see calm not-applicable states, never employment errors; no approval
+prediction, no "strength" score (ADR-016). `employerDetails`, `socialSecurityNumber`/`taxId` (beyond an
+optional disclosure) and total career experience are intentionally out of scope / unmodeled.
+
+### i18n
+`employment.json` expanded in both locales (wizard/nav/steps/status.context/fields/tenure/why/guidance/
+notApplicable/leave/documents+hr/review) with tr/en parity; `playground.json` `sections.employment` +
+blurb + row labels. Enum labels reuse `visa-domain:employmentStatus.*`. Values stay raw/ISO → exported
+JSON unchanged.
+
+### Gates (this iteration)
+`format:check` ✓ · `lint` 0 errors / 55 warnings (baseline 50; +5 acceptable — test `!` assertions +
+new react-refresh component files) · `typecheck` ✓ · `test` **251/251** (217 + 34 new, 32 files) ·
+`build` ✓ (EmploymentPage lazy ~2.66 kB gzip; DocumentsPage ~6.73 kB gzip; main index ~109.38 kB gzip,
++~0.17 kB, no new dependency). `git diff --check` clean. Not committed, not pushed.
+
+### Tests
+Pure: `employment-wizard` (steps, status-aware statuses, completeness), `employment-tenure` (all cases),
+`employment-guidance` (info-only, step filter, reassurance), `employment-model` (employment-only
+buckets, HR = missing applicable only / ready excluded, `hrClipboardText` tr+en names-only, leave
+coverage full/starts-late/ends-early/no-trip, non-employed notApplicable). Render: `employment-page`
+(both locales single h1 + no Save button, `?step=leave` deep-link, non-employed calm state, HR Copy
+writes localized names + accessible feedback, no-dossier), `documents-deeplink` (`?category=` init,
+`?doc=` opens panel, unknown id no crash, no-param backward-compat). `finding-actions` assertion updated.
+
+### Known limitations / next
+- `EmployerDetails` (company registry/tax/address) is unsurfaced — company records are tracked as
+  Documents; a future pass could edit them (needs a provider action).
+- Salary bank is free text (no bank dataset, by design); a future bank selector is possible.
+- No browser pass (no connected Chrome) — re-verify at 1440/390 × tr light/dark + en: status disclosure,
+  tenure wording, leave-vs-trip comparison, HR list + copy, review, long Turkish employer/document names.
