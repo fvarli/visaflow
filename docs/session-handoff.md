@@ -939,3 +939,79 @@ deleted** + **`?sponsor` cleared**. `validation-model` gains the per-sponsor `?s
 - No browser pass (no connected Chrome) — re-verify at 1440/390 × tr light/dark + en: card readiness/
   participation, the editor Sheet (focus trap, Escape, first-incomplete open, section switching, mobile
   full-screen drawer), the document linker (link/unlink/stale), safe removal, long Turkish labels.
+
+## Iteration 16 handoff (2026-07-27) — Timeline experience redesign (actionable preparation plan)
+
+Turned the passive Timeline (an inline-derived vertical date list with hardcoded status colours) into a
+calm, actionable **visa-preparation plan** — a hero + three modes (Preparation plan · Key dates · Document
+freshness). No dossier-schema, validation-outcome, readiness, import/export, or language-independence
+change; no persistence, notifications, or calendar integration; **no Dashboard change**.
+
+### Baseline recorded (real, from code)
+`format:check` ✓ · `typecheck` ✓ · `build` ✓ (main index ~110.29 kB gzip) · `test` **344** (clean runs;
+3 transient failures appear only under heavy parallel load) · `lint` 0 errors. Repo clean/committed.
+
+### Architecture — pure adapters (ADR-029), `src/features/timeline/`
+- `timeline-policy.ts` — normalizes the template's existing `preparationMilestones` (VisaFlow defaults,
+  override-ready) into `TimelinePolicy`; shared-Schengen fallback; no invented source metadata.
+- `timeline-tasks.ts` — `deriveTasks(input, now)`: target date = `appointment − leadDays`; status from
+  real doc/validation state; **proximity bands** via exported `classifyBand` (Overdue/Today/ThisWeek/
+  BeforeAppointment/AppointmentDay/BeforeTravel/Travel/Later; relative phases when no appointment). Two
+  derived tasks (sponsor evidence; a pre-travel dossier-organisation task). Overdue = past + incomplete.
+- `timeline-dates.ts` — `buildKeyDates`: fixed events (appointment/leave/trip/route/transport/
+  accommodation/insurance/passport/doc-validity), sorted, ranges collapsed.
+- `document-freshness.ts` — factual classes (needsUpdate/expiresBeforeAppointment/validThroughAppointment/
+  issuedNoExpiry/noDates) + age (only when issued). No invented expiry/recency.
+- `timeline-links.ts` — thin domain→route / type→route map (complements finding-actions).
+- `timeline-model.ts` — composes hero/plan/keyDates/freshness/appointmentDay; **reuses the Dashboard's
+  `deriveNextActions`/`buildDocumentBuckets`/`deriveReadinessState`** (imported, not modified).
+
+### Components (`src/components/timeline/`, in `/playground`)
+`TimelineHero` (countdown + prep-time + reused primary action + realism note), `TimelineModeSelector`
+(`SegmentedControl`, `?mode=`), `PreparationPlan` (band groups), `PreparationTaskCard` (why-now + status +
+`DateWindowBadge` + deep-link), `DateWindowBadge`, `KeyDatesTimeline` (past/upcoming), `DocumentFreshnessList`,
+`AppointmentDaySummary` (read-only). `TimelinePage` is a thin shell (`?mode=` reader, default plan).
+
+### Priority compatibility (reuse-only)
+Hero primary action = `deriveNextActions(buildDocumentBuckets(documents), runValidation(dossier),
+application)[0]`, with the Dashboard's own `dashboard:nextActions.*`/`nextAction.reason.*`/`hero.verdict.*`
+wording + route. A test asserts equality with the Dashboard. Dashboard model/tests untouched. The
+remaining duplicate *date* derivation (`buildTimeline` vs `timeline-dates`) is documented tech debt
+(roadmap consolidation item).
+
+### Product guarantees
+Recommendations, not deadlines (VisaFlow-recommended language only); fixed events vs derived tasks are
+separate models; tasks derived, never persisted (appointment-day is read-only, no checkbox state); factual
+freshness (no invented expiry/recency); no notifications/calendar/email; no month/week/day calendar views;
+no new dependency (date-fns v4 already present). Overdue is amber, never a red wall; status never by colour
+alone.
+
+### i18n
+`timeline.json` fully rewritten both locales (hero/modes/plan bands+status/derived/keyDates/freshness/
+appointmentDay/empty) with tr/en parity; `playground.json` `sections.timeline` + blurb + rows. Reuses
+`visa-domain:milestones.*` (task titles/reasons), `visa-domain:{documentCategory,ownerType,documentStatus}.*`,
+and `dashboard:nextActions.*`/`nextAction.*`/`hero.verdict.*` (hero). Stored values stay ISO.
+
+### Gates (this iteration)
+`format:check` ✓ · `lint` 0 errors / 71 warnings (baseline 72; all acceptable categories) · `typecheck` ✓ ·
+`test` **378/378** (344 + 34 new, 48 files) · `build` ✓ (TimelinePage lazy ~1.91 kB gzip; main index
+~110.33 kB gzip, +~0.04, no new dependency). Not committed, not pushed.
+
+### Tests
+Pure: `timeline-tasks` (target-date derivation; `classifyBand` for today/end-of-week/appointment-day/
+overdue-incomplete/completed-past/before-travel/travel; no-appointment relative phases; status ready/
+overdue/notApplicable), `timeline-dates` (chronological order, range collapse, past/upcoming),
+`document-freshness` (every class, age only when issued, appointment-unknown, not-applicable skipped),
+`timeline-links` (all domain/type routes + freshness link), `timeline-model` (**primary action ==
+`deriveNextActions[0]`**, no-dossier / no-appointment / past-appointment, read-only appointment-day).
+Render (`timeline-page`, both locales): single h1 + three modes; `?mode=dates`; mode switch → freshness;
+no-dossier; appointment-day summary.
+
+### Known limitations / next
+- Duplicate timeline *date* derivation (Dashboard `buildTimeline` vs `timeline-dates`) — deliberate
+  reuse-only this sprint; roadmap item to consolidate.
+- The `appointmentDay`/`travel` bands are reachable but rarely populated by the current milestone set.
+- Freshness is factual-only until templates gain verified freshness metadata (config + source).
+- No browser pass (no connected Chrome) — re-verify at 1440/390 × tr light/dark + en: mode switching, long
+  Turkish dates/labels, overdue treatment, task deep-links, empty/partial/complete states, freshness,
+  appointment-day, focus.

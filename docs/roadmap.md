@@ -25,7 +25,11 @@ one production country pack (Greece — Schengen short-stay tourism) · ADR hist
 
 **Next within Foundation:** surface `SourceNote` in the Documents detail view; add more Schengen
 visa types (business, visit) using the existing hierarchy; verify the Greece pack against a
-current official source and record real `lastVerifiedAt` / raise `reviewStatus` honestly.
+current official source and record real `lastVerifiedAt` / raise `reviewStatus` honestly;
+**consolidate the two timeline date derivations** — the Dashboard's `buildTimeline` and the
+Timeline feature's `timeline-dates` — onto a single shared source now that the Timeline UX has
+shipped (the Timeline redesign deliberately reused only `deriveNextActions` and left the Dashboard
+untouched; ADR-029). *Tech debt.*
 
 ---
 

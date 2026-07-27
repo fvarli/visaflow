@@ -111,7 +111,7 @@ Pages read/write state through `DossierProvider`; formatting goes through `src/l
 (never `Intl` directly), and country names through `src/lib/countries.ts` (the sole
 `Intl.DisplayNames` wrapper — codes persist, labels are resolved for display; see [ADR-023]);
 finding prose is resolved via `src/lib/finding-text.ts`. Each guided experience has a pure
-feature adapter (`src/features/{dashboard,applicant,trip,documents,employment,finance,sponsors}/*`): trip nights/coverage math
+feature adapter (`src/features/{dashboard,applicant,trip,documents,employment,finance,sponsors,timeline}/*`): trip nights/coverage math
 lives in `route-dates.ts` (dates canonical, nights derived — [ADR-024]), and calm, non-validation
 guidance in `applicant-guidance.ts` / `trip-guidance.ts` (info-only, never affects readiness).
 The Validation Center is a thin composition over `src/features/validation/*` — a pure adapter that
@@ -129,6 +129,11 @@ The Sponsors workspace is the canonical sponsor hub over `src/features/sponsors/
 (readiness, participation, missing evidence, next action) with all editing in a progressive Sheet; it
 uses the existing `Sponsor.documentIds` to link/unlink sponsor-evidence documents (Documents still owns
 creation/status/deletion), so per-sponsor evidence is real without a schema or rule change ([ADR-028]).
+The Timeline is an actionable preparation plan over `src/features/timeline/*` (policy · tasks · dates ·
+freshness · links · model) with three modes (plan/dates/freshness); preparation tasks are derived (never
+persisted) from the templates' `preparationMilestones` + document/validation state, recommendations are
+VisaFlow's not official deadlines, and the highlighted next action reuses the Dashboard's
+`deriveNextActions` (reuse-only — no dashboard change) ([ADR-029], [timeline-architecture.md](./timeline-architecture.md)).
 Dashboard detail: [dashboard-architecture.md](./dashboard-architecture.md). Reusable UI is
 demonstrated in the [Playground](./playground.md) before use. **Depends on:** all layers below.
 **Must not:** be depended *on* by them.

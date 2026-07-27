@@ -1,21 +1,124 @@
 {
-  "title": "Zaman çizelgesi",
-  "description": "Vize başvurunuzun önemli tarihleri ve aşamaları",
-  "shortDescription": "Vize başvuru zaman çizelgeniz",
-  "empty": {
-    "title": "Henüz bir olay yok",
-    "description": "Burada görebilmek için randevu ve seyahat tarihlerini ekleyin.",
-    "action": "Seyahat tarihlerini ekle"
+  "title": "Zaman planı",
+  "description": "Vize dosyanızı hazırlamak için sakin ve uygulanabilir planınız.",
+  "shortDescription": "Vize hazırlık planınız",
+  "hero": {
+    "appointmentEyebrow": "Vize randevusu",
+    "appointmentOn": "{{date}}",
+    "appointmentRelative": "{{relative}}",
+    "noAppointment": "Henüz randevu tarihi yok",
+    "noAppointmentHint": "Tarihe bağlı hazırlık hedeflerini görmek için randevunuzu belirleyin. O zamana kadar önerilen bir sıra aşağıdadır.",
+    "setAppointment": "Randevu belirle",
+    "prepTimeRemaining_one": "{{count}} gün hazırlık süresi kaldı",
+    "prepTimeRemaining_other": "{{count}} gün hazırlık süresi kaldı",
+    "prepTimePast": "Randevu tarihiniz geçti",
+    "primaryTitle": "Önerilen sonraki adım",
+    "realismOnTrack": "Planınız yolunda — hiçbir şey önerilen tarihini geçmedi.",
+    "realismBehind_one": "{{count}} görev önerilen tarihini geçti.",
+    "realismBehind_other": "{{count}} görev önerilen tarihini geçti."
   },
-  "events": {
-    "appointment": "Vize randevusu",
-    "appointmentNoLocation": "Yer belirtilmedi",
-    "tripBegins": "Seyahat başlıyor",
-    "tripBeginsDescription": "{{country}} ülkesine giriş",
-    "schengenArea": "Schengen bölgesi",
-    "tripEnds": "Seyahat bitiyor",
-    "tripEndsDescription": "Dönüş",
-    "documentExpires": "{{document}} geçerliliği doluyor",
-    "documentExpiresDescription": "Belgenin geçerlilik süresi sona eriyor"
+  "modes": {
+    "label": "Zaman planı görünümü",
+    "plan": "Hazırlık planı",
+    "dates": "Önemli tarihler",
+    "freshness": "Belgelerin güncelliği"
+  },
+  "plan": {
+    "bands": {
+      "overdue": "Planlanan tarih geçti",
+      "today": "Bugün",
+      "thisWeek": "Bu hafta",
+      "beforeAppointment": "Randevu öncesi",
+      "appointmentDay": "Randevu günü",
+      "beforeTravel": "Seyahat öncesi",
+      "travel": "Seyahat dönemi",
+      "later": "Daha sonra",
+      "startNow": "Şimdi başlayın",
+      "soon": "Yakında",
+      "finalSteps": "Son adımlar"
+    },
+    "status": {
+      "notStarted": "Başlanmadı",
+      "inProgress": "Devam ediyor",
+      "ready": "Hazır",
+      "needsAttention": "İlgilenilmeli",
+      "overdue": "Gecikti",
+      "notApplicable": "Geçerli değil"
+    },
+    "whyNow": "Neden şimdi",
+    "targetLabel": "Tamamlama planı",
+    "targetBy": "{{date}} tarihine kadar",
+    "recommended": "Önerilen zaman aralığı",
+    "open": "Aç",
+    "openFor": "Aç: {{task}}",
+    "empty": "Şu anda dosyanıza uygulanabilir bir hazırlık görevi yok.",
+    "noAppointmentNote": "Tarihe bağlı hedefler randevunuzu belirleyince görünür — bu, son tarihler değil önerilen bir sıradır."
+  },
+  "derived": {
+    "sponsorEvidence": {
+      "title": "Sponsor kanıtlarını hazırlayın",
+      "reason": "Sponsor dilekçeleri ve dökümleri, sponsorunuzdan toplanması zaman alabilir."
+    },
+    "travelPrep": {
+      "title": "Dosyanızı yazdırın ve düzenleyin",
+      "reason": "Seyahatten önce her şeyi yazdırıp sıralayın; son güne bir şey kalmasın."
+    }
+  },
+  "keyDates": {
+    "title": "Önemli tarihler",
+    "description": "Dosyanızdaki sabit tarihler.",
+    "empty": "Henüz kayıtlı sabit tarih yok.",
+    "pastGroup": "Geçmiş",
+    "upcomingGroup": "Yaklaşan",
+    "range": "{{start}} – {{end}}",
+    "open": "Aç",
+    "type": {
+      "appointment": "Vize randevusu",
+      "leave": "Onaylı izin",
+      "tripEntry": "Seyahat başlıyor",
+      "tripExit": "Seyahat bitiyor",
+      "routeStop": "{{city}} durağı",
+      "transport": "Ulaşım",
+      "accommodation": "{{city}} konaklaması",
+      "insurance": "Sigorta kapsamı",
+      "passportExpiry": "Pasaport geçerliliği doluyor",
+      "documentExpiry": "{{document}} son geçerlilik"
+    }
+  },
+  "freshness": {
+    "title": "Belgelerin güncelliği",
+    "description": "Belgelerinizin yalnızca kayıtlı tarihlerine göre ne kadar güncel olduğu.",
+    "empty": "Kontrol edilecek belge yok.",
+    "noAppointmentHint": "Belge geçerliliğini karşılaştırmak için randevunuzu belirleyin.",
+    "age_one": "Randevunuzda {{count}} günlük",
+    "age_other": "Randevunuzda {{count}} günlük",
+    "class": {
+      "needsUpdate": "Güncellenmeli",
+      "expiresBeforeAppointment": "Randevunuzdan önce doluyor",
+      "validThroughAppointment": "Randevunuza kadar geçerli",
+      "validUntil": "{{date}} tarihine kadar geçerli",
+      "issuedNoExpiry": "Düzenlendi — geçerlilik sonu yok",
+      "noDates": "Tarih bilgisi yok"
+    },
+    "open": "Belgeler'de aç"
+  },
+  "appointmentDay": {
+    "title": "Randevu günü",
+    "description": "Randevu günü için salt okunur bir hazırlık özeti.",
+    "readySummary": "{{total}} öğeden {{ready}} tanesi hazır",
+    "ready": "Hazır",
+    "notReady": "Henüz değil",
+    "items": {
+      "passport": "Kimlik ve pasaport",
+      "applicationForm": "Başvuru formu",
+      "confirmation": "Randevu onayı",
+      "requiredDocuments": "Gerekli belgeler"
+    },
+    "notesTitle": "Bu vize türü için notlar"
+  },
+  "empty": {
+    "title": "Henüz planlanacak bir şey yok",
+    "description": "Hazırlık planınızı oluşturmak için randevu ve seyahat tarihlerinizi ekleyin.",
+    "action": "Seyahat tarihlerini ekle"
   }
 }

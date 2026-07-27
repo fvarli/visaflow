@@ -226,6 +226,32 @@ eksik zorunlu belgeler, güncellenmesi gereken belgeler, tutarlılık bulguları
   comparison, or an approval likelihood (ADR-016). Sponsor findings tie to a sponsor via
   the `sponsors.<id>.*` relatedField.
 
+## Timeline: recommendations, not deadlines; fixed events vs derived tasks
+
+- **VisaFlow timing is organisational recommendation, never an official deadline.** The
+  preparation plan derives target dates from the country template's
+  `preparationMilestones` (`daysBeforeAppointment`) — these are VisaFlow defaults,
+  override-ready per template, with no invented official-source metadata. Copy uses
+  "Recommended / Plan to complete / Suggested window / Overdue based on your plan", never
+  "Legally required by / Embassy deadline / Must be completed by" (ADR-029).
+- **Fixed events ≠ preparation tasks.** Fixed events (appointment, leave, trip, route,
+  reservations, insurance, passport, document validity) state facts and live in the Key
+  dates view; preparation tasks state recommendations and live in the plan. Different
+  concepts, different models (`timeline-dates.ts` vs `timeline-tasks.ts`).
+- **Tasks are derived, never persisted.** There is no task/checkbox/activity store; the
+  appointment-day view is a read-only readiness summary. No fabricated activity or
+  timestamps; no notifications or calendar integration.
+- **Overdue = recommended date passed AND still incomplete** (a completed past task is
+  never overdue). Without an appointment, the plan shows calm relative phases — no dates
+  are invented.
+- **Document freshness is factual.** A document is flagged only when its own `validUntil`,
+  status (`needs_update`), or a validation finding says so — never an invented expiry or a
+  "must be < N days old" recency rule. Age is shown only when an issue date exists.
+- **Priority stays compatible with the Dashboard.** The plan's highlighted next step reuses
+  the Dashboard's `deriveNextActions[0]` (same wording + route); the Dashboard model is
+  unchanged. A remaining duplicate *date* derivation (`buildTimeline` vs `timeline-dates`)
+  is documented technical debt.
+
 ## Requirement vs document instance
 
 - **Document requirement** (`src/config/types.ts`) — template/configuration

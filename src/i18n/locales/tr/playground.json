@@ -20,7 +20,8 @@
     "validation": "Doğrulama merkezi",
     "employment": "Çalışma durumu",
     "finance": "Finansman",
-    "sponsors": "Sponsorlar"
+    "sponsors": "Sponsorlar",
+    "timeline": "Zaman planı"
   },
   "rows": {
     "surfaces": "Yüzeyler",
@@ -77,6 +78,11 @@
     "sponsorRelationship": "Yakınlık seçici",
     "sponsorCard": "Sponsor çalışma kartı",
     "sponsorDocuments": "Belge bağlayıcı",
+    "timelineMode": "Görünüm değiştirici",
+    "dateWindow": "Tarih aralığı rozeti",
+    "timelineTask": "Hazırlık görevi kartı",
+    "timelineDates": "Önemli tarihler",
+    "timelineFreshness": "Belgelerin güncelliği",
     "collectionEditor": "Koleksiyon düzenleyici",
     "tripHero": "TripHero",
     "journeyTimeline": "JourneyTimeline",
@@ -140,6 +146,7 @@
     "employment": "Çalışma alanı bileşenleri: durum seçici, türetilen mevcut işveren süresi, seyahate karşı izin kapsamı, işveren belge özeti ve İK talep listesi ile özet.",
     "finance": "Mali kanıt bileşenleri: finansman kaynağı seçici, salt okunur gelir özeti, sponsor özet kartı, gruplanmış mali belge özeti ile toplanacak kanıt kopyalama listesi ve özet.",
     "sponsors": "Sponsor çalışma alanı bileşenleri: tam yakınlık seçici, zengin bir sponsor kartı (hazırlık, katkı, eksik kanıt, sonraki adım) ve erişilebilir belge bağlayıcı (mevcut sponsor kanıtını bağla / bağlantıyı kaldır).",
+    "timeline": "Zaman planı bileşenleri: plan/tarihler/güncellik görünüm değiştirici, önerilen tarih aralığı rozeti, hazırlık görevi kartı (neden şimdi + durum + hedef + bağlantı), önemli tarihler listesi ve gerçeğe dayalı belge güncelliği listesi.",
     "onboarding": "Rehberli akışın yapı taşları: adım göstergesi, \"Bunu neden soruyoruz?\" balonu ve genel koleksiyon düzenleyici.",
     "travel": "Seyahat planlayıcı yapı taşları: genel bakış kartı, destinasyon kartlarıyla bağlı yolculuk zaman çizelgesi, ulaşım bölümleri ve sigorta teminat kartı.",
     "documents": "Belge çalışma alanı yapı taşları: bölümlü görünüm anahtarı, hazırlık genel bakış kartı ve belge kartının şablon, özel ve sorunlu durumları."

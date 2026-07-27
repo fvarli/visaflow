@@ -1,21 +1,124 @@
 {
   "title": "Timeline",
-  "description": "Key dates and milestones for your visa application",
-  "shortDescription": "Your visa application timeline",
-  "empty": {
-    "title": "No timeline events yet",
-    "description": "Add appointment and trip dates to see them plotted here.",
-    "action": "Add trip dates"
+  "description": "Your calm, actionable plan for preparing this visa dossier.",
+  "shortDescription": "Your visa preparation plan",
+  "hero": {
+    "appointmentEyebrow": "Visa appointment",
+    "appointmentOn": "{{date}}",
+    "appointmentRelative": "{{relative}}",
+    "noAppointment": "No appointment date yet",
+    "noAppointmentHint": "Set your appointment to see dated preparation targets. Until then, here is a suggested order.",
+    "setAppointment": "Set appointment",
+    "prepTimeRemaining_one": "{{count}} day of preparation time left",
+    "prepTimeRemaining_other": "{{count}} days of preparation time left",
+    "prepTimePast": "Your appointment date has passed",
+    "primaryTitle": "Recommended next step",
+    "realismOnTrack": "On track — nothing is past its suggested date.",
+    "realismBehind_one": "{{count}} task is past its suggested date.",
+    "realismBehind_other": "{{count}} tasks are past their suggested date."
   },
-  "events": {
-    "appointment": "Visa appointment",
-    "appointmentNoLocation": "Location not set",
-    "tripBegins": "Trip begins",
-    "tripBeginsDescription": "Enter {{country}}",
-    "schengenArea": "the Schengen area",
-    "tripEnds": "Trip ends",
-    "tripEndsDescription": "Return home",
-    "documentExpires": "{{document}} expires",
-    "documentExpiresDescription": "Document validity ends"
+  "modes": {
+    "label": "Timeline view",
+    "plan": "Preparation plan",
+    "dates": "Key dates",
+    "freshness": "Document freshness"
+  },
+  "plan": {
+    "bands": {
+      "overdue": "Overdue based on your plan",
+      "today": "Today",
+      "thisWeek": "This week",
+      "beforeAppointment": "Before the appointment",
+      "appointmentDay": "Appointment day",
+      "beforeTravel": "Before travel",
+      "travel": "Travel period",
+      "later": "Later",
+      "startNow": "Start now",
+      "soon": "Soon",
+      "finalSteps": "Final steps"
+    },
+    "status": {
+      "notStarted": "Not started",
+      "inProgress": "In progress",
+      "ready": "Ready",
+      "needsAttention": "Needs attention",
+      "overdue": "Overdue",
+      "notApplicable": "Not applicable"
+    },
+    "whyNow": "Why now",
+    "targetLabel": "Plan to complete",
+    "targetBy": "By {{date}}",
+    "recommended": "Recommended window",
+    "open": "Open",
+    "openFor": "Open: {{task}}",
+    "empty": "No preparation tasks apply to your dossier right now.",
+    "noAppointmentNote": "Dated targets appear once you set your appointment — this is a suggested order, not a set of deadlines."
+  },
+  "derived": {
+    "sponsorEvidence": {
+      "title": "Prepare sponsor evidence",
+      "reason": "Sponsor letters and statements can take time to gather from your sponsor."
+    },
+    "travelPrep": {
+      "title": "Print & organise your dossier",
+      "reason": "Have everything printed and ordered before you travel, so nothing is left to the last day."
+    }
+  },
+  "keyDates": {
+    "title": "Key dates",
+    "description": "The fixed dates in your dossier.",
+    "empty": "No fixed dates recorded yet.",
+    "pastGroup": "Past",
+    "upcomingGroup": "Upcoming",
+    "range": "{{start}} – {{end}}",
+    "open": "Open",
+    "type": {
+      "appointment": "Visa appointment",
+      "leave": "Approved leave",
+      "tripEntry": "Trip begins",
+      "tripExit": "Trip ends",
+      "routeStop": "Stop in {{city}}",
+      "transport": "Transport",
+      "accommodation": "Stay in {{city}}",
+      "insurance": "Insurance coverage",
+      "passportExpiry": "Passport expires",
+      "documentExpiry": "{{document}} valid until"
+    }
+  },
+  "freshness": {
+    "title": "Document freshness",
+    "description": "How current your documents are, based only on their recorded dates.",
+    "empty": "No documents to check yet.",
+    "noAppointmentHint": "Set your appointment to compare document validity against it.",
+    "age_one": "{{count}} day old at your appointment",
+    "age_other": "{{count}} days old at your appointment",
+    "class": {
+      "needsUpdate": "Needs update",
+      "expiresBeforeAppointment": "Expires before your appointment",
+      "validThroughAppointment": "Valid through your appointment",
+      "validUntil": "Valid until {{date}}",
+      "issuedNoExpiry": "Issued — no expiry recorded",
+      "noDates": "No date information"
+    },
+    "open": "Open in Documents"
+  },
+  "appointmentDay": {
+    "title": "Appointment day",
+    "description": "A read-only readiness summary for the day itself.",
+    "readySummary": "{{ready}} of {{total}} ready",
+    "ready": "Ready",
+    "notReady": "Not yet",
+    "items": {
+      "passport": "Identity & passport",
+      "applicationForm": "Application form",
+      "confirmation": "Appointment confirmation",
+      "requiredDocuments": "Required documents"
+    },
+    "notesTitle": "Notes for this visa type"
+  },
+  "empty": {
+    "title": "Nothing to plan yet",
+    "description": "Add your appointment and trip dates to build your preparation plan.",
+    "action": "Add trip dates"
   }
 }

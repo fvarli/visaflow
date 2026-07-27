@@ -99,6 +99,16 @@ Last updated: 2026-07-27
       still owns creation/status/deletion; stale links surfaced, never crash). Safe
       removal via an `AlertDialog` that keeps linked documents. Pure adapters in
       `src/features/sponsors/*`; no schema/rule change (ADR-028)
+- [x] Timeline — an actionable visa-preparation plan (not a passive date list): a hero
+      (appointment countdown + prep-time-remaining + a recommended next step that reuses
+      the Dashboard's `deriveNextActions[0]` + a calm realism note) and three modes —
+      Preparation plan (tasks grouped into real-date proximity bands: Overdue / Today /
+      This week / Before the appointment / Appointment day / Before travel / Travel;
+      calm relative phases when no appointment), Key dates (fixed events, ranges
+      collapsed), and factual Document freshness. Tasks are derived (never persisted)
+      from the templates' `preparationMilestones` + document/validation state;
+      recommendations are VisaFlow's, never official deadlines. Pure adapters in
+      `src/features/timeline/*`; no schema/rule change, no dashboard change (ADR-029)
 - [x] Validation Center — the dossier review workspace: a review hero (readiness
       + checks passed + items needing attention + one suggested next step),
       findings grouped by domain with a calm health label and a direct
@@ -116,7 +126,10 @@ Last updated: 2026-07-27
       finance (`FundingSourceSelector`, `IncomeOverview`, `SponsorSummaryCard`,
       `FinanceDocumentsSummary`, `FinanceGatherChecklist`, `FinanceReview`) and
       sponsors (`SponsorRelationshipSelector`, `SponsorWorkspaceCard`,
-      `SponsorDocumentLinker`, `SponsorEditorSheet`, `RemoveSponsorDialog`)
+      `SponsorDocumentLinker`, `SponsorEditorSheet`, `RemoveSponsorDialog`) and
+      timeline (`TimelineHero`, `TimelineModeSelector`, `PreparationPlan`,
+      `PreparationTaskCard`, `DateWindowBadge`, `KeyDatesTimeline`,
+      `DocumentFreshnessList`, `AppointmentDaySummary`)
       families — all in `/playground`
 - [x] Add custom documents / re-add template requirements / additive template
       sync (never deletes applicant data); custom docs use a stable `CUSTOM-` code
@@ -167,7 +180,7 @@ All checks pass:
 - `pnpm format:check` - PASS
 - `pnpm lint` - 0 errors (warnings acceptable, see below)
 - `pnpm typecheck` - PASS (`tsc -b`)
-- `pnpm test` - 344/344 PASS
+- `pnpm test` - 378/378 PASS
 - `pnpm build` - SUCCESS
 
 Note: an earlier version of this file claimed 23/23 tests and `tsc --noEmit`;

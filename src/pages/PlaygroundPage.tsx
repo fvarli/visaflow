@@ -130,6 +130,13 @@ import { SponsorRelationshipSelector } from '@/components/sponsors/SponsorRelati
 import { SponsorWorkspaceCard } from '@/components/sponsors/SponsorWorkspaceCard'
 import { SponsorDocumentLinker } from '@/components/sponsors/SponsorDocumentLinker'
 import { buildSponsorsModel } from '@/features/sponsors/sponsor-model'
+import { TimelineModeSelector } from '@/components/timeline/TimelineModeSelector'
+import type { TimelineMode } from '@/components/timeline/TimelineModeSelector'
+import { DateWindowBadge } from '@/components/timeline/DateWindowBadge'
+import { PreparationTaskCard } from '@/components/timeline/PreparationTaskCard'
+import { KeyDatesTimeline } from '@/components/timeline/KeyDatesTimeline'
+import { DocumentFreshnessList } from '@/components/timeline/DocumentFreshnessList'
+import { buildTimelineModel } from '@/features/timeline/timeline-model'
 import type {
   FinancingSource,
   SponsorRelationship,
@@ -197,6 +204,7 @@ export default function PlaygroundPage() {
       <Employment />
       <Finance />
       <Sponsors />
+      <Timeline />
     </PageBody>
   )
 }
@@ -224,6 +232,7 @@ const SECTIONS = [
   'employment',
   'finance',
   'sponsors',
+  'timeline',
 ] as const
 
 function Nav() {
@@ -2108,6 +2117,59 @@ function Sponsors() {
               onUnlink={() => {}}
             />
           )}
+        </div>
+      </Row>
+    </Block>
+  )
+}
+
+// A fixed reference "now" ~3 weeks before the demo appointment (2027-03-15), so
+// the derived bands read realistically in the workbench.
+const DEMO_TIMELINE_MODEL = buildTimelineModel(
+  {
+    applicant: DEMO_APPLICANT,
+    application: DEMO_APPLICATION,
+    documents: DEMO_DOCUMENTS,
+    sponsors: [],
+  },
+  new Date('2027-02-22')
+)
+
+function Timeline() {
+  const { t } = useTranslation(['playground', 'timeline', 'visa-domain'])
+  const m = DEMO_TIMELINE_MODEL
+  const task = m.tasks.find((x) => x.targetDate) ?? m.tasks[0]
+  const [mode, setMode] = useState<TimelineMode>('plan')
+
+  return (
+    <Block
+      id="timeline"
+      title={t('playground:sections.timeline')}
+      description={t('playground:blurbs.timeline')}
+    >
+      <Row label={t('playground:rows.timelineMode')} align="start">
+        <TimelineModeSelector value={mode} onValueChange={setMode} />
+      </Row>
+
+      <Row label={t('playground:rows.dateWindow')} align="start">
+        <DateWindowBadge date={task?.targetDate ?? null} />
+      </Row>
+
+      <Row label={t('playground:rows.timelineTask')} align="start">
+        <div className="w-full max-w-md">
+          {task && <PreparationTaskCard task={task} />}
+        </div>
+      </Row>
+
+      <Row label={t('playground:rows.timelineDates')} align="start">
+        <div className="w-full max-w-md">
+          <KeyDatesTimeline events={m.keyDates.slice(0, 5)} />
+        </div>
+      </Row>
+
+      <Row label={t('playground:rows.timelineFreshness')} align="start">
+        <div className="w-full max-w-md">
+          <DocumentFreshnessList freshness={m.freshness} />
         </div>
       </Row>
     </Block>

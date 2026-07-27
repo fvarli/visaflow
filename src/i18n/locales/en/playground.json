@@ -20,7 +20,8 @@
     "validation": "Validation center",
     "employment": "Employment",
     "finance": "Finance",
-    "sponsors": "Sponsors"
+    "sponsors": "Sponsors",
+    "timeline": "Timeline"
   },
   "rows": {
     "surfaces": "Surfaces",
@@ -77,6 +78,11 @@
     "sponsorRelationship": "Relationship selector",
     "sponsorCard": "Sponsor workspace card",
     "sponsorDocuments": "Document linker",
+    "timelineMode": "View switch",
+    "dateWindow": "Date window badge",
+    "timelineTask": "Preparation task card",
+    "timelineDates": "Key dates",
+    "timelineFreshness": "Document freshness",
     "collectionEditor": "Collection editor",
     "tripHero": "TripHero",
     "journeyTimeline": "JourneyTimeline",
@@ -140,6 +146,7 @@
     "employment": "Employment-workspace building blocks: the status selector, derived current-employer tenure, leave coverage against the trip, the employment-document summary + HR request list, and the review.",
     "finance": "Financial-evidence building blocks: the funding-source selector, the read-only income overview, a sponsor summary card, the grouped financial-document summary + evidence-to-gather copy list, and the review.",
     "sponsors": "Sponsor-workspace building blocks: the full relationship selector, a rich sponsor card (readiness, participation, missing evidence, next action), and the accessible document linker (link / unlink existing sponsor evidence).",
+    "timeline": "Timeline building blocks: the plan/dates/freshness view switch, a recommended date-window badge, a preparation task card (why-now + status + target + deep-link), the key-dates list, and the factual document-freshness list.",
     "onboarding": "Guided-flow building blocks: the step rail, the \"Why do we ask this?\" popover, and the generic collection editor.",
     "travel": "Trip-planner building blocks: the overview hero, the connected journey timeline with destination cards, transport segments and the insurance coverage card.",
     "documents": "Document-workspace building blocks: the segmented view switch, the readiness overview hero, and the document card in its template, custom and with-findings states."
