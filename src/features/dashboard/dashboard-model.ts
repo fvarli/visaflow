@@ -340,6 +340,8 @@ export function dashboardFindingLink(
   if (field.startsWith('applicant.')) return { route: '/applicant' }
   if (field.startsWith('trip.') || field.startsWith('appointment.'))
     return { route: '/trip' }
+  if (field.startsWith('financing.')) return { route: '/finance' }
+  if (field.startsWith('sponsors.')) return { route: '/sponsors' }
   return null
 }
 
@@ -422,6 +424,7 @@ export function buildDossierSnapshot(input: DashboardInput): SnapshotItem[] {
       key: 'sponsorPresent',
       tone: 'neutral',
       count: sponsors.length,
+      to: '/sponsors',
     })
   }
   return items

@@ -19,7 +19,8 @@
     "dashboard": "Dashboard",
     "validation": "Validation center",
     "employment": "Employment",
-    "finance": "Finance"
+    "finance": "Finance",
+    "sponsors": "Sponsors"
   },
   "rows": {
     "surfaces": "Surfaces",
@@ -73,6 +74,9 @@
     "fundingSource": "Funding source selector",
     "financeIncome": "Income overview",
     "financeSponsor": "Sponsor summary card",
+    "sponsorRelationship": "Relationship selector",
+    "sponsorCard": "Sponsor workspace card",
+    "sponsorDocuments": "Document linker",
     "collectionEditor": "Collection editor",
     "tripHero": "TripHero",
     "journeyTimeline": "JourneyTimeline",
@@ -135,6 +139,7 @@
     "validation": "Dossier-review building blocks: the review hero, findings grouped by domain with a calm health label and a direct \"take me there\" link, the \"looks good\" list, and the section-by-section summary.",
     "employment": "Employment-workspace building blocks: the status selector, derived current-employer tenure, leave coverage against the trip, the employment-document summary + HR request list, and the review.",
     "finance": "Financial-evidence building blocks: the funding-source selector, the read-only income overview, a sponsor summary card, the grouped financial-document summary + evidence-to-gather copy list, and the review.",
+    "sponsors": "Sponsor-workspace building blocks: the full relationship selector, a rich sponsor card (readiness, participation, missing evidence, next action), and the accessible document linker (link / unlink existing sponsor evidence).",
     "onboarding": "Guided-flow building blocks: the step rail, the \"Why do we ask this?\" popover, and the generic collection editor.",
     "travel": "Trip-planner building blocks: the overview hero, the connected journey timeline with destination cards, transport segments and the insurance coverage card.",
     "documents": "Document-workspace building blocks: the segmented view switch, the readiness overview hero, and the document card in its template, custom and with-findings states."

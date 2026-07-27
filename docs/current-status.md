@@ -90,6 +90,15 @@ Last updated: 2026-07-27
       copy list, a sponsor summary that defers editing to `/sponsors`, and a
       consistency step that reuses `sponsor.*` findings plus net-new factual notes.
       Pure adapters in `src/features/finance/*`; no schema/rule change (ADR-027)
+- [x] Sponsors workspace — the canonical sponsor hub: rich summary cards (relationship,
+      participation, calm readiness label, missing evidence, linked-document count,
+      findings, one next action) with all editing in a progressive right-side Sheet
+      (nine autosave accordion sections, opens on the first incomplete section, no Save
+      button, full-screen on mobile). Per-sponsor evidence is real — the workspace links/
+      unlinks existing sponsor-evidence documents via `Sponsor.documentIds` (Documents
+      still owns creation/status/deletion; stale links surfaced, never crash). Safe
+      removal via an `AlertDialog` that keeps linked documents. Pure adapters in
+      `src/features/sponsors/*`; no schema/rule change (ADR-028)
 - [x] Validation Center — the dossier review workspace: a review hero (readiness
       + checks passed + items needing attention + one suggested next step),
       findings grouped by domain with a calm health label and a direct
@@ -105,7 +114,9 @@ Last updated: 2026-07-27
       (`EmploymentStatusSelector`, `EmploymentTenure`, `LeaveCoverageSummary`,
       `EmploymentDocumentsSummary`, `HrRequestChecklist`, `EmploymentReview`) and
       finance (`FundingSourceSelector`, `IncomeOverview`, `SponsorSummaryCard`,
-      `FinanceDocumentsSummary`, `FinanceGatherChecklist`, `FinanceReview`)
+      `FinanceDocumentsSummary`, `FinanceGatherChecklist`, `FinanceReview`) and
+      sponsors (`SponsorRelationshipSelector`, `SponsorWorkspaceCard`,
+      `SponsorDocumentLinker`, `SponsorEditorSheet`, `RemoveSponsorDialog`)
       families — all in `/playground`
 - [x] Add custom documents / re-add template requirements / additive template
       sync (never deletes applicant data); custom docs use a stable `CUSTOM-` code
@@ -156,7 +167,7 @@ All checks pass:
 - `pnpm format:check` - PASS
 - `pnpm lint` - 0 errors (warnings acceptable, see below)
 - `pnpm typecheck` - PASS (`tsc -b`)
-- `pnpm test` - 308/308 PASS
+- `pnpm test` - 344/344 PASS
 - `pnpm build` - SUCCESS
 
 Note: an earlier version of this file claimed 23/23 tests and `tsc --noEmit`;

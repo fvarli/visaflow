@@ -858,3 +858,84 @@ list accessible + privacy-safe, non-destructive source switching via a provider 
 - No browser pass (no connected Chrome) — re-verify at 1440/390 × tr light/dark + en: source disclosure
   across all four sources, income overview, sponsor summary + deep-links, grouped documents + Copy list,
   consistency tones, review, long Turkish document/group labels.
+
+## Iteration 15 handoff (2026-07-27) — Sponsors experience redesign (canonical sponsor workspace)
+
+Turned the flat Sponsors list + 5-field CRUD dialog into the **canonical sponsor-management workspace**:
+rich summary cards + a progressive editing Sheet + real per-sponsor evidence linking. No dossier-schema,
+import/export, or validation-rule change — the only new "wiring" uses the existing (previously unpopulated)
+`Sponsor.documentIds` field.
+
+### Baseline recorded (real, from code)
+`format:check` ✓ · `lint` 0 errors / 55 warnings ✓ · `typecheck` ✓ · `test` **308/308** (39 files) ·
+`build` main index ~110.21 kB gzip. (Two-test flakiness appears only under heavy parallel load — clean
+runs are green; verified again at the end.)
+
+### Architecture — pure adapters (ADR-028), `src/features/sponsors/`
+- `sponsor-documents.ts` — `isSponsorEvidence` (category `sponsor` or classified `RELATIONSHIP_PROOF`),
+  `buildSponsorDocuments` → linked / eligibleUnlinked / **stale** / missingRequirements (from
+  `applicableRequirements`) / counts. Resolves `Sponsor.documentIds` against `state.documents`.
+- `sponsor-editor.ts` — `SPONSOR_SECTION_IDS` (9: basics·contact·employment·financial·assets·expenses·
+  letters·documents·review), `isSectionComplete`, `firstIncompleteSection`, `isFamilyRelationship`.
+- `sponsor-model.ts` — `buildSponsorsModel`/`useSponsorsModel`: per-sponsor readiness
+  (ready/needsAttention/incomplete — a label, never a score), participation, documents view, `sponsor.*`
+  findings (tied by `sponsors.<id>.*`), missing reasons, next action, stale flag; `needsSponsorButNone`.
+
+### Components (`src/components/sponsors/`, in `/playground`)
+Reusable: `SponsorRelationshipSelector` (all 13 relationships — old page had 8), `SponsorWorkspaceCard`
+(rich summary + Edit/Remove), `SponsorDocumentLinker` (accessible link/unlink **checklist** + missing +
+stale sections), `SponsorEditorSheet` (right-side Sheet, full-screen mobile; 9 autosave accordion sections
+via `updateSponsor`, opens first-incomplete, per-section completion badge, in-header Remove; nested
+investments/owned-assets reuse `CollectionEditor`), `RemoveSponsorDialog` (`AlertDialog`). `SponsorsPage`
+is the workspace shell: header + first-sponsor onboarding empty state + card grid + editor Sheet
+(controlled by `?sponsor=`) + remove dialog. No Save button anywhere.
+
+### Per-sponsor evidence (the key decision, ADR-028)
+`Sponsor.documentIds` was defined but **never populated** — so `documentCount` was always 0 and
+`sponsor.hasDocuments` always fired. The workspace now **links/unlinks existing** sponsor-evidence
+documents via `updateSponsor({documentIds})`: Documents stays the sole owner of creation/status/
+verification/dates/notes/deletion; link never creates, unlink never deletes, removing a sponsor never
+deletes docs; unknown/ineligible ids surface as **stale** (removable, no crash). `sponsor.hasDocuments`
+resolving once real associations exist is correct data flow, not a rule change.
+
+### Sanctioned cross-page deep-links (additive)
+- `finding-actions.ts` — per-sponsor `sponsor.*` findings now → `/sponsors?sponsor=<id>` (parsed from
+  `sponsors.<id>.*`); funding finding still → `/finance?step=sponsors`.
+- `dashboard-model.ts` — sponsor snapshot item gains `to: '/sponsors'`; `dashboardFindingLink` maps
+  `financing.` → `/finance`, `sponsors.` → `/sponsors`. Dashboard layout/outcomes unchanged.
+
+### Product guarantees
+No schema/import-export/rule change; readiness is an organizational label (no financial-strength score,
+no asset comparison, no approval likelihood — ADR-016); balance/asset figures recorded, never judged;
+Documents/Finance/Validation not duplicated; `application.sponsorIds` stays vestigial (surfaced as a
+limitation, never corrupted).
+
+### i18n
+`sponsors.json` fully rewritten in both locales (header/empty-onboarding/fundingNudge/readiness/card/
+missing/nextAction/editor.sections/fields/financial/assets+types/expenses/letters/documents-linking/
+collection/remove) with tr/en parity; `playground.json` `sections.sponsors` + blurb + row labels. Enum
+labels reuse `visa-domain:{sponsorRelationship,expenseType,employmentStatus,ownerType,documentStatus}.*`.
+
+### Gates (this iteration)
+`format:check` ✓ · `lint` 0 errors / 72 warnings (baseline 55; +17 acceptable — mostly test `!`
+assertions) · `typecheck` ✓ · `test` **344/344** (308 + 36 new, 42 files) · `build` ✓ (SponsorsPage lazy
+~4.09 kB gzip; main index ~110.29 kB gzip, +~0.08, no new dependency). Not committed, not pushed.
+
+### Tests
+Pure: `sponsor-documents` (eligibility, link/unlink, stale unknown+ineligible, missing requirements,
+multi-sponsor + same-doc-multi-link, imported documentIds), `sponsor-editor` (section completeness,
+first-incomplete), `sponsor-model` (readiness levels, **sponsor.hasDocuments resolves once linked**,
+missing reasons, stale, needsSponsorButNone, multiple sponsors, label-not-score). Render
+(`sponsors-deeplink.test.tsx`, 14): no-dossier, both-locales single-h1 + no-Save, first-sponsor
+onboarding, card render, open from card + `?sponsor=`, unknown id no-crash, no-param, accordion nav,
+**autosave**, Escape-closes, remove **cancel** keeps, remove **confirm** removes + **linked doc NOT
+deleted** + **`?sponsor` cleared**. `validation-model` gains the per-sponsor `?sponsor=<id>` route.
+
+### Known limitations / next
+- `application.sponsorIds` is vestigial/unwired; removal can't clean it (no reducer action) — surfaced,
+  not corrupted. A future pass could wire or drop it (drop = schema change → deferred).
+- Sponsor documents keep `ownerId = applicant` (association is by `documentIds`, not owner); the
+  `mixed` → sponsor-doc applicability gap (ADR-027) is unchanged; both are out of scope.
+- No browser pass (no connected Chrome) — re-verify at 1440/390 × tr light/dark + en: card readiness/
+  participation, the editor Sheet (focus trap, Escape, first-incomplete open, section switching, mobile
+  full-screen drawer), the document linker (link/unlink/stale), safe removal, long Turkish labels.

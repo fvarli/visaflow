@@ -51,6 +51,15 @@ function financingStepForRuleId(ruleId: string): string {
   return 'source'
 }
 
+/** The sponsor a finding is tied to (from `sponsors.<id>.*`), or null. */
+function sponsorIdForFinding(finding: ValidationFinding): string | null {
+  for (const field of finding.relatedFields) {
+    const match = /^sponsors\.([^.]+)\./.exec(field)
+    if (match) return match[1] ?? null
+  }
+  return null
+}
+
 export function findingAction(
   finding: ValidationFinding
 ): FindingAction | null {
@@ -68,7 +77,11 @@ export function findingAction(
   if (ruleId === 'sponsor.requiredForSponsoredFunding') {
     return { route: `/finance?step=${financingStepForRuleId(ruleId)}` }
   }
-  if (ruleId.startsWith('sponsor.')) return { route: '/sponsors' }
+  if (ruleId.startsWith('sponsor.')) {
+    // Per-sponsor findings open that sponsor's workspace card/editor directly.
+    const sponsorId = sponsorIdForFinding(finding)
+    return { route: sponsorId ? `/sponsors?sponsor=${sponsorId}` : '/sponsors' }
+  }
   if (
     ruleId.startsWith('trip.') ||
     ruleId.startsWith('accommodation.') ||
@@ -84,7 +97,10 @@ export function findingAction(
   if (field.startsWith('documents.')) return { route: '/documents' }
   if (field.startsWith('employment.')) return { route: '/employment' }
   if (field.startsWith('financing.')) return { route: '/finance?step=source' }
-  if (field.startsWith('sponsors.')) return { route: '/sponsors' }
+  if (field.startsWith('sponsors.')) {
+    const sponsorId = sponsorIdForFinding(finding)
+    return { route: sponsorId ? `/sponsors?sponsor=${sponsorId}` : '/sponsors' }
+  }
   if (field.startsWith('trip.') || field.startsWith('appointment.'))
     return { route: '/trip' }
 

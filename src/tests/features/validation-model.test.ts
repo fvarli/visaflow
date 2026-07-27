@@ -108,6 +108,21 @@ describe('finding actions — deep links (no dead ends)', () => {
     ).toBe('/finance?step=sponsors')
   })
 
+  it('deep-links a per-sponsor finding to that sponsor in the workspace', () => {
+    expect(
+      findingAction(
+        finding('sponsor.hasDocuments', 'warning', ['sponsors.s1.documentIds'])
+      )?.route
+    ).toBe('/sponsors?sponsor=s1')
+    expect(
+      findingAction(
+        finding('sponsor.relationshipProof', 'info', [
+          'sponsors.s7.proofOfRelationship',
+        ])
+      )?.route
+    ).toBe('/sponsors?sponsor=s7')
+  })
+
   it('falls back to the first related field for an unknown rule', () => {
     expect(
       findingAction(finding('mystery.rule', 'warning', ['applicant.foo']))

@@ -1,23 +1,203 @@
 {
   "title": "Sponsorlar",
-  "description": "Seyahatinizi mali olarak destekleyecek kişiler",
+  "description": "Bu seyahati mali olarak destekleyen kişiler — her sponsoru ve kanıtlarını yönetmek için asıl yer.",
   "add": "Sponsor ekle",
-  "edit": "Sponsoru düzenle",
-  "dialogDescription": "Sponsorun bilgilerini girin",
+  "empty": {
+    "title": "Henüz sponsor yok",
+    "description": "Seyahatinizin tamamını veya bir kısmını başkası finanse edecekse buraya ekleyin. Yakınlığını, katkısını ve kanıtlarını kaydedebilirsiniz.",
+    "action": "İlk sponsorunuzu ekleyin"
+  },
+  "fundingNudge": "Finansman kaynağınız bir sponsor içeriyor, ancak henüz sponsor eklenmedi. Desteklerinin belgelenebilmesi için en az bir sponsor ekleyin.",
+  "readiness": {
+    "ready": "Hazır",
+    "needsAttention": "İlgilenilmeli",
+    "incomplete": "Eksik"
+  },
+  "card": {
+    "covers": "Karşıladıkları",
+    "monthlyIncome": "Aylık gelir",
+    "noParticipation": "Henüz katkı kaydedilmedi",
+    "documentsLinked_one": "{{count}} belge bağlandı",
+    "documentsLinked_other": "{{count}} belge bağlandı",
+    "noDocuments": "Bağlı belge yok",
+    "missingTitle": "Hâlâ hazırlanacaklar",
+    "nextActionTitle": "Sonraki adım",
+    "edit": "Sponsoru düzenle",
+    "remove": "Sponsoru kaldır",
+    "staleBadge_one": "{{count}} geçersiz bağlantı",
+    "staleBadge_other": "{{count}} geçersiz bağlantı"
+  },
+  "missing": {
+    "financeInfo": "Mali bilgi (gelir veya varlık)",
+    "sponsorshipLetter": "Sponsor dilekçesi",
+    "relationshipProof": "Yakınlık belgesi",
+    "noLinkedDocuments": "Bağlı destekleyici belgeler",
+    "requirement": "{{document}}"
+  },
+  "nextAction": {
+    "reviewStale": "Geçersiz belge bağlantılarını gözden geçirin",
+    "addDocument": "Belgeler'de {{document}} ekleyin",
+    "linkDocuments": "Bu sponsorun belgelerini bağlayın",
+    "addRelationshipProof": "Yakınlık belgesini kaydedin",
+    "addSponsorshipLetter": "Sponsor dilekçesini kaydedin"
+  },
+  "editor": {
+    "title": "{{name}} düzenleniyor",
+    "titleNew": "Yeni sponsor",
+    "description": "Bu sponsorun bilgilerini ve kanıtlarını kaydedin. Değişiklikler otomatik kaydedilir.",
+    "close": "Düzenleyiciyi kapat",
+    "sectionComplete": "Tamam",
+    "sectionIncomplete": "Eksik",
+    "sections": {
+      "basics": {
+        "title": "Temel bilgiler",
+        "description": "Sizi kimin desteklediği ve yakınlığınız."
+      },
+      "contact": {
+        "title": "İletişim",
+        "description": "Sponsora nasıl ulaşılacağı ve nerede yaşadığı."
+      },
+      "employment": {
+        "title": "İstihdam",
+        "description": "Sponsorun çalışma durumu."
+      },
+      "financial": {
+        "title": "Mali profil",
+        "description": "Kayıtlı gelir ve likit varlıklar — kendi referansınız için, asla değerlendirilmez."
+      },
+      "assets": {
+        "title": "Varlıklar ve yatırımlar",
+        "description": "Sponsorun sahip olduğu mülk, araç ve yatırımlar."
+      },
+      "expenses": {
+        "title": "Karşılanan masraflar",
+        "description": "Bu sponsorun hangi seyahat masraflarını karşılayacağı."
+      },
+      "letters": {
+        "title": "Destekleyici mektuplar",
+        "description": "Sponsor dilekçesi ve yakınlık belgesi."
+      },
+      "documents": {
+        "title": "Bağlı belgeler",
+        "description": "Bu sponsoru destekleyici belgeleriyle ilişkilendirin. Belgeler, Belgeler çalışma alanında oluşturulur ve takip edilir."
+      },
+      "review": {
+        "title": "Özet",
+        "description": "Bu sponsorun bilgilerinin ve kanıtlarının bir özeti."
+      }
+    }
+  },
   "fields": {
     "firstName": "Ad",
     "lastName": "Soyad",
     "relationship": "Yakınlık",
     "relationshipPlaceholder": "Yakınlık seçin",
+    "dateOfBirth": "Doğum tarihi",
+    "nationality": "Uyruk",
+    "countryOfResidence": "İkamet ülkesi",
+    "address": "Adres",
+    "phone": "Telefon",
+    "email": "E-posta",
+    "employmentStatus": "Çalışma durumu",
+    "employmentStatusPlaceholder": "Durum seçin",
+    "employerName": "İşveren adı",
+    "jobTitle": "Ünvan",
     "monthlyIncome": "Aylık gelir",
-    "currency": "Para birimi"
+    "currency": "Para birimi",
+    "liquidAssets": "Likit varlıklar",
+    "notes": "Notlar",
+    "notesPlaceholder": "Bu sponsor hakkında kaydetmeye değer başka bir şey"
   },
-  "empty": {
-    "title": "Henüz sponsor eklenmedi",
-    "description": "Seyahatinizin tamamını veya bir kısmını başkası finanse edecekse sponsor ekleyin."
+  "financial": {
+    "hint": "Bu tutarlar yalnızca kendi referansınız için kaydedilir. Asla puanlanmaz, sıralanmaz veya yeterli olarak değerlendirilmez."
   },
-  "card": {
-    "monthlyIncome": "Aylık gelir",
-    "removeLabel": "{{name}} kişisini kaldır"
+  "assets": {
+    "investments": {
+      "title": "Yatırımlar",
+      "add": "Yatırım ekle",
+      "addTitle": "Yatırım ekle",
+      "editTitle": "Yatırımı düzenle",
+      "empty": {
+        "title": "Kayıtlı yatırım yok",
+        "description": "İlgiliyse hisse, fon veya diğer varlıkları ekleyin."
+      },
+      "type": "Tür",
+      "value": "Değer",
+      "institution": "Kurum",
+      "description": "Açıklama"
+    },
+    "owned": {
+      "title": "Sahip olunan varlıklar",
+      "add": "Varlık ekle",
+      "addTitle": "Varlık ekle",
+      "editTitle": "Varlığı düzenle",
+      "empty": {
+        "title": "Kayıtlı varlık yok",
+        "description": "İlgiliyse mülk, araç veya sahip olunan diğer varlıkları ekleyin."
+      },
+      "type": "Tür",
+      "description": "Açıklama",
+      "estimatedValue": "Tahmini değer",
+      "location": "Konum"
+    },
+    "assetType": {
+      "property": "Mülk",
+      "vehicle": "Araç",
+      "business": "İşletme",
+      "investment": "Yatırım",
+      "other": "Diğer"
+    },
+    "investmentType": {
+      "stocks": "Hisse senetleri",
+      "bonds": "Tahviller",
+      "mutual_funds": "Yatırım fonları",
+      "crypto": "Kripto",
+      "other": "Diğer"
+    }
+  },
+  "expenses": {
+    "description": "Bu sponsorun karşılayacağı seyahat masraflarını seçin."
+  },
+  "letters": {
+    "sponsorshipLetter": {
+      "label": "Sponsor dilekçesi sağlandı",
+      "help": "Sponsorun seyahati finanse etmeyi taahhüt ettiği imzalı bir mektup."
+    },
+    "proofOfRelationship": {
+      "label": "Yakınlık belgesi sağlandı",
+      "help": "Sponsorla yakınlığınızı kanıtlayan bir belge — genellikle aile sponsorları için beklenir."
+    }
+  },
+  "documents": {
+    "description": "Mevcut sponsor kanıtı belgelerini bu sponsora bağlayın. Bağlama yalnızca bir ilişkilendirme kaydeder; belgeyi asla değiştirmez veya oluşturmaz.",
+    "linkedTitle": "Bağlı kanıtlar",
+    "eligibleTitle": "Diğer sponsor belgeleri",
+    "missingTitle": "Eksik geçerli kanıtlar",
+    "staleTitle": "Geçersiz bağlantılar",
+    "link": "Bağla",
+    "unlink": "Bağlantıyı kaldır",
+    "linkLabel": "{{document}} belgesini bu sponsora bağla",
+    "unlinkLabel": "{{document}} belgesinin bu sponsorla bağlantısını kaldır",
+    "open": "Belgeler'de aç",
+    "openCategory": "Sponsor belgelerini aç",
+    "none": "Henüz sponsor kanıtı belgesi yok.",
+    "noneEligible": "Bağlanacak başka uygun belge yok.",
+    "allLinked": "Geçerli tüm sponsor kanıtları bağlandı.",
+    "missingHint": "Bu gerekli belge henüz yok. Belgeler çalışma alanında oluşturun, ardından burada bağlayın.",
+    "staleHint": "Bu bağlı belge artık yok veya artık sponsor kanıtı değil. Bağlantıyı kaldırmak hiçbir belgeyi silmez.",
+    "removeStale": "Geçersiz bağlantıyı kaldır",
+    "ownerContext": "{{owner}} belgesi"
+  },
+  "collection": {
+    "save": "Kaydet",
+    "cancel": "İptal",
+    "edit": "Düzenle",
+    "remove": "Kaldır"
+  },
+  "remove": {
+    "title": "{{name}} kaldırılsın mı?",
+    "body": "Bu, sponsor kaydını dosyanızdan kaldırır. Bağlı belgeler silinmez, ancak finansman ve tutarlılık durumunuz değişebilir.",
+    "cancel": "İptal",
+    "confirm": "Sponsoru kaldır"
   }
 }

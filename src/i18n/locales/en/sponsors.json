@@ -1,23 +1,203 @@
 {
   "title": "Sponsors",
-  "description": "People who will sponsor your trip financially",
+  "description": "The people supporting this trip financially — the canonical place to manage each sponsor and their evidence.",
   "add": "Add sponsor",
-  "edit": "Edit sponsor",
-  "dialogDescription": "Enter the sponsor's information",
+  "empty": {
+    "title": "No sponsors yet",
+    "description": "If someone else will fund part or all of your trip, add them here. You can record their relationship, contribution, and evidence.",
+    "action": "Add your first sponsor"
+  },
+  "fundingNudge": "Your funding source involves a sponsor, but none is added yet. Add at least one so their support can be documented.",
+  "readiness": {
+    "ready": "Ready",
+    "needsAttention": "Needs attention",
+    "incomplete": "Incomplete"
+  },
+  "card": {
+    "covers": "Covers",
+    "monthlyIncome": "Monthly income",
+    "noParticipation": "No contribution recorded yet",
+    "documentsLinked_one": "{{count}} document linked",
+    "documentsLinked_other": "{{count}} documents linked",
+    "noDocuments": "No documents linked",
+    "missingTitle": "Still to prepare",
+    "nextActionTitle": "Next step",
+    "edit": "Edit sponsor",
+    "remove": "Remove sponsor",
+    "staleBadge_one": "{{count}} stale link",
+    "staleBadge_other": "{{count}} stale links"
+  },
+  "missing": {
+    "financeInfo": "Financial information (income or assets)",
+    "sponsorshipLetter": "Sponsorship letter",
+    "relationshipProof": "Proof of relationship",
+    "noLinkedDocuments": "Linked supporting documents",
+    "requirement": "{{document}}"
+  },
+  "nextAction": {
+    "reviewStale": "Review stale document links",
+    "addDocument": "Add {{document}} in Documents",
+    "linkDocuments": "Link this sponsor's documents",
+    "addRelationshipProof": "Record proof of relationship",
+    "addSponsorshipLetter": "Record the sponsorship letter"
+  },
+  "editor": {
+    "title": "Edit {{name}}",
+    "titleNew": "New sponsor",
+    "description": "Record this sponsor's details and evidence. Changes save automatically.",
+    "close": "Close editor",
+    "sectionComplete": "Complete",
+    "sectionIncomplete": "Incomplete",
+    "sections": {
+      "basics": {
+        "title": "Basics",
+        "description": "Who is sponsoring you, and how you're related."
+      },
+      "contact": {
+        "title": "Contact",
+        "description": "How to reach the sponsor and where they live."
+      },
+      "employment": {
+        "title": "Employment",
+        "description": "The sponsor's work situation."
+      },
+      "financial": {
+        "title": "Financial profile",
+        "description": "Recorded income and liquid assets — for your reference, never judged."
+      },
+      "assets": {
+        "title": "Assets & investments",
+        "description": "Property, vehicles, and investments the sponsor holds."
+      },
+      "expenses": {
+        "title": "Covered expenses",
+        "description": "Which trip costs this sponsor will cover."
+      },
+      "letters": {
+        "title": "Supporting letters",
+        "description": "The sponsorship letter and proof of relationship."
+      },
+      "documents": {
+        "title": "Linked documents",
+        "description": "Associate this sponsor with their supporting documents. Documents are created and tracked in the Documents workspace."
+      },
+      "review": {
+        "title": "Review",
+        "description": "A summary of this sponsor's details and evidence."
+      }
+    }
+  },
   "fields": {
     "firstName": "First name",
     "lastName": "Last name",
     "relationship": "Relationship",
     "relationshipPlaceholder": "Select relationship",
+    "dateOfBirth": "Date of birth",
+    "nationality": "Nationality",
+    "countryOfResidence": "Country of residence",
+    "address": "Address",
+    "phone": "Phone",
+    "email": "Email",
+    "employmentStatus": "Employment status",
+    "employmentStatusPlaceholder": "Select status",
+    "employerName": "Employer name",
+    "jobTitle": "Job title",
     "monthlyIncome": "Monthly income",
-    "currency": "Currency"
+    "currency": "Currency",
+    "liquidAssets": "Liquid assets",
+    "notes": "Notes",
+    "notesPlaceholder": "Anything else worth recording about this sponsor"
   },
-  "empty": {
-    "title": "No sponsors added yet",
-    "description": "Add a sponsor if someone else will fund part or all of your trip."
+  "financial": {
+    "hint": "These figures are recorded for your own reference only. They are never scored, ranked, or judged as sufficient."
   },
-  "card": {
-    "monthlyIncome": "Monthly income",
-    "removeLabel": "Remove {{name}}"
+  "assets": {
+    "investments": {
+      "title": "Investments",
+      "add": "Add investment",
+      "addTitle": "Add investment",
+      "editTitle": "Edit investment",
+      "empty": {
+        "title": "No investments recorded",
+        "description": "Add stocks, funds, or other holdings if relevant."
+      },
+      "type": "Type",
+      "value": "Value",
+      "institution": "Institution",
+      "description": "Description"
+    },
+    "owned": {
+      "title": "Owned assets",
+      "add": "Add asset",
+      "addTitle": "Add asset",
+      "editTitle": "Edit asset",
+      "empty": {
+        "title": "No assets recorded",
+        "description": "Add property, vehicles, or other owned assets if relevant."
+      },
+      "type": "Type",
+      "description": "Description",
+      "estimatedValue": "Estimated value",
+      "location": "Location"
+    },
+    "assetType": {
+      "property": "Property",
+      "vehicle": "Vehicle",
+      "business": "Business",
+      "investment": "Investment",
+      "other": "Other"
+    },
+    "investmentType": {
+      "stocks": "Stocks",
+      "bonds": "Bonds",
+      "mutual_funds": "Mutual funds",
+      "crypto": "Crypto",
+      "other": "Other"
+    }
+  },
+  "expenses": {
+    "description": "Select the trip costs this sponsor will cover."
+  },
+  "letters": {
+    "sponsorshipLetter": {
+      "label": "Sponsorship letter provided",
+      "help": "A signed letter in which the sponsor commits to funding the trip."
+    },
+    "proofOfRelationship": {
+      "label": "Proof of relationship provided",
+      "help": "A document establishing your relationship to the sponsor — often expected for family sponsors."
+    }
+  },
+  "documents": {
+    "description": "Link existing sponsor-evidence documents to this sponsor. Linking only records an association — it never changes or creates the document.",
+    "linkedTitle": "Linked evidence",
+    "eligibleTitle": "Other sponsor documents",
+    "missingTitle": "Missing applicable evidence",
+    "staleTitle": "Stale links",
+    "link": "Link",
+    "unlink": "Unlink",
+    "linkLabel": "Link {{document}} to this sponsor",
+    "unlinkLabel": "Unlink {{document}} from this sponsor",
+    "open": "Open in Documents",
+    "openCategory": "Open sponsor documents",
+    "none": "No sponsor-evidence documents exist yet.",
+    "noneEligible": "No other eligible documents to link.",
+    "allLinked": "All applicable sponsor evidence is linked.",
+    "missingHint": "This required document doesn't exist yet. Create it in the Documents workspace, then link it here.",
+    "staleHint": "This linked document no longer exists or is no longer sponsor evidence. Removing the link won't delete any document.",
+    "removeStale": "Remove stale link",
+    "ownerContext": "{{owner}} document"
+  },
+  "collection": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "edit": "Edit",
+    "remove": "Remove"
+  },
+  "remove": {
+    "title": "Remove {{name}}?",
+    "body": "This removes the sponsor record from your dossier. Linked documents are not deleted, but your finance and consistency status may change.",
+    "cancel": "Cancel",
+    "confirm": "Remove sponsor"
   }
 }

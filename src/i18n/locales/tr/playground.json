@@ -19,7 +19,8 @@
     "dashboard": "Genel bakış",
     "validation": "Doğrulama merkezi",
     "employment": "Çalışma durumu",
-    "finance": "Finansman"
+    "finance": "Finansman",
+    "sponsors": "Sponsorlar"
   },
   "rows": {
     "surfaces": "Yüzeyler",
@@ -73,6 +74,9 @@
     "fundingSource": "Finansman kaynağı seçici",
     "financeIncome": "Gelir özeti",
     "financeSponsor": "Sponsor özet kartı",
+    "sponsorRelationship": "Yakınlık seçici",
+    "sponsorCard": "Sponsor çalışma kartı",
+    "sponsorDocuments": "Belge bağlayıcı",
     "collectionEditor": "Koleksiyon düzenleyici",
     "tripHero": "TripHero",
     "journeyTimeline": "JourneyTimeline",
@@ -135,6 +139,7 @@
     "validation": "Dosya inceleme bileşenleri: inceleme kartı, alanlara göre gruplanmış ve sakin bir durum etiketiyle doğrudan \"oraya git\" bağlantısı taşıyan bulgular, \"iyi görünüyor\" listesi ve bölüm bölüm özet.",
     "employment": "Çalışma alanı bileşenleri: durum seçici, türetilen mevcut işveren süresi, seyahate karşı izin kapsamı, işveren belge özeti ve İK talep listesi ile özet.",
     "finance": "Mali kanıt bileşenleri: finansman kaynağı seçici, salt okunur gelir özeti, sponsor özet kartı, gruplanmış mali belge özeti ile toplanacak kanıt kopyalama listesi ve özet.",
+    "sponsors": "Sponsor çalışma alanı bileşenleri: tam yakınlık seçici, zengin bir sponsor kartı (hazırlık, katkı, eksik kanıt, sonraki adım) ve erişilebilir belge bağlayıcı (mevcut sponsor kanıtını bağla / bağlantıyı kaldır).",
     "onboarding": "Rehberli akışın yapı taşları: adım göstergesi, \"Bunu neden soruyoruz?\" balonu ve genel koleksiyon düzenleyici.",
     "travel": "Seyahat planlayıcı yapı taşları: genel bakış kartı, destinasyon kartlarıyla bağlı yolculuk zaman çizelgesi, ulaşım bölümleri ve sigorta teminat kartı.",
     "documents": "Belge çalışma alanı yapı taşları: bölümlü görünüm anahtarı, hazırlık genel bakış kartı ve belge kartının şablon, özel ve sorunlu durumları."

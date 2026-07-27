@@ -126,7 +126,14 @@ import { FinanceDocumentsSummary } from '@/components/finance/FinanceDocumentsSu
 import { FinanceGatherChecklist } from '@/components/finance/FinanceGatherChecklist'
 import { FinanceReview } from '@/components/finance/FinanceReview'
 import { buildFinanceModel } from '@/features/finance/finance-model'
-import type { FinancingSource } from '@/domain/types/common'
+import { SponsorRelationshipSelector } from '@/components/sponsors/SponsorRelationshipSelector'
+import { SponsorWorkspaceCard } from '@/components/sponsors/SponsorWorkspaceCard'
+import { SponsorDocumentLinker } from '@/components/sponsors/SponsorDocumentLinker'
+import { buildSponsorsModel } from '@/features/sponsors/sponsor-model'
+import type {
+  FinancingSource,
+  SponsorRelationship,
+} from '@/domain/types/common'
 import type { Sponsor } from '@/domain/schemas/sponsor.schema'
 import { buildDashboardModel } from '@/features/dashboard/dashboard-model'
 import { buildValidationModel } from '@/features/validation/validation-model'
@@ -189,6 +196,7 @@ export default function PlaygroundPage() {
       <Validation />
       <Employment />
       <Finance />
+      <Sponsors />
     </PageBody>
   )
 }
@@ -215,6 +223,7 @@ const SECTIONS = [
   'validation',
   'employment',
   'finance',
+  'sponsors',
 ] as const
 
 function Nav() {
@@ -2024,6 +2033,83 @@ function Finance() {
         <FinanceGatherChecklist gather={m.documents.gather} />
         <FinanceReview model={m} onEdit={() => {}} />
       </div>
+    </Block>
+  )
+}
+
+const DEMO_SPONSOR_WS: Sponsor = {
+  id: 'demo-sponsor-ws',
+  relationship: 'parent',
+  firstName: 'Demo',
+  lastName: 'Sponsor',
+  monthlyIncome: 5200,
+  currency: 'EUR',
+  coveredExpenses: ['accommodation', 'food'],
+  investments: [],
+  ownedAssets: [],
+  documentIds: ['demo-SPONSOR_LETTER'],
+  sponsorshipLetter: true,
+  proofOfRelationship: false,
+}
+
+const DEMO_SPONSORS_MODEL = buildSponsorsModel({
+  applicant: DEMO_APPLICANT,
+  application: {
+    ...DEMO_APPLICATION,
+    financing: { source: 'sponsor', currency: 'EUR' },
+  },
+  documents: [
+    ...DEMO_DOCUMENTS,
+    demoDoc('SPONSOR_LETTER', 'sponsor', 'requested'),
+  ],
+  sponsors: [DEMO_SPONSOR_WS],
+})
+
+function Sponsors() {
+  const { t } = useTranslation(['playground', 'sponsors', 'visa-domain'])
+  const m = DEMO_SPONSORS_MODEL
+  const card = m.sponsors[0]
+  const [relationship, setRelationship] =
+    useState<SponsorRelationship>('parent')
+
+  return (
+    <Block
+      id="sponsors"
+      title={t('playground:sections.sponsors')}
+      description={t('playground:blurbs.sponsors')}
+    >
+      <Row label={t('playground:rows.sponsorRelationship')} align="start">
+        <div className="w-full max-w-sm">
+          <SponsorRelationshipSelector
+            value={relationship}
+            onValueChange={setRelationship}
+          />
+        </div>
+      </Row>
+
+      <Row label={t('playground:rows.sponsorCard')} align="start">
+        <div className="w-full max-w-md">
+          {card && (
+            <SponsorWorkspaceCard
+              card={card}
+              onEdit={() => {}}
+              onRemove={() => {}}
+            />
+          )}
+        </div>
+      </Row>
+
+      <Row label={t('playground:rows.sponsorDocuments')} align="start">
+        <div className="w-full max-w-md">
+          {card && (
+            <SponsorDocumentLinker
+              documents={card.documents}
+              onLink={() => {}}
+              onUnlink={() => {}}
+            />
+          )}
+        </div>
+      </Row>
     </Block>
   )
 }

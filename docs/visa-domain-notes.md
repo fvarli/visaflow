@@ -199,6 +199,33 @@ eksik zorunlu belgeler, güncellenmesi gereken belgeler, tutarlılık bulguları
   *requirements* — the rule still flags it, and fixing the pack would change readiness
   outcomes (out of scope).
 
+## Sponsors: the canonical hub, evidence linked not owned
+
+- **`dossier.sponsors` is the canonical sponsor list.** `application.sponsorIds` is
+  vestigial/unwired (no reducer action manages it) — do not rely on it; removing a
+  sponsor cannot clean a `sponsorIds` reference, so that limitation is surfaced, not
+  silently corrupted (ADR-028).
+- **`Sponsor.documentIds` is the canonical sponsor↔document link.** The Sponsors
+  workspace links/unlinks *existing* sponsor-evidence documents (via `updateSponsor`);
+  it never creates, edits, or deletes a document — Documents owns creation, status,
+  verification, dates, notes, and deletion. Unlinking never deletes; removing a sponsor
+  never deletes linked documents. Populating `documentIds` is legitimate data entry, so
+  the existing `sponsor.hasDocuments` finding resolving for that sponsor is correct data
+  flow, not a rule change.
+- **Eligibility vs applicability.** A document is *eligible* sponsor evidence by its
+  category/code (`category === 'sponsor'` or the classified `RELATIONSHIP_PROOF`) —
+  independent of funding source, so any existing sponsor letter can be linked. Arbitrary
+  passport/trip/employment documents are never eligible. *Applicable* required evidence
+  (what's still missing) is derived from `applicableRequirements` (which honors the
+  `financing.source == 'sponsor'` condition). The linker distinguishes linked evidence,
+  unlinked-but-eligible evidence, missing applicable requirements, and **stale**
+  references (ids that resolve to nothing eligible — surfaced, removable, never a crash).
+- **Per-sponsor readiness is organizational, never a score.** `ready` / `needsAttention`
+  / `incomplete` derive from recorded facts (finance info, letters, linked evidence) and
+  the sponsor's own `sponsor.*` findings — never a financial-strength score, an asset
+  comparison, or an approval likelihood (ADR-016). Sponsor findings tie to a sponsor via
+  the `sponsors.<id>.*` relatedField.
+
 ## Requirement vs document instance
 
 - **Document requirement** (`src/config/types.ts`) — template/configuration
