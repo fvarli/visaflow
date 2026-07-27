@@ -1,32 +1,95 @@
 {
   "title": "Ayarlar",
-  "description": "Uygulama tercihleri ve başvuru dosyası veri yönetimi",
+  "description": "VisaFlow'un kontrol merkezi — görünüm, veri, gizlilik ve daha fazlası.",
+  "nav": {
+    "appearance": "Görünüm",
+    "language": "Dil",
+    "countryPacks": "Ülke paketleri",
+    "privacy": "Gizlilik",
+    "data": "Yerel veriler",
+    "importExport": "İçe & dışa aktarma",
+    "about": "Hakkında",
+    "advanced": "Gelişmiş"
+  },
   "appearance": {
-    "title": "Dil ve görünüm",
-    "description": "VisaFlow'un cihazınızda sakladığı tek şey bu iki tercihtir.",
-    "languageLabel": "Arayüz dili",
-    "languageHint": "Belge kodları ve dışa aktarılan JSON dile göre değişmez.",
+    "title": "Görünüm",
+    "description": "VisaFlow'un bu cihazda nasıl göründüğü.",
     "themeLabel": "Tema",
-    "themeHint": "Sistem seçeneği işletim sisteminizin ayarını izler."
+    "themeHint": "Sistem seçeneği işletim sisteminizin ayarını izler.",
+    "theme": {
+      "light": "Açık",
+      "dark": "Koyu",
+      "system": "Sistem"
+    }
   },
-  "preferencePrivacy": {
-    "title": "Bunlar neden saklanıyor?",
-    "body": "Dil ve tema, kişisel olmayan arayüz tercihleridir; bu nedenle bu tarayıcıda hatırlanır. Başvuru dosyası, başvuru sahibi, pasaport veya finansal veriler hiçbir zaman saklanmaz; bunlar yalnızca bellekte tutulur ve sekmeyi kapattığınızda silinir."
+  "language": {
+    "title": "Dil",
+    "description": "Arayüzün dili. Türkçe varsayılandır.",
+    "label": "Arayüz dili",
+    "hint": "Belge kodları ve dışa aktarılan JSON dile göre değişmez."
   },
-  "country": {
-    "title": "Gidilecek ülke",
-    "description": "Başvuru yapacağınız ülkeyi seçin",
-    "hint": "Ülkeyi değiştirmek belge kontrol listesini güncelleyecektir"
+  "countryPacks": {
+    "title": "Ülke paketleri",
+    "description": "VisaFlow'da mevcut olan vize gereklilik paketleri.",
+    "activeTitle": "Etkin hedef",
+    "activeHint": "Bunu değiştirmek dosyanızın belge kontrol listesini günceller.",
+    "activeLabel": "Gidilecek ülke",
+    "activeBadge": "Etkin",
+    "noDossier": "Etkin bir hedef seçmek için bir dosya yükleyin veya başlatın.",
+    "supportedTypes": "Desteklenen vize türleri",
+    "version": "Paket sürümü",
+    "notEndorsed": "Bunlar düzenleme amaçlı paketlerdir, resmî bir onay değildir. Gereklilikleri her zaman güncel resmî kaynaklardan doğrulayın.",
+    "empty": "Henüz mevcut ülke paketi yok."
+  },
+  "privacy": {
+    "title": "Gizlilik",
+    "description": "VisaFlow verilerinizi nasıl ele alır.",
+    "inMemory": "Dosyanız yalnızca bu tarayıcı sekmesinin belleğinde tutulur. Hiçbir yere gönderilmez ve sekmeyi kapattığınızda veya yenilediğinizde silinir — bir kopyasını saklamak için dışa aktarın.",
+    "storedTitle": "Bu cihazda saklananlar",
+    "storedBody": "Yalnızca iki kişisel olmayan arayüz tercihi hatırlanır: temanız ve diliniz. Başvuru dosyası, başvuru sahibi, pasaport veya finansal veriler hiçbir zaman saklanmaz.",
+    "noTracking": "Hesap yok, sunucu yok, analiz yok, takip yok, üçüncü taraf isteği yok. Her şey tarayıcınızda yerel olarak çalışır."
   },
   "data": {
-    "title": "Veri yönetimi",
-    "description": "Başvuru verilerinizi içe aktarın, dışa aktarın veya sıfırlayın"
+    "title": "Yerel veriler",
+    "description": "Bu cihazda şu anda ne yüklü.",
+    "statusTitle": "Mevcut dosya",
+    "loaded": "Bir dosya yüklü",
+    "empty": "Yüklü dosya yok",
+    "documents_one": "{{count}} belge",
+    "documents_other": "{{count}} belge",
+    "sponsors_one": "{{count}} sponsor",
+    "sponsors_other": "{{count}} sponsor",
+    "unsaved": "Henüz dışa aktarılmamış değişiklikleriniz var",
+    "saved": "Son dışa aktarımdan bu yana değişiklik yok",
+    "lastExport": "Son dışa aktarma: {{date}}",
+    "neverExported": "Henüz dışa aktarılmadı"
   },
   "reset": {
     "action": "Tüm verileri sıfırla",
     "confirmTitle": "Tüm veriler sıfırlansın mı?",
     "confirmBody": "Bu işlem başvuru dosyasını tarayıcı belleğinden siler. Dışa aktarmadığınız her şey kaybolur. Bu işlem geri alınamaz.",
     "confirm": "Her şeyi sıfırla"
+  },
+  "dangerZone": "Riskli işlemler",
+  "importExport": {
+    "title": "İçe & dışa aktarma",
+    "description": "Dosyanızı bir JSON dosyası olarak VisaFlow'a alın veya dışa aktarın.",
+    "exportTitle": "Dışa aktar (yedekle)",
+    "exportBody": "Tüm dosyanızı bir JSON dosyası olarak indirin. Bu sizin yedeğinizdir — güvenli bir yerde saklayın.",
+    "exportAction": "Dosyayı dışa aktar",
+    "nothingToExport": "Henüz dışa aktarılacak bir şey yok.",
+    "importTitle": "İçe aktar (geri yükle)",
+    "importBody": "Daha önce dışa aktardığınız bir JSON dosyasından bir dosya yükleyin. Bu, yüklü olanı değiştirir.",
+    "importAction": "Dosya seç",
+    "exampleTitle": "Örnek yükle",
+    "exampleBody": "VisaFlow'u keşfetmek için kurgusal bir örnek dosya yükleyin. Bu, yüklü olanı değiştirir.",
+    "exampleAction": "Örnek veriyi yükle",
+    "replaceTitle": "Mevcut dosya değiştirilsin mi?",
+    "replaceBody": "Dışa aktarmadığınız değişiklikler içeren bir dosya yüklü. Devam etmek onu değiştirir ve dışa aktarılmayan her şey kaybolur.",
+    "replaceConfirm": "Değiştir",
+    "importError": "Bu dosya içe aktarılamadı. VisaFlow JSON dışa aktarımı olduğundan emin olun.",
+    "importSuccess": "Dosya yüklendi.",
+    "warningsTitle": "Notlarla yüklendi"
   },
   "disclaimer": {
     "title": "Yasal uyarı",
@@ -37,10 +100,18 @@
   },
   "about": {
     "title": "VisaFlow hakkında",
+    "description": "Bu uygulama hakkında.",
     "version": "Sürüm",
     "schemaVersion": "Şema sürümü",
     "summary": "Açık kaynaklı vize başvuru dosyası yöneticisi.",
-    "license": "MIT Lisansı ile lisanslanmıştır."
+    "license": "MIT Lisansı ile lisanslanmıştır.",
+    "vision": "VisaFlow, uluslararası vize hazırlığı için açık kaynaklı, gizlilik öncelikli çalışma alanıdır."
   },
-  "dangerZone": "Riskli işlemler"
+  "advanced": {
+    "title": "Gelişmiş",
+    "description": "Geliştiriciye yönelik ayrıntılar. Çoğu kişinin bunlara ihtiyacı yoktur.",
+    "schemaVersion": "Dosya şeması sürümü",
+    "storageKeys": "Yerel depolama anahtarları",
+    "storageNote": "Bunlar VisaFlow'un tarayıcınızın yerel depolamasına yazdığı tek anahtarlardır ve her ikisi de kişisel değildir."
+  }
 }

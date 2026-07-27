@@ -111,7 +111,7 @@ Pages read/write state through `DossierProvider`; formatting goes through `src/l
 (never `Intl` directly), and country names through `src/lib/countries.ts` (the sole
 `Intl.DisplayNames` wrapper — codes persist, labels are resolved for display; see [ADR-023]);
 finding prose is resolved via `src/lib/finding-text.ts`. Each guided experience has a pure
-feature adapter (`src/features/{dashboard,applicant,trip,documents,employment,finance,sponsors,timeline}/*`): trip nights/coverage math
+feature adapter (`src/features/{dashboard,applicant,trip,documents,employment,finance,sponsors,timeline,settings}/*`): trip nights/coverage math
 lives in `route-dates.ts` (dates canonical, nights derived — [ADR-024]), and calm, non-validation
 guidance in `applicant-guidance.ts` / `trip-guidance.ts` (info-only, never affects readiness).
 The Validation Center is a thin composition over `src/features/validation/*` — a pure adapter that
@@ -134,6 +134,10 @@ freshness · links · model) with three modes (plan/dates/freshness); preparatio
 persisted) from the templates' `preparationMilestones` + document/validation state, recommendations are
 VisaFlow's not official deadlines, and the highlighted next action reuses the Dashboard's
 `deriveNextActions` (reuse-only — no dashboard change) ([ADR-029], [timeline-architecture.md](./timeline-architecture.md)).
+Settings is the application control center — a responsive two-pane shell (section rail + content, `?section=`
+deep-link) over pure `src/features/settings/settings-model.ts`, composing existing primitives + the
+import/export services; it lists installed country packs with honest review status, reinforces the in-memory
+privacy model, and changes no schema, storage, or validation ([ADR-030]).
 Dashboard detail: [dashboard-architecture.md](./dashboard-architecture.md). Reusable UI is
 demonstrated in the [Playground](./playground.md) before use. **Depends on:** all layers below.
 **Must not:** be depended *on* by them.

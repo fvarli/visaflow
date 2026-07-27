@@ -137,6 +137,8 @@ import { PreparationTaskCard } from '@/components/timeline/PreparationTaskCard'
 import { KeyDatesTimeline } from '@/components/timeline/KeyDatesTimeline'
 import { DocumentFreshnessList } from '@/components/timeline/DocumentFreshnessList'
 import { buildTimelineModel } from '@/features/timeline/timeline-model'
+import { SettingsSection } from '@/components/settings/SettingsSection'
+import { SettingRow } from '@/components/settings/SettingRow'
 import type {
   FinancingSource,
   SponsorRelationship,
@@ -205,6 +207,7 @@ export default function PlaygroundPage() {
       <Finance />
       <Sponsors />
       <Timeline />
+      <Settings />
     </PageBody>
   )
 }
@@ -233,6 +236,7 @@ const SECTIONS = [
   'finance',
   'sponsors',
   'timeline',
+  'settings',
 ] as const
 
 function Nav() {
@@ -2170,6 +2174,44 @@ function Timeline() {
       <Row label={t('playground:rows.timelineFreshness')} align="start">
         <div className="w-full max-w-md">
           <DocumentFreshnessList freshness={m.freshness} />
+        </div>
+      </Row>
+    </Block>
+  )
+}
+
+function Settings() {
+  const { t } = useTranslation(['playground'])
+  const [mode, setMode] = useState<'compact' | 'cozy'>('cozy')
+
+  return (
+    <Block
+      id="settings"
+      title={t('playground:sections.settings')}
+      description={t('playground:blurbs.settings')}
+    >
+      <Row label={t('playground:rows.settingsSection')} align="start">
+        <div className="w-full max-w-lg">
+          <SettingsSection
+            title={t('playground:rows.settingsSection')}
+            description={t('playground:blurbs.settings')}
+          >
+            <SettingRow
+              label={t('playground:rows.settingRow')}
+              description={t('playground:rows.dateWindow')}
+              control={
+                <SegmentedControl<'compact' | 'cozy'>
+                  ariaLabel={t('playground:rows.settingRow')}
+                  value={mode}
+                  onValueChange={setMode}
+                  options={[
+                    { value: 'compact', label: 'A' },
+                    { value: 'cozy', label: 'B' },
+                  ]}
+                />
+              }
+            />
+          </SettingsSection>
         </div>
       </Row>
     </Block>

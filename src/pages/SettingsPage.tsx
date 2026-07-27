@@ -1,232 +1,88 @@
+import { useEffect, useRef, type ReactNode } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { useDossier } from '@/app/providers/DossierProvider'
-import { getAllCountryConfigs } from '@/config/countries'
-import { SCHEMA_VERSION } from '@/domain/schemas/dossier.schema'
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
-import { Separator } from '@/components/ui/separator'
 import { PageHeader } from '@/components/ui/page-header'
 import { PageBody } from '@/components/ui/section'
-import { Field } from '@/components/ui/field'
-import { LanguageSelect } from '@/components/ui/language-select'
-import { ThemeToggle } from '@/components/ui/theme-toggle'
-import { AlertTriangle, Trash2, Shield, Globe, Languages } from 'lucide-react'
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from '@/components/ui/alert-dialog'
-import { dynamicT } from '@/lib/i18n-dynamic'
+  SETTINGS_SECTION_IDS,
+  resolveSection,
+  type SettingsSectionId,
+} from '@/features/settings/settings-model'
+import { SettingsNav } from '@/components/settings/SettingsNav'
+import { SettingsSection } from '@/components/settings/SettingsSection'
+import { AppearanceSection } from '@/components/settings/AppearanceSection'
+import { LanguageSection } from '@/components/settings/LanguageSection'
+import { CountryPacksSection } from '@/components/settings/CountryPacksSection'
+import { PrivacySection } from '@/components/settings/PrivacySection'
+import { DataSection } from '@/components/settings/DataSection'
+import { ImportExportSection } from '@/components/settings/ImportExportSection'
+import { AboutSection } from '@/components/settings/AboutSection'
+import { AdvancedSection } from '@/components/settings/AdvancedSection'
 
+const CONTENT: Record<SettingsSectionId, ReactNode> = {
+  appearance: <AppearanceSection />,
+  language: <LanguageSection />,
+  countryPacks: <CountryPacksSection />,
+  privacy: <PrivacySection />,
+  data: <DataSection />,
+  importExport: <ImportExportSection />,
+  about: <AboutSection />,
+  advanced: <AdvancedSection />,
+}
+
+/**
+ * Settings — the application control center. A responsive two-pane shell (a calm
+ * section rail on desktop, a scrollable selector on mobile) over pure derivation
+ * in `src/features/settings/*`. The active section is an additive `?section=`
+ * deep-link (invalid falls back safely); focus moves to the section heading on
+ * change. This page owns only orchestration — it changes no data, storage, or
+ * validation behaviour.
+ */
 export default function SettingsPage() {
-  const { state, reset, updateApplication, hasData } = useDossier()
-  const { t } = useTranslation(['settings', 'common'])
-  const td = dynamicT(t)
-  const countries = getAllCountryConfigs()
+  const { t } = useTranslation('settings')
+  const [searchParams, setSearchParams] = useSearchParams()
+  const current = resolveSection(searchParams.get('section'))
+  const headingRef = useRef<HTMLHeadingElement>(null)
 
-  const handleCountryChange = (countryCode: string) => {
-    updateApplication({ destinationCountry: countryCode })
-  }
+  const mounted = useRef(false)
+  useEffect(() => {
+    if (!mounted.current) {
+      mounted.current = true
+      return
+    }
+    headingRef.current?.focus()
+  }, [current])
 
-  const handleReset = () => {
-    reset()
-  }
+  const setSection = (id: SettingsSectionId) =>
+    setSearchParams((prev) => {
+      const next = new URLSearchParams(prev)
+      next.set('section', id)
+      return next
+    })
 
   return (
     <PageBody>
-      <PageHeader
-        title={t('settings:title')}
-        description={t('settings:description')}
-      />
+      <PageHeader title={t('title')} description={t('description')} />
 
-      {/* Language and appearance — the only preferences VisaFlow stores */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Languages aria-hidden className="size-4 opacity-70" />
-            {t('settings:appearance.title')}
-          </CardTitle>
-          <CardDescription>
-            {t('settings:appearance.description')}
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="grid gap-5 sm:grid-cols-2">
-          <Field
-            label={t('settings:appearance.languageLabel')}
-            description={t('settings:appearance.languageHint')}
-            htmlFor="settings-language"
+      <div className="grid gap-8 lg:grid-cols-[14rem_1fr] lg:gap-12">
+        <div className="lg:pt-1">
+          <SettingsNav
+            sections={SETTINGS_SECTION_IDS}
+            current={current}
+            onSelect={setSection}
+          />
+        </div>
+
+        <div key={current} className="min-w-0 animate-fade-in">
+          <SettingsSection
+            ref={headingRef}
+            title={t(`${current}.title`)}
+            description={t(`${current}.description`)}
           >
-            <div>
-              <LanguageSelect />
-            </div>
-          </Field>
-          <Field
-            label={t('settings:appearance.themeLabel')}
-            description={t('settings:appearance.themeHint')}
-            htmlFor="settings-theme"
-          >
-            <div>
-              <ThemeToggle />
-            </div>
-          </Field>
-        </CardContent>
-      </Card>
-
-      {/* Why these two preferences may persist at all */}
-      <Alert variant="info">
-        <Shield />
-        <AlertTitle>{t('settings:preferencePrivacy.title')}</AlertTitle>
-        <AlertDescription>
-          {t('settings:preferencePrivacy.body')}
-        </AlertDescription>
-      </Alert>
-
-      {/* Destination country */}
-      {hasData && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Globe aria-hidden className="size-4 opacity-70" />
-              {t('settings:country.title')}
-            </CardTitle>
-            <CardDescription>
-              {t('settings:country.description')}
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Select
-              value={state.application?.destinationCountry ?? ''}
-              onValueChange={handleCountryChange}
-            >
-              <SelectTrigger
-                className="w-full md:w-80"
-                aria-label={t('settings:country.title')}
-              >
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {countries.map((config) => (
-                  <SelectItem
-                    key={config.countryCode}
-                    value={config.countryCode}
-                  >
-                    {td(config.nameKey)}
-                    {config.visaTypes[0]
-                      ? ` — ${td(config.visaTypes[0].nameKey)}`
-                      : ''}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <p className="text-caption text-muted-foreground mt-2">
-              {t('settings:country.hint')}
-            </p>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Data management */}
-      <Card>
-        <CardHeader>
-          <CardTitle>{t('settings:data.title')}</CardTitle>
-          <CardDescription>{t('settings:data.description')}</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <Separator />
-          <div>
-            <h3 className="text-eyebrow text-muted-foreground mb-2 uppercase">
-              {t('settings:dangerZone')}
-            </h3>
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <Button variant="destructive">
-                  <Trash2 />
-                  {t('settings:reset.action')}
-                </Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>
-                    {t('settings:reset.confirmTitle')}
-                  </AlertDialogTitle>
-                  <AlertDialogDescription>
-                    {t('settings:reset.confirmBody')}
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>
-                    {t('common:actions.cancel')}
-                  </AlertDialogCancel>
-                  <AlertDialogAction onClick={handleReset}>
-                    {t('settings:reset.confirm')}
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Disclaimer */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <AlertTriangle aria-hidden className="size-4 opacity-70" />
-            {t('settings:disclaimer.title')}
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="text-muted-foreground space-y-4">
-          <p className="text-body">{t('settings:disclaimer.p1')}</p>
-          <p className="text-body">{t('settings:disclaimer.p2')}</p>
-          <p className="text-body">{t('settings:disclaimer.p3')}</p>
-          <p className="text-body">{t('settings:disclaimer.noPrediction')}</p>
-        </CardContent>
-      </Card>
-
-      {/* About */}
-      <Card>
-        <CardHeader>
-          <CardTitle>{t('settings:about.title')}</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-2">
-          <p className="text-body">
-            <span className="font-medium">{t('settings:about.version')}:</span>{' '}
-            <span data-numeric>0.1.0</span>
-          </p>
-          <p className="text-body">
-            <span className="font-medium">
-              {t('settings:about.schemaVersion')}:
-            </span>{' '}
-            <span data-numeric>{SCHEMA_VERSION}</span>
-          </p>
-          <p className="text-body text-muted-foreground">
-            {t('settings:about.summary')}
-          </p>
-          <p className="text-body text-muted-foreground">
-            {t('settings:about.license')}
-          </p>
-        </CardContent>
-      </Card>
+            {CONTENT[current]}
+          </SettingsSection>
+        </div>
+      </div>
     </PageBody>
   )
 }

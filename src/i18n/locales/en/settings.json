@@ -1,32 +1,95 @@
 {
   "title": "Settings",
-  "description": "Application preferences and dossier data management",
+  "description": "The control center for VisaFlow — appearance, data, privacy, and more.",
+  "nav": {
+    "appearance": "Appearance",
+    "language": "Language",
+    "countryPacks": "Country packs",
+    "privacy": "Privacy",
+    "data": "Local data",
+    "importExport": "Import & export",
+    "about": "About",
+    "advanced": "Advanced"
+  },
   "appearance": {
-    "title": "Language and appearance",
-    "description": "These two preferences are the only things VisaFlow stores on your device.",
-    "languageLabel": "Interface language",
-    "languageHint": "Document codes and exported JSON never change with language.",
+    "title": "Appearance",
+    "description": "How VisaFlow looks on this device.",
     "themeLabel": "Theme",
-    "themeHint": "System follows your operating system setting."
+    "themeHint": "System follows your operating system setting.",
+    "theme": {
+      "light": "Light",
+      "dark": "Dark",
+      "system": "System"
+    }
   },
-  "preferencePrivacy": {
-    "title": "Why these are stored",
-    "body": "Language and theme are non-personal interface preferences, so they are remembered in this browser. No dossier, applicant, passport or financial data is ever stored — that lives in memory only and is lost when you close the tab."
+  "language": {
+    "title": "Language",
+    "description": "The language of the interface. Turkish is the default.",
+    "label": "Interface language",
+    "hint": "Document codes and exported JSON never change with language."
   },
-  "country": {
-    "title": "Destination country",
-    "description": "Select the country you are applying to visit",
-    "hint": "Changing the country will update the document checklist"
+  "countryPacks": {
+    "title": "Country packs",
+    "description": "The visa-requirement packs available in VisaFlow.",
+    "activeTitle": "Active destination",
+    "activeHint": "Changing this updates the document checklist for your dossier.",
+    "activeLabel": "Destination country",
+    "activeBadge": "Active",
+    "noDossier": "Load or start a dossier to choose an active destination.",
+    "supportedTypes": "Supported visa types",
+    "version": "Pack version",
+    "notEndorsed": "These are organizational packs, not an official endorsement. Always verify requirements with current official sources.",
+    "empty": "No country packs are available yet."
+  },
+  "privacy": {
+    "title": "Privacy",
+    "description": "How VisaFlow handles your data.",
+    "inMemory": "Your dossier lives only in this browser tab's memory. It is never sent anywhere, and it is lost when you close or refresh the tab — export it to keep a copy.",
+    "storedTitle": "Stored on this device",
+    "storedBody": "Only two non-personal interface preferences are remembered: your theme and your language. No dossier, applicant, passport, or financial data is ever stored.",
+    "noTracking": "No accounts, no server, no analytics, no tracking, no third-party requests. Everything runs locally in your browser."
   },
   "data": {
-    "title": "Data management",
-    "description": "Import, export, or reset your application data"
+    "title": "Local data",
+    "description": "What is currently loaded on this device.",
+    "statusTitle": "Current dossier",
+    "loaded": "A dossier is loaded",
+    "empty": "No dossier loaded",
+    "documents_one": "{{count}} document",
+    "documents_other": "{{count}} documents",
+    "sponsors_one": "{{count}} sponsor",
+    "sponsors_other": "{{count}} sponsors",
+    "unsaved": "You have changes not yet exported",
+    "saved": "No changes since your last export",
+    "lastExport": "Last exported {{date}}",
+    "neverExported": "Not exported yet"
   },
   "reset": {
     "action": "Reset all data",
     "confirmTitle": "Reset all data?",
     "confirmBody": "This clears the dossier from browser memory. Anything you have not exported will be lost. This cannot be undone.",
     "confirm": "Reset everything"
+  },
+  "dangerZone": "Danger zone",
+  "importExport": {
+    "title": "Import & export",
+    "description": "Move your dossier in and out of VisaFlow as a JSON file.",
+    "exportTitle": "Export (back up)",
+    "exportBody": "Download your entire dossier as a JSON file. This is your backup — keep it somewhere safe.",
+    "exportAction": "Export dossier",
+    "nothingToExport": "There is nothing to export yet.",
+    "importTitle": "Import (restore)",
+    "importBody": "Load a dossier from a JSON file you exported earlier. This replaces whatever is currently loaded.",
+    "importAction": "Choose file",
+    "exampleTitle": "Load example",
+    "exampleBody": "Load a fictional example dossier to explore VisaFlow. This replaces whatever is currently loaded.",
+    "exampleAction": "Load example data",
+    "replaceTitle": "Replace the current dossier?",
+    "replaceBody": "A dossier is loaded with changes you haven't exported. Continuing will replace it, and anything not exported will be lost.",
+    "replaceConfirm": "Replace",
+    "importError": "Couldn't import that file. Check that it is a VisaFlow JSON export.",
+    "importSuccess": "Dossier loaded.",
+    "warningsTitle": "Loaded with notes"
   },
   "disclaimer": {
     "title": "Disclaimer",
@@ -37,10 +100,18 @@
   },
   "about": {
     "title": "About VisaFlow",
+    "description": "About this application.",
     "version": "Version",
     "schemaVersion": "Schema version",
     "summary": "Open-source visa application dossier manager.",
-    "license": "Licensed under the MIT License."
+    "license": "Licensed under the MIT License.",
+    "vision": "VisaFlow is the open-source, privacy-first application workspace for international visa preparation."
   },
-  "dangerZone": "Danger zone"
+  "advanced": {
+    "title": "Advanced",
+    "description": "Developer-oriented details. Most people don't need these.",
+    "schemaVersion": "Dossier schema version",
+    "storageKeys": "Local storage keys",
+    "storageNote": "These are the only keys VisaFlow writes to your browser's local storage, and both are non-personal."
+  }
 }

@@ -109,6 +109,18 @@ Last updated: 2026-07-27
       from the templates' `preparationMilestones` + document/validation state;
       recommendations are VisaFlow's, never official deadlines. Pure adapters in
       `src/features/timeline/*`; no schema/rule change, no dashboard change (ADR-029)
+- [x] Settings control center — a responsive two-pane page (calm section rail +
+      content on desktop, a scrollable selector on mobile; additive `?section=`
+      deep-link with safe fallback) over a pure adapter
+      (`src/features/settings/settings-model.ts`). Sections: Appearance (theme
+      segmented control) · Language (TR/EN segmented control) · Country packs
+      (informational, scale-ready list with honest review status via
+      `ReviewStatusBadge`/`SourceNote`, plus the active-destination selector) ·
+      Privacy (in-memory model + the two localStorage keys + the no-prediction
+      disclaimer) · Local data (status + isolated Reset) · Import & export
+      (export/import/example reusing the existing services, replace-confirm) ·
+      About · Advanced. Pure presentation — no schema/storage/validation change,
+      fixes the heading outline and hardcoded theme labels (ADR-030)
 - [x] Validation Center — the dossier review workspace: a review hero (readiness
       + checks passed + items needing attention + one suggested next step),
       findings grouped by domain with a calm health label and a direct
@@ -129,7 +141,8 @@ Last updated: 2026-07-27
       `SponsorDocumentLinker`, `SponsorEditorSheet`, `RemoveSponsorDialog`) and
       timeline (`TimelineHero`, `TimelineModeSelector`, `PreparationPlan`,
       `PreparationTaskCard`, `DateWindowBadge`, `KeyDatesTimeline`,
-      `DocumentFreshnessList`, `AppointmentDaySummary`)
+      `DocumentFreshnessList`, `AppointmentDaySummary`) and settings
+      (`SettingsSection`, `SettingRow`)
       families — all in `/playground`
 - [x] Add custom documents / re-add template requirements / additive template
       sync (never deletes applicant data); custom docs use a stable `CUSTOM-` code
@@ -180,7 +193,7 @@ All checks pass:
 - `pnpm format:check` - PASS
 - `pnpm lint` - 0 errors (warnings acceptable, see below)
 - `pnpm typecheck` - PASS (`tsc -b`)
-- `pnpm test` - 378/378 PASS
+- `pnpm test` - 396/396 PASS
 - `pnpm build` - SUCCESS
 
 Note: an earlier version of this file claimed 23/23 tests and `tsc --noEmit`;

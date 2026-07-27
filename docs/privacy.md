@@ -167,6 +167,15 @@ If VisaFlow adds optional features requiring storage:
 3. Local-only options will always be available
 4. Privacy documentation will be updated
 
+## Where this is surfaced in the app
+
+The **Settings → Privacy** section restates this model to users in plain language: the dossier lives only
+in this tab's memory and is lost on close/refresh unless exported; the only two persisted values are the
+non-personal theme and language preferences; and there are no accounts, servers, analytics, tracking, or
+third-party requests. **Settings → Advanced** lists the exact two localStorage keys. Settings itself is
+pure presentation — it reads and reuses the existing import/export services and provider state and changes
+nothing about how data is stored (ADR-030).
+
 ## Questions?
 
 If you have privacy concerns or questions, please open an issue on GitHub.

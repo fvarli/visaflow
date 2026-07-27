@@ -1015,3 +1015,68 @@ no-dossier; appointment-day summary.
 - No browser pass (no connected Chrome) — re-verify at 1440/390 × tr light/dark + en: mode switching, long
   Turkish dates/labels, overdue treatment, task deep-links, empty/partial/complete states, freshness,
   appointment-day, focus.
+
+## Iteration 17 handoff (2026-07-27) — Settings experience redesign (application control center)
+
+Turned the read-mostly Settings page into the **application control center** — a responsive two-pane shell
+(section rail + content) with sections for Appearance · Language · Country packs · Privacy · Local data ·
+Import & export · About · Advanced. **Pure presentation**: no dossier-schema, import/export-format, storage,
+or validation change; it reuses the existing services and provider actions. **No changes to any domain page
+or the Dashboard.**
+
+### Baseline recorded (real, from code)
+`format:check` ✓ · `typecheck` ✓ · `lint` 0 errors · `test` **378/378** (48 files) · `build` ✓. Version
+`0.1.0`; only two localStorage keys (`visaflow-theme`, `visaflow-locale`). Repo clean/committed.
+
+### Architecture — pure adapter (ADR-030), `src/features/settings/`
+- `settings-model.ts` — `SETTINGS_SECTION_IDS` (8) + `resolveSection` (invalid → `appearance`);
+  `buildSettingsModel`/`useSettingsModel` deriving `packs` (from `getAllCountryConfigs`, honest
+  `reviewStatus`, `isActive`), `active`, `localData` (hasData/counts/`isDirty`/`lastSaved`/two storage keys),
+  and `about` (version constant + `SCHEMA_VERSION`). Pure, unit-tested.
+
+### Components (`src/components/settings/`, in `/playground`)
+Reusable: `SettingsSection` (flat `Section`+real-`h2` group, forwardRef for focus — no nested-card overload)
+and `SettingRow` (label + description + control). Plus `SettingsNav` (rail on `lg:`, scrollable selector on
+mobile; `aria-current`) and the eight section components. `SettingsPage` is a thin two-pane shell:
+`PageHeader` (single `h1`) + `SettingsNav` + active section wrapped in `SettingsSection`; `?section=` reader;
+focus-to-`h2` on section change.
+
+### What stayed pure / reused
+Theme (Light/Dark/System) + language (TR/EN) use `SegmentedControl` (there is no Switch); country packs
+reuse `ReviewStatusBadge`/`SourceNote`; import/export reuse `downloadDossier`/`importPartial`/`readFileAsText`
++ `loadDossier`/`markSaved`/`reset` (no format/storage change); the active destination reuses
+`updateApplication`. The load-bearing no-prediction disclaimer (ADR-016) is kept; the version is a documented
+constant (no `package.json` shipped to the client). The AppLayout sidebar import/export quick-actions are
+untouched.
+
+### Product guarantees
+No schema/storage/import-export/validation change; still exactly two localStorage keys; no new persisted
+preference (Advanced is navigation, not a stored dev-mode flag); destructive/replacing actions (Reset,
+import-replace) isolated behind `AlertDialog`; country packs informational + scale-ready, never implying
+official endorsement. Fixes the old `h1→h3` heading gap (real `h2` per section) and the hardcoded English
+theme labels.
+
+### i18n
+`settings.json` fully rewritten both locales (nav / appearance.theme.{light,dark,system} / language /
+countryPacks / privacy / data / importExport / disclaimer / about / advanced) with tr/en parity;
+`playground.json` `sections.settings` + blurb + rows. Reuses `common:sources.reviewStatus.*`, `visa-domain:`
+country/visa names, `common:actions.cancel`.
+
+### Gates (this iteration)
+`format:check` ✓ · `lint` 0 errors / 71 warnings (baseline 71; all acceptable categories) · `typecheck` ✓ ·
+`test` **396/396** (378 + 18 new, 50 files) · `build` ✓ (SettingsPage lazy ~3.93 kB gzip; no main-bundle
+regression — the large `DossierProvider` shared chunk is pre-existing, not new; no new dependency). Not
+committed, not pushed.
+
+### Tests
+Pure: `settings-model` (packs incl. Greece + honest `unverified` + `isActive`; `active`; `localData`
+counts/two-keys; `about` version+schema; `resolveSection` valid/invalid). Render (`settings-page`, both
+locales): single `h1` + the rail; works with no dossier; `?section=privacy` lands; invalid `?section=`
+falls back; rail switching changes content; country packs show the honest review-status label; import/export
+actions present; the isolated Reset confirm empties the dossier (via a probe).
+
+### Known limitations / next
+- One country pack (Greece, honestly unverified); the version is a constant to keep in sync with
+  `package.json` on release; "unsaved changes" is in-memory only (no route/beforeunload guard).
+- No browser pass (no connected Chrome) — re-verify at 1440/390 × tr light/dark + en: the rail vs mobile
+  selector, section switching + focus, long Turkish labels, country packs, import/export + reset dialogs.
