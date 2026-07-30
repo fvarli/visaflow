@@ -6,7 +6,10 @@ import { lazy, Suspense } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Skeleton } from '@/components/ui/skeleton'
 import { DashboardSkeleton } from '@/components/dashboard/DashboardSkeleton'
+import { useDossier } from '@/app/providers/DossierProvider'
+import { firstRunTarget } from '@/features/onboarding/onboarding-model'
 
+const WelcomePage = lazy(() => import('@/pages/WelcomePage'))
 const DashboardPage = lazy(() => import('@/pages/DashboardPage'))
 const ApplicantPage = lazy(() => import('@/pages/ApplicantPage'))
 const TripPage = lazy(() => import('@/pages/TripPage'))
@@ -59,6 +62,19 @@ function LazyPage({
   return <Suspense fallback={fallback ?? <PageLoader />}>{children}</Suspense>
 }
 
+/**
+ * The index decides where a visitor lands: a brand-new user with no dossier
+ * starts in the first-run flow (`/welcome`); a returning user with a dossier
+ * goes to the dashboard. The decision is derived purely from `hasData`
+ * (`firstRunTarget`) — no persisted "onboarding done" flag, no new storage key
+ * (ADR-031). This is the only redirect; every workspace route stays directly
+ * reachable and shows its own empty state.
+ */
+export function FirstRunRedirect() {
+  const { hasData } = useDossier()
+  return <Navigate to={firstRunTarget(hasData)} replace />
+}
+
 export const router = createBrowserRouter([
   {
     path: '/',
@@ -66,7 +82,15 @@ export const router = createBrowserRouter([
     children: [
       {
         index: true,
-        element: <Navigate to="/dashboard" replace />,
+        element: <FirstRunRedirect />,
+      },
+      {
+        path: 'welcome',
+        element: (
+          <LazyPage>
+            <WelcomePage />
+          </LazyPage>
+        ),
       },
       {
         path: 'dashboard',

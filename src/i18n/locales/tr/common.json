@@ -94,7 +94,10 @@
   "noDossier": {
     "title": "Yüklü başvuru yok",
     "description": "Devam etmek için yeni bir başvuru oluşturun veya mevcut bir dosyayı içe aktarın.",
-    "descriptionFor": "{{section}} bölümünde çalışmak için yeni bir başvuru oluşturun veya mevcut bir dosyayı içe aktarın."
+    "descriptionFor": "{{section}} bölümünde çalışmak için yeni bir başvuru oluşturun veya mevcut bir dosyayı içe aktarın.",
+    "startAction": "Dosyanı başlat",
+    "importAction": "Dosya içe aktar",
+    "learnAction": "VisaFlow nasıl çalışır"
   },
   "sources": {
     "heading": "Kaynak",

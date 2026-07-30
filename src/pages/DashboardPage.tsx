@@ -1,13 +1,6 @@
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
-import {
-  ArrowRight,
-  Compass,
-  FileText,
-  ListChecks,
-  Plus,
-  ShieldCheck,
-} from 'lucide-react'
+import { Compass, FileText, ListChecks, Plus, ShieldCheck } from 'lucide-react'
 import { useDossier } from '@/app/providers/DossierProvider'
 import { useDashboardModel } from '@/features/dashboard/dashboard-model'
 import { PageHeader } from '@/components/ui/page-header'
@@ -24,9 +17,6 @@ import { DocumentsSummary } from '@/components/dashboard/DocumentsSummary'
 import { TripSummary } from '@/components/dashboard/TripSummary'
 import { DossierSnapshot } from '@/components/dashboard/DossierSnapshot'
 
-/** Only Greece is configured today; kept as a named constant, not a literal. */
-const DEFAULT_COUNTRY = 'GR'
-
 /**
  * The dossier command center: a thin composition of purpose-driven sections over
  * the derived dashboard model. All data logic lives in `useDashboardModel`; this
@@ -34,16 +24,14 @@ const DEFAULT_COUNTRY = 'GR'
  * should I do next — with readiness as the single dominant progress indicator.
  */
 export default function DashboardPage() {
-  const { hasData, initializeEmpty } = useDossier()
+  const { hasData } = useDossier()
   const { t } = useTranslation(['dashboard', 'common', 'visa-domain'])
   const td = dynamicT(t)
   const model = useDashboardModel()
   const app = model.active
 
   if (!hasData) {
-    return (
-      <DashboardEmptyState onStart={() => initializeEmpty(DEFAULT_COUNTRY)} />
-    )
+    return <DashboardEmptyState />
   }
 
   const countryLabel = app.countryCode
@@ -135,11 +123,11 @@ export default function DashboardPage() {
 }
 
 /**
- * The first-run experience: an inviting introduction rather than a blank page.
- * The primary path starts a Greece application in memory; importing an existing
- * dossier uses the Import control in the header.
+ * A lightweight first-run fallback. The guided setup now lives at `/welcome`
+ * (the index redirect sends brand-new users there); if someone lands on an empty
+ * Dashboard directly, this invites them into that flow rather than dead-ending.
  */
-function DashboardEmptyState({ onStart }: { onStart: () => void }) {
+function DashboardEmptyState() {
   const { t } = useTranslation(['dashboard', 'common'])
 
   return (
@@ -154,28 +142,18 @@ function DashboardEmptyState({ onStart }: { onStart: () => void }) {
         title={t('dashboard:getStarted.title')}
         description={t('dashboard:getStarted.description')}
         action={
-          <div className="flex flex-col items-center gap-3">
-            <Button onClick={onStart}>
+          <Button asChild>
+            <Link to="/welcome">
               <Plus className="size-4" />
-              {t('dashboard:getStarted.startGreece')}
-            </Button>
-            <Link
-              to="/documents"
-              className="text-muted-foreground hover:text-foreground inline-flex items-center gap-1 rounded-sm text-sm"
-            >
-              {t('dashboard:getStarted.explore')}
-              <ArrowRight className="size-3.5" />
+              {t('common:noDossier.startAction')}
             </Link>
-          </div>
+          </Button>
         }
       />
 
       <p className="text-caption text-muted-foreground inline-flex items-center justify-center gap-1.5 text-center">
         <ShieldCheck className="size-3.5 shrink-0" />
         {t('dashboard:getStarted.privacyNote')}
-      </p>
-      <p className="text-caption text-muted-foreground text-center">
-        {t('dashboard:getStarted.orImportPlain')}
       </p>
     </PageBody>
   )

@@ -14,6 +14,7 @@ import trTimeline from './locales/tr/timeline.json'
 import trValidation from './locales/tr/validation.json'
 import trNotes from './locales/tr/notes.json'
 import trSettings from './locales/tr/settings.json'
+import trOnboarding from './locales/tr/onboarding.json'
 import trPlayground from './locales/tr/playground.json'
 import trVisaDomain from './locales/tr/visa-domain.json'
 
@@ -30,6 +31,7 @@ import enTimeline from './locales/en/timeline.json'
 import enValidation from './locales/en/validation.json'
 import enNotes from './locales/en/notes.json'
 import enSettings from './locales/en/settings.json'
+import enOnboarding from './locales/en/onboarding.json'
 import enPlayground from './locales/en/playground.json'
 import enVisaDomain from './locales/en/visa-domain.json'
 
@@ -101,6 +103,7 @@ export const resources = {
     validation: trValidation,
     notes: trNotes,
     settings: trSettings,
+    onboarding: trOnboarding,
     playground: trPlayground,
     'visa-domain': trVisaDomain,
   },
@@ -118,6 +121,7 @@ export const resources = {
     validation: enValidation,
     notes: enNotes,
     settings: enSettings,
+    onboarding: enOnboarding,
     playground: enPlayground,
     'visa-domain': enVisaDomain,
   },

@@ -1,0 +1,64 @@
+{
+  "title": "Let's prepare your visa application",
+  "description": "A calm, private workspace for your dossier. This takes about a minute.",
+  "nav": {
+    "rail": "Setup steps",
+    "welcome": "Welcome",
+    "setup": "Language & destination",
+    "create": "Create or import",
+    "ready": "Ready"
+  },
+  "stepper": {
+    "progress": "Step {{current}} of {{total}}"
+  },
+  "actions": {
+    "back": "Back",
+    "continue": "Continue"
+  },
+  "welcome": {
+    "heading": "Welcome to VisaFlow",
+    "lead": "VisaFlow helps you organize a visa application — your documents, dates, and details — in one structured, private workspace.",
+    "privacy": "Everything stays in this browser tab. Your data is never sent anywhere and is never stored on a server.",
+    "noPrediction": "VisaFlow organizes your dossier; it never predicts whether a visa will be granted or refused.",
+    "autosave": "Your work saves as you go — there is no save button. Export a JSON file whenever you want to keep a copy.",
+    "getStarted": "Get started",
+    "exploreFirst": "Explore the app first"
+  },
+  "setup": {
+    "heading": "Language & destination",
+    "lead": "Pick the interface language and where you're applying. You can change both later in Settings.",
+    "languageLabel": "Interface language",
+    "languageHint": "Turkish is the default. This never changes your exported data.",
+    "destinationLabel": "Destination country",
+    "destinationHint": "Where you plan to apply for your visa.",
+    "availablePack": "Greece (Schengen short-stay tourism) is the requirement pack available today. You can choose another destination, but its document checklist isn't built yet."
+  },
+  "create": {
+    "heading": "Create or import",
+    "lead": "Start a fresh dossier, or restore one you exported earlier.",
+    "createTitle": "Start a new dossier",
+    "createBody": "Creates an empty dossier for {{country}} in this browser's memory, ready for you to fill in.",
+    "createAction": "Create dossier",
+    "importTitle": "Import an existing dossier",
+    "importBody": "Load a dossier from a JSON file you exported from VisaFlow before. Nothing is uploaded — the file is read locally.",
+    "importAction": "Choose a file",
+    "exampleTitle": "Explore the example",
+    "exampleBody": "Load a fictional example dossier to see how VisaFlow works. You can reset it any time.",
+    "exampleAction": "Load example data",
+    "importError": "Couldn't read that file. Check that it is a VisaFlow JSON export.",
+    "importWarnings": "Loaded with some notes — a few fields may need review."
+  },
+  "ready": {
+    "heading": "You're ready",
+    "lead": "Your dossier is set up. Here's where to go next.",
+    "dashboard": "Dashboard — your readiness at a glance and the single best next step.",
+    "documents": "Documents — the checklist of what to gather, with requirement context.",
+    "validation": "Validation — calm consistency checks that catch issues before you apply.",
+    "continue": "Continue to dashboard"
+  },
+  "existing": {
+    "heading": "You already have a dossier",
+    "lead": "A dossier is loaded in this tab. You can pick up where you left off — onboarding won't overwrite it.",
+    "continue": "Continue to dashboard"
+  }
+}

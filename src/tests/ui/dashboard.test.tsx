@@ -105,11 +105,12 @@ describe('Dashboard — empty state', () => {
           name: i18n.t('dashboard:getStarted.title'),
         })
       ).toBeInTheDocument()
-      expect(
-        screen.getByRole('button', {
-          name: new RegExp(i18n.t('dashboard:getStarted.startGreece'), 'i'),
-        })
-      ).toBeInTheDocument()
+      // The empty Dashboard is now a lightweight fallback into the first-run
+      // flow — its primary action links to /welcome rather than creating inline.
+      const start = screen.getByRole('link', {
+        name: new RegExp(i18n.t('common:noDossier.startAction'), 'i'),
+      })
+      expect(start).toHaveAttribute('href', '/welcome')
     }
   )
 })

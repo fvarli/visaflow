@@ -1,0 +1,64 @@
+{
+  "title": "Vize başvurunu hazırlayalım",
+  "description": "Dosyan için sakin ve gizli bir çalışma alanı. Bu yaklaşık bir dakika sürer.",
+  "nav": {
+    "rail": "Kurulum adımları",
+    "welcome": "Hoş geldin",
+    "setup": "Dil ve hedef ülke",
+    "create": "Oluştur veya içe aktar",
+    "ready": "Hazır"
+  },
+  "stepper": {
+    "progress": "Adım {{current}} / {{total}}"
+  },
+  "actions": {
+    "back": "Geri",
+    "continue": "Devam et"
+  },
+  "welcome": {
+    "heading": "VisaFlow'a hoş geldin",
+    "lead": "VisaFlow, bir vize başvurusunu — belgelerini, tarihlerini ve bilgilerini — tek bir yapılandırılmış, gizli çalışma alanında düzenlemene yardımcı olur.",
+    "privacy": "Her şey bu tarayıcı sekmesinde kalır. Verilerin hiçbir yere gönderilmez ve bir sunucuda saklanmaz.",
+    "noPrediction": "VisaFlow dosyanı düzenler; bir vizenin verilip verilmeyeceğini asla tahmin etmez.",
+    "autosave": "Çalışman ilerledikçe kaydedilir — kaydet düğmesi yoktur. Bir kopyasını saklamak istediğinde JSON dosyası olarak dışa aktar.",
+    "getStarted": "Başla",
+    "exploreFirst": "Önce uygulamayı keşfet"
+  },
+  "setup": {
+    "heading": "Dil ve hedef ülke",
+    "lead": "Arayüz dilini ve nereye başvuracağını seç. İkisini de daha sonra Ayarlar'dan değiştirebilirsin.",
+    "languageLabel": "Arayüz dili",
+    "languageHint": "Varsayılan dil Türkçe'dir. Bu, dışa aktardığın veriyi asla değiştirmez.",
+    "destinationLabel": "Hedef ülke",
+    "destinationHint": "Vizen için başvurmayı planladığın ülke.",
+    "availablePack": "Bugün mevcut olan gereksinim paketi Yunanistan (Schengen kısa süreli turizm). Başka bir hedef seçebilirsin, ancak onun belge listesi henüz hazır değil."
+  },
+  "create": {
+    "heading": "Oluştur veya içe aktar",
+    "lead": "Yeni bir dosya başlat ya da daha önce dışa aktardığın bir dosyayı geri yükle.",
+    "createTitle": "Yeni bir dosya başlat",
+    "createBody": "{{country}} için tarayıcı belleğinde boş bir dosya oluşturur; doldurmaya hazır.",
+    "createAction": "Dosya oluştur",
+    "importTitle": "Mevcut bir dosyayı içe aktar",
+    "importBody": "Daha önce VisaFlow'dan dışa aktardığın bir JSON dosyasından dosyayı yükle. Hiçbir şey yüklenmez — dosya yerel olarak okunur.",
+    "importAction": "Dosya seç",
+    "exampleTitle": "Örneği keşfet",
+    "exampleBody": "VisaFlow'un nasıl çalıştığını görmek için kurgusal bir örnek dosya yükle. İstediğin zaman sıfırlayabilirsin.",
+    "exampleAction": "Örnek veriyi yükle",
+    "importError": "Bu dosya okunamadı. Bir VisaFlow JSON dışa aktarımı olduğundan emin ol.",
+    "importWarnings": "Bazı notlarla yüklendi — birkaç alan gözden geçirilmeli."
+  },
+  "ready": {
+    "heading": "Hazırsın",
+    "lead": "Dosyan kuruldu. Sırada nereye gideceğin burada.",
+    "dashboard": "Panel — hazırlık düzeyine bir bakışta ve tek en iyi sonraki adım.",
+    "documents": "Belgeler — gereksinim bağlamıyla birlikte toplanacakların listesi.",
+    "validation": "Doğrulama — başvurmadan önce sorunları yakalayan sakin tutarlılık kontrolleri.",
+    "continue": "Panele devam et"
+  },
+  "existing": {
+    "heading": "Zaten bir dosyan var",
+    "lead": "Bu sekmede yüklü bir dosya var. Kaldığın yerden devam edebilirsin — kurulum onu üzerine yazmaz.",
+    "continue": "Panele devam et"
+  }
+}

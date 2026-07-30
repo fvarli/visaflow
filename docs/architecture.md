@@ -50,6 +50,7 @@ src/
 │   ├── documents/          # documents-model.ts + filters + template-sync (pure)
 │   ├── validation/         # validation-model + finding-presentation/actions (pure)
 │   ├── employment/         # employment-model/wizard/tenure/guidance/documents (pure)
+│   ├── onboarding/         # onboarding-model.ts — first-run steps + routing decision (pure)
 │   └── import-export/      # JSON import/export services
 ├── domain/
 │   ├── schemas/            # Zod schemas (source of truth for data shapes)
@@ -111,7 +112,7 @@ Pages read/write state through `DossierProvider`; formatting goes through `src/l
 (never `Intl` directly), and country names through `src/lib/countries.ts` (the sole
 `Intl.DisplayNames` wrapper — codes persist, labels are resolved for display; see [ADR-023]);
 finding prose is resolved via `src/lib/finding-text.ts`. Each guided experience has a pure
-feature adapter (`src/features/{dashboard,applicant,trip,documents,employment,finance,sponsors,timeline,settings}/*`): trip nights/coverage math
+feature adapter (`src/features/{dashboard,applicant,trip,documents,employment,finance,sponsors,timeline,settings,onboarding}/*`): trip nights/coverage math
 lives in `route-dates.ts` (dates canonical, nights derived — [ADR-024]), and calm, non-validation
 guidance in `applicant-guidance.ts` / `trip-guidance.ts` (info-only, never affects readiness).
 The Validation Center is a thin composition over `src/features/validation/*` — a pure adapter that
@@ -138,6 +139,12 @@ Settings is the application control center — a responsive two-pane shell (sect
 deep-link) over pure `src/features/settings/settings-model.ts`, composing existing primitives + the
 import/export services; it lists installed country packs with honest review status, reinforces the in-memory
 privacy model, and changes no schema, storage, or validation ([ADR-030]).
+The first-run experience is a dedicated `/welcome` surface over pure `src/features/onboarding/onboarding-model.ts`
+— a calm ≤4-step guided setup (Welcome → Language & destination → Create or import → Ready) reusing the wizard
+pattern (`Stepper`, `?step=`, focus-to-heading) and the import/export services + `initializeEmpty`. The index
+route redirects on `hasData` alone (`firstRunTarget`) — no persisted "completed" flag, no new storage key — and
+the shared `NoDossierState` is the one canonical empty-workspace surface routing every empty page into the
+journey ([ADR-031]).
 Dashboard detail: [dashboard-architecture.md](./dashboard-architecture.md). Reusable UI is
 demonstrated in the [Playground](./playground.md) before use. **Depends on:** all layers below.
 **Must not:** be depended *on* by them.

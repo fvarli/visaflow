@@ -94,7 +94,10 @@
   "noDossier": {
     "title": "No application loaded",
     "description": "Start a new application or import an existing dossier to continue.",
-    "descriptionFor": "Start a new application or import an existing dossier to work on {{section}}."
+    "descriptionFor": "Start a new application or import an existing dossier to work on {{section}}.",
+    "startAction": "Start your dossier",
+    "importAction": "Import a dossier",
+    "learnAction": "How VisaFlow works"
   },
   "sources": {
     "heading": "Source",

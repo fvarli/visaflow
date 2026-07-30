@@ -1377,8 +1377,14 @@ function Feedback() {
         hint={t('playground:hints.appSpecific')}
         align="start"
       >
-        <div className="w-full">
+        <div className="w-full space-y-6">
           <NoDossierState section="Belgeler" />
+          <NoDossierState
+            icon={Calendar}
+            title="Start your visa dossier"
+            description="Every empty workspace routes into the first-run journey — never a dead end."
+            hint="Injectable title, description, icon and hint keep this reusable for future workspaces."
+          />
         </div>
       </Row>
     </Block>

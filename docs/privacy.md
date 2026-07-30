@@ -176,6 +176,13 @@ third-party requests. **Settings → Advanced** lists the exact two localStorage
 pure presentation — it reads and reuses the existing import/export services and provider state and changes
 nothing about how data is stored (ADR-030).
 
+The **first-run `/welcome` flow** reinforces the same model before any data exists: it states that the dossier
+lives only in this tab and is never sent anywhere, that VisaFlow never predicts an outcome, and that work
+autosaves in memory (export to keep a copy). Crucially, onboarding adds **no persistence of its own** — entry
+is derived purely from whether a dossier exists (`hasData`), there is no "onboarding completed" flag, and no
+new localStorage key is introduced; the only two keys remain the non-personal theme and language preferences
+(ADR-031).
+
 ## Questions?
 
 If you have privacy concerns or questions, please open an issue on GitHub.

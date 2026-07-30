@@ -1080,3 +1080,80 @@ actions present; the isolated Reset confirm empties the dossier (via a probe).
   `package.json` on release; "unsaved changes" is in-memory only (no route/beforeunload guard).
 - No browser pass (no connected Chrome) — re-verify at 1440/390 × tr light/dark + en: the rail vs mobile
   selector, section switching + focus, long Turkish labels, country packs, import/export + reset dialogs.
+
+## Iteration 18 handoff (2026-07-28) — Onboarding & first-run experience (dedicated `/welcome` surface)
+
+Turned first run from an accidental empty state into a deliberate **first-run product surface**: a dedicated
+`/welcome` route hosting a calm **≤4-step guided setup** (Welcome → Language & destination → Create or import
+→ Ready, ~1 min) that gets a brand-new user to create (or import) their first dossier, then hands off to the
+Dashboard. **Pure presentation**: no dossier-schema, import/export-format, storage, or validation change; it
+reuses the wizard architecture, the import/export services, and provider actions. **No persistence added** —
+entry is derived from `hasData` alone.
+
+### Baseline recorded (real, from code)
+`format:check` ✓ · `typecheck` ✓ · `lint` 0 errors · `test` **396/396** (50 files) · `build` ✓. Only two
+localStorage keys (`visaflow-theme`, `visaflow-locale`).
+
+### Architecture — pure adapter (ADR-031), `src/features/onboarding/`
+- `onboarding-model.ts` — `ONBOARDING_STEP_IDS` (welcome/setup/create/ready) + `resolveStep` (invalid →
+  `welcome`); positional `deriveOnboardingStepStatuses(current)`; **`firstRunTarget(hasData)`** (`/welcome`
+  vs `/dashboard` — the index-route decision); `DEFAULT_DESTINATION_COUNTRY = 'GR'` (single source, replaces
+  the old page-local literal). Pure, unit-tested.
+
+### Components (`src/components/onboarding/` + page)
+`OnboardingWelcomeStep` (value prop + the three promises — privacy / no-prediction / autosave — reusing the
+Settings `disclaimer.noPrediction`/`privacy.*` keys; get-started + **"Explore first"** escape),
+`OnboardingSetupStep` (language `SegmentedControl` + `CountryCombobox`, honest "Greece is the available pack"
+note), `OnboardingCreateStep` (create via `initializeEmpty` / import via `readFileAsText`→`importPartial`→
+`loadDossier` / example), `OnboardingReadyStep` (Dashboard/Documents/Validation one-liners + continue).
+`WelcomePage` is a thin Stepper two-pane shell: `PageHeader` (single `h1`) + rail + step body keyed by
+`?step=` **synced to the URL** (Back/Forward), focus-to-`h2` on change, mount-time "already have a dossier"
+guard (captured via `useState`, not a ref — read during render) that offers a calm "continue" instead of
+restarting. The shared **`NoDossierState`** is upgraded into the one canonical empty-workspace surface
+(injectable title/description/icon/section/hint + start→`/welcome` / import→`/welcome?step=create` /
+how-it-works→`/settings?section=privacy`); a second variant is demoed in `/playground`.
+
+### What stayed pure / reused
+Reuses the wizard pattern (`Stepper`, `?step=`, focus) + `EmptyState`/`GuidanceNote`/`CountryCombobox`/
+`SegmentedControl`/`Button`; create/import reuse `initializeEmpty` + the import/export services (no format
+change); reassurance copy reuses the Settings disclaimer/privacy keys. Router integration is minimal:
+`FirstRunRedirect` (index, on `hasData`) + the lazy `/welcome` route; the Dashboard empty state is repointed
+to `/welcome` (its only change). No domain workspace page or validation file was touched — the eight empty
+workspaces change only through the shared `NoDossierState`.
+
+### Product guarantees
+No schema/storage/import-export/validation change; still exactly two localStorage keys; **no
+onboarding-completed flag / no new key** (a skipped, dossier-less user seeing `/welcome` again after a refresh
+is by design, consistent with the in-memory model); the no-prediction disclaimer (ADR-016) is surfaced on the
+welcome step; only the index route redirects (no global hard redirect — every workspace route stays reachable);
+`?step=` is additive with a safe fallback and working Back/Forward.
+
+### i18n
+New `onboarding.json` namespace both locales (title/description · nav · stepper · actions · welcome · setup ·
+create · ready · existing) with tr/en parity, registered in `src/i18n/index.ts`. Extends `common:noDossier.*`
+with `startAction`/`importAction`/`learnAction`. Reuses `settings:disclaimer.noPrediction`/`privacy.*` and
+`visa-domain:` country names. Stored values unchanged; exported JSON untouched.
+
+### Gates (this iteration)
+`format:check` ✓ · `lint` 0 errors / 58 warnings (all acceptable categories) · `typecheck` ✓ · `test`
+**417/417** (396 + new; 53 files) · `build` ✓ (`/welcome` a lazy chunk; no new dependency). Not committed,
+not pushed. Note: under heavy parallel load a few pre-existing tests can flake (design-system timeouts, and
+occasional vitest "failed to start forks worker" for finance/employment); they pass on a clean/less-parallel
+run.
+
+### Tests
+Pure: `onboarding-model` (resolveStep valid/invalid, stepIndex, positional statuses, `firstRunTarget` both
+branches, default country). Render (`welcome-page`, both locales): single `h1` + the step rail; `?step=create`
+deep-link lands; invalid `?step=` falls back to welcome; Get-started→Back navigation; **"Explore first"** →
+`/dashboard`; **create** → Probe `has-applicant` yes + lands on Ready; import path present; **no new storage
+keys** after the create flow; a dossier at mount → the calm "continue" panel (no rail). Routing
+(`first-run-routing`): root `/` → `/welcome` (no dossier) / `/dashboard` (dossier) via the real
+`FirstRunRedirect`; the shared `NoDossierState` primary CTA links to `/welcome`. Updated the Dashboard
+empty-state test to the new `/welcome` link.
+
+### Known limitations / next
+- One country pack (Greece); entry is `hasData`-only, so onboarding completion is not remembered across a
+  refresh (by design — no persistence); "unsaved changes" remains in-memory only.
+- No browser pass (no connected Chrome) — re-verify at 1440/390 × tr light/dark + en: the 4-step flow, the
+  language/country step, create/import/example, "Explore first", the "already have a dossier" panel, and
+  focus movement on step change.

@@ -1,6 +1,6 @@
 # Current Implementation Status
 
-Last updated: 2026-07-27
+Last updated: 2026-07-28
 
 ## Completed Features
 
@@ -121,6 +121,18 @@ Last updated: 2026-07-27
       (export/import/example reusing the existing services, replace-confirm) ·
       About · Advanced. Pure presentation — no schema/storage/validation change,
       fixes the heading outline and hardcoded theme labels (ADR-030)
+- [x] First-run experience — a dedicated `/welcome` surface (not an accidental
+      empty state): a calm ≤4-step guided setup (Welcome → Language & destination
+      → Create or import → Ready) over a pure adapter
+      (`src/features/onboarding/onboarding-model.ts`) that reuses the wizard
+      pattern (`Stepper`, `?step=` synced to the URL, focus-to-heading) and the
+      import/export services + `initializeEmpty`. The index route redirects on
+      `hasData` alone (`firstRunTarget`) — no persisted "completed" flag, no new
+      storage key; a returning user with a dossier gets a calm "continue," never a
+      restart. The shared `NoDossierState` is upgraded into the one canonical
+      empty-workspace surface (injectable title/description/icon/hint + start /
+      import / how-it-works) so every empty page routes into the journey. Pure
+      presentation — no schema/storage/validation change (ADR-031)
 - [x] Validation Center — the dossier review workspace: a review hero (readiness
       + checks passed + items needing attention + one suggested next step),
       findings grouped by domain with a calm health label and a direct
@@ -142,7 +154,8 @@ Last updated: 2026-07-27
       timeline (`TimelineHero`, `TimelineModeSelector`, `PreparationPlan`,
       `PreparationTaskCard`, `DateWindowBadge`, `KeyDatesTimeline`,
       `DocumentFreshnessList`, `AppointmentDaySummary`) and settings
-      (`SettingsSection`, `SettingRow`)
+      (`SettingsSection`, `SettingRow`) and onboarding (the canonical, injectable
+      `NoDossierState` empty-workspace surface + the `/welcome` step components)
       families — all in `/playground`
 - [x] Add custom documents / re-add template requirements / additive template
       sync (never deletes applicant data); custom docs use a stable `CUSTOM-` code
@@ -185,6 +198,8 @@ These warnings don't affect functionality.
 - Schema validation: covered
 - Dashboard model (pure adapter): covered
 - Component/render tests: dashboard + app shell (bilingual)
+- Onboarding: pure model (steps, `resolveStep`, `firstRunTarget`) + first-run
+  routing + the `/welcome` flow (bilingual), incl. a no-new-storage-keys check
 - E2E tests: not yet implemented
 
 ## Build Status
@@ -193,7 +208,7 @@ All checks pass:
 - `pnpm format:check` - PASS
 - `pnpm lint` - 0 errors (warnings acceptable, see below)
 - `pnpm typecheck` - PASS (`tsc -b`)
-- `pnpm test` - 396/396 PASS
+- `pnpm test` - 416/416 PASS
 - `pnpm build` - SUCCESS
 
 Note: an earlier version of this file claimed 23/23 tests and `tsc --noEmit`;
