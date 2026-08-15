@@ -2,6 +2,7 @@ import {
   AlertTriangle,
   Ban,
   Check,
+  CircleCheck,
   CircleDashed,
   CircleSlash,
   type LucideIcon,
@@ -28,6 +29,8 @@ import type {
 
 export const CHECKLIST_STATE_TONE: Record<ChecklistState, StatusTone> = {
   ready: 'success',
+  // In hand, awaiting confirmation — progress, never a defect (ADR-033).
+  obtained: 'accent',
   needsAttention: 'warning',
   missing: 'neutral',
   optional: 'neutral',
@@ -36,6 +39,7 @@ export const CHECKLIST_STATE_TONE: Record<ChecklistState, StatusTone> = {
 
 export const CHECKLIST_STATE_ICON: Record<ChecklistState, LucideIcon> = {
   ready: Check,
+  obtained: CircleCheck,
   needsAttention: AlertTriangle,
   missing: CircleDashed,
   optional: CircleDashed,

@@ -1,9 +1,9 @@
 import { describe, it, expect } from 'vitest'
 import { buildTimelineModel } from '@/features/timeline/timeline-model'
-import {
-  buildDocumentBuckets,
-  deriveNextActions,
-} from '@/features/dashboard/dashboard-model'
+import { buildDocumentReadiness } from '@/features/readiness/document-readiness'
+import { requiredRequirementCodes } from '@/features/readiness/requirement-readiness'
+import { resolveVisaTemplate } from '@/config/countries'
+import { deriveNextActions } from '@/features/readiness/readiness-model'
 import { runValidation } from '@/domain/rules/runner'
 import type { Applicant } from '@/domain/schemas/applicant.schema'
 import type { Application } from '@/domain/schemas/application.schema'
@@ -77,7 +77,13 @@ describe('buildTimelineModel — Dashboard priority compatibility', () => {
       sponsors: [],
     }
     const expected = deriveNextActions(
-      buildDocumentBuckets(DOCUMENTS),
+      buildDocumentReadiness({
+        documents: DOCUMENTS,
+        requiredRequirementCodes: requiredRequirementCodes(
+          resolveVisaTemplate(app.destinationCountry, app.visaType),
+          app
+        ),
+      }),
       runValidation(dossier),
       app
     )[0]

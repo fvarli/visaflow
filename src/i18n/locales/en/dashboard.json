@@ -23,8 +23,6 @@
     "checkIssues": "Check issues"
   },
   "hero": {
-    "readinessLabel": "Dossier readiness",
-    "subtitle": "How much of your dossier is assembled — not a prediction of any decision.",
     "nextMilestoneLabel": "Next milestone",
     "nextMilestoneEmpty": "No upcoming dates yet.",
     "verdict": {
@@ -44,6 +42,7 @@
       "resolveErrors": "These conflicts can block your application — resolve them first.",
       "completeMissingDocs": "Your dossier isn't complete until every required document is added.",
       "updateDocuments": "Some documents are out of date and should be refreshed before you apply.",
+      "confirmDocuments": "You already have these — check them and mark them ready for the dossier.",
       "reviewWarnings": "A few details are worth double-checking for consistency.",
       "setAppointment": "Booking your appointment anchors your whole preparation timeline.",
       "addTrip": "Your travel dates drive the insurance, accommodation and timeline checks."
@@ -52,6 +51,7 @@
       "resolveErrors": "A few minutes",
       "completeMissingDocs": "Varies by document",
       "updateDocuments": "A few minutes",
+      "confirmDocuments": "A quick check",
       "reviewWarnings": "A quick review",
       "setAppointment": "About 5 minutes",
       "addTrip": "About 5 minutes"
@@ -61,6 +61,7 @@
     "resolveErrors": "Resolve errors ({{count}})",
     "completeMissingDocs": "Complete missing documents ({{count}})",
     "updateDocuments": "Update documents ({{count}})",
+    "confirmDocuments": "Confirm received documents ({{count}})",
     "reviewWarnings": "Review warnings ({{count}})",
     "setAppointment": "Set your appointment date",
     "addTrip": "Add your trip details"
@@ -79,12 +80,6 @@
   },
   "documentsSummary": {
     "title": "Documents",
-    "description": "{{ready}} of {{total}} ready",
-    "ready": "Ready",
-    "needsUpdate": "Needs update",
-    "requested": "Requested",
-    "missing": "Missing",
-    "optional": "Optional",
     "openWorkspace": "Open documents workspace",
     "empty": "No documents yet."
   },
@@ -117,6 +112,7 @@
       "applicantOnFile": "Applicant details on file",
       "passportOnFile": "Passport on file",
       "documentsReady": "{{count}} documents ready",
+      "documentsObtained": "{{count}} documents obtained, awaiting confirmation",
       "documentsNeedUpdate": "{{count}} documents need updating",
       "appointmentScheduled": "Appointment scheduled",
       "tripPlanned": "Trip planned",

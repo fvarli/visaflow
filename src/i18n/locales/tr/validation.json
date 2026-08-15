@@ -33,7 +33,6 @@
     "subtitle": "Başvurudan önce dosyanızın bölüm bölüm sakin bir incelemesi — neler şimdiden iyi görünüyor ve neler hâlâ dikkatinizi bekliyor.",
     "disclaimer": "Bu kontroller yalnızca düzenlemeye yardımcı olur, resmî gereklilik değildir. Gereklilikleri her zaman yetkili konsolosluk veya vize merkezinden doğrulayın.",
     "hero": {
-      "readinessLabel": "Dosya tamamlanma düzeyi",
       "nextRecommendation": "Önerilen sonraki adım",
       "allClearBody": "Kontrol edebildiğimiz her şey tutarlı görünüyor. Randevunuzdan önce her ayrıntıyı yine de teyit etmeyi unutmayın.",
       "checksPassed_one": "{{total}} kontrolden {{count}} tanesi başarılı",

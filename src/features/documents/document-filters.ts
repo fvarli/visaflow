@@ -28,12 +28,21 @@ export const EMPTY_FILTERS: DocumentFilters = {
   requirement: 'all',
 }
 
-/** The filter each overview-hero bucket applies when clicked. */
+/**
+ * The filter each overview-hero bucket applies when clicked.
+ *
+ * Every required-scoped chip filters to `required`, so the count on a chip and
+ * the number of rows it reveals always match. `obtained` and `notApplicable`
+ * exist because those documents were previously reachable only through the
+ * manual status dropdown — the hero counted them nowhere and no chip found them.
+ */
 export const QUICK_FILTERS: Record<BucketKey, Partial<DocumentFilters>> = {
-  ready: { status: 'ready', requirement: 'all' },
+  ready: { status: 'ready', requirement: 'required' },
+  obtained: { status: 'received', requirement: 'required' },
+  requested: { status: 'requested', requirement: 'required' },
+  needsUpdate: { status: 'needs_update', requirement: 'required' },
   missing: { status: 'not_started', requirement: 'required' },
-  needsUpdate: { status: 'needs_update', requirement: 'all' },
-  requested: { status: 'requested', requirement: 'all' },
+  notApplicable: { status: 'not_applicable', requirement: 'required' },
   optional: { status: 'all', requirement: 'optional' },
 }
 

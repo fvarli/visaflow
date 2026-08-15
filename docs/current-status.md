@@ -1,6 +1,6 @@
 # Current Implementation Status
 
-Last updated: 2026-08-15
+Last updated: 2026-08-15 (readiness unification)
 
 ## Completed Features
 
@@ -154,6 +154,23 @@ Last updated: 2026-08-15
       of external documents it never holds. Pure adapters in `src/features/review/*`;
       composition only — no new readiness, no new counts, no second document-status
       store, no PDF yet, no fake Print button (ADR-032)
+- [x] **One canonical dossier readiness** — `src/features/readiness/` owns the single
+      definition; Dashboard, Documents, Validation Center, Timeline and Final Review all
+      consume it and render it under one shared label (`common:readiness.*`). Six divergent
+      derivations were replaced (the same dossier used to read 45% and 36% simultaneously).
+      `not_applicable` now leaves **both** sides of the fraction, so marking work irrelevant
+      never moves the number and 100% stays reachable; `received` became **"obtained"** —
+      never missing, never ready, never amber, and never a finding. The five applicable
+      classes provably partition the denominator, fixing two segmented bars that left an
+      unexplained gap and quick-filter chips that could not reach `received`/`not_applicable`
+      documents at all. Readiness and consistency health are distinct axes, proven independent
+      by test (ADR-033, `docs/readiness.md`)
+- [x] Final Review polish — a `?mode=departure` **departure check**: a compact, mobile-first
+      final folder check over the *same* review model (appointment → bundles to bring →
+      VisaFlow-generated sheets → what is unresolved → one action) that never claims physical
+      possession and persists nothing; plus an *All / Needs attention* checklist filter that
+      isolates the unresolved items among 20+ rows without becoming a second Documents
+      workspace (ADR-033)
 - [x] Reusable primitives: `Stepper`, `FieldHelp`, `GuidanceNote`,
       `CountryCombobox` (searchable, ISO-code + `Intl.DisplayNames` labels),
       generic `CollectionEditor`, `SegmentedControl`, plus trip, document and
@@ -218,6 +235,10 @@ These warnings don't affect functionality.
   facts, print-package availability + the "an external document is never a
   VisaFlow-generated sheet" invariant, and reuse equality against the Dashboard,
   Timeline and Validation Center) + a bilingual render test of every section
+- Readiness invariants: one shared fixture set (`src/tests/fixtures/dossiers.ts`) asserted
+  across all five surfaces — same number, same state, same priority; plus `not_applicable`
+  neutrality, the `received` semantics incl. task-completion-vs-readiness, and
+  readiness/consistency independence
 - E2E tests: not yet implemented
 
 ## Build Status
@@ -226,7 +247,7 @@ All checks pass:
 - `pnpm format:check` - PASS
 - `pnpm lint` - 0 errors (warnings acceptable, see below)
 - `pnpm typecheck` - PASS (`tsc -b`)
-- `pnpm test` - 482/482 PASS (58 files)
+- `pnpm test` - 571/571 PASS (60 files)
 - `pnpm build` - SUCCESS
 
 Note: an earlier version of this file claimed 23/23 tests and `tsc --noEmit`;

@@ -1,13 +1,15 @@
 import { describe, it, expect } from 'vitest'
 import {
   buildDashboardModel,
-  buildDocumentBuckets,
   buildDossierSnapshot,
   buildTimeline,
   dashboardFindingLink,
+} from '@/features/dashboard/dashboard-model'
+import { buildDocumentReadiness } from '@/features/readiness/document-readiness'
+import {
   deriveNextActions,
   deriveReadinessState,
-} from '@/features/dashboard/dashboard-model'
+} from '@/features/readiness/readiness-model'
 import type { ValidationFinding, ValidationResult } from '@/domain/rules/types'
 import type { Application } from '@/domain/schemas/application.schema'
 import type { Applicant } from '@/domain/schemas/applicant.schema'
@@ -97,48 +99,60 @@ const MIXED_DOCS: Document[] = [
   doc('ACCOMMODATION', 'not_started', 'accommodation'),
 ]
 
-describe('buildDocumentBuckets', () => {
-  it('partitions required documents so ready + missing + needsUpdate = total', () => {
-    const b = buildDocumentBuckets(MIXED_DOCS)
-    expect(b.total).toBe(10)
-    expect(b.ready).toBe(4)
-    expect(b.needsUpdate).toBe(1)
-    expect(b.missing).toBe(5)
-    expect(b.ready + b.missing + b.needsUpdate).toBe(b.total)
-    expect(b.completionPercent).toBe(40)
+describe('canonical readiness (consumed by the dashboard)', () => {
+  it('partitions the applicable required documents exactly', () => {
+    const r = buildDocumentReadiness({ documents: MIXED_DOCS })
+    expect(r.applicable).toBe(10)
+    expect(r.ready).toBe(4)
+    expect(r.needsUpdate).toBe(1)
+    expect(r.obtained).toBe(1)
+    expect(r.inProgress).toBe(1)
+    expect(r.notStarted).toBe(3)
+    expect(
+      r.ready + r.obtained + r.inProgress + r.notStarted + r.needsUpdate
+    ).toBe(r.applicable)
+    // Unchanged from the old arithmetic — this fixture has no not_applicable.
+    expect(r.percent).toBe(40)
   })
 
-  it('counts not_applicable as ready and ignores optional documents', () => {
-    const b = buildDocumentBuckets([
-      doc('A', 'not_applicable'),
-      doc('B', 'ready'),
-      doc('C', 'not_started', 'supporting', false), // optional — excluded
-    ])
-    expect(b.total).toBe(2)
-    expect(b.ready).toBe(2)
-    expect(b.completionPercent).toBe(100)
+  it('excludes not_applicable from the denominator and ignores optional documents', () => {
+    const r = buildDocumentReadiness({
+      documents: [
+        doc('A', 'not_applicable'),
+        doc('B', 'ready'),
+        doc('C', 'not_started', 'supporting', false), // optional — excluded
+      ],
+    })
+    // The old model counted not_applicable as completed work; it now leaves
+    // both sides, so one ready document out of one applicable is 100%.
+    expect(r.applicable).toBe(1)
+    expect(r.notApplicable).toBe(1)
+    expect(r.requiredTotal).toBe(2)
+    expect(r.ready).toBe(1)
+    expect(r.optional).toBe(1)
+    expect(r.percent).toBe(100)
   })
 
-  it('reports 0% completion with no required documents', () => {
-    expect(buildDocumentBuckets([]).completionPercent).toBe(0)
+  it('reports 0% with no required documents', () => {
+    expect(buildDocumentReadiness({ documents: [] }).percent).toBe(0)
   })
 })
 
 describe('deriveReadinessState', () => {
   it('is not_started with no required documents', () => {
-    const b = buildDocumentBuckets([])
+    const b = buildDocumentReadiness({ documents: [] })
     expect(deriveReadinessState(b, [], 0, false)).toBe('not_started')
   })
 
   it('is ready_for_appointment when complete, error-free and scheduled', () => {
     const docs = [doc('A', 'ready'), doc('B', 'ready')]
-    const b = buildDocumentBuckets(docs)
+    const b = buildDocumentReadiness({ documents: docs })
     expect(deriveReadinessState(b, docs, 0, true)).toBe('ready_for_appointment')
   })
 
   it('stays preparing when complete but no appointment is set', () => {
     const docs = [doc('A', 'ready')]
-    const b = buildDocumentBuckets(docs)
+    const b = buildDocumentReadiness({ documents: docs })
     expect(deriveReadinessState(b, docs, 0, false)).toBe('preparing')
   })
 
@@ -148,12 +162,12 @@ describe('deriveReadinessState', () => {
       doc('TRANSPORT_RESERVATION', 'not_started', 'travel'),
       doc('ACCOMMODATION', 'not_started', 'accommodation'),
     ]
-    const b = buildDocumentBuckets(docs)
+    const b = buildDocumentReadiness({ documents: docs })
     expect(deriveReadinessState(b, docs, 0, true)).toBe('waiting_reservations')
   })
 
   it('is documents_remaining when non-reservation documents are outstanding', () => {
-    const b = buildDocumentBuckets(MIXED_DOCS)
+    const b = buildDocumentReadiness({ documents: MIXED_DOCS })
     expect(deriveReadinessState(b, MIXED_DOCS, 0, true)).toBe(
       'documents_remaining'
     )
@@ -162,7 +176,7 @@ describe('deriveReadinessState', () => {
 
 describe('deriveNextActions', () => {
   it('orders actions by priority and carries counts and routes', () => {
-    const buckets = buildDocumentBuckets(MIXED_DOCS)
+    const buckets = buildDocumentReadiness({ documents: MIXED_DOCS })
     const validation: ValidationResult = {
       ...emptyValidation,
       errorCount: 2,
@@ -179,20 +193,28 @@ describe('deriveNextActions', () => {
       'resolveErrors',
       'completeMissingDocs',
       'updateDocuments',
+      // Confirming a document you already hold ranks below obtaining one.
+      'confirmDocuments',
       'reviewWarnings',
       'setAppointment',
       'addTrip',
     ])
     expect(actions[0]?.tone).toBe('danger')
 
+    // `received` is no longer counted as missing — it is in hand, awaiting
+    // confirmation, and gets its own action instead.
     const missing = actions.find((a) => a.id === 'completeMissingDocs')
-    expect(missing?.count).toBe(5)
+    expect(missing?.count).toBe(4)
     expect(missing?.to).toBe('/documents')
+
+    const confirm = actions.find((a) => a.id === 'confirmDocuments')
+    expect(confirm?.count).toBe(1)
+    expect(confirm?.to).toBe('/documents')
   })
 
   it('emits no actions when everything is complete and set', () => {
     const docs = [doc('A', 'ready')]
-    const buckets = buildDocumentBuckets(docs)
+    const buckets = buildDocumentReadiness({ documents: docs })
     const actions = deriveNextActions(
       buckets,
       emptyValidation,
@@ -342,17 +364,18 @@ describe('buildDashboardModel', () => {
       NOW
     )
     expect(populated.active.validation.totalRules).toBeGreaterThan(0)
-    expect(populated.active.documents.completionPercent).toBe(40)
+    expect(populated.active.documents.percent).toBe(40)
 
     // Given-name greeting only; null (→ neutral) when there is no applicant.
     expect(populated.active.greetingName).toBe('Demo')
     expect(empty.active.greetingName).toBeNull()
 
-    // The five-way breakdown reuses the Documents workspace definition.
-    expect(populated.active.documentsBreakdown.requiredTotal).toBe(10)
-    expect(populated.active.documentsBreakdown.ready).toBe(4)
-    expect(populated.active.documentsBreakdown.needsUpdate).toBe(1)
-    expect(populated.active.documentsBreakdown.requested).toBe(1)
+    // One canonical figure backs both the ring and the documents breakdown.
+    expect(populated.active.documents.applicable).toBe(10)
+    expect(populated.active.documents.ready).toBe(4)
+    expect(populated.active.documents.needsUpdate).toBe(1)
+    expect(populated.active.documents.inProgress).toBe(1)
+    expect(populated.active.documents.obtained).toBe(1)
   })
 
   it('surfaces the nearest upcoming date as the next milestone', () => {

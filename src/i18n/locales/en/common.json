@@ -33,6 +33,26 @@
     "required": "Required",
     "yes": "Yes"
   },
+  "readiness": {
+    "label": "Dossier readiness",
+    "hint": "How much of your dossier is ready — never a prediction about the visa decision.",
+    "percent": "{{percent}}% ready",
+    "ofApplicable": "{{ready}} of {{total}} required documents ready",
+    "nothingToTrack": "No required documents to track yet",
+    "outstanding_one": "{{count}} document still to confirm",
+    "outstanding_other": "{{count}} documents still to confirm",
+    "obtained_one": "{{count}} obtained, awaiting confirmation",
+    "obtained_other": "{{count}} obtained, awaiting confirmation",
+    "class": {
+      "ready": "Ready",
+      "obtained": "Obtained",
+      "inProgress": "Requested",
+      "needsUpdate": "Needs update",
+      "notStarted": "Not started",
+      "notApplicable": "Not applicable",
+      "optional": "Optional"
+    }
+  },
   "units": {
     "days_one": "{{count}} day",
     "days_other": "{{count}} days",

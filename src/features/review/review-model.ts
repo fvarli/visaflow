@@ -6,16 +6,18 @@ import type { Document } from '@/domain/schemas/document.schema'
 import type { Sponsor } from '@/domain/schemas/sponsor.schema'
 import { resolveVisaTemplate } from '@/config/countries'
 import { useDossier } from '@/app/providers/DossierProvider'
-// Readiness and priority are the Dashboard's, imported not re-derived, exactly
-// as the Timeline does — so Dashboard, Timeline and Final Review can never
-// disagree about how ready the dossier is or what to do first.
+// Readiness and priority come from the canonical readiness feature, imported
+// not re-derived — so Dashboard, Documents, Timeline, Validation Center and
+// Final Review can never disagree about how ready the dossier is (ADR-033).
+import { buildDocumentReadiness } from '@/features/readiness/document-readiness'
+import type { DocumentReadiness } from '@/features/readiness/readiness-types'
 import {
-  buildDocumentBuckets,
   deriveNextActions,
   deriveReadinessState,
   type ActionDescriptor,
   type ReadinessState,
-} from '@/features/dashboard/dashboard-model'
+} from '@/features/readiness/readiness-model'
+import { requiredRequirementCodes } from '@/features/readiness/requirement-readiness'
 // Findings, counts and per-area health are the Validation Center's model, used
 // whole. Final Review re-reads no rule and re-counts nothing (ADR-025).
 import {
@@ -64,7 +66,12 @@ export interface ReviewInput {
 export interface ReviewReadiness {
   percent: number
   state: ReadinessState
-  missingCount: number
+  /** Applicable work not yet confirmed ready. */
+  outstanding: number
+  /** In hand but unconfirmed — surfaced so it never reads as missing. */
+  obtained: number
+  /** The full canonical figure, for surfaces that need the breakdown. */
+  documents: DocumentReadiness
 }
 
 export interface ReviewAttention {
@@ -111,9 +118,12 @@ export function buildFinalReviewModel(
   // Reused wholesale — same input, same output as the Validation Center.
   const validation = buildValidationModel(input)
 
-  const buckets = buildDocumentBuckets(documents)
+  const readiness = buildDocumentReadiness({
+    documents,
+    requiredRequirementCodes: requiredRequirementCodes(template, application),
+  })
   const readinessState = deriveReadinessState(
-    buckets,
+    readiness,
     documents,
     validation.validation.errorCount,
     appointmentDate !== null
@@ -143,16 +153,19 @@ export function buildFinalReviewModel(
   return {
     hasData,
     readiness: {
-      percent: buckets.completionPercent,
+      percent: readiness.percent,
       state: readinessState,
-      missingCount: buckets.missing,
+      outstanding: readiness.outstanding,
+      obtained: readiness.obtained,
+      documents: readiness,
     },
     appointmentDate,
     appointmentDaysUntil: appointmentDate
       ? differenceInCalendarDays(parseISO(appointmentDate), now)
       : null,
     primaryAction:
-      deriveNextActions(buckets, validation.validation, application)[0] ?? null,
+      deriveNextActions(readiness, validation.validation, application)[0] ??
+      null,
     summary,
     checklist,
     attention: {

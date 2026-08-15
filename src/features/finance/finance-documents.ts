@@ -1,7 +1,5 @@
-import {
-  buildDocumentBuckets5,
-  type DocumentBuckets5,
-} from '@/features/documents/documents-model'
+import { buildDocumentReadiness } from '@/features/readiness/document-readiness'
+import type { DocumentReadiness } from '@/features/readiness/readiness-types'
 import { applicableRequirements } from '@/features/documents/template-sync'
 import type { Document } from '@/domain/schemas/document.schema'
 import type { Application } from '@/domain/schemas/application.schema'
@@ -81,7 +79,7 @@ export interface GatherGroupView {
 }
 
 export interface FinanceDocumentsView {
-  buckets: DocumentBuckets5
+  readiness: DocumentReadiness
   /** Every applicable finance requirement, grouped, with its current status. */
   groups: FinanceDocGroupView[]
   /** All applicable finance requirement rows, flat. */
@@ -132,7 +130,7 @@ export function buildFinanceDocuments(
   const financeDocs = documents.filter(
     (d) => financeDocGroup(d.code, d.category, d.ownerType) !== null
   )
-  const buckets = buildDocumentBuckets5(financeDocs)
+  const readiness = buildDocumentReadiness({ documents: financeDocs })
 
   const applicable = template
     ? applicableRequirements(template, application)
@@ -170,7 +168,7 @@ export function buildFinanceDocuments(
   })).filter((g) => g.rows.length > 0)
 
   return {
-    buckets,
+    readiness,
     groups,
     rows,
     gather,

@@ -64,8 +64,6 @@ export interface SponsorDocumentsView {
   /** Applicable sponsor requirements with no document instance at all. */
   missingRequirements: SponsorMissingRequirement[]
   linkedCount: number
-  /** Linked documents whose status is `ready`. */
-  readyCount: number
 }
 
 function toRow(doc: Document, linked: boolean): SponsorDocRow {
@@ -130,6 +128,5 @@ export function buildSponsorDocuments(
     stale,
     missingRequirements,
     linkedCount: linked.length,
-    readyCount: linked.filter((r) => r.status === 'ready').length,
   }
 }

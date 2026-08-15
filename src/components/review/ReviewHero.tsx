@@ -22,7 +22,7 @@ interface ReviewHeroProps {
  * statement about the visa itself (ADR-016).
  */
 export function ReviewHero({ model }: ReviewHeroProps) {
-  const { t } = useTranslation(['review', 'dashboard'])
+  const { t } = useTranslation(['review', 'dashboard', 'common'])
   const td = dynamicT(t)
   const format = useFormatters()
 
@@ -37,7 +37,7 @@ export function ReviewHero({ model }: ReviewHeroProps) {
         <ReadinessRing
           value={readiness.percent}
           size={132}
-          label={t('review:hero.readiness')}
+          label={t('common:readiness.label')}
           caption={td(`review:hero.state.${readiness.state}`)}
           className="mx-auto shrink-0 sm:mx-0"
         />
@@ -81,7 +81,7 @@ export function ReviewHero({ model }: ReviewHeroProps) {
               )}
             </div>
             <p className="text-caption text-muted-foreground">
-              {t('review:hero.readinessHint')}
+              {t('common:readiness.hint')}
             </p>
           </div>
 

@@ -10,6 +10,9 @@ import type { Sponsor } from '@/domain/schemas/sponsor.schema'
 import type { DocumentCategory } from '@/domain/types/common'
 import type { VisaTypeTemplate } from '@/config/types'
 import type { ValidationFinding } from '@/domain/rules/types'
+import { buildDocumentReadiness } from '@/features/readiness/document-readiness'
+import type { DocumentReadiness } from '@/features/readiness/readiness-types'
+import { requiredRequirementCodes } from '@/features/readiness/requirement-readiness'
 
 /**
  * Pure presentation adapter for the Documents workspace.
@@ -28,39 +31,35 @@ export interface DocumentsModelInput {
   sponsors: Sponsor[]
 }
 
-/** The five named buckets the overview hero surfaces (plus completion). */
-export interface DocumentBuckets5 {
-  requiredTotal: number
-  ready: number
-  needsUpdate: number
-  requested: number
-  missing: number
-  optional: number
-  completionPercent: number
-}
-
+/**
+ * The quick-filter buckets the overview hero surfaces.
+ *
+ * These are *display* keys over the canonical readiness classes (ADR-033), not
+ * a second arithmetic: the counts come from `DocumentReadiness`, and clicking a
+ * chip applies the matching status filter, so the number on a chip and the
+ * number of rows it reveals always agree.
+ */
 export type BucketKey =
-  'ready' | 'missing' | 'needsUpdate' | 'requested' | 'optional'
+  | 'ready'
+  | 'obtained'
+  | 'requested'
+  | 'needsUpdate'
+  | 'missing'
+  | 'notApplicable'
+  | 'optional'
 
-export function buildDocumentBuckets5(documents: Document[]): DocumentBuckets5 {
-  const required = documents.filter((d) => d.required)
-  const requiredTotal = required.length
-  const ready = required.filter((d) => d.status === 'ready').length
-  const needsUpdate = required.filter((d) => d.status === 'needs_update').length
-  const requested = required.filter((d) => d.status === 'requested').length
-  const missing = required.filter((d) => d.status === 'not_started').length
-  const optional = documents.length - requiredTotal
-  const completionPercent =
-    requiredTotal > 0 ? Math.round((ready / requiredTotal) * 100) : 0
-  return {
-    requiredTotal,
-    ready,
-    needsUpdate,
-    requested,
-    missing,
-    optional,
-    completionPercent,
-  }
+/** Which readiness figure backs each chip. */
+export const BUCKET_COUNT: Record<
+  BucketKey,
+  (readiness: DocumentReadiness) => number
+> = {
+  ready: (r) => r.ready,
+  obtained: (r) => r.obtained,
+  requested: (r) => r.inProgress,
+  needsUpdate: (r) => r.needsUpdate,
+  missing: (r) => r.notStarted,
+  notApplicable: (r) => r.notApplicable,
+  optional: (r) => r.optional,
 }
 
 /** Reading order for category groups; unknown categories fall to the end. */
@@ -201,7 +200,8 @@ export function associateFindings(
 }
 
 export interface DocumentsModel {
-  buckets: DocumentBuckets5
+  /** The canonical readiness figure — identical to every other surface's. */
+  readiness: DocumentReadiness
   groups: DocumentGroupView[]
   nextDocument: Document | null
   template: VisaTypeTemplate | undefined
@@ -233,7 +233,10 @@ export function buildDocumentsModel(
   }
 
   return {
-    buckets: buildDocumentBuckets5(documents),
+    readiness: buildDocumentReadiness({
+      documents,
+      requiredRequirementCodes: requiredRequirementCodes(template, application),
+    }),
     groups: groupByCategory(documents),
     nextDocument: deriveNextDocument(documents),
     template,

@@ -3,13 +3,14 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { StatusBadge, type StatusTone } from '@/components/ui/status-badge'
 import { cn } from '@/lib/utils'
-import type {
-  DocumentBuckets5,
-  BucketKey,
+import {
+  BUCKET_COUNT,
+  type BucketKey,
 } from '@/features/documents/documents-model'
+import type { DocumentReadiness } from '@/features/readiness/readiness-types'
 
 interface DocumentsHeroProps {
-  buckets: DocumentBuckets5
+  readiness: DocumentReadiness
   bucketLabels: Record<BucketKey, string>
   completionLabel: string
   summaryLabel: string
@@ -25,28 +26,38 @@ interface DocumentsHeroProps {
 
 const BUCKET_TONE: Record<BucketKey, StatusTone> = {
   ready: 'success',
-  missing: 'danger',
-  needsUpdate: 'warning',
+  obtained: 'accent',
   requested: 'info',
+  needsUpdate: 'warning',
+  missing: 'neutral',
+  notApplicable: 'neutral',
   optional: 'neutral',
 }
 
-/** Segment colors mirror the bucket tones; the remainder stays neutral. */
-const BAR_SEGMENTS: {
-  key: Exclude<BucketKey, 'optional'>
-  className: string
-}[] = [
+/**
+ * Segment colors mirror the bucket tones. The five applicable classes partition
+ * `applicable` exactly (ADR-033), so the bar always fills its track — it used to
+ * be drawn over `requiredTotal` with `received`/`not_applicable` in no segment,
+ * leaving an unexplained grey remainder.
+ */
+const BAR_SEGMENTS: { key: BucketKey; className: string }[] = [
   { key: 'ready', className: 'bg-success' },
-  { key: 'needsUpdate', className: 'bg-warning' },
+  { key: 'obtained', className: 'bg-primary/70' },
   { key: 'requested', className: 'bg-info' },
-  { key: 'missing', className: 'bg-danger/70' },
+  { key: 'needsUpdate', className: 'bg-warning' },
+  { key: 'missing', className: 'bg-muted-foreground/30' },
 ]
+
+/** Chips that are only worth showing when they actually hold something. */
+const CONDITIONAL_BUCKETS: BucketKey[] = ['notApplicable', 'optional']
 
 const BUCKET_ORDER: BucketKey[] = [
   'ready',
-  'missing',
-  'needsUpdate',
+  'obtained',
   'requested',
+  'needsUpdate',
+  'missing',
+  'notApplicable',
   'optional',
 ]
 
@@ -57,7 +68,7 @@ const BUCKET_ORDER: BucketKey[] = [
  * score.
  */
 export function DocumentsHero({
-  buckets,
+  readiness,
   bucketLabels,
   completionLabel,
   summaryLabel,
@@ -70,8 +81,8 @@ export function DocumentsHero({
   onOpenNext,
   className,
 }: DocumentsHeroProps) {
-  const total = Math.max(buckets.requiredTotal, 1)
-  const bucketCount = (key: BucketKey) => buckets[key]
+  const total = Math.max(readiness.applicable, 1)
+  const bucketCount = (key: BucketKey) => BUCKET_COUNT[key](readiness)
 
   return (
     <Card className={cn('py-0', className)}>
@@ -84,7 +95,7 @@ export function DocumentsHero({
           </div>
           <div className="bg-muted flex h-2 w-full overflow-hidden rounded-full">
             {BAR_SEGMENTS.map((seg) => {
-              const pct = (buckets[seg.key] / total) * 100
+              const pct = (bucketCount(seg.key) / total) * 100
               if (pct <= 0) return null
               return (
                 <div
@@ -99,6 +110,9 @@ export function DocumentsHero({
           <div className="flex flex-wrap gap-2 pt-1">
             {BUCKET_ORDER.map((key) => {
               const active = activeBucket === key
+              if (CONDITIONAL_BUCKETS.includes(key) && bucketCount(key) === 0) {
+                return null
+              }
               return (
                 <button
                   key={key}

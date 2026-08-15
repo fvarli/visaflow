@@ -5,21 +5,24 @@ import type { Application } from '@/domain/schemas/application.schema'
 import type { Document } from '@/domain/schemas/document.schema'
 import type { Sponsor } from '@/domain/schemas/sponsor.schema'
 import type { Dossier } from '@/domain/schemas/dossier.schema'
-import type {
-  DocumentCategory,
-  DocumentStatus,
-  FinancingSource,
-  VisaType,
-} from '@/domain/types/common'
+import type { FinancingSource, VisaType } from '@/domain/types/common'
 import { runValidation } from '@/domain/rules/runner'
 import type { ValidationFinding, ValidationResult } from '@/domain/rules/types'
 import { resolveVisaTemplate, getSourcesForRefs } from '@/config/countries'
 import type { RequirementSource, ReviewStatus } from '@/config/types'
 import type { StatusTone } from '@/components/ui/status-badge'
+// Readiness and priority are app-wide concepts owned by the readiness feature,
+// not by the Dashboard (ADR-033). This model consumes them like every other
+// surface does, so no two pages can disagree about how ready a dossier is.
+import { buildDocumentReadiness } from '@/features/readiness/document-readiness'
+import type { DocumentReadiness } from '@/features/readiness/readiness-types'
 import {
-  buildDocumentBuckets5,
-  type DocumentBuckets5,
-} from '@/features/documents/documents-model'
+  deriveNextActions,
+  deriveReadinessState,
+  type ActionDescriptor,
+  type ReadinessState,
+} from '@/features/readiness/readiness-model'
+import { requiredRequirementCodes } from '@/features/readiness/requirement-readiness'
 import { useDossier } from '@/app/providers/DossierProvider'
 
 /**
@@ -47,48 +50,6 @@ export interface DashboardInput {
   application: Application | null
   documents: Document[]
   sponsors: Sponsor[]
-}
-
-/**
- * Organizational readiness state. Presentation maps each to a phrase; none of
- * them describes an application's chances.
- */
-export type ReadinessState =
-  | 'not_started'
-  | 'preparing'
-  | 'waiting_reservations'
-  | 'documents_remaining'
-  | 'ready_for_appointment'
-
-/**
- * Required-document buckets, partitioned so ready + missing + needsUpdate sums
- * to total. "missing" = required documents that are neither ready nor flagged
- * for update (i.e. not_started / requested / received). This is the single
- * definition of readiness for the dashboard.
- */
-export interface DocumentBuckets {
-  total: number
-  ready: number
-  missing: number
-  needsUpdate: number
-  completionPercent: number
-}
-
-export type ActionKind =
-  | 'resolveErrors'
-  | 'completeMissingDocs'
-  | 'updateDocuments'
-  | 'reviewWarnings'
-  | 'setAppointment'
-  | 'addTrip'
-
-export interface ActionDescriptor {
-  id: ActionKind
-  tone: StatusTone
-  /** Present when the label is quantified (e.g. "Complete 3 documents"). */
-  count?: number
-  /** Route the action links to. */
-  to: string
 }
 
 export type TimelineItemType =
@@ -159,19 +120,17 @@ export interface ApplicationDashboardModel {
   greetingName: string | null
   countryCode?: string
   visaType?: VisaType
-  documents: DocumentBuckets
   /**
-   * The five-way required-document breakdown for the Documents section — the
-   * same canonical definition the Documents workspace uses. Distinct from
-   * `documents` (the organizational readiness buckets that back the ring, where
-   * `not_applicable` counts as ready).
+   * The canonical readiness figure. The ring, the Documents breakdown and every
+   * other surface read this same object, so there is exactly one arithmetic and
+   * one set of counts for the whole application (ADR-033).
    */
-  documentsBreakdown: DocumentBuckets5
+  documents: DocumentReadiness
   readiness: {
     percent: number
     state: ReadinessState
-    /** Outstanding required-document count, for the "N remaining" phrasing. */
-    missingCount: number
+    /** Applicable work not yet confirmed ready, for the "N remaining" phrasing. */
+    outstanding: number
   }
   appointment: CountdownModel
   trip: (CountdownModel & TripSummaryModel) | null
@@ -201,12 +160,6 @@ export interface DashboardModel {
   active: ApplicationDashboardModel
 }
 
-const READY_STATUSES: DocumentStatus[] = ['ready', 'not_applicable']
-const RESERVATION_CATEGORIES: DocumentCategory[] = [
-  'travel',
-  'accommodation',
-  'insurance',
-]
 /** How far ahead a document expiry is worth surfacing on the dashboard. */
 const EXPIRY_HORIZON_DAYS = 120
 const MAX_UPCOMING = 5
@@ -230,100 +183,6 @@ function dayStatus(iso: string, now: Date): TimelineItemModel['status'] {
 function daysUntil(iso: string | null | undefined, now: Date): number | null {
   if (!iso) return null
   return differenceInCalendarDays(parseISO(iso), now)
-}
-
-export function buildDocumentBuckets(documents: Document[]): DocumentBuckets {
-  const required = documents.filter((d) => d.required)
-  const ready = required.filter((d) => READY_STATUSES.includes(d.status)).length
-  const needsUpdate = required.filter((d) => d.status === 'needs_update').length
-  const missing = required.length - ready - needsUpdate
-  const total = required.length
-  const completionPercent = total > 0 ? Math.round((ready / total) * 100) : 0
-  return { total, ready, missing, needsUpdate, completionPercent }
-}
-
-/**
- * Derive the organizational readiness state. Deterministic, and never a
- * probability — it only describes how assembled the dossier is.
- */
-export function deriveReadinessState(
-  buckets: DocumentBuckets,
-  documents: Document[],
-  errorCount: number,
-  hasAppointment: boolean
-): ReadinessState {
-  if (buckets.total === 0) return 'not_started'
-  if (buckets.completionPercent === 100 && errorCount === 0) {
-    return hasAppointment ? 'ready_for_appointment' : 'preparing'
-  }
-  if (buckets.missing > 0) {
-    const outstanding = documents.filter(
-      (d) =>
-        d.required &&
-        !READY_STATUSES.includes(d.status) &&
-        d.status !== 'needs_update'
-    )
-    const allReservations =
-      outstanding.length > 0 &&
-      outstanding.every((d) => RESERVATION_CATEGORIES.includes(d.category))
-    return allReservations ? 'waiting_reservations' : 'documents_remaining'
-  }
-  return 'preparing'
-}
-
-/**
- * Prioritized next actions, derived from already-computed outputs — no rule
- * threshold is re-implemented here. Order encodes priority: blocking errors
- * first, then throughput (missing docs), then updates/warnings, then structural
- * gaps.
- */
-export function deriveNextActions(
-  buckets: DocumentBuckets,
-  validation: ValidationResult,
-  application: Application | null
-): ActionDescriptor[] {
-  const actions: ActionDescriptor[] = []
-
-  if (validation.errorCount > 0) {
-    actions.push({
-      id: 'resolveErrors',
-      tone: 'danger',
-      count: validation.errorCount,
-      to: '/consistency-checks',
-    })
-  }
-  if (buckets.missing > 0) {
-    actions.push({
-      id: 'completeMissingDocs',
-      tone: 'accent',
-      count: buckets.missing,
-      to: '/documents',
-    })
-  }
-  if (buckets.needsUpdate > 0) {
-    actions.push({
-      id: 'updateDocuments',
-      tone: 'warning',
-      count: buckets.needsUpdate,
-      to: '/documents',
-    })
-  }
-  if (validation.warningCount > 0) {
-    actions.push({
-      id: 'reviewWarnings',
-      tone: 'warning',
-      count: validation.warningCount,
-      to: '/consistency-checks',
-    })
-  }
-  if (!application?.appointment) {
-    actions.push({ id: 'setAppointment', tone: 'neutral', to: '/trip' })
-  }
-  if (!application?.trip) {
-    actions.push({ id: 'addTrip', tone: 'neutral', to: '/trip' })
-  }
-
-  return actions
 }
 
 /**
@@ -354,7 +213,7 @@ export function dashboardFindingLink(
  */
 export function buildDossierSnapshot(input: DashboardInput): SnapshotItem[] {
   const { applicant, application, documents, sponsors } = input
-  const buckets = buildDocumentBuckets5(documents)
+  const readiness = buildDocumentReadiness({ documents })
   const items: SnapshotItem[] = []
 
   if (applicant) {
@@ -373,21 +232,31 @@ export function buildDossierSnapshot(input: DashboardInput): SnapshotItem[] {
       })
     }
   }
-  if (buckets.ready > 0) {
+  if (readiness.ready > 0) {
     items.push({
       id: 'documents-ready',
       key: 'documentsReady',
       tone: 'success',
-      count: buckets.ready,
+      count: readiness.ready,
       to: '/documents',
     })
   }
-  if (buckets.needsUpdate > 0) {
+  // In hand but unconfirmed — a fact worth surfacing, never an alarm.
+  if (readiness.obtained > 0) {
+    items.push({
+      id: 'documents-obtained',
+      key: 'documentsObtained',
+      tone: 'info',
+      count: readiness.obtained,
+      to: '/documents',
+    })
+  }
+  if (readiness.needsUpdate > 0) {
     items.push({
       id: 'documents-needs-update',
       key: 'documentsNeedUpdate',
       tone: 'warning',
-      count: buckets.needsUpdate,
+      count: readiness.needsUpdate,
       to: '/documents',
     })
   }
@@ -551,14 +420,23 @@ function buildApplicationModel(
   const { applicant, application, documents, sponsors } = input
   const hasData = applicant !== null || application !== null
 
-  const buckets = buildDocumentBuckets(documents)
   const validation =
     applicant && application
       ? runValidation(toDossier(applicant, application, documents, sponsors))
       : EMPTY_VALIDATION
 
+  const template = resolveVisaTemplate(
+    application?.destinationCountry,
+    application?.visaType
+  )
+
+  const readiness = buildDocumentReadiness({
+    documents,
+    requiredRequirementCodes: requiredRequirementCodes(template, application),
+  })
+
   const state = deriveReadinessState(
-    buckets,
+    readiness,
     documents,
     validation.errorCount,
     Boolean(application?.appointment)
@@ -568,11 +446,6 @@ function buildApplicationModel(
   const upcomingTimeline = timeline
     .filter((item) => item.status !== 'past')
     .slice(0, MAX_UPCOMING)
-
-  const template = resolveVisaTemplate(
-    application?.destinationCountry,
-    application?.visaType
-  )
   const sources = template?.sourceIds
     ? getSourcesForRefs(application?.destinationCountry, template.sourceIds)
     : []
@@ -592,12 +465,11 @@ function buildApplicationModel(
     greetingName: applicant?.firstName ?? null,
     countryCode: application?.destinationCountry || undefined,
     visaType: application?.visaType,
-    documents: buckets,
-    documentsBreakdown: buildDocumentBuckets5(documents),
+    documents: readiness,
     readiness: {
-      percent: buckets.completionPercent,
+      percent: readiness.percent,
       state,
-      missingCount: buckets.missing,
+      outstanding: readiness.outstanding,
     },
     appointment: {
       date: application?.appointment?.date ?? null,
@@ -605,7 +477,7 @@ function buildApplicationModel(
     },
     trip: buildTripSummary(application, now),
     validation,
-    nextActions: deriveNextActions(buckets, validation, application),
+    nextActions: deriveNextActions(readiness, validation, application),
     timeline,
     upcomingTimeline,
     nextMilestone: upcomingTimeline[0] ?? null,

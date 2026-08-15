@@ -1,12 +1,12 @@
 import { describe, it, expect } from 'vitest'
 import {
-  buildDocumentBuckets5,
   groupByCategory,
   deriveNextDocument,
   classifyDoc,
   associateFindings,
   findingLink,
 } from '@/features/documents/documents-model'
+import { buildDocumentReadiness } from '@/features/readiness/document-readiness'
 import {
   filterDocuments,
   EMPTY_FILTERS,
@@ -40,24 +40,45 @@ const req = (partial: Partial<DocumentRequirement>): DocumentRequirement => ({
   ...partial,
 })
 
-describe('documents model — buckets', () => {
-  it('partitions required documents into five buckets + completion', () => {
+describe('documents model — canonical readiness', () => {
+  it('partitions required documents into classes that sum to applicable', () => {
     const docs = [
       doc({ id: '1', required: true, status: 'ready' }),
       doc({ id: '2', required: true, status: 'needs_update' }),
       doc({ id: '3', required: true, status: 'requested' }),
       doc({ id: '4', required: true, status: 'not_started' }),
-      doc({ id: '5', required: false, status: 'not_started' }),
+      doc({ id: '5', required: true, status: 'received' }),
+      doc({ id: '6', required: true, status: 'not_applicable' }),
+      doc({ id: '7', required: false, status: 'not_started' }),
     ]
-    expect(buildDocumentBuckets5(docs)).toEqual({
-      requiredTotal: 4,
+    expect(buildDocumentReadiness({ documents: docs })).toEqual({
+      requiredTotal: 6,
+      applicable: 5,
+      notApplicable: 1,
       ready: 1,
+      obtained: 1,
+      inProgress: 1,
+      notStarted: 1,
       needsUpdate: 1,
-      requested: 1,
-      missing: 1,
       optional: 1,
-      completionPercent: 25,
+      percent: 20,
+      outstanding: 4,
+      complete: false,
+      hasApplicableWork: true,
     })
+  })
+
+  it('leaves no document unaccounted for — the old five buckets did not sum', () => {
+    const docs = [
+      doc({ id: '1', required: true, status: 'ready' }),
+      doc({ id: '2', required: true, status: 'received' }),
+      doc({ id: '3', required: true, status: 'not_applicable' }),
+    ]
+    const r = buildDocumentReadiness({ documents: docs })
+    expect(
+      r.ready + r.obtained + r.inProgress + r.notStarted + r.needsUpdate
+    ).toBe(r.applicable)
+    expect(r.applicable + r.notApplicable).toBe(r.requiredTotal)
   })
 })
 

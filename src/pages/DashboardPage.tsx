@@ -45,7 +45,7 @@ export default function DashboardPage() {
   const statusLabel =
     app.readiness.state === 'documents_remaining'
       ? td('dashboard:hero.verdict.documents_remaining', {
-          count: app.readiness.missingCount,
+          count: app.readiness.outstanding,
         })
       : td(`dashboard:hero.verdict.${app.readiness.state}`)
   const eyebrow = [countryLabel, visaTypeLabel, statusLabel]
@@ -85,7 +85,7 @@ export default function DashboardPage() {
           <ReadinessHero
             percent={app.readiness.percent}
             state={app.readiness.state}
-            missingCount={app.readiness.missingCount}
+            outstandingCount={app.readiness.outstanding}
             nextMilestone={app.nextMilestone}
           />
         </div>
@@ -100,7 +100,7 @@ export default function DashboardPage() {
           <ConsistencyHealth validation={app.validation} />
         </div>
         <div className="flex flex-col gap-6">
-          <DocumentsSummary breakdown={app.documentsBreakdown} />
+          <DocumentsSummary readiness={app.documents} />
           <TripSummary
             countryCode={app.countryCode}
             trip={app.trip}

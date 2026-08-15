@@ -96,7 +96,8 @@
     "documentsHero": "DocumentsHero",
     "documentCard": "DocumentCard",
     "checklistGroup": "Kontrol listesi grubu",
-    "printPackage": "Yazdırma paketi"
+    "printPackage": "Yazdırma paketi",
+    "reviewMode": "Kontrol görünümü seçici"
   },
   "i18n": {
     "description": "Yerele duyarlı biçimlendirme ve çevrilmiş alan terimleri. Yukarıdan dili değiştirerek her şeyin anında güncellendiğini görebilirsiniz.",

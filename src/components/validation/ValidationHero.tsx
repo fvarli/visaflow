@@ -24,7 +24,8 @@ export function ValidationHero({ hero }: ValidationHeroProps) {
   const findingText = useFindingText()
 
   const {
-    completionPercent,
+    readinessPercent,
+    readiness,
     checksPassed,
     checksTotal,
     attentionCount,
@@ -37,9 +38,9 @@ export function ValidationHero({ hero }: ValidationHeroProps) {
     <Card className="animate-fade-in-up overflow-hidden">
       <CardContent className="flex flex-col gap-6 py-2 sm:flex-row sm:items-center sm:gap-8">
         <ReadinessRing
-          value={completionPercent}
+          value={readinessPercent}
           size={132}
-          label={t('validation:center.hero.readinessLabel')}
+          label={t('common:readiness.label')}
           caption={td(`validation:center.hero.verdict.${verdict}`)}
           className="mx-auto shrink-0 sm:mx-0"
         />
@@ -48,6 +49,14 @@ export function ValidationHero({ hero }: ValidationHeroProps) {
           <div className="space-y-1.5">
             <p className="text-heading text-foreground text-balance font-semibold">
               {td(`validation:center.hero.headline.${verdict}`)}
+            </p>
+            <p className="text-caption text-muted-foreground">
+              {readiness.hasApplicableWork
+                ? t('common:readiness.ofApplicable', {
+                    ready: readiness.ready,
+                    total: readiness.applicable,
+                  })
+                : t('common:readiness.nothingToTrack')}
             </p>
             <div className="flex flex-wrap items-center gap-2">
               <StatusBadge tone="success" dot>

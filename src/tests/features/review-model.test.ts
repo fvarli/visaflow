@@ -1,10 +1,12 @@
 import { describe, it, expect } from 'vitest'
 import { buildFinalReviewModel } from '@/features/review/review-model'
+import { buildDocumentReadiness } from '@/features/readiness/document-readiness'
+import { requiredRequirementCodes } from '@/features/readiness/requirement-readiness'
+import { resolveVisaTemplate } from '@/config/countries'
 import {
-  buildDocumentBuckets,
   deriveNextActions,
   deriveReadinessState,
-} from '@/features/dashboard/dashboard-model'
+} from '@/features/readiness/readiness-model'
 import { buildValidationModel } from '@/features/validation/validation-model'
 import { runValidation } from '@/domain/rules/runner'
 import type { Applicant } from '@/domain/schemas/applicant.schema'
@@ -98,26 +100,37 @@ const dossierOf = (app: Application): Dossier => ({
   sponsors: [],
 })
 
+/** Exactly how every surface builds readiness — documents + the pack's requirements. */
+const canonicalReadiness = (app: Application) =>
+  buildDocumentReadiness({
+    documents: DOCUMENTS,
+    requiredRequirementCodes: requiredRequirementCodes(
+      resolveVisaTemplate(app.destinationCountry, app.visaType),
+      app
+    ),
+  })
+
 describe('review-model', () => {
   describe('reuse — Final Review can never disagree with the rest of the app', () => {
-    it('uses the Dashboard’s readiness, not a new score', () => {
+    it('uses the canonical readiness, not a new score', () => {
       const app = application()
       const model = buildFinalReviewModel(input({ application: app }), NOW)
-      const buckets = buildDocumentBuckets(DOCUMENTS)
+      const readiness = canonicalReadiness(app)
       const validation = runValidation(dossierOf(app))
 
-      expect(model.readiness.percent).toBe(buckets.completionPercent)
-      expect(model.readiness.missingCount).toBe(buckets.missing)
+      expect(model.readiness.percent).toBe(readiness.percent)
+      expect(model.readiness.outstanding).toBe(readiness.outstanding)
+      expect(model.readiness.obtained).toBe(readiness.obtained)
       expect(model.readiness.state).toBe(
-        deriveReadinessState(buckets, DOCUMENTS, validation.errorCount, false)
+        deriveReadinessState(readiness, DOCUMENTS, validation.errorCount, false)
       )
     })
 
-    it('highlights exactly the Dashboard’s first next action', () => {
+    it('highlights exactly the canonical first next action', () => {
       const app = application()
       const model = buildFinalReviewModel(input({ application: app }), NOW)
       const expected = deriveNextActions(
-        buildDocumentBuckets(DOCUMENTS),
+        canonicalReadiness(app),
         runValidation(dossierOf(app)),
         app
       )[0]
@@ -281,21 +294,24 @@ describe('review-model', () => {
     })
 
     it('reports a well-prepared dossier without ever claiming an outcome', () => {
-      const allReady = DOCUMENTS.map((d) => ({
-        ...d,
-        status: 'ready' as const,
-      }))
+      const app = application({
+        appointment: { date: '2026-08-20', location: 'Istanbul' },
+      })
+      // Genuinely well-prepared means a record for every applicable
+      // requirement, all confirmed — not merely "the few documents I happen to
+      // have are ready". Forcing only the latter used to read 100% while the
+      // checklist still listed missing items.
+      const allReady: Document[] = requiredRequirementCodes(
+        resolveVisaTemplate(app.destinationCountry, app.visaType),
+        app
+      ).map((code, i) => doc({ id: `ready-${i}`, code, status: 'ready' }))
+
       const model = buildFinalReviewModel(
-        input({
-          documents: allReady,
-          application: application({
-            appointment: { date: '2026-08-20', location: 'Istanbul' },
-          }),
-        }),
+        input({ documents: allReady, application: app }),
         NOW
       )
       expect(model.readiness.percent).toBe(100)
-      expect(model.checklist.counts.missing).toBeGreaterThanOrEqual(0)
+      expect(model.readiness.documents.complete).toBe(true)
       // Readiness is an organizational state from a closed set — never a verdict.
       expect([
         'not_started',
@@ -304,6 +320,21 @@ describe('review-model', () => {
         'documents_remaining',
         'ready_for_appointment',
       ]).toContain(model.readiness.state)
+    })
+
+    it('never reads 100% while the checklist still lists missing items', () => {
+      // The invariant the old hedged assertion was hiding: a dossier holding a
+      // few ready documents is not complete if the country pack still expects
+      // requirements it has no record of.
+      const app = application()
+      const partial = DOCUMENTS.map((d) => ({ ...d, status: 'ready' as const }))
+      const model = buildFinalReviewModel(
+        input({ documents: partial, application: app }),
+        NOW
+      )
+      expect(model.checklist.counts.missing).toBeGreaterThan(0)
+      expect(model.readiness.percent).toBeLessThan(100)
+      expect(model.readiness.documents.complete).toBe(false)
     })
   })
 })

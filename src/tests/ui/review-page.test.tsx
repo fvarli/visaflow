@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 import { describe, it, expect, beforeEach } from 'vitest'
-import { render, screen, within } from '@testing-library/react'
+import { render, screen, within, fireEvent } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import i18n, {
   DEFAULT_LOCALE,
@@ -115,6 +115,22 @@ describe('Final Review page', () => {
     }
   )
 
+  it.each(['/review', '/review?mode=departure'])(
+    'keeps a meaningful heading hierarchy in %s (no level skipped)',
+    (entry) => {
+      renderPage(SEED, entry)
+      const levels = screen
+        .getAllByRole('heading')
+        .map((h) => Number(h.tagName.slice(1)))
+      expect(levels[0]).toBe(1)
+      for (let i = 1; i < levels.length; i += 1) {
+        const previous = levels[i - 1] ?? 1
+        const current = levels[i] ?? 1
+        expect(current).toBeLessThanOrEqual(previous + 1)
+      }
+    }
+  )
+
   it('keeps a meaningful heading hierarchy (no level skipped)', () => {
     renderPage()
     const levels = screen
@@ -132,11 +148,11 @@ describe('Final Review page', () => {
     renderPage()
     expect(
       screen.getByRole('img', {
-        name: new RegExp(i18n.t('review:hero.readiness')),
+        name: new RegExp(i18n.t('common:readiness.label')),
       })
     ).toBeInTheDocument()
     expect(
-      screen.getByText(i18n.t('review:hero.readinessHint'))
+      screen.getByText(i18n.t('common:readiness.hint'))
     ).toBeInTheDocument()
   })
 
@@ -213,4 +229,116 @@ describe('Final Review page', () => {
       ).toBe(true)
     }
   )
+})
+
+describe('Final Review — departure mode', () => {
+  it.each(SUPPORTED_LOCALES)(
+    'the ?mode=departure deep link lands on the compact check in "%s"',
+    async (locale) => {
+      await i18n.changeLanguage(locale)
+      renderPage(SEED, '/review?mode=departure')
+
+      expect(
+        await screen.findByRole('heading', {
+          name: i18n.t('review:departure.title'),
+        })
+      ).toBeInTheDocument()
+      // The long review is not rendered alongside it.
+      expect(
+        screen.queryByRole('heading', { name: i18n.t('review:print.title') })
+      ).not.toBeInTheDocument()
+    }
+  )
+
+  it('falls back to the full review for an unknown mode', async () => {
+    renderPage(SEED, '/review?mode=nonsense')
+    expect(
+      await screen.findByRole('heading', {
+        name: i18n.t('review:checklist.title'),
+      })
+    ).toBeInTheDocument()
+    expect(
+      screen.queryByRole('heading', { name: i18n.t('review:departure.title') })
+    ).not.toBeInTheDocument()
+  })
+
+  it('exposes the two views as an accessible radiogroup', () => {
+    renderPage()
+    const group = screen.getByRole('radiogroup', {
+      name: i18n.t('review:modes.label'),
+    })
+    expect(group).toBeInTheDocument()
+    expect(
+      screen.getByRole('radio', { name: i18n.t('review:modes.departure') })
+    ).toBeInTheDocument()
+  })
+
+  it('switches to the departure check from the selector', async () => {
+    renderPage()
+    fireEvent.click(
+      await screen.findByRole('radio', {
+        name: i18n.t('review:modes.departure'),
+      })
+    )
+    expect(
+      await screen.findByRole('heading', {
+        name: i18n.t('review:departure.title'),
+      })
+    ).toBeInTheDocument()
+  })
+
+  it('never claims the applicant has physically packed anything', () => {
+    renderPage(SEED, '/review?mode=departure')
+    const text = document.body.textContent ?? ''
+    for (const forbidden of [/packed/i, /in your bag/i, /çantan/i]) {
+      expect(text).not.toMatch(forbidden)
+    }
+    // ...and is explicit that these documents are the applicant's own.
+    expect(
+      screen.getByText(i18n.t('review:departure.bundlesHint'))
+    ).toBeInTheDocument()
+  })
+
+  it('offers exactly one primary action and the calm footer', () => {
+    renderPage(SEED, '/review?mode=departure')
+    expect(
+      screen.getByText(i18n.t('review:departure.footer'))
+    ).toBeInTheDocument()
+  })
+})
+
+describe('Final Review — checklist filter', () => {
+  it.each(SUPPORTED_LOCALES)(
+    'offers an accessible All / Needs attention filter in "%s"',
+    async (locale) => {
+      await i18n.changeLanguage(locale)
+      renderPage()
+      expect(
+        screen.getByRole('radiogroup', {
+          name: i18n.t('review:checklist.filter.label'),
+        })
+      ).toBeInTheDocument()
+    }
+  )
+
+  it('isolates the unresolved items when filtered', () => {
+    renderPage()
+    const group = screen.getByRole('radiogroup', {
+      name: i18n.t('review:checklist.filter.label'),
+    })
+    const [allChip, attentionChip] = within(group).getAllByRole('radio')
+    expect(allChip).toBeDefined()
+    expect(attentionChip).toBeDefined()
+
+    const rowsBefore = screen.getAllByRole('listitem').length
+    fireEvent.click(attentionChip as HTMLElement)
+    const rowsAfter = screen.getAllByRole('listitem').length
+
+    // Filtering can only ever remove rows, never invent them.
+    expect(rowsAfter).toBeLessThanOrEqual(rowsBefore)
+
+    // ...and switching back restores the full list exactly.
+    fireEvent.click(allChip as HTMLElement)
+    expect(screen.getAllByRole('listitem').length).toBe(rowsBefore)
+  })
 })

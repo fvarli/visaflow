@@ -6,8 +6,11 @@ import type { Sponsor } from '@/domain/schemas/sponsor.schema'
 import type { Dossier } from '@/domain/schemas/dossier.schema'
 import { runValidation } from '@/domain/rules/runner'
 import type { ValidationFinding, ValidationResult } from '@/domain/rules/types'
-import { buildDocumentBuckets5 } from '@/features/documents/documents-model'
+import { buildDocumentReadiness } from '@/features/readiness/document-readiness'
+import { requiredRequirementCodes } from '@/features/readiness/requirement-readiness'
+import { resolveVisaTemplate } from '@/config/countries'
 import type { StatusTone } from '@/components/ui/status-badge'
+import type { DocumentReadiness } from '@/features/readiness/readiness-types'
 import { useDossier } from '@/app/providers/DossierProvider'
 import { findingAction, type FindingAction } from './finding-actions'
 import {
@@ -77,7 +80,10 @@ export interface ReviewArea {
 export type HeroVerdict = 'clear' | 'notes' | 'review' | 'attention'
 
 export interface ValidationHeroModel {
-  completionPercent: number
+  /** The canonical dossier readiness — the same number every surface shows. */
+  readinessPercent: number
+  /** The full canonical figure, for the "N of M ready" caption. */
+  readiness: DocumentReadiness
   checksPassed: number
   checksTotal: number
   /** Errors + warnings — the things worth acting on. */
@@ -284,17 +290,35 @@ export function buildValidationModel(
     ? runValidation(toDossier(applicant, application, documents, sponsors))
     : EMPTY_VALIDATION
 
-  const buckets = buildDocumentBuckets5(documents)
+  // The canonical readiness — byte-identical to the Dashboard's, the Documents
+  // workspace's, the Timeline's and Final Review's. The Validation Center used
+  // to compute its own stricter variant under a near-synonymous label, which is
+  // how one dossier could read 45% here and 36% there (ADR-033).
+  const readiness = buildDocumentReadiness({
+    documents,
+    requiredRequirementCodes: requiredRequirementCodes(
+      resolveVisaTemplate(
+        application?.destinationCountry,
+        application?.visaType
+      ),
+      application
+    ),
+  })
 
   const actionable: ActionableFinding[] = validation.findings.map(
     (finding) => ({ finding, action: findingAction(finding) })
   )
 
-  const review = buildReview(validation.findings, input, buckets.requiredTotal)
+  const review = buildReview(
+    validation.findings,
+    input,
+    readiness.requiredTotal
+  )
 
   const verdict = verdictFromCounts(validation)
   const hero: ValidationHeroModel = {
-    completionPercent: buckets.completionPercent,
+    readinessPercent: readiness.percent,
+    readiness,
     checksPassed: validation.passedRules,
     checksTotal: validation.totalRules,
     attentionCount: validation.errorCount + validation.warningCount,

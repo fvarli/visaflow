@@ -456,3 +456,76 @@ const passportValidAfterTrip = (dossier: Dossier): ValidationFinding[] => {
 **Known limitations (deliberate):** Readiness uses the Dashboard's `buildDocumentBuckets` (where `not_applicable` counts as ready) while the Validation Center's hero uses `buildDocumentBuckets5` — a **pre-existing divergence** between two shipped pages that this sprint deliberately does not resolve, because changing either would alter a shipped surface; Final Review sides with the Dashboard/Timeline so the journey's dominant number stays consistent. The physical bundles are roll-ups only (no per-item packing state — that would need persistence). `Document.fileReference` remains a text reference, so no bundle can ever be verified as physically present. The `DataList` primitive still carries a hardcoded English "Not provided" fallback; Final Review avoids it by always passing an explicit localized value, but the primitive itself is untouched.
 
 **Implementation:** `src/features/review/{review-checklist,review-summary,review-print,review-model}.ts` (pure), `src/components/review/*` (`ReviewHero`, `ApplicationSummary`, `SubmissionChecklist`/`ChecklistGroup`, `AttentionSection`, `AppointmentPrep`, `PrintPackage`, `state-meta`), `src/pages/ReviewPage.tsx` (thin shell), a lazy `/review` route and a nav entry in the existing Review group. Reuses (does not modify) `dashboard-model`, `validation-model`, `finding-actions`, `documents-model`, `template-sync`, `document-freshness`, `route-dates`, `ReadinessSummary`, `FindingCard`, `ReadinessRing`, `StatusBadge`, `DataList`, `GuidanceNote`, `NoDossierState`. Sole cross-feature edit: `export` on `buildAppointmentDay` in `timeline-model.ts`. New `review` i18n namespace (tr/en parity). No schema, import/export, storage, or rule change.
+
+## ADR-033: One Canonical Dossier Readiness (`features/readiness`); `received` Is Obtained, Not Ready; `not_applicable` Leaves the Denominator
+
+**Supersedes** the readiness clause of [ADR-017] ("it only adds one documented definition of document readiness") and resolves the "Known limitations" paragraph of [ADR-032]. Those ADRs are left untouched — they are append-only — but their readiness claims are no longer true of the code.
+
+**Decision:** VisaFlow has exactly **one** definition of dossier readiness, owned by `src/features/readiness/`. Every surface that shows readiness consumes it and renders it under the same label. Each `Document.status` has exactly one documented meaning. Readiness measures **document preparation only**; consistency health remains a separate, non-percentage signal.
+
+**Context:** Six different derivations shipped simultaneously, producing four different arithmetics. For one realistic dossier the product displayed **45%** (Dashboard ring), **36%** (Documents hero and Validation Center ring), **"4 of 11 checklist items ready"** (Final Review, on the same card as its own 45% ring), **"Complete missing documents (5)"** (Dashboard next action) and a sidebar badge of **4** — three of them inside a single Dashboard viewport. Two of the errors were exact opposites: `buildDocumentBuckets` counted `not_applicable` as completed work (inflating to 100%), while `buildDocumentBuckets5` kept it in the denominator where it could never be satisfied (making 100% unreachable). A dossier whose required documents were all `not_applicable` rendered a **100% "Ready for your appointment"** ring directly above an empty bar reading **"0 of 3 ready"**. `buildDocumentBuckets5`'s five buckets did not sum to `requiredTotal`, so the two segmented progress bars that assumed they did left an unexplained grey gap, and the five hero quick-filters could not reach a `received` or `not_applicable` document at all.
+
+### What readiness means
+
+An **organizational** measure of how much of the applicable document preparation is *confirmed done*. It is never a prediction, and there is deliberately no validation score, quality score, confidence score, or approval likelihood ([ADR-016]).
+
+```
+numerator   = applicable documents with status 'ready'
+denominator = required documents whose status is not 'not_applicable',
+              plus applicable required requirements with no document record yet
+percent     = round(numerator / denominator × 100)
+```
+
+`applicable === 0` yields `percent 0`, `complete false` and `hasApplicableWork false` — **never 100%**. A dossier where every requirement has been disclaimed is not a prepared dossier, and reporting 100% would restore the polarity inversion in mirror image. `deriveReadinessState` returns `not_started` for that case and can never return `ready_for_appointment`.
+
+The denominator includes requirements the applicant has no record for, because a dossier is created with `documents: []` and only seeded when the Documents workspace is first opened. Without them, a brand-new dossier that has collected nothing would read 100%, and the Final Review checklist would contradict it by listing every requirement as missing.
+
+### Treatment of every status
+
+| Status | Class | Numerator | Denominator | Tone |
+|---|---|---|---|---|
+| `not_started` | `notStarted` | no | yes | neutral |
+| `requested` | `inProgress` | no | yes | info |
+| `received` | `obtained` | **no** | yes | **accent — never amber** |
+| `needs_update` | `needsUpdate` | no | yes | warning |
+| `ready` | `ready` | **yes** | yes | success |
+| `not_applicable` | `notApplicable` | no | **no** | neutral |
+
+Two invariants hold for every value the module produces, both asserted by test:
+
+```
+ready + obtained + inProgress + notStarted + needsUpdate === applicable
+applicable + notApplicable                              === requiredTotal
+```
+
+The first is what makes a segmented bar honest: every applicable document sits in exactly one visible segment, with no unexplained remainder. Optional documents never enter either side.
+
+### Why `not_applicable` is excluded from both sides
+
+Marking a requirement not applicable is a **disclaimer, not progress**. Counting it as ready inflated the number; counting it in the denominator only made 100% unreachable and punished an applicant for correctly recording that a requirement does not apply to them. Removing it from both sides makes the act of marking something N/A leave the percentage **unchanged**, which is the only neutral treatment. The exclusion cannot be abused to fake completeness because the engine already guards it: `document.requiredNotSkipped` (`src/domain/rules/document.rules.ts`) raises a warning whenever a required document is marked `not_applicable` **without a justifying note**.
+
+### The semantics of `received`
+
+`received` means **obtained and in hand, but not yet confirmed dossier-ready** — the workflow state between *Requested* and *Ready*. Before this ADR it had four conflicting treatments in shipped code: `timeline-tasks.ts` counted it as done, `finance-consistency.ts` as "have it", `review-checklist.ts` rendered it amber as a defect, `buildDocumentBuckets` folded it into *missing*, and `buildDocumentBuckets5` dropped it into no bucket at all — while the validation engine, correctly, never flagged it.
+
+It is now: never *missing* (you have it), never *ready* (you have not confirmed it), never amber (it is progress, not a defect), and it generates **no validation finding** — which required no rule change, only a regression test. `DOCUMENT_STATUS_TONE.received` moved from `warning` to `accent`, and the Final Review checklist gained a distinct `obtained` state instead of folding it into `needsAttention`. `needs_update` moved from `danger` to `warning` in the same pass: a document needing renewal is work, not an emergency.
+
+**Task completion ≠ dossier readiness.** This is the single sanctioned divergence and it must stay sanctioned in writing. A preparation task like *"obtain the bank statement"* **is** satisfied by `received` — `timeline-tasks.ts` keeps that behaviour deliberately. The question *"is the bank statement dossier-ready?"* is answered only by `ready`, so readiness, `buildAppointmentDay` and the submission checklist all require it. Both answers are correct because the questions differ. A dedicated invariant test asserts both at once; a future contributor "unifying" them would break the Timeline.
+
+### Readiness vs consistency health
+
+Two orthogonal axes, never blended into a weighted score. Readiness answers *how much is assembled*; the Validation Center answers *what is inconsistent*. Validation findings do **not** move the percentage — the builder takes documents only, so this is structural rather than a convention. The single point of contact is `deriveReadinessState`, where a blocking finding acts as a **gate** preventing a fully-collected dossier from reading "ready for your appointment"; it never alters the number. Tests prove both directions: a 100%-ready dossier carrying errors, and a finding-free dossier that is far from ready.
+
+The Validation Center therefore shows the **same** percentage under the **same** label as everywhere else (its old "Dossier completeness" / "Dosya tamamlanma düzeyi" label is retired), and keeps its genuinely distinct signals — checks passed, attention count, note count, grouped findings — as non-percentage indicators.
+
+### Ownership
+
+`src/features/readiness/` owns the derivation: `readiness-types.ts` (the vocabulary and the status→class map), `document-readiness.ts` (the arithmetic and the `isDossierReady` / `isObtained` / `isApplicable` predicates), `requirement-readiness.ts` (the bridge to the country pack), and `readiness-model.ts` (`ReadinessState`, `deriveReadinessState`, `deriveNextActions`). The first three import only domain types; the module is a graph sink, so no consumer can create a cycle. `deriveReadinessState` and `deriveNextActions` moved here out of `dashboard-model.ts` because they are app-wide concepts the Timeline and Final Review already depended on — the Dashboard should not own logic three other surfaces consume.
+
+A new `confirmDocuments` next action surfaces obtained-but-unconfirmed documents; it ranks below collecting and updating, because confirming is a minute's work and obtaining a document is not. The `dashboard:nextActions.*` i18n keys keep their namespace — renaming would be churn without benefit.
+
+**Also recorded here (Final Review polish):** `/review` gains a `?mode=` toggle (`full` | `departure`) over the *same* `FinalReviewModel` — a compact, mobile-first departure check that never claims physical possession ("bundle to bring", never "packed"), adds no persistence and no packed-state; and the submission checklist gains an *All / Needs attention* filter that is view state only, filtering the canonical checklist rather than building a second model.
+
+**Known limitations (deliberate):** the checklist's `actionable` counts optional rows and un-instantiated requirements, so it is **not** the readiness denominator — it answers "what goes in the folder", a different question ([ADR-032]); the Final Review hero therefore labels it explicitly rather than as a second readiness figure. `deriveNextDocument` still picks `not_started` then `needs_update`, skipping `requested` and `obtained` — a seventh, smaller opinion about "what's next" left for a follow-up. The example dossier is missing an `APPROVED_LEAVE` record its own employed applicant makes applicable, which is why its readiness reads 64% rather than 70%; that is the honest number and it is now stable whether or not the Documents workspace has been visited.
+
+**Implementation:** `src/features/readiness/*` (pure), consumed by `dashboard-model`, `documents-model`, `validation-model`, `timeline-model`, `review-model`, `AppLayout` and the section-scoped employment/finance views. Canonical strings live in `common:readiness.*` so every surface shares one key. Deletions: `buildDocumentBuckets`, `buildDocumentBuckets5`, `DocumentBuckets`, `DocumentBuckets5`, the inline nav-badge filter, and the dead `sponsor-documents.readyCount`. No schema, import/export, storage, validation-severity or country-requirement change; still exactly two localStorage keys.

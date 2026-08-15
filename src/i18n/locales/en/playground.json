@@ -96,7 +96,8 @@
     "documentsHero": "DocumentsHero",
     "documentCard": "DocumentCard",
     "checklistGroup": "Checklist group",
-    "printPackage": "Print package"
+    "printPackage": "Print package",
+    "reviewMode": "Review mode selector"
   },
   "i18n": {
     "description": "Locale-aware formatting and translated domain vocabulary. Switch language above to see everything update in place.",

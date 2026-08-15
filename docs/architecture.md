@@ -50,6 +50,7 @@ src/
 │   ├── documents/          # documents-model.ts + filters + template-sync (pure)
 │   ├── validation/         # validation-model + finding-presentation/actions (pure)
 │   ├── review/             # review-checklist/summary/print/model — Final Review (pure)
+│   ├── readiness/          # THE canonical dossier-readiness derivation (pure)
 │   ├── employment/         # employment-model/wizard/tenure/guidance/documents (pure)
 │   ├── onboarding/         # onboarding-model.ts — first-run steps + routing decision (pure)
 │   └── import-export/      # JSON import/export services
@@ -149,12 +150,17 @@ journey ([ADR-031]).
 The Final Review workspace (`/review`) is a thin composition over `src/features/review/*` — the last look
 before the appointment, answering a different question from the Validation Center ("what do I have, what am I
 missing, what do I bring?" rather than "what is inconsistent?"). It introduces **no new authority**: readiness
-comes from the Dashboard (`buildDocumentBuckets`/`deriveReadinessState`/`deriveNextActions`), findings and their
-counts from `buildValidationModel` used whole, appointment-day readiness from the Timeline's exported
-`buildAppointmentDay`, and applicability from the country pack. It adds only the submission-checklist grouping
+comes from `src/features/readiness/`, findings and their counts from `buildValidationModel` used whole,
+appointment-day readiness from the Timeline's exported `buildAppointmentDay`, and applicability from the
+country pack. It adds only the submission-checklist grouping
 and the print-package split, which separates **pages VisaFlow can generate** from the applicant's **physical
 dossier** of external documents it never holds — a distinction enforced by the type shape, not just by wording
 ([ADR-032]).
+**Dossier readiness has exactly one definition**, owned by `src/features/readiness/` and consumed by the
+Dashboard, Documents, Validation Center, Timeline and Final Review alike — it imports only domain types, so
+it is a graph sink no consumer can cycle through. Readiness measures document preparation only; consistency
+health stays a separate non-percentage signal, and validation findings never move the number ([ADR-033],
+[readiness.md](./readiness.md)).
 Dashboard detail: [dashboard-architecture.md](./dashboard-architecture.md). Reusable UI is
 demonstrated in the [Playground](./playground.md) before use. **Depends on:** all layers below.
 **Must not:** be depended *on* by them.
@@ -229,3 +235,4 @@ same pattern for the two non-personal preferences.
 [ADR-025]: ./decisions.md
 [ADR-029]: ./decisions.md
 [ADR-032]: ./decisions.md
+[ADR-033]: ./decisions.md

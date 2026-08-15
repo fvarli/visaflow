@@ -23,7 +23,7 @@ export interface NavItem {
    * Reserved for live counts (open findings, missing documents). Rendered as
    * a quiet chip on the right of the row when present.
    */
-  badgeKey?: 'openFindings' | 'missingDocuments'
+  badgeKey?: 'openFindings' | 'outstandingDocuments'
 }
 
 export interface NavGroup {
@@ -71,7 +71,7 @@ export const navGroups: NavGroup[] = [
         to: '/documents',
         labelKey: 'navigation:items.documents',
         icon: FileText,
-        badgeKey: 'missingDocuments',
+        badgeKey: 'outstandingDocuments',
       },
       {
         to: '/timeline',

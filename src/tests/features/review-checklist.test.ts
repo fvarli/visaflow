@@ -77,8 +77,14 @@ describe('review-checklist', () => {
       expect(checklistState('not_applicable', true)).toBe('notApplicable')
     })
 
-    it('treats "in hand but unconfirmed" as needing attention', () => {
-      expect(checklistState('received', true)).toBe('needsAttention')
+    it('gives an obtained document its own calm state, not an alarm', () => {
+      // `received` used to fold into `needsAttention`, which rendered amber for
+      // a document the applicant already held (ADR-033).
+      expect(checklistState('received', true)).toBe('obtained')
+      expect(checklistState('received', false)).toBe('obtained')
+    })
+
+    it('treats a document needing correction as needing attention', () => {
       expect(checklistState('needs_update', true)).toBe('needsAttention')
     })
 

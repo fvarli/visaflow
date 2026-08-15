@@ -28,12 +28,19 @@ import { classifyFreshness } from '@/features/timeline/document-freshness'
 export type ChecklistStatus = DocumentStatus | 'not_instantiated'
 
 /**
- * The calm five-way vocabulary. A grouping of `ChecklistStatus`, never a new
- * status: `received` and `needs_update` both mean "you have something, but it
- * is not confirmed ready", which is exactly what a final review should raise.
+ * The calm vocabulary. A grouping of `ChecklistStatus`, never a new status.
+ *
+ * `obtained` (`received`) is deliberately its own state rather than folded into
+ * `needsAttention`: the applicant has the document, so calling it a problem is
+ * wrong — it simply is not confirmed dossier-ready yet (ADR-033).
  */
 export type ChecklistState =
-  'ready' | 'needsAttention' | 'missing' | 'optional' | 'notApplicable'
+  | 'ready'
+  | 'obtained'
+  | 'needsAttention'
+  | 'missing'
+  | 'optional'
+  | 'notApplicable'
 
 /**
  * The groups an applicant physically hands over, mapped from the 12 domain
@@ -90,9 +97,10 @@ export function checklistState(
 ): ChecklistState {
   if (status === 'not_applicable') return 'notApplicable'
   if (status === 'ready') return 'ready'
-  // In hand (or previously in hand) but not confirmed usable.
-  if (status === 'received' || status === 'needs_update')
-    return 'needsAttention'
+  // In hand, awaiting the applicant's own confirmation. Not a defect.
+  if (status === 'received') return 'obtained'
+  // In hand but needing correction or renewal.
+  if (status === 'needs_update') return 'needsAttention'
   // not_started | requested | not_instantiated
   return required ? 'missing' : 'optional'
 }
@@ -120,6 +128,7 @@ export interface ChecklistRow {
 
 export interface ChecklistCounts {
   ready: number
+  obtained: number
   needsAttention: number
   missing: number
   optional: number
@@ -144,6 +153,7 @@ export interface SubmissionChecklist {
 function emptyCounts(): ChecklistCounts {
   return {
     ready: 0,
+    obtained: 0,
     needsAttention: 0,
     missing: 0,
     optional: 0,
@@ -235,5 +245,50 @@ export function buildSubmissionChecklist(
     groups.push({ id, rows: groupRows, counts: tally(groupRows) })
   }
 
+  return { groups, rows, counts: tally(rows) }
+}
+
+/**
+ * Whether a row still asks something of the applicant.
+ *
+ * `obtained` belongs here: the document is in hand but the dossier is not ready
+ * until it is confirmed. `ready` and `notApplicable` are settled; an optional
+ * row that was never started is a choice, not a gap.
+ */
+export function needsAttention(row: ChecklistRow): boolean {
+  return (
+    row.state === 'missing' ||
+    row.state === 'obtained' ||
+    row.state === 'needsAttention'
+  )
+}
+
+export function attentionCount(counts: ChecklistCounts): number {
+  return counts.missing + counts.obtained + counts.needsAttention
+}
+
+export type ChecklistFilter = 'all' | 'attention'
+
+/**
+ * Filter the checklist without building a second model.
+ *
+ * `all` returns the same object by identity. `attention` rebuilds the groups
+ * from the surviving rows, drops groups with no matches, preserves
+ * `SUBMISSION_GROUP_ORDER`, and re-tallies — counts are always derived, never
+ * carried across.
+ */
+export function filterChecklist(
+  checklist: SubmissionChecklist,
+  filter: ChecklistFilter
+): SubmissionChecklist {
+  if (filter === 'all') return checklist
+
+  const rows = checklist.rows.filter(needsAttention)
+  const groups: SubmissionGroup[] = []
+  for (const group of checklist.groups) {
+    const groupRows = group.rows.filter(needsAttention)
+    if (groupRows.length === 0) continue
+    groups.push({ id: group.id, rows: groupRows, counts: tally(groupRows) })
+  }
   return { groups, rows, counts: tally(rows) }
 }

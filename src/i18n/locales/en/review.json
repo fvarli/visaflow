@@ -1,15 +1,18 @@
 {
   "title": "Final Review",
   "subtitle": "Review everything you have, what is still missing, and what to bring to your appointment.",
+  "modes": {
+    "label": "Review view",
+    "full": "Full review",
+    "departure": "Leaving soon"
+  },
   "hero": {
-    "readiness": "Dossier readiness",
-    "readinessHint": "How assembled your dossier is — never a prediction about your visa.",
     "appointmentLabel": "Appointment",
     "appointmentNone": "No appointment date recorded yet",
     "attentionNone": "Nothing is waiting for your attention",
     "attention_one": "{{count}} item needs attention",
     "attention_other": "{{count}} items need attention",
-    "checklistReady": "{{ready}} of {{total}} checklist items ready",
+    "checklistReady": "{{ready}} of {{total}} items to hand over are ready",
     "nextStep": "Suggested next step",
     "state": {
       "not_started": "Nothing collected yet",
@@ -66,7 +69,8 @@
       "needsAttention": "Needs attention",
       "missing": "Missing",
       "optional": "Optional",
-      "notApplicable": "Not applicable"
+      "notApplicable": "Not applicable",
+      "obtained": "Obtained"
     },
     "groupSummary": "{{ready}} of {{total}} ready",
     "expiresBeforeAppointment": "Expires before your appointment",
@@ -74,7 +78,19 @@
     "validUntil": "Valid until {{date}}",
     "empty": "There are no documents in your dossier yet.",
     "emptyHint": "Add your country pack's requirements in the Documents workspace and they will appear here.",
-    "openDocuments": "Open Documents"
+    "openDocuments": "Open Documents",
+    "filter": {
+      "label": "Filter checklist",
+      "all_one": "All {{count}}",
+      "all_other": "All {{count}}",
+      "attention_one": "Needs attention {{count}}",
+      "attention_other": "Needs attention {{count}}"
+    },
+    "attentionEmpty": {
+      "title": "Nothing needs attention",
+      "body": "All applicable checklist items are confirmed ready.",
+      "showAll": "Show full checklist"
+    }
   },
   "attention": {
     "title": "Still needs your attention",
@@ -149,5 +165,23 @@
     "title": "What already looks good",
     "description": "Areas that are on file and currently raise nothing."
   },
-  "disclaimer": "VisaFlow organises the information you entered. It does not submit your application and does not predict whether a visa will be granted. Always confirm requirements with the official consulate or visa centre."
+  "disclaimer": "VisaFlow organises the information you entered. It does not submit your application and does not predict whether a visa will be granted. Always confirm requirements with the official consulate or visa centre.",
+  "departure": {
+    "title": "Before you leave",
+    "description": "A short check you can run on your phone on the way out the door.",
+    "appointmentTitle": "Your appointment",
+    "appointmentNone": "No appointment date recorded yet",
+    "bundlesTitle": "What goes in the folder",
+    "bundlesHint": "Your own documents. VisaFlow only tracks whether you have them — it never holds them.",
+    "bundlesEmpty": "No documents in your dossier yet.",
+    "sheetsTitle": "Pages VisaFlow can generate",
+    "sheetsHint": "Built from what you entered. Printing is not built yet.",
+    "attentionTitle": "Worth a last look",
+    "attentionUnresolved_one": "{{count}} item still needs attention",
+    "attentionUnresolved_other": "{{count}} items still need attention",
+    "attentionUnconfirmed_one": "{{count}} document is in hand but not confirmed ready",
+    "attentionUnconfirmed_other": "{{count}} documents are in hand but not confirmed ready",
+    "attentionNone": "Nothing is waiting for your attention",
+    "footer": "Use this as your final folder check."
+  }
 }

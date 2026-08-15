@@ -127,6 +127,7 @@ function bundleState(counts: ChecklistCounts): BundleState {
 function mergeCounts(a: ChecklistCounts, b: ChecklistCounts): ChecklistCounts {
   return {
     ready: a.ready + b.ready,
+    obtained: a.obtained + b.obtained,
     needsAttention: a.needsAttention + b.needsAttention,
     missing: a.missing + b.missing,
     optional: a.optional + b.optional,

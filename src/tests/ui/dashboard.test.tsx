@@ -131,24 +131,29 @@ describe('Dashboard — seeded command center', () => {
       expect(screen.getAllByRole('heading', { level: 1 })).toHaveLength(1)
 
       // Readiness is the single dominant indicator: the ring exposes the
-      // percentage via its label. The example has 7 of 10 required ready → 70%.
+      // percentage via its label. The example applicant is employed, so the
+      // Greece pack makes 11 required documents applicable while the dossier
+      // carries 10 records (no APPROVED_LEAVE) — 7 of 11 ready → 64%.
       const ring = screen.getByRole('img')
-      expect(ring.getAttribute('aria-label')).toContain('70')
+      expect(ring.getAttribute('aria-label')).toContain('64')
 
       // The single next action offers exactly one CTA.
       expect(
         screen.getByRole('link', { name: i18n.t('dashboard:nextAction.cta') })
       ).toBeInTheDocument()
 
-      // The documents section labels the five buckets.
+      // The documents section labels the canonical readiness classes — the
+      // same vocabulary every other surface uses.
       expect(
-        screen.getByText(i18n.t('dashboard:documentsSummary.ready'))
+        screen.getAllByText(i18n.t('common:readiness.class.ready')).length
+      ).toBeGreaterThan(0)
+      expect(
+        screen.getByText(i18n.t('common:readiness.class.inProgress'))
       ).toBeInTheDocument()
+      // The example dossier holds one `received` document, which used to be
+      // invisible in the breakdown entirely.
       expect(
-        screen.getByText(i18n.t('dashboard:documentsSummary.requested'))
-      ).toBeInTheDocument()
-      expect(
-        screen.getByText(i18n.t('dashboard:documentsSummary.optional'))
+        screen.getByText(i18n.t('common:readiness.class.obtained'))
       ).toBeInTheDocument()
 
       // The live dossier snapshot renders present-tense facts.

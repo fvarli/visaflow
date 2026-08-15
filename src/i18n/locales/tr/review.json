@@ -1,15 +1,18 @@
 {
   "title": "Son Kontrol",
   "subtitle": "Elinizde olanları, hâlâ eksik olanları ve randevunuza giderken yanınızda götürmeniz gerekenleri tek yerde kontrol edin.",
+  "modes": {
+    "label": "Kontrol görünümü",
+    "full": "Ayrıntılı kontrol",
+    "departure": "Yola çıkmadan"
+  },
   "hero": {
-    "readiness": "Dosya hazırlığı",
-    "readinessHint": "Dosyanızın ne kadar toparlandığını gösterir — vizeniz hakkında bir tahmin değildir.",
     "appointmentLabel": "Randevu",
     "appointmentNone": "Henüz randevu tarihi kaydedilmedi",
     "attentionNone": "Dikkatinizi bekleyen bir konu yok",
     "attention_one": "{{count}} konu dikkatinizi bekliyor",
     "attention_other": "{{count}} konu dikkatinizi bekliyor",
-    "checklistReady": "{{total}} kontrol maddesinden {{ready}} tanesi hazır",
+    "checklistReady": "Teslim edeceğiniz {{total}} öğeden {{ready}} tanesi hazır",
     "nextStep": "Önerilen sonraki adım",
     "state": {
       "not_started": "Henüz hiçbir şey toplanmadı",
@@ -66,7 +69,8 @@
       "needsAttention": "Dikkat gerekiyor",
       "missing": "Eksik",
       "optional": "İsteğe bağlı",
-      "notApplicable": "Gerekli değil"
+      "notApplicable": "Gerekli değil",
+      "obtained": "Alındı"
     },
     "groupSummary": "{{total}} belgeden {{ready}} tanesi hazır",
     "expiresBeforeAppointment": "Randevunuzdan önce geçerliliği doluyor",
@@ -74,7 +78,19 @@
     "validUntil": "{{date}} tarihine kadar geçerli",
     "empty": "Dosyanızda henüz belge yok.",
     "emptyHint": "Ülke paketinizin gerekliliklerini Belgeler çalışma alanından ekleyin; burada görünecekler.",
-    "openDocuments": "Belgeleri aç"
+    "openDocuments": "Belgeleri aç",
+    "filter": {
+      "label": "Kontrol listesini süz",
+      "all_one": "Tümü ({{count}})",
+      "all_other": "Tümü ({{count}})",
+      "attention_one": "İlgilenilmesi gereken ({{count}})",
+      "attention_other": "İlgilenilmesi gereken ({{count}})"
+    },
+    "attentionEmpty": {
+      "title": "İlgilenmeniz gereken bir öğe yok",
+      "body": "Uygulanabilir tüm kontrol listesi öğeleri hazır olarak onaylandı.",
+      "showAll": "Tüm listeyi göster"
+    }
   },
   "attention": {
     "title": "Hâlâ dikkatinizi bekliyor",
@@ -149,5 +165,23 @@
     "title": "Şimdiden iyi görünenler",
     "description": "Dosyada kayıtlı olan ve şu anda hiçbir bulgu üretmeyen bölümler."
   },
-  "disclaimer": "VisaFlow girdiğiniz bilgileri düzenler. Başvurunuzu göndermez ve vizenin verilip verilmeyeceğini tahmin etmez. Gereklilikleri her zaman yetkili konsolosluk veya vize merkezinden doğrulayın."
+  "disclaimer": "VisaFlow girdiğiniz bilgileri düzenler. Başvurunuzu göndermez ve vizenin verilip verilmeyeceğini tahmin etmez. Gereklilikleri her zaman yetkili konsolosluk veya vize merkezinden doğrulayın.",
+  "departure": {
+    "title": "Yola çıkmadan önce",
+    "description": "Kapıdan çıkarken telefonunuzdan yapabileceğiniz kısa bir kontrol.",
+    "appointmentTitle": "Randevunuz",
+    "appointmentNone": "Henüz randevu tarihi kaydedilmedi",
+    "bundlesTitle": "Dosyaya girecekler",
+    "bundlesHint": "Bunlar sizin belgeleriniz. VisaFlow yalnızca elinizde olup olmadığını takip eder; belgeleri saklamaz.",
+    "bundlesEmpty": "Dosyanızda henüz belge yok.",
+    "sheetsTitle": "VisaFlow'un hazırlayabileceği sayfalar",
+    "sheetsHint": "Girdiğiniz bilgilerden oluşturulur. Yazdırma henüz geliştirilmedi.",
+    "attentionTitle": "Son bir kez bakın",
+    "attentionUnresolved_one": "{{count}} konu hâlâ dikkatinizi bekliyor",
+    "attentionUnresolved_other": "{{count}} konu hâlâ dikkatinizi bekliyor",
+    "attentionUnconfirmed_one": "{{count}} belge elinizde ama hazır olarak onaylanmadı",
+    "attentionUnconfirmed_other": "{{count}} belge elinizde ama hazır olarak onaylanmadı",
+    "attentionNone": "Dikkatinizi bekleyen bir konu yok",
+    "footer": "Bunu randevuya çıkmadan önce son dosya kontrolünüz olarak kullanın."
+  }
 }

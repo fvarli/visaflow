@@ -8,15 +8,13 @@ import {
   TIMELINE_TYPE_ICON,
   useTimelineTitle,
 } from '@/components/dashboard/timeline-labels'
-import type {
-  ReadinessState,
-  TimelineItemModel,
-} from '@/features/dashboard/dashboard-model'
+import type { TimelineItemModel } from '@/features/dashboard/dashboard-model'
+import type { ReadinessState } from '@/features/readiness/readiness-model'
 
 interface ReadinessHeroProps {
   percent: number
   state: ReadinessState
-  missingCount: number
+  outstandingCount: number
   /** The nearest upcoming date, shown beneath the verdict. */
   nextMilestone: TimelineItemModel | null
 }
@@ -30,7 +28,7 @@ interface ReadinessHeroProps {
 export function ReadinessHero({
   percent,
   state,
-  missingCount,
+  outstandingCount,
   nextMilestone,
 }: ReadinessHeroProps) {
   const { t } = useTranslation(['dashboard', 'common'])
@@ -41,7 +39,7 @@ export function ReadinessHero({
   const verdict =
     state === 'documents_remaining'
       ? td('dashboard:hero.verdict.documents_remaining', {
-          count: missingCount,
+          count: outstandingCount,
         })
       : td(`dashboard:hero.verdict.${state}`)
 
@@ -55,7 +53,7 @@ export function ReadinessHero({
         <ReadinessRing
           value={percent}
           size={188}
-          label={t('dashboard:hero.readinessLabel')}
+          label={t('common:readiness.label')}
           valueLabel={format.percent(percent)}
           caption={verdict}
         />
@@ -63,13 +61,13 @@ export function ReadinessHero({
         <div className="flex min-w-0 flex-1 flex-col gap-4 text-center sm:text-left">
           <div className="space-y-1">
             <p className="text-eyebrow text-muted-foreground uppercase">
-              {t('dashboard:hero.readinessLabel')}
+              {t('common:readiness.label')}
             </p>
             <p className="text-heading text-foreground text-balance">
               {verdict}
             </p>
             <p className="text-body text-muted-foreground text-pretty">
-              {t('dashboard:hero.subtitle')}
+              {t('common:readiness.hint')}
             </p>
           </div>
 

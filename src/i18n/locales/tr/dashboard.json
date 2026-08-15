@@ -23,8 +23,6 @@
     "checkIssues": "Sorunları denetle"
   },
   "hero": {
-    "readinessLabel": "Dosya hazırlık düzeyi",
-    "subtitle": "Dosyanızın ne kadarının hazır olduğunu gösterir — herhangi bir karar tahmini değildir.",
     "nextMilestoneLabel": "Sonraki aşama",
     "nextMilestoneEmpty": "Henüz yaklaşan tarih yok.",
     "verdict": {
@@ -44,6 +42,7 @@
       "resolveErrors": "Bu çelişkiler başvurunuzu engelleyebilir — önce bunları giderin.",
       "completeMissingDocs": "Her zorunlu belge eklenene kadar dosyanız tamamlanmış sayılmaz.",
       "updateDocuments": "Bazı belgeler güncel değil; başvurudan önce yenilenmeli.",
+      "confirmDocuments": "Bu belgeler zaten elinizde — kontrol edip dosya için hazır olarak işaretleyin.",
       "reviewWarnings": "Birkaç ayrıntıyı tutarlılık açısından yeniden kontrol etmekte fayda var.",
       "setAppointment": "Randevunuzu belirlemek tüm hazırlık takviminizi çerçeveler.",
       "addTrip": "Seyahat tarihleriniz sigorta, konaklama ve takvim denetimlerini yönlendirir."
@@ -52,6 +51,7 @@
       "resolveErrors": "Birkaç dakika",
       "completeMissingDocs": "Belgeye göre değişir",
       "updateDocuments": "Birkaç dakika",
+      "confirmDocuments": "Kısa bir kontrol",
       "reviewWarnings": "Kısa bir inceleme",
       "setAppointment": "Yaklaşık 5 dakika",
       "addTrip": "Yaklaşık 5 dakika"
@@ -61,6 +61,7 @@
     "resolveErrors": "Hataları giderin ({{count}})",
     "completeMissingDocs": "Eksik belgeleri tamamlayın ({{count}})",
     "updateDocuments": "Belgeleri güncelleyin ({{count}})",
+    "confirmDocuments": "Alınan belgeleri onaylayın ({{count}})",
     "reviewWarnings": "Uyarıları gözden geçirin ({{count}})",
     "setAppointment": "Randevu tarihinizi belirleyin",
     "addTrip": "Seyahat bilgilerinizi ekleyin"
@@ -79,12 +80,6 @@
   },
   "documentsSummary": {
     "title": "Belgeler",
-    "description": "{{total}} belgeden {{ready}} tanesi hazır",
-    "ready": "Hazır",
-    "needsUpdate": "Güncellenmeli",
-    "requested": "Talep edildi",
-    "missing": "Eksik",
-    "optional": "İsteğe bağlı",
     "openWorkspace": "Belgeler çalışma alanını aç",
     "empty": "Henüz belge yok."
   },
@@ -117,6 +112,7 @@
       "applicantOnFile": "Başvuru sahibi bilgileri kayıtlı",
       "passportOnFile": "Pasaport kayıtlı",
       "documentsReady": "{{count}} belge hazır",
+      "documentsObtained": "{{count}} belge alındı, onay bekliyor",
       "documentsNeedUpdate": "{{count}} belge güncellenmeli",
       "appointmentScheduled": "Randevu planlandı",
       "tripPlanned": "Seyahat planlandı",

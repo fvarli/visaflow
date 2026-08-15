@@ -14,7 +14,6 @@ const EMPTY_DOCS: SponsorDocumentsView = {
   stale: [],
   missingRequirements: [],
   linkedCount: 0,
-  readyCount: 0,
 }
 
 const sponsor = (partial: Partial<Sponsor>): Sponsor => ({

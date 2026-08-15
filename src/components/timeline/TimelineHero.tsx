@@ -73,7 +73,7 @@ export function TimelineHero({ model }: TimelineHeroProps) {
 
           <StatusBadge tone="info" dot>
             {td(`dashboard:hero.verdict.${model.phase}`, {
-              count: model.missingDocuments,
+              count: model.outstandingDocuments,
             })}
           </StatusBadge>
         </div>

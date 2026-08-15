@@ -3,6 +3,7 @@ import {
   AlertCircle,
   AlertTriangle,
   Calendar,
+  CircleCheck,
   FileText,
   Plane,
   RefreshCw,
@@ -10,7 +11,7 @@ import {
 import type {
   ActionDescriptor,
   ActionKind,
-} from '@/features/dashboard/dashboard-model'
+} from '@/features/readiness/readiness-model'
 import type { DynamicTFunction } from '@/lib/i18n-dynamic'
 
 /** Icon per next-action kind. Shared by the hero CTA and the action list. */
@@ -21,6 +22,7 @@ export const ACTION_ICON: Record<
   resolveErrors: AlertCircle,
   completeMissingDocs: FileText,
   updateDocuments: RefreshCw,
+  confirmDocuments: CircleCheck,
   reviewWarnings: AlertTriangle,
   setAppointment: Calendar,
   addTrip: Plane,

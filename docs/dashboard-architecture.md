@@ -21,8 +21,12 @@ actions, a timeline, and requirement/source status. It is:
   locale-formatted value can leak into it;
 - **non-duplicating** — it re-encodes no business rule. Validation comes from `runValidation`,
   requirement/source resolution from `resolveVisaTemplate`, applicability from the config layer.
-  The adapter only adds one documented definition of document readiness and a few derived view
-  descriptors.
+  The adapter adds **no readiness definition of its own** — readiness is
+  `src/features/readiness/` ([ADR-033]). It only adds a few derived view descriptors.
+
+  *History:* until ADR-033 this adapter owned a readiness definition that disagreed with the
+  Documents workspace's, so the same dossier could read 45% here and 36% there. ADR-017's claim of
+  "one documented definition" was, in practice, false; the definition now genuinely is shared.
 
 **2. The widgets — `src/components/dashboard/*`.** Each section is a standalone, prop-driven
 component fed from the model: `ReadinessHero`, `NextAction`, `UpcomingTimeline`, `ConsistencyHealth`,
@@ -52,8 +56,8 @@ product sections rather than isolated statistics ([ADR-022]):
 - **Consistency health** leads with the top findings and deep-links each to the page that fixes it
   (`dashboardFindingLink`; unlike the Documents workspace's `findingLink`, it also links `documents.*`
   findings, since the dashboard is not the fix site).
-- **Documents** shows the five-way breakdown reusing the Documents workspace's `buildDocumentBuckets5`
-  (a distinct definition from the ring's organizational readiness, which counts `not_applicable` as ready).
+- **Documents** shows the class breakdown from the same canonical `DocumentReadiness` the ring shows,
+  so the bar and the percentage can never disagree.
 - **Dossier snapshot** is a *live* present-tense view of what the dossier holds now — not a fabricated
   activity feed. It is event-stream-shaped so it can become a real timeline once persistence exists,
   with no layout change ([ADR-021]).
@@ -98,3 +102,5 @@ by the global `prefers-reduced-motion` rule — widgets do not implement their o
 [ADR-017]: ./decisions.md
 [ADR-021]: ./decisions.md
 [ADR-022]: ./decisions.md
+
+[ADR-033]: ./decisions.md

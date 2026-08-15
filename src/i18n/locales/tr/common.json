@@ -33,6 +33,26 @@
     "required": "Zorunlu",
     "yes": "Evet"
   },
+  "readiness": {
+    "label": "Dosya hazırlığı",
+    "hint": "Dosyanızın ne kadarının hazır olduğunu gösterir — vize kararı hakkında bir tahmin değildir.",
+    "percent": "%{{percent}} hazır",
+    "ofApplicable": "{{total}} zorunlu belgeden {{ready}} tanesi hazır",
+    "nothingToTrack": "Henüz takip edilecek zorunlu belge yok",
+    "outstanding_one": "{{count}} belge henüz onaylanmadı",
+    "outstanding_other": "{{count}} belge henüz onaylanmadı",
+    "obtained_one": "{{count}} belge alındı, onay bekliyor",
+    "obtained_other": "{{count}} belge alındı, onay bekliyor",
+    "class": {
+      "ready": "Hazır",
+      "obtained": "Alındı",
+      "inProgress": "Talep edildi",
+      "needsUpdate": "Güncellenmeli",
+      "notStarted": "Başlanmadı",
+      "notApplicable": "Uygulanamaz",
+      "optional": "İsteğe bağlı"
+    }
+  },
   "units": {
     "days_one": "{{count}} gün",
     "days_other": "{{count}} gün",

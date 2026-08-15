@@ -157,6 +157,10 @@ import type { Application } from '@/domain/schemas/application.schema'
 import type { Document } from '@/domain/schemas/document.schema'
 import { ChecklistGroup } from '@/components/review/SubmissionChecklist'
 import { PrintPackage } from '@/components/review/PrintPackage'
+import {
+  ReviewModeSelector,
+  type ReviewMode,
+} from '@/components/review/ReviewModeSelector'
 import type {
   ChecklistRow,
   SubmissionGroup,
@@ -1213,20 +1217,28 @@ function Documents() {
       <Row label={t('playground:rows.documentsHero')} align="start">
         <DocumentsHero
           className="w-full"
-          buckets={{
-            requiredTotal: 8,
+          readiness={{
+            requiredTotal: 9,
+            applicable: 8,
+            notApplicable: 1,
             ready: 3,
+            obtained: 1,
+            inProgress: 2,
+            notStarted: 1,
             needsUpdate: 1,
-            requested: 2,
-            missing: 2,
             optional: 2,
-            completionPercent: 38,
+            percent: 38,
+            outstanding: 5,
+            complete: false,
+            hasApplicableWork: true,
           }}
           bucketLabels={{
             ready: 'Ready',
-            missing: 'Missing',
-            needsUpdate: 'Needs update',
+            obtained: 'Obtained',
             requested: 'Requested',
+            needsUpdate: 'Needs update',
+            missing: 'Not started',
+            notApplicable: 'Not applicable',
             optional: 'Optional',
           }}
           completionLabel="38% ready"
@@ -1828,7 +1840,7 @@ function Dashboard() {
         <ReadinessRing
           value={40}
           size={132}
-          label={t('dashboard:hero.readinessLabel')}
+          label={t('common:readiness.label')}
           valueLabel={format.percent(40)}
           caption={td('dashboard:hero.verdict.documents_remaining', {
             count: 5,
@@ -1837,14 +1849,14 @@ function Dashboard() {
         <ReadinessRing
           value={72}
           size={132}
-          label={t('dashboard:hero.readinessLabel')}
+          label={t('common:readiness.label')}
           valueLabel={format.percent(72)}
           caption={td('dashboard:hero.verdict.preparing')}
         />
         <ReadinessRing
           value={100}
           size={132}
-          label={t('dashboard:hero.readinessLabel')}
+          label={t('common:readiness.label')}
           valueLabel={format.percent(100)}
           caption={td('dashboard:hero.verdict.ready_for_appointment')}
         />
@@ -1858,7 +1870,7 @@ function Dashboard() {
             <ReadinessHero
               percent={app.readiness.percent}
               state={app.readiness.state}
-              missingCount={app.readiness.missingCount}
+              outstandingCount={app.readiness.outstanding}
               nextMilestone={app.nextMilestone}
             />
           </div>
@@ -1875,7 +1887,7 @@ function Dashboard() {
           <ConsistencyHealth validation={app.validation} />
         </div>
         <div className="grid gap-6 lg:grid-cols-2">
-          <DocumentsSummary breakdown={app.documentsBreakdown} />
+          <DocumentsSummary readiness={app.documents} />
           <TripSummary
             countryCode={app.countryCode}
             trip={app.trip}
@@ -2266,6 +2278,19 @@ const DEMO_CHECKLIST_ROWS: ChecklistRow[] = [
     to: '/documents?category=identity',
   },
   {
+    code: 'PASSPORT_PREVIOUS',
+    category: 'passport',
+    group: 'identity',
+    ownerType: 'applicant',
+    required: true,
+    status: 'received',
+    state: 'obtained',
+    docId: 'demo-previous',
+    validUntil: null,
+    expiresBeforeAppointment: false,
+    to: '/documents?doc=demo-previous',
+  },
+  {
     code: 'ID_CARD_COPY',
     category: 'identity',
     group: 'identity',
@@ -2285,12 +2310,13 @@ const DEMO_GROUP: SubmissionGroup = {
   rows: DEMO_CHECKLIST_ROWS,
   counts: {
     ready: 1,
+    obtained: 1,
     needsAttention: 1,
     missing: 1,
     optional: 0,
     notApplicable: 0,
-    actionable: 3,
-    total: 3,
+    actionable: 4,
+    total: 4,
   },
 }
 
@@ -2308,6 +2334,7 @@ const DEMO_PRINT: PrintPackageModel = {
       to: '/documents',
       counts: {
         ready: 3,
+        obtained: 0,
         needsAttention: 0,
         missing: 0,
         optional: 0,
@@ -2322,6 +2349,7 @@ const DEMO_PRINT: PrintPackageModel = {
       to: '/documents',
       counts: {
         ready: 1,
+        obtained: 0,
         needsAttention: 0,
         missing: 1,
         optional: 0,
@@ -2337,6 +2365,7 @@ const DEMO_PRINT: PrintPackageModel = {
 
 function Review() {
   const { t } = useTranslation(['playground'])
+  const [reviewMode, setReviewMode] = useState<ReviewMode>('full')
 
   return (
     <Block
@@ -2344,6 +2373,9 @@ function Review() {
       title={t('playground:sections.review')}
       description={t('playground:blurbs.review')}
     >
+      <Row label={t('playground:rows.reviewMode')}>
+        <ReviewModeSelector value={reviewMode} onValueChange={setReviewMode} />
+      </Row>
       <Row label={t('playground:rows.checklistGroup')} align="start">
         <div className="w-full max-w-2xl">
           <ChecklistGroup group={DEMO_GROUP} />

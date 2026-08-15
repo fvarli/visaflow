@@ -33,7 +33,6 @@
     "subtitle": "A calm, section-by-section review of your dossier — what already looks good, and what still needs your attention before you submit.",
     "disclaimer": "These checks are organizational aids, not official requirements. Always verify requirements with the official embassy or visa center.",
     "hero": {
-      "readinessLabel": "Dossier completeness",
       "nextRecommendation": "Suggested next step",
       "allClearBody": "Everything we can check looks consistent. Remember to verify each detail before your appointment.",
       "checksPassed_one": "{{count}} of {{total}} check passed",

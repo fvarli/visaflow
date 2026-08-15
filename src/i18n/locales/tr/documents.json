@@ -4,18 +4,9 @@
   "shortDescription": "Vize başvuru dosyanızı düzenleyin",
   "readyCount": "{{total}} belgeden {{ready}} tanesi hazır",
   "hero": {
-    "completion": "%{{percent}} hazır",
-    "ofRequired": "{{total}} zorunlu belgeden {{ready}} hazır",
     "nextTitle": "Sıradaki belge",
     "nextEmpty": "Her şey güncel — bekleyen zorunlu belge yok.",
-    "open": "Aç",
-    "buckets": {
-      "ready": "Hazır",
-      "missing": "Eksik",
-      "needsUpdate": "Güncellenmeli",
-      "requested": "Talep edildi",
-      "optional": "İsteğe bağlı"
-    }
+    "open": "Aç"
   },
   "view": {
     "label": "Görünüm",

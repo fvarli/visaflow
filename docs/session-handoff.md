@@ -1262,3 +1262,131 @@ with **no Print button**, the honest after-submission note, and an empty dossier
 - No browser pass (no connected Chrome) — re-verify at 1440/390 × tr light/dark + en: the hero with and without
   an appointment, long Turkish document names in the checklist rows, the nine groups at mobile width, the
   generated/physical separation reading as clearly distinct, and focus/keyboard order through the deep links.
+
+## Iteration 20 handoff (2026-08-15) — Readiness unification & Final Review polish
+
+Closed the product's worst internal contradiction: **six** different document-readiness derivations,
+four different arithmetics, and up to three conflicting numbers in a single Dashboard viewport. There
+is now exactly one definition of readiness, owned by `src/features/readiness/`, consumed by every
+surface and rendered under one shared label. No schema, import/export, storage, validation-severity or
+country-requirement change; still exactly two localStorage keys.
+
+### Baseline recorded (real, from this machine, before any change)
+Clean tree on `main` at `79ce7e3`. `format:check` ✓ · `lint` 0 errors / 59 warnings · `typecheck` ✓ ·
+`test` **482/482** (58 files) · `build` ✓ (`index` 260.69 kB / **80.43 kB gzip**; `DossierProvider`
+436.39 kB / 134.94 kB gzip; `ReviewPage` 17.05 kB / 4.81 kB gzip; CSS 84.74 kB / 17.30 kB gzip).
+
+### The audit (all verified in code, not inferred)
+| # | Derivation | Percent | `received` | `not_applicable` |
+|---|---|---|---|---|
+| 1 | `buildDocumentBuckets` (dashboard) | `(ready+NA)/required` | → missing | **numerator** (inflates) |
+| 2 | `buildDocumentBuckets5` (documents) | `ready/required` | **no bucket** | **no bucket, in denominator** (deflates) |
+| 3 | checklist `tally` (review) | `ready/actionable` | → amber `needsAttention` | excluded |
+| 4 | `buildAppointmentDay` (timeline) | `readyCount/4` | not ready | ready — except `formReady` demanded strict `ready` |
+| 5 | `AppLayout.tsx:119` inline nav badge | — | not counted | not counted |
+| 6 | `timeline-tasks` `READY_DOC_STATUSES` | — | **counts as done** | done |
+
+Plus a 7th surface the first audit missed: `DOCUMENT_STATUS_TONE.received` rendered **amber**.
+Consequences: `buckets5`'s five buckets did not sum to `requiredTotal`, so both segmented bars
+(`DocumentsHero`, `DocumentsSummary`) left an unexplained grey gap and no quick-filter chip could
+reach a `received` or `not_applicable` document. A dossier with all-`not_applicable` requirements
+showed a **100% "Ready for your appointment"** ring above an empty bar reading "0 of 3 ready".
+
+### Canonical definition (ADR-033, `docs/readiness.md`)
+`percent = round(ready / applicable × 100)` where `applicable` = required documents that are not
+`not_applicable`, **plus** applicable required requirements with no document record yet. Optional
+documents never enter either side. `applicable === 0` → `percent 0`, `hasApplicableWork false`,
+**never** `ready_for_appointment`. Two invariants, both tested:
+`ready + obtained + inProgress + notStarted + needsUpdate === applicable` and
+`applicable + notApplicable === requiredTotal`.
+
+`received` = **obtained, in hand, not yet confirmed dossier-ready**. Never missing, never ready, never
+amber (`accent` now), never a finding — which needed no rule change, only a regression test.
+`needs_update` moved `danger` → `warning` in the same pass. The **task-completion ≠ dossier-readiness**
+divergence is deliberately preserved and now documented + tested: a Timeline "obtain X" task *is*
+satisfied by `received`; readiness, `buildAppointmentDay` and the checklist require `ready`.
+
+### Architecture
+`src/features/readiness/` — `readiness-types.ts` (vocabulary + status→class map), `document-readiness.ts`
+(arithmetic + `isDossierReady`/`isObtained`/`isApplicable`), `requirement-readiness.ts` (bridge to the
+country pack), `readiness-model.ts` (`ReadinessState`, `deriveReadinessState`, `deriveNextActions`,
+moved out of `dashboard-model.ts` — the Dashboard should not own logic three other surfaces consume).
+It is a **graph sink**: imports only domain types, so no consumer can cycle. Deleted:
+`buildDocumentBuckets`, `buildDocumentBuckets5`, `DocumentBuckets`, `DocumentBuckets5`, the inline
+nav-badge filter, and the dead never-rendered `sponsor-documents.readyCount`.
+
+Canonical strings live in `common:readiness.*`, so surfaces share one *string* as well as one number;
+`validation:center.hero.readinessLabel` ("Dossier completeness"), `dashboard:hero.readinessLabel`,
+`dashboard:hero.subtitle`, `review:hero.readiness{,Hint}`, `documents:hero.{completion,ofRequired,buckets}`
+and `dashboard:documentsSummary.{description,ready,needsUpdate,requested,missing,optional}` are retired.
+New: `dashboard:nextActions.confirmDocuments` (+ reason/effort) and `snapshot.item.documentsObtained`.
+
+### Final Review polish
+`/review?mode=departure` — a compact, **mobile-first (390px)** departure check over the *same*
+`FinalReviewModel`: appointment → what goes in the folder → pages VisaFlow can generate → what is
+unresolved (incl. the obtained-but-unconfirmed count) → one action → calm footer. Never claims physical
+possession ("bundle to bring", never "packed"); no persistence, no packed-state, no new storage key.
+The submission checklist gained an **All / Needs attention** filter (view state only) that filters the
+canonical checklist rather than building a second model; groups with no matches disappear, order is
+preserved, counts are derived. `ReviewModeSelector` + the new `obtained` checklist state are demoed in
+`/playground`.
+
+### Two user-visible numbers moved, both deliberately
+- **Dashboard ring 70% → 64%** on the example dossier. Its applicant is `employed`, so the Greece pack
+  makes 11 required documents applicable while the dossier carries 10 records (no `APPROVED_LEAVE`).
+  64% is the honest figure and it is now stable whether or not `/documents` has been visited — before,
+  the Documents page silently changed from 70% to 64% the moment it seeded the 11th record.
+- **Sidebar Documents badge 2 → 3**: the `received` payslip now counts as outstanding, because it is
+  not yet dossier-ready. One meaning of "remaining" app-wide.
+
+### Gates (this iteration)
+`format:check` ✓ · `lint` **0 errors / 63 warnings** (baseline 59; all additions are the already-accepted
+`no-deprecated` / `no-non-null-assertion` / `react-refresh` categories) · `typecheck` ✓ · `test`
+**571/571** (482 + 89 new, 60 files) · `build` ✓ (`index` 80.43 → **80.88 kB gzip** +0.45;
+`DossierProvider` 134.94 → **135.82 kB gzip** +0.88; `ReviewPage` 4.81 → **5.04 kB gzip** +0.23; **no new
+dependency**). Not committed, not pushed.
+
+### Tests (89 new)
+New shared fixtures `src/tests/fixtures/dossiers.ts` — the first shared fixture module in the repo
+(`emptyDossier`, `partiallyPrepared`, `receivedHeavy`, `manyNotApplicable`, `allApplicableReady`,
+`readyButWithFindings`). Three are built **from the country pack**, because "complete" must mean a
+record for every applicable requirement; a hand-picked subset would read 100% only if readiness ignored
+uncollected requirements — the exact bug they guard. Dates are year-2099 so `trip.notInPast` (which reads
+the wall clock) can never make the suite fail on a calendar boundary.
+
+`readiness-invariants.test.ts` (46) asserts, per fixture: all five surfaces return the same percentage,
+the same counts, the same state and the same primary action; `not_applicable` neutrality and no
+polarity inversion; the four `received` clauses incl. task-completion-vs-readiness and "never a defect
+tone"; the Validation Center cannot relabel a different metric; readiness ⟂ consistency health in both
+directions; optional documents never move the number. `document-readiness.test.ts` (28) covers the
+status map, both structural invariants and the pending-requirement behaviour. Render tests extended:
+the heading-outline invariant now runs in **both** modes, plus `?mode=departure` deep-link, unknown-mode
+fallback, the mode radiogroup, the filter radiogroup, filtered-rows-never-exceed-unfiltered, and a
+guard that the departure view never says "packed" / "in your bag" / "çantan".
+
+### Existing tests that legitimately changed
+`dashboard-model.test.ts` (the "counts not_applicable as ready" case now asserts exclusion; the action
+list gained `confirmDocuments`; `completeMissingDocs` 5 → 4 as `received` left it),
+`documents-model.test.ts` (five buckets → the partitioning breakdown), `review-model.test.ts` (the hedged
+`toBeGreaterThanOrEqual(0)` became a real assertion, plus a new "never 100% while the checklist lists
+missing items" test), `review-checklist.test.ts` (`received` → `obtained`), `ui/dashboard.test.tsx`
+(70 → 64, with the reason in a comment).
+
+### Docs
+New `docs/readiness.md` (canonical) and `docs/review-architecture.md` (did not exist). ADR-033 appended;
+it explicitly supersedes ADR-017's readiness clause and ADR-032's known limitation. `dashboard-architecture.md`
+corrected in place with a short *History* note naming the past error honestly (ADRs are append-only, so
+ADR-017's text is untouched). `architecture.md`, `current-status.md`, `roadmap.md` updated.
+
+### Known limitations / next
+- The checklist's `actionable` counts optional rows and un-instantiated requirements, so it is **not**
+  the readiness denominator — a different question, now labelled explicitly rather than reconciled.
+- `deriveNextDocument` still picks `not_started` then `needs_update`, skipping `requested`/`obtained` — a
+  seventh, smaller opinion about "what's next", left for a follow-up.
+- The example dossier lacks an `APPROVED_LEAVE` record its own employed applicant makes applicable.
+  Adding it would raise the example to 70%; left alone deliberately so the fixture exercises the
+  uncollected-requirement path.
+- `DataList` still hardcodes an English "Not provided" while `common:states.notProvided` exists.
+- **No browser pass (no connected Chrome)** — re-verify at **390px** especially, plus 1440, × tr/en ×
+  light/dark: the departure card, the checklist filter and its empty state, the six-segment readiness
+  bars, the new `obtained` chips and tones, and keyboard/focus through both radiogroups.

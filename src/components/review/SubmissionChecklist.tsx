@@ -1,16 +1,21 @@
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { ArrowUpRight, FileText } from 'lucide-react'
+import { ArrowUpRight, CheckCircle2, FileText } from 'lucide-react'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { StatusBadge } from '@/components/ui/status-badge'
 import { Button } from '@/components/ui/button'
 import { documentLabel } from '@/lib/document-label'
 import { useFormatters } from '@/lib/format'
 import { dynamicT } from '@/lib/i18n-dynamic'
-import type {
-  ChecklistRow,
-  SubmissionChecklist as SubmissionChecklistModel,
-  SubmissionGroup,
+import { SegmentedControl } from '@/components/ui/segmented-control'
+import {
+  attentionCount,
+  filterChecklist,
+  type ChecklistFilter,
+  type ChecklistRow,
+  type SubmissionChecklist as SubmissionChecklistModel,
+  type SubmissionGroup,
 } from '@/features/review/review-checklist'
 import { CHECKLIST_STATE_ICON, CHECKLIST_STATE_TONE } from './state-meta'
 
@@ -28,6 +33,8 @@ interface SubmissionChecklistProps {
  */
 export function SubmissionChecklist({ checklist }: SubmissionChecklistProps) {
   const { t } = useTranslation('review')
+  // View state only — never a URL param, never persisted.
+  const [filter, setFilter] = useState<ChecklistFilter>('all')
 
   if (checklist.groups.length === 0) {
     // Deliberately not an `EmptyState` — that renders its own `h2`, which would
@@ -48,11 +55,51 @@ export function SubmissionChecklist({ checklist }: SubmissionChecklistProps) {
     )
   }
 
+  const outstanding = attentionCount(checklist.counts)
+  const view = filterChecklist(checklist, filter)
+
   return (
     <div className="flex flex-col gap-4">
-      {checklist.groups.map((group) => (
-        <ChecklistGroup key={group.id} group={group} />
-      ))}
+      <SegmentedControl<ChecklistFilter>
+        size="sm"
+        ariaLabel={t('checklist.filter.label')}
+        value={filter}
+        onValueChange={setFilter}
+        options={[
+          {
+            value: 'all',
+            label: t('checklist.filter.all', { count: checklist.counts.total }),
+          },
+          {
+            value: 'attention',
+            label: t('checklist.filter.attention', { count: outstanding }),
+          },
+        ]}
+      />
+
+      {view.groups.length === 0 ? (
+        // Not an `EmptyState`: that renders its own `h2`, which would sit under
+        // the section's `h2` and muddle the heading outline.
+        <div className="bg-card flex flex-col items-start gap-3 rounded-xl border border-dashed p-6">
+          <p className="text-body text-foreground flex items-center gap-2.5">
+            <CheckCircle2
+              aria-hidden
+              className="text-success size-5 shrink-0"
+            />
+            {t('checklist.attentionEmpty.title')}
+          </p>
+          <p className="text-caption text-muted-foreground text-pretty">
+            {t('checklist.attentionEmpty.body')}
+          </p>
+          <Button size="sm" variant="outline" onClick={() => setFilter('all')}>
+            {t('checklist.attentionEmpty.showAll')}
+          </Button>
+        </div>
+      ) : (
+        view.groups.map((group) => (
+          <ChecklistGroup key={group.id} group={group} />
+        ))
+      )}
     </div>
   )
 }

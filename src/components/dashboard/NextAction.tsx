@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button'
 import { StatusBadge } from '@/components/ui/status-badge'
 import { dynamicT } from '@/lib/i18n-dynamic'
 import { ACTION_ICON, actionLabel } from '@/components/dashboard/action-meta'
-import type { ActionDescriptor } from '@/features/dashboard/dashboard-model'
+import type { ActionDescriptor } from '@/features/readiness/readiness-model'
 
 interface NextActionProps {
   /** The single highest-priority action, or null when nothing is outstanding. */

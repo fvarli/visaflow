@@ -39,7 +39,7 @@ export function EmploymentDocumentsSummary({
 }: EmploymentDocumentsSummaryProps) {
   const { t } = useTranslation(['employment', 'visa-domain', 'common'])
   const td = dynamicT(t)
-  const { rows, buckets } = documents
+  const { rows, readiness } = documents
 
   if (rows.length === 0) {
     return (
@@ -53,8 +53,8 @@ export function EmploymentDocumentsSummary({
     <div className="flex flex-col gap-4">
       <p className="text-body text-muted-foreground">
         {t('employment:documents.readyCount', {
-          ready: buckets.ready,
-          total: buckets.requiredTotal,
+          ready: readiness.ready,
+          total: readiness.applicable,
         })}
       </p>
       <ul className="flex flex-col gap-2">

@@ -39,7 +39,7 @@ export function FinanceDocumentsSummary({
 }: FinanceDocumentsSummaryProps) {
   const { t } = useTranslation(['finance', 'visa-domain', 'common'])
   const td = dynamicT(t)
-  const { groups, buckets } = documents
+  const { groups, readiness } = documents
 
   if (groups.length === 0) {
     return (
@@ -53,8 +53,8 @@ export function FinanceDocumentsSummary({
     <div className="flex flex-col gap-5">
       <p className="text-body text-muted-foreground">
         {t('finance:documents.readyCount', {
-          ready: buckets.ready,
-          total: buckets.requiredTotal,
+          ready: readiness.ready,
+          total: readiness.applicable,
         })}
       </p>
 

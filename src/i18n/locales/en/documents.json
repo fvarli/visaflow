@@ -4,18 +4,9 @@
   "shortDescription": "Organize your visa application dossier",
   "readyCount": "{{ready}} of {{total}} ready",
   "hero": {
-    "completion": "{{percent}}% ready",
-    "ofRequired": "{{ready}} of {{total}} required documents ready",
     "nextTitle": "Next document to obtain",
     "nextEmpty": "You're all caught up — nothing required is outstanding.",
-    "open": "Open",
-    "buckets": {
-      "ready": "Ready",
-      "missing": "Missing",
-      "needsUpdate": "Needs update",
-      "requested": "Requested",
-      "optional": "Optional"
-    }
+    "open": "Open"
   },
   "view": {
     "label": "View",

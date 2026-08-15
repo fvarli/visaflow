@@ -7,6 +7,7 @@ import { Footer } from './Footer'
 import { MobileNav } from './MobileNav'
 import { SkipLink } from './SkipLink'
 import { useDossier } from '@/app/providers/DossierProvider'
+import { buildDocumentReadiness } from '@/features/readiness/document-readiness'
 import { downloadDossier } from '@/features/import-export/services/export.service'
 import {
   importPartial,
@@ -115,14 +116,14 @@ export function AppLayout() {
     }
   }, [loadDossier])
 
-  // Cheap derived count for the Documents nav row.
+  // The Documents nav badge shows the canonical outstanding count — the same
+  // number the rings and the "remaining" phrasing use. It used to be an inline
+  // filter here that gave the word "remaining" a third meaning (ADR-033).
   const navCounts = useMemo(
     () => ({
-      missingDocuments: state.documents.filter(
-        (doc) =>
-          doc.required &&
-          (doc.status === 'not_started' || doc.status === 'requested')
-      ).length,
+      outstandingDocuments: buildDocumentReadiness({
+        documents: state.documents,
+      }).outstanding,
     }),
     [state.documents]
   )

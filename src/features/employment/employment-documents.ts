@@ -1,7 +1,5 @@
-import {
-  buildDocumentBuckets5,
-  type DocumentBuckets5,
-} from '@/features/documents/documents-model'
+import { buildDocumentReadiness } from '@/features/readiness/document-readiness'
+import type { DocumentReadiness } from '@/features/readiness/readiness-types'
 import { applicableRequirements } from '@/features/documents/template-sync'
 import type { Document } from '@/domain/schemas/document.schema'
 import type { Application } from '@/domain/schemas/application.schema'
@@ -32,7 +30,7 @@ export interface EmploymentDocRow {
 }
 
 export interface EmploymentDocumentsView {
-  buckets: DocumentBuckets5
+  readiness: DocumentReadiness
   /** Every applicable employment requirement, with its current dossier status. */
   rows: EmploymentDocRow[]
   /** Applicable employment docs not yet ready — the "ask HR" list. */
@@ -40,7 +38,11 @@ export interface EmploymentDocumentsView {
   hasEmploymentDocs: boolean
 }
 
-/** Statuses that mean "not in hand yet" — the docs you would request from HR. */
+/**
+ * Statuses that mean "not in hand yet" — the docs you would request from HR.
+ * `received` is deliberately absent: you already have it, so asking HR again
+ * would be wrong. Confirming it is a different action (ADR-033).
+ */
 const HR_REQUEST_STATUSES = new Set<EmploymentDocStatus>([
   'not_instantiated',
   'not_started',
@@ -54,7 +56,7 @@ export function buildEmploymentDocuments(
   template: VisaTypeTemplate | undefined
 ): EmploymentDocumentsView {
   const employmentDocs = documents.filter((d) => d.category === 'employment')
-  const buckets = buildDocumentBuckets5(employmentDocs)
+  const readiness = buildDocumentReadiness({ documents: employmentDocs })
 
   const applicable = template
     ? applicableRequirements(template, application).filter(
@@ -79,7 +81,7 @@ export function buildEmploymentDocuments(
   const hrRequests = rows.filter((row) => HR_REQUEST_STATUSES.has(row.status))
 
   return {
-    buckets,
+    readiness,
     rows,
     hrRequests,
     hasEmploymentDocs: rows.length > 0,

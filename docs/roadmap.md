@@ -23,6 +23,11 @@ engine · widget-based dashboard over a pure presentation adapter · design syst
 Turkish/English internationalization · the `country → visa type → requirements` config system ·
 one production country pack (Greece — Schengen short-stay tourism) · ADR history and docs.
 
+**Recently completed within Foundation:** the readiness reconciliation — six divergent
+document-readiness derivations consolidated into one canonical model
+(`src/features/readiness/`, ADR-033), so every surface shows the same number under the same
+label.
+
 **Next within Foundation:** surface `SourceNote` in the Documents detail view; add more Schengen
 visa types (business, visit) using the existing hierarchy; verify the Greece pack against a
 current official source and record real `lastVerifiedAt` / raise `reviewStatus` honestly;

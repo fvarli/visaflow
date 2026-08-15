@@ -1,4 +1,5 @@
 import { useTranslation } from 'react-i18next'
+import { useSearchParams } from 'react-router-dom'
 import { PageHeader } from '@/components/ui/page-header'
 import { Section, SectionHeader } from '@/components/ui/section'
 import { NoDossierState } from '@/components/NoDossierState'
@@ -10,6 +11,11 @@ import { SubmissionChecklist } from '@/components/review/SubmissionChecklist'
 import { AttentionSection } from '@/components/review/AttentionSection'
 import { AppointmentPrep } from '@/components/review/AppointmentPrep'
 import { PrintPackage } from '@/components/review/PrintPackage'
+import {
+  ReviewModeSelector,
+  type ReviewMode,
+} from '@/components/review/ReviewModeSelector'
+import { DepartureCheck } from '@/components/review/DepartureCheck'
 
 /**
  * Final Review — the last look before the appointment.
@@ -21,9 +27,26 @@ import { PrintPackage } from '@/components/review/PrintPackage'
  * the Dashboard's, findings are the Validation Center's, appointment-day
  * readiness is the Timeline's. Nothing here predicts a visa outcome (ADR-016).
  */
+const REVIEW_MODES: ReviewMode[] = ['full', 'departure']
+
 export default function ReviewPage() {
   const { t } = useTranslation(['review', 'validation'])
   const model = useFinalReviewModel()
+
+  // The mode is derived from the URL, so it is bookmarkable and Back/Forward
+  // works; an unknown value falls back silently. Presentation state only —
+  // nothing is persisted (the same pattern the Timeline's `?mode=` uses).
+  const [searchParams, setSearchParams] = useSearchParams()
+  const paramMode = searchParams.get('mode') as ReviewMode | null
+  const mode: ReviewMode =
+    paramMode && REVIEW_MODES.includes(paramMode) ? paramMode : 'full'
+
+  const setMode = (next: ReviewMode) =>
+    setSearchParams((prev) => {
+      const params = new URLSearchParams(prev)
+      params.set('mode', next)
+      return params
+    })
 
   if (!model.hasData) {
     return <NoDossierState section={t('review:title')} />
@@ -38,47 +61,55 @@ export default function ReviewPage() {
 
       <ReviewHero model={model} />
 
-      <Section>
-        <ApplicationSummary summary={model.summary} />
-      </Section>
+      <ReviewModeSelector value={mode} onValueChange={setMode} />
 
-      <Section>
-        <SectionHeader
-          title={t('review:checklist.title')}
-          description={t('review:checklist.description')}
-        />
-        <SubmissionChecklist checklist={model.checklist} />
-      </Section>
+      {mode === 'departure' && <DepartureCheck model={model} />}
 
-      <Section>
-        <SectionHeader
-          title={t('review:attention.title')}
-          description={t('review:attention.description')}
-        />
-        <AttentionSection attention={model.attention} />
-      </Section>
+      {mode === 'full' && (
+        <>
+          <Section>
+            <ApplicationSummary summary={model.summary} />
+          </Section>
 
-      <ReadinessSummary ready={model.looksGood} />
+          <Section>
+            <SectionHeader
+              title={t('review:checklist.title')}
+              description={t('review:checklist.description')}
+            />
+            <SubmissionChecklist checklist={model.checklist} />
+          </Section>
 
-      <Section>
-        <SectionHeader
-          title={t('review:appointmentPrep.title')}
-          description={t('review:appointmentPrep.description')}
-        />
-        <AppointmentPrep
-          appointmentDay={model.appointmentDay}
-          appointment={model.summary.appointment}
-          templateNoteKeys={model.templateNoteKeys}
-        />
-      </Section>
+          <Section>
+            <SectionHeader
+              title={t('review:attention.title')}
+              description={t('review:attention.description')}
+            />
+            <AttentionSection attention={model.attention} />
+          </Section>
 
-      <Section>
-        <SectionHeader
-          title={t('review:print.title')}
-          description={t('review:print.description')}
-        />
-        <PrintPackage print={model.print} />
-      </Section>
+          <ReadinessSummary ready={model.looksGood} />
+
+          <Section>
+            <SectionHeader
+              title={t('review:appointmentPrep.title')}
+              description={t('review:appointmentPrep.description')}
+            />
+            <AppointmentPrep
+              appointmentDay={model.appointmentDay}
+              appointment={model.summary.appointment}
+              templateNoteKeys={model.templateNoteKeys}
+            />
+          </Section>
+
+          <Section>
+            <SectionHeader
+              title={t('review:print.title')}
+              description={t('review:print.description')}
+            />
+            <PrintPackage print={model.print} />
+          </Section>
+        </>
+      )}
 
       <p className="text-caption text-muted-foreground">
         {t('review:disclaimer')}

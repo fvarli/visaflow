@@ -9,15 +9,17 @@ import { runValidation } from '@/domain/rules/runner'
 import { resolveVisaTemplate } from '@/config/countries'
 import { useDossier } from '@/app/providers/DossierProvider'
 import { associateFindings } from '@/features/documents/documents-model'
-// Reuse — never re-implement — the Dashboard's priority + readiness derivation,
-// so Timeline's highlighted action is byte-identical to the Dashboard's.
+// Readiness and priority come from the canonical readiness feature, so the
+// Timeline's number and highlighted action are byte-identical to every other
+// surface's (ADR-033).
+import { buildDocumentReadiness } from '@/features/readiness/document-readiness'
 import {
-  buildDocumentBuckets,
   deriveNextActions,
   deriveReadinessState,
   type ActionDescriptor,
   type ReadinessState,
-} from '@/features/dashboard/dashboard-model'
+} from '@/features/readiness/readiness-model'
+import { requiredRequirementCodes } from '@/features/readiness/requirement-readiness'
 import {
   deriveTasks,
   groupTasksByBand,
@@ -34,8 +36,9 @@ import { buildFreshness, type FreshnessView } from './document-freshness'
  * The one place the page derives its shape. It re-encodes no rule and persists
  * nothing: preparation tasks are **derived** from the timeline policy + real
  * document/validation state, key dates are the dossier's fixed events, freshness
- * is factual, and the highlighted "do this first" **reuses the Dashboard's
- * `deriveNextActions`** so the two never disagree (ADR-*). It is i18n/Intl-free.
+ * is factual, and readiness plus the highlighted "do this first" come from the
+ * canonical readiness feature, so no two surfaces disagree (ADR-033). It is
+ * i18n/Intl-free.
  */
 
 export interface TimelineInput {
@@ -66,8 +69,8 @@ export interface TimelineModel {
   appointmentDaysUntil: number | null
   tripDaysUntil: number | null
   phase: ReadinessState
-  /** Outstanding required-document count — for the phase verdict phrasing. */
-  missingDocuments: number
+  /** Applicable work not yet confirmed ready — for the phase verdict phrasing. */
+  outstandingDocuments: number
   /** The single highlighted action — identical to the Dashboard's `nextActions[0]`. */
   primaryAction: ActionDescriptor | null
   tasks: PreparationTask[]
@@ -111,12 +114,14 @@ export function buildAppointmentDay(
   documents: Document[],
   template: ReturnType<typeof resolveVisaTemplate>
 ): AppointmentDaySummaryModel {
-  const required = documents.filter((d) => d.required)
-  const allRequiredReady =
-    required.length > 0 &&
-    required.every((d) => d.status === 'ready' || d.status === 'not_applicable')
+  // Both items ask the *dossier-readiness* question, so both require `ready`
+  // (an applicable requirement marked not-applicable simply leaves the set).
+  // A `received` document deliberately does not qualify here even though it
+  // satisfies its preparation task on the plan — see ADR-033.
+  const allRequiredReady = buildDocumentReadiness({ documents }).complete
+  const form = documents.find((d) => d.code === 'APPLICATION_FORM')
   const formReady =
-    documents.find((d) => d.code === 'APPLICATION_FORM')?.status === 'ready'
+    form?.status === 'ready' || form?.status === 'not_applicable'
 
   const items: AppointmentDayItem[] = [
     { id: 'passport', ready: Boolean(applicant?.passport?.number) },
@@ -161,8 +166,11 @@ export function buildTimelineModel(
           totalRules: 0,
         }
 
-  const buckets = buildDocumentBuckets(documents)
-  const actions = deriveNextActions(buckets, validation, application)
+  const readiness = buildDocumentReadiness({
+    documents,
+    requiredRequirementCodes: requiredRequirementCodes(template, application),
+  })
+  const actions = deriveNextActions(readiness, validation, application)
 
   const tasks = deriveTasks(
     { application, documents, template, findings: validation.findings },
@@ -183,12 +191,12 @@ export function buildTimelineModel(
     appointmentDaysUntil: daysUntil(appointmentDate, now),
     tripDaysUntil: daysUntil(application?.trip?.entryDate ?? null, now),
     phase: deriveReadinessState(
-      buckets,
+      readiness,
       documents,
       validation.errorCount,
       appointmentDate !== null
     ),
-    missingDocuments: buckets.missing,
+    outstandingDocuments: readiness.outstanding,
     primaryAction: actions[0] ?? null,
     tasks,
     taskGroups: groupTasksByBand(tasks),

@@ -89,11 +89,18 @@ function StatusBadge({
  * vocabulary lives in exactly one place; the domain layer stays unaware of
  * color entirely.
  */
+/**
+ * Tones follow the canonical readiness semantics (ADR-033), not intuition about
+ * severity. `received` means "obtained, not yet confirmed" — real progress, so
+ * it takes the accent rather than the amber it used to wear, which read as a
+ * defect. `needs_update` is amber, not red: a document needing renewal is work,
+ * not an emergency.
+ */
 export const DOCUMENT_STATUS_TONE: Record<string, StatusTone> = {
   not_started: 'neutral',
   requested: 'info',
-  received: 'warning',
-  needs_update: 'danger',
+  received: 'accent',
+  needs_update: 'warning',
   ready: 'success',
   not_applicable: 'neutral',
 }

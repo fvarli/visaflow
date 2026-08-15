@@ -197,7 +197,7 @@ export default function DocumentsPage() {
     )
   }
 
-  const { buckets } = model
+  const { readiness } = model
   const selectedDoc =
     state.documents.find((d) => d.id === selectedDocId) ?? null
 
@@ -294,21 +294,27 @@ export default function DocumentsPage() {
       />
 
       <DocumentsHero
-        buckets={buckets}
+        readiness={readiness}
         bucketLabels={{
-          ready: t('documents:hero.buckets.ready'),
-          missing: t('documents:hero.buckets.missing'),
-          needsUpdate: t('documents:hero.buckets.needsUpdate'),
-          requested: t('documents:hero.buckets.requested'),
-          optional: t('documents:hero.buckets.optional'),
+          ready: t('common:readiness.class.ready'),
+          obtained: t('common:readiness.class.obtained'),
+          requested: t('common:readiness.class.inProgress'),
+          needsUpdate: t('common:readiness.class.needsUpdate'),
+          missing: t('common:readiness.class.notStarted'),
+          notApplicable: t('common:readiness.class.notApplicable'),
+          optional: t('common:readiness.class.optional'),
         }}
-        completionLabel={t('documents:hero.completion', {
-          percent: buckets.completionPercent,
+        completionLabel={t('common:readiness.percent', {
+          percent: readiness.percent,
         })}
-        summaryLabel={t('documents:hero.ofRequired', {
-          ready: buckets.ready,
-          total: buckets.requiredTotal,
-        })}
+        summaryLabel={
+          readiness.hasApplicableWork
+            ? t('common:readiness.ofApplicable', {
+                ready: readiness.ready,
+                total: readiness.applicable,
+              })
+            : t('common:readiness.nothingToTrack')
+        }
         nextTitle={t('documents:hero.nextTitle')}
         nextDocLabel={model.nextDocument ? labelOf(model.nextDocument) : null}
         nextEmptyLabel={t('documents:hero.nextEmpty')}
