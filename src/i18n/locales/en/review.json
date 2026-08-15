@@ -1,0 +1,153 @@
+{
+  "title": "Final Review",
+  "subtitle": "Review everything you have, what is still missing, and what to bring to your appointment.",
+  "hero": {
+    "readiness": "Dossier readiness",
+    "readinessHint": "How assembled your dossier is — never a prediction about your visa.",
+    "appointmentLabel": "Appointment",
+    "appointmentNone": "No appointment date recorded yet",
+    "attentionNone": "Nothing is waiting for your attention",
+    "attention_one": "{{count}} item needs attention",
+    "attention_other": "{{count}} items need attention",
+    "checklistReady": "{{ready}} of {{total}} checklist items ready",
+    "nextStep": "Suggested next step",
+    "state": {
+      "not_started": "Nothing collected yet",
+      "preparing": "In preparation",
+      "waiting_reservations": "Waiting on reservations",
+      "documents_remaining": "Documents still to collect",
+      "ready_for_appointment": "Organised for your appointment"
+    }
+  },
+  "summary": {
+    "title": "Application summary",
+    "description": "The cover sheet of your dossier — the facts exactly as you recorded them.",
+    "applicant": "Applicant",
+    "passport": "Passport",
+    "nationality": "Nationality",
+    "destination": "Destination",
+    "visaType": "Application type",
+    "travelDates": "Travel dates",
+    "duration": "Duration",
+    "nights_one": "{{count}} night",
+    "nights_other": "{{count}} nights",
+    "appointment": "Appointment",
+    "appointmentLocation": "Location",
+    "confirmation": "Confirmation number",
+    "funding": "Funding",
+    "employment": "Employment",
+    "sponsors": "Sponsors",
+    "sponsorCount_one": "{{count}} sponsor",
+    "sponsorCount_other": "{{count}} sponsors",
+    "notRecorded": "Not recorded yet",
+    "dateRange": "{{start}} – {{end}}",
+    "openApplicant": "Open applicant",
+    "openTrip": "Open trip",
+    "openFinance": "Open finance",
+    "openEmployment": "Open employment",
+    "openSponsors": "Open sponsors"
+  },
+  "checklist": {
+    "title": "Submission checklist",
+    "description": "What you hand over, grouped the way it goes into the folder. Every status comes from your Documents workspace.",
+    "groups": {
+      "identity": "Identity & passport",
+      "application": "Application",
+      "employment": "Employment",
+      "financial": "Financial evidence",
+      "sponsor": "Sponsor evidence",
+      "travel": "Travel",
+      "accommodation": "Accommodation",
+      "insurance": "Insurance",
+      "additional": "Additional supporting documents"
+    },
+    "state": {
+      "ready": "Ready",
+      "needsAttention": "Needs attention",
+      "missing": "Missing",
+      "optional": "Optional",
+      "notApplicable": "Not applicable"
+    },
+    "groupSummary": "{{ready}} of {{total}} ready",
+    "expiresBeforeAppointment": "Expires before your appointment",
+    "notCreated": "Not added to your dossier yet",
+    "validUntil": "Valid until {{date}}",
+    "empty": "There are no documents in your dossier yet.",
+    "emptyHint": "Add your country pack's requirements in the Documents workspace and they will appear here.",
+    "openDocuments": "Open Documents"
+  },
+  "attention": {
+    "title": "Still needs your attention",
+    "description": "Open findings from the consistency checks, most important first. Resolving these is the highest-value thing you can do before submitting.",
+    "none": "Nothing is waiting for your attention right now.",
+    "noneHint": "The consistency checks found nothing to resolve in the information you have entered so far.",
+    "notes_one": "{{count}} informational note",
+    "notes_other": "{{count}} informational notes",
+    "notesHint": "Informational notes are worth reading, but nothing about them is wrong.",
+    "seeAll": "Open consistency checks"
+  },
+  "appointmentPrep": {
+    "title": "Appointment preparation",
+    "description": "An organisational view of the day. VisaFlow does not know the office's procedure and never invents one.",
+    "beforeLeaving": {
+      "title": "Before leaving home",
+      "description": "The things worth checking while you can still do something about them."
+    },
+    "atAppointment": {
+      "title": "At the appointment",
+      "description": "What you recorded about the appointment itself."
+    },
+    "noAppointmentDetails": "You have not recorded a time, location or confirmation number for this appointment yet.",
+    "noAppointment": "No appointment recorded yet. Add one in the Trip workspace and this section will fill in.",
+    "afterSubmission": {
+      "title": "After you submit",
+      "body": "VisaFlow's role ends when your dossier is ready. It does not submit your application, track its progress, or receive any decision — nothing here leaves your device. What happens after you hand your documents over is between you and the office that received them."
+    },
+    "notesTitle": "Notes recorded for this country pack",
+    "openTrip": "Open appointment details"
+  },
+  "print": {
+    "title": "Print package",
+    "description": "A preview of the next step. Printing is not built yet — this shows what would be printable and what you would assemble yourself.",
+    "generated": {
+      "title": "Pages VisaFlow can generate",
+      "description": "Built from the dossier data you entered. Nothing here contains a file — VisaFlow has never held one.",
+      "coverSheet": "Dossier cover sheet",
+      "coverSheetHint": "Applicant, destination, application type and dates on one page.",
+      "submissionChecklist": "Submission checklist",
+      "submissionChecklistHint": "The list above, as a page you can tick off.",
+      "appointmentSummary": "Appointment summary",
+      "appointmentSummaryHint": "Date, time, location and confirmation number.",
+      "itinerarySummary": "Itinerary summary",
+      "itinerarySummaryHint": "Travel dates and your recorded route.",
+      "itemCount_one": "{{count}} line",
+      "itemCount_other": "{{count}} lines"
+    },
+    "physical": {
+      "title": "Your physical dossier",
+      "description": "Documents that come from your own files. VisaFlow only tracks whether you have them — it never stores, uploads or prints them.",
+      "applicationForm": "Application form",
+      "passport": "Passport & identity",
+      "employer": "Employer documents",
+      "bankStatements": "Bank statements",
+      "sponsor": "Sponsor evidence",
+      "insurance": "Insurance",
+      "reservations": "Reservations",
+      "supporting": "Other supporting documents",
+      "bundleSummary": "{{ready}} of {{total}} ready"
+    },
+    "state": {
+      "ready": "Ready",
+      "partial": "Partly ready",
+      "unavailable": "Not available yet",
+      "missing": "Not ready",
+      "notApplicable": "Not applicable"
+    },
+    "notYet": "Printing and PDF export are planned for a future release."
+  },
+  "looksGood": {
+    "title": "What already looks good",
+    "description": "Areas that are on file and currently raise nothing."
+  },
+  "disclaimer": "VisaFlow organises the information you entered. It does not submit your application and does not predict whether a visa will be granted. Always confirm requirements with the official consulate or visa centre."
+}

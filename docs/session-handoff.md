@@ -1157,3 +1157,108 @@ empty-state test to the new `/welcome` link.
 - No browser pass (no connected Chrome) — re-verify at 1440/390 × tr light/dark + en: the 4-step flow, the
   language/country step, create/import/example, "Explore first", the "already have a dossier" panel, and
   focus movement on step change.
+
+## Iteration 19 handoff (2026-08-15) — Final Review & submission experience (`/review`)
+
+Added the workspace that turns the dossier into an understandable, submission-ready package: **Final Review**
+("Son Kontrol"), the specialist's last look before the appointment. It answers a deliberately *different*
+question from the Validation Center — *"what do I have, what am I still missing, what do I bring, and am I
+organised for the day?"* rather than *"what is inconsistent?"* **Composition only**: no dossier-schema,
+import/export, storage, validation-outcome or readiness change; no new persistence; no PDF; no fake Print
+button. **No existing page was modified** except one `export` keyword in `timeline-model.ts`.
+
+### Baseline recorded (real, from code, before any change)
+`format:check` ✓ · `lint` 0 errors / 58 warnings · `typecheck` ✓ · `test` **417/417** (53 files, clean 32s run)
+· `build` ✓ (`index` 259.75 kB / 80.08 kB gzip; `DossierProvider` shared chunk 423.58 kB / 131.61 kB gzip).
+Repo clean on `main` at `ac0867a` (ADR-031).
+
+### Two product forks resolved with the maintainer before implementation
+1. **Print package scope** → *"Both, clearly separated."* Section G carries two explicitly different concepts,
+   never blended: VisaFlow-generated sheets, and the applicant's physical dossier.
+2. **Naming** → *Final Review / Son Kontrol* at `/review` (the Validation Center's page title is already
+   "Dossier review" / "Dosya incelemesi"; nav order is Consistency Checks → Final Review → Notes).
+
+### Architecture — pure adapters (ADR-032), `src/features/review/`
+- `review-checklist.ts` — the **single** checklist derivation behind both the item-level list and the physical
+  plan. Maps the 12 `DocumentCategory` values onto 9 hand-over groups; rows come from the applicant's own
+  documents **and** the applicable template requirements (deduped by `code`, dossier record wins). `status` is
+  `Document.status` verbatim + `not_instantiated`; the five-way `state` is a documented *presentation grouping*
+  (`received`/`needs_update` → needsAttention), never a new status system. Expiry-before-appointment reuses
+  `classifyFreshness`.
+- `review-summary.ts` — the cover-sheet facts (applicant, passport, destination, visa type, dates, derived
+  nights via `tripNights`, appointment, funding, employment, sponsors-when-relevant), each with the workspace
+  that owns it. Honest `null`s; blank strings count as absent.
+- `review-print.ts` — the honest split. `GeneratedSheet` is `{ id, state, itemCount? }` over a **closed** id
+  union, so it has **no field capable of carrying a document code, id or title** — an external document cannot
+  become a VisaFlow-generated sheet even by mistake (asserted by test). `physicalBundles` are a **roll-up** of
+  the same checklist (bundle + counts + readiness), because the item-level detail already lives in section C.
+- `review-model.ts` — composes it. Calls `buildValidationModel()` **whole** (not `runValidation` again), so
+  counts cannot diverge from the Validation Center; readiness is `buildDocumentBuckets` + `deriveReadinessState`;
+  the highlighted action is `deriveNextActions(...)[0]`; appointment-day readiness is the Timeline's
+  `buildAppointmentDay` (exported for reuse — its only change).
+
+### Components (`src/components/review/`, in `/playground`)
+`ReviewHero`, `ApplicationSummary` (DataList cover sheet, always passes an explicit localized value so the
+primitive's English "Not provided" fallback is never reached), `SubmissionChecklist` + exported `ChecklistGroup`,
+`AttentionSection` (reuses the Validation Center's `FindingCard` and its localized prose), `AppointmentPrep`
+(reuses `timeline:appointmentDay.*` labels), `PrintPackage`, `state-meta`. `ReadinessSummary` is reused as-is for
+"what already looks good". `ReviewPage` is a thin shell. `/playground` gains a `review` section demoing the two
+prop-driven widgets.
+
+### Product guarantees
+No schema/import-export/storage/validation change; still exactly two localStorage keys; **no new readiness
+number, no new finding count, no second document-status store**; missing documents are `neutral`, never a red
+wall; status is never colour-alone; readiness is captioned as organisational and explicitly not a prediction
+(ADR-016). **No invented embassy procedure**: "at the appointment" shows only what the applicant recorded plus
+the pack's own three `notesKeys`, and there is deliberately **no fabricated after-submission checklist** — just
+an honest statement that VisaFlow does not submit, track, or receive a decision.
+
+### i18n
+New `review.json` namespace both locales (title/subtitle · hero · summary · checklist · attention ·
+appointmentPrep · print.generated / print.physical / print.state · looksGood · disclaimer) with tr/en parity,
+registered in `src/i18n/index.ts`. Adds `navigation:items.finalReview` and the `playground` review keys. Reuses
+`visa-domain:requirements/documentStatus/visaTypes/financingSource/employmentStatus/templateNotes.*`,
+`timeline:appointmentDay.*`, `dashboard:nextActions.*`/`nextAction.*`, `validation:center.*` (via `FindingCard`),
+and `common:noDossier.*`. Stored values stay ISO/raw; exported JSON untouched.
+
+### Gates (this iteration)
+`format:check` ✓ · `lint` **0 errors / 59 warnings** (baseline 58; the one addition is the already-accepted
+`no-deprecated` category — reading the legacy `Document.name` as a display fallback) · `typecheck` ✓ · `test`
+**482/482** (417 + 65 new, 58 files) · `build` ✓ (`ReviewPage` lazy chunk 17.05 kB / **4.81 kB gzip**; `index`
+80.08 → **80.43 kB gzip** +0.35; `DossierProvider` shared chunk 131.61 → **134.94 kB gzip** +3.33, entirely the
+new i18n namespace; **no new dependency**). Not committed, not pushed.
+
+### Tests (65 new)
+Pure — `review-checklist` (16): category→group mapping incl. the identity/passport fold and the additional
+tail, every state transition, requirement-only rows and their `?category=` link, dossier-record-wins dedup,
+custom documents included, documented group order, expiry flagged only against a real appointment,
+sponsor-funded vs self-funded applicability, not-applicable excluded from `actionable`, group/whole-checklist
+count consistency. `review-summary` (8): empty dossier honest nulls, populated cover sheet, nights from the
+canonical pair only, sponsors omitted/surfaced by funding and by count, blank strings as absent, deep-link
+targets. `review-print` (13): **an applicant document never appears as a generated sheet** (closed id set +
+no code/id/title reachable in the serialized generated side), the same document accounted for only in the
+physical plan, group→bundle mapping, travel+accommodation merged, sponsor→`/sponsors`, every sheet's
+availability state, checklist line count excluding not-applicable, bundle readiness. `review-model` (14):
+**readiness identical to the Dashboard's**, **primary action identical to `deriveNextActions[0]`**, **counts
+identical to `buildValidationModel`**, finding routes identical, actionable/notes split, empty dossier,
+no-appointment, future and past appointment countdowns, Timeline appointment-day reuse, pack notes only (and
+none for an unknown pack), one derivation behind checklist + print, sponsor-funded adaptation, well-prepared
+dossier never claiming an outcome. Render (`review-page`, both locales, 13): single `h1`, every section
+present, no heading level skipped, readiness ring + its not-a-prediction caption, `/documents` deep links,
+the consistency-checks escape hatch, the generated/physical separation visible, "printing does not exist yet"
+with **no Print button**, the honest after-submission note, and an empty dossier routing to `/welcome`.
+
+### Known limitations / next
+- **Pre-existing divergence, deliberately not resolved:** the Dashboard/Timeline/Final Review readiness percent
+  (`buildDocumentBuckets`, where `not_applicable` counts as ready) differs from the Validation Center hero's
+  (`buildDocumentBuckets5`). Final Review sides with the Dashboard so the journey's dominant number is
+  consistent; reconciling the two is a follow-up that touches a shipped surface.
+- Physical bundles are roll-ups only — there is no per-item "packed" state, which would require persistence.
+- `Document.fileReference` is still a text reference, so no bundle can be verified as physically present.
+- The `DataList` primitive still hardcodes an English "Not provided"; Final Review never reaches it (it always
+  passes an explicit localized value), but the primitive is worth fixing in a future pass.
+- The next Print/PDF sprint implements the generated-sheets side against `review-print.ts` without redesigning
+  this model.
+- No browser pass (no connected Chrome) — re-verify at 1440/390 × tr light/dark + en: the hero with and without
+  an appointment, long Turkish document names in the checklist rows, the nine groups at mobile width, the
+  generated/physical separation reading as clearly distinct, and focus/keyboard order through the deep links.

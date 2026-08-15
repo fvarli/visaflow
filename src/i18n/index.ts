@@ -12,6 +12,7 @@ import trSponsors from './locales/tr/sponsors.json'
 import trDocuments from './locales/tr/documents.json'
 import trTimeline from './locales/tr/timeline.json'
 import trValidation from './locales/tr/validation.json'
+import trReview from './locales/tr/review.json'
 import trNotes from './locales/tr/notes.json'
 import trSettings from './locales/tr/settings.json'
 import trOnboarding from './locales/tr/onboarding.json'
@@ -29,6 +30,7 @@ import enSponsors from './locales/en/sponsors.json'
 import enDocuments from './locales/en/documents.json'
 import enTimeline from './locales/en/timeline.json'
 import enValidation from './locales/en/validation.json'
+import enReview from './locales/en/review.json'
 import enNotes from './locales/en/notes.json'
 import enSettings from './locales/en/settings.json'
 import enOnboarding from './locales/en/onboarding.json'
@@ -101,6 +103,7 @@ export const resources = {
     documents: trDocuments,
     timeline: trTimeline,
     validation: trValidation,
+    review: trReview,
     notes: trNotes,
     settings: trSettings,
     onboarding: trOnboarding,
@@ -119,6 +122,7 @@ export const resources = {
     documents: enDocuments,
     timeline: enTimeline,
     validation: enValidation,
+    review: enReview,
     notes: enNotes,
     settings: enSettings,
     onboarding: enOnboarding,

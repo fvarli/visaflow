@@ -1,0 +1,153 @@
+{
+  "title": "Son Kontrol",
+  "subtitle": "Elinizde olanları, hâlâ eksik olanları ve randevunuza giderken yanınızda götürmeniz gerekenleri tek yerde kontrol edin.",
+  "hero": {
+    "readiness": "Dosya hazırlığı",
+    "readinessHint": "Dosyanızın ne kadar toparlandığını gösterir — vizeniz hakkında bir tahmin değildir.",
+    "appointmentLabel": "Randevu",
+    "appointmentNone": "Henüz randevu tarihi kaydedilmedi",
+    "attentionNone": "Dikkatinizi bekleyen bir konu yok",
+    "attention_one": "{{count}} konu dikkatinizi bekliyor",
+    "attention_other": "{{count}} konu dikkatinizi bekliyor",
+    "checklistReady": "{{total}} kontrol maddesinden {{ready}} tanesi hazır",
+    "nextStep": "Önerilen sonraki adım",
+    "state": {
+      "not_started": "Henüz hiçbir şey toplanmadı",
+      "preparing": "Hazırlık sürüyor",
+      "waiting_reservations": "Rezervasyonlar bekleniyor",
+      "documents_remaining": "Toplanacak belgeler var",
+      "ready_for_appointment": "Randevunuz için düzenli"
+    }
+  },
+  "summary": {
+    "title": "Başvuru özeti",
+    "description": "Dosyanızın kapak sayfası — bilgiler tam olarak kaydettiğiniz şekilde.",
+    "applicant": "Başvuru sahibi",
+    "passport": "Pasaport",
+    "nationality": "Uyruk",
+    "destination": "Gidilecek ülke",
+    "visaType": "Başvuru türü",
+    "travelDates": "Seyahat tarihleri",
+    "duration": "Süre",
+    "nights_one": "{{count}} gece",
+    "nights_other": "{{count}} gece",
+    "appointment": "Randevu",
+    "appointmentLocation": "Konum",
+    "confirmation": "Onay numarası",
+    "funding": "Finansman",
+    "employment": "Çalışma durumu",
+    "sponsors": "Sponsorlar",
+    "sponsorCount_one": "{{count}} sponsor",
+    "sponsorCount_other": "{{count}} sponsor",
+    "notRecorded": "Henüz kaydedilmedi",
+    "dateRange": "{{start}} – {{end}}",
+    "openApplicant": "Başvuru sahibini aç",
+    "openTrip": "Seyahati aç",
+    "openFinance": "Finansmanı aç",
+    "openEmployment": "Çalışma durumunu aç",
+    "openSponsors": "Sponsorları aç"
+  },
+  "checklist": {
+    "title": "Teslim kontrol listesi",
+    "description": "Teslim edeceğiniz belgeler, dosyaya konulacakları sırayla gruplanmış. Tüm durumlar Belgeler çalışma alanınızdan gelir.",
+    "groups": {
+      "identity": "Kimlik ve pasaport",
+      "application": "Başvuru",
+      "employment": "Çalışma durumu",
+      "financial": "Finansal belgeler",
+      "sponsor": "Sponsor belgeleri",
+      "travel": "Seyahat",
+      "accommodation": "Konaklama",
+      "insurance": "Sigorta",
+      "additional": "Diğer destekleyici belgeler"
+    },
+    "state": {
+      "ready": "Hazır",
+      "needsAttention": "Dikkat gerekiyor",
+      "missing": "Eksik",
+      "optional": "İsteğe bağlı",
+      "notApplicable": "Gerekli değil"
+    },
+    "groupSummary": "{{total}} belgeden {{ready}} tanesi hazır",
+    "expiresBeforeAppointment": "Randevunuzdan önce geçerliliği doluyor",
+    "notCreated": "Henüz dosyanıza eklenmedi",
+    "validUntil": "{{date}} tarihine kadar geçerli",
+    "empty": "Dosyanızda henüz belge yok.",
+    "emptyHint": "Ülke paketinizin gerekliliklerini Belgeler çalışma alanından ekleyin; burada görünecekler.",
+    "openDocuments": "Belgeleri aç"
+  },
+  "attention": {
+    "title": "Hâlâ dikkatinizi bekliyor",
+    "description": "Tutarlılık kontrollerinden gelen açık bulgular, önem sırasına göre. Başvurudan önce yapabileceğiniz en değerli şey bunları çözmektir.",
+    "none": "Şu anda dikkatinizi bekleyen bir konu yok.",
+    "noneHint": "Tutarlılık kontrolleri, şimdiye kadar girdiğiniz bilgilerde çözülmesi gereken bir şey bulmadı.",
+    "notes_one": "{{count}} bilgilendirme notu",
+    "notes_other": "{{count}} bilgilendirme notu",
+    "notesHint": "Bilgilendirme notlarını okumakta fayda var, ancak hiçbiri hatalı bir durumu göstermez.",
+    "seeAll": "Tutarlılık kontrollerini aç"
+  },
+  "appointmentPrep": {
+    "title": "Randevu hazırlığı",
+    "description": "Randevu gününe düzenleme açısından bir bakış. VisaFlow ilgili ofisin prosedürünü bilmez ve asla uydurmaz.",
+    "beforeLeaving": {
+      "title": "Evden çıkmadan önce",
+      "description": "Hâlâ bir şey yapabilecekken kontrol etmeye değer konular."
+    },
+    "atAppointment": {
+      "title": "Randevuda",
+      "description": "Randevunun kendisi hakkında kaydettikleriniz."
+    },
+    "noAppointmentDetails": "Bu randevu için henüz saat, konum veya onay numarası kaydetmediniz.",
+    "noAppointment": "Henüz randevu kaydedilmedi. Seyahat çalışma alanından ekleyin; bu bölüm dolacaktır.",
+    "afterSubmission": {
+      "title": "Başvurudan sonra",
+      "body": "VisaFlow'un görevi dosyanız hazır olduğunda biter. Başvurunuzu göndermez, sürecini takip etmez ve herhangi bir karar almaz — buradaki hiçbir bilgi cihazınızdan çıkmaz. Belgelerinizi teslim ettikten sonrası, sizinle onları teslim alan ofis arasındadır."
+    },
+    "notesTitle": "Bu ülke paketi için kaydedilen notlar",
+    "openTrip": "Randevu bilgilerini aç"
+  },
+  "print": {
+    "title": "Yazdırma paketi",
+    "description": "Bir sonraki adımın önizlemesi. Yazdırma henüz geliştirilmedi — burada neyin yazdırılabilir olacağını ve neyi kendiniz hazırlayacağınızı görürsünüz.",
+    "generated": {
+      "title": "VisaFlow'un üretebileceği sayfalar",
+      "description": "Girdiğiniz dosya bilgilerinden oluşturulur. Buradakilerin hiçbiri bir dosya içermez — VisaFlow hiçbir zaman dosya tutmaz.",
+      "coverSheet": "Dosya kapak sayfası",
+      "coverSheetHint": "Başvuru sahibi, gidilecek ülke, başvuru türü ve tarihler tek sayfada.",
+      "submissionChecklist": "Teslim kontrol listesi",
+      "submissionChecklistHint": "Yukarıdaki liste, işaretleyebileceğiniz bir sayfa olarak.",
+      "appointmentSummary": "Randevu özeti",
+      "appointmentSummaryHint": "Tarih, saat, konum ve onay numarası.",
+      "itinerarySummary": "Güzergâh özeti",
+      "itinerarySummaryHint": "Seyahat tarihleri ve kaydettiğiniz güzergâh.",
+      "itemCount_one": "{{count}} satır",
+      "itemCount_other": "{{count}} satır"
+    },
+    "physical": {
+      "title": "Fiziksel dosyanız",
+      "description": "Kendi dosyalarınızdan gelen belgeler. VisaFlow yalnızca bunlara sahip olup olmadığınızı takip eder; onları saklamaz, yüklemez ve yazdırmaz.",
+      "applicationForm": "Başvuru formu",
+      "passport": "Pasaport ve kimlik",
+      "employer": "İşveren belgeleri",
+      "bankStatements": "Banka hesap dökümleri",
+      "sponsor": "Sponsor belgeleri",
+      "insurance": "Sigorta",
+      "reservations": "Rezervasyonlar",
+      "supporting": "Diğer destekleyici belgeler",
+      "bundleSummary": "{{total}} belgeden {{ready}} tanesi hazır"
+    },
+    "state": {
+      "ready": "Hazır",
+      "partial": "Kısmen hazır",
+      "unavailable": "Henüz oluşturulamıyor",
+      "missing": "Hazır değil",
+      "notApplicable": "Gerekli değil"
+    },
+    "notYet": "Yazdırma ve PDF dışa aktarma ileriki bir sürüm için planlanıyor."
+  },
+  "looksGood": {
+    "title": "Şimdiden iyi görünenler",
+    "description": "Dosyada kayıtlı olan ve şu anda hiçbir bulgu üretmeyen bölümler."
+  },
+  "disclaimer": "VisaFlow girdiğiniz bilgileri düzenler. Başvurunuzu göndermez ve vizenin verilip verilmeyeceğini tahmin etmez. Gereklilikleri her zaman yetkili konsolosluk veya vize merkezinden doğrulayın."
+}

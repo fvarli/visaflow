@@ -45,7 +45,11 @@ data they've already entered.
   management. *Next.*
 - **Richer dossier & timeline** — deeper trip/finance/sponsor structure and a fuller timeline. *Next.*
 - **PDF / printable index** — generate a dossier index and a printable checklist for the
-  appointment. *Future.*
+  appointment. The Final Review workspace already models what is printable: a closed set of
+  VisaFlow-generated sheets (cover sheet, submission checklist, appointment summary, itinerary
+  summary) with a readiness derived from data presence, held deliberately separate from the
+  applicant's own physical documents, which VisaFlow never holds or prints ([ADR-032]). This
+  phase implements the generation against that existing shape. *Next.*
 
 ---
 
@@ -137,3 +141,4 @@ See [CONTRIBUTING.md](../CONTRIBUTING.md) to propose or pick up roadmap work.
 Implementation status of the current phase is tracked in [current-status.md](./current-status.md).
 
 [ADR-016]: ./decisions.md
+[ADR-032]: ./decisions.md

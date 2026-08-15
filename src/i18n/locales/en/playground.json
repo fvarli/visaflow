@@ -22,7 +22,8 @@
     "finance": "Finance",
     "sponsors": "Sponsors",
     "timeline": "Timeline",
-    "settings": "Settings"
+    "settings": "Settings",
+    "review": "Final Review"
   },
   "rows": {
     "surfaces": "Surfaces",
@@ -93,7 +94,9 @@
     "coverageCard": "CoverageCard",
     "segmentedControl": "SegmentedControl",
     "documentsHero": "DocumentsHero",
-    "documentCard": "DocumentCard"
+    "documentCard": "DocumentCard",
+    "checklistGroup": "Checklist group",
+    "printPackage": "Print package"
   },
   "i18n": {
     "description": "Locale-aware formatting and translated domain vocabulary. Switch language above to see everything update in place.",
@@ -153,6 +156,7 @@
     "settings": "Settings control-center building blocks: a flat settings section (real h2, no nested card) and a label + description + control setting row.",
     "onboarding": "Guided-flow building blocks: the step rail, the \"Why do we ask this?\" popover, and the generic collection editor.",
     "travel": "Trip-planner building blocks: the overview hero, the connected journey timeline with destination cards, transport segments and the insurance coverage card.",
-    "documents": "Document-workspace building blocks: the segmented view switch, the readiness overview hero, and the document card in its template, custom and with-findings states."
+    "documents": "Document-workspace building blocks: the segmented view switch, the readiness overview hero, and the document card in its template, custom and with-findings states.",
+    "review": "Submission-checklist and print-package widgets from the Final Review workspace. Both are prop-driven, so every state is reachable here."
   }
 }

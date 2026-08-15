@@ -1,6 +1,6 @@
 # Current Implementation Status
 
-Last updated: 2026-07-28
+Last updated: 2026-08-15
 
 ## Completed Features
 
@@ -140,6 +140,20 @@ Last updated: 2026-07-28
       section-by-section summary. A pure adapter (`src/features/validation/*`)
       over `runValidation` — no re-encoded rule, no changed outcome, calm
       severity wording only (ADR-025)
+- [x] Final Review — the last look before the appointment (`/review`), answering a
+      *different* question from the Validation Center: what you have, what is still
+      missing, what you bring, and whether you are organised for the day. A review
+      hero (readiness + appointment countdown + attention count + the Dashboard's
+      own next action), an application summary "cover sheet" with deep links, the
+      **submission checklist** (nine hand-over groups derived from the country pack's
+      applicable requirements *and* the applicant's own documents, including custom
+      ones), the open findings reusing the Validation Center's model whole, "what
+      already looks good", appointment preparation (honest — no invented embassy
+      procedure, no fabricated after-submission steps), and a **print package** that
+      separates *pages VisaFlow can generate* from the applicant's *physical dossier*
+      of external documents it never holds. Pure adapters in `src/features/review/*`;
+      composition only — no new readiness, no new counts, no second document-status
+      store, no PDF yet, no fake Print button (ADR-032)
 - [x] Reusable primitives: `Stepper`, `FieldHelp`, `GuidanceNote`,
       `CountryCombobox` (searchable, ISO-code + `Intl.DisplayNames` labels),
       generic `CollectionEditor`, `SegmentedControl`, plus trip, document and
@@ -200,6 +214,10 @@ These warnings don't affect functionality.
 - Component/render tests: dashboard + app shell (bilingual)
 - Onboarding: pure model (steps, `resolveStep`, `firstRunTarget`) + first-run
   routing + the `/welcome` flow (bilingual), incl. a no-new-storage-keys check
+- Final Review: pure models (checklist grouping/state/dedup/expiry, cover-sheet
+  facts, print-package availability + the "an external document is never a
+  VisaFlow-generated sheet" invariant, and reuse equality against the Dashboard,
+  Timeline and Validation Center) + a bilingual render test of every section
 - E2E tests: not yet implemented
 
 ## Build Status
@@ -208,7 +226,7 @@ All checks pass:
 - `pnpm format:check` - PASS
 - `pnpm lint` - 0 errors (warnings acceptable, see below)
 - `pnpm typecheck` - PASS (`tsc -b`)
-- `pnpm test` - 416/416 PASS
+- `pnpm test` - 482/482 PASS (58 files)
 - `pnpm build` - SUCCESS
 
 Note: an earlier version of this file claimed 23/23 tests and `tsc --noEmit`;

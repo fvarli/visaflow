@@ -21,6 +21,7 @@ const TimelinePage = lazy(() => import('@/pages/TimelinePage'))
 const ConsistencyChecksPage = lazy(
   () => import('@/pages/ConsistencyChecksPage')
 )
+const ReviewPage = lazy(() => import('@/pages/ReviewPage'))
 const NotesPage = lazy(() => import('@/pages/NotesPage'))
 const SettingsPage = lazy(() => import('@/pages/SettingsPage'))
 
@@ -161,6 +162,14 @@ export const router = createBrowserRouter([
         element: (
           <LazyPage>
             <ConsistencyChecksPage />
+          </LazyPage>
+        ),
+      },
+      {
+        path: 'review',
+        element: (
+          <LazyPage>
+            <ReviewPage />
           </LazyPage>
         ),
       },

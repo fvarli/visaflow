@@ -155,6 +155,13 @@ import type { RequirementSource } from '@/config/types'
 import type { Applicant } from '@/domain/schemas/applicant.schema'
 import type { Application } from '@/domain/schemas/application.schema'
 import type { Document } from '@/domain/schemas/document.schema'
+import { ChecklistGroup } from '@/components/review/SubmissionChecklist'
+import { PrintPackage } from '@/components/review/PrintPackage'
+import type {
+  ChecklistRow,
+  SubmissionGroup,
+} from '@/features/review/review-checklist'
+import type { PrintPackage as PrintPackageModel } from '@/features/review/review-print'
 
 /**
  * Design system playground.
@@ -208,6 +215,7 @@ export default function PlaygroundPage() {
       <Sponsors />
       <Timeline />
       <Settings />
+      <Review />
     </PageBody>
   )
 }
@@ -237,6 +245,7 @@ const SECTIONS = [
   'sponsors',
   'timeline',
   'settings',
+  'review',
 ] as const
 
 function Nav() {
@@ -2218,6 +2227,131 @@ function Settings() {
               }
             />
           </SettingsSection>
+        </div>
+      </Row>
+    </Block>
+  )
+}
+
+/* -------------------------------------------------------------------------
+ * Final Review
+ * ---------------------------------------------------------------------- */
+
+/** A populated group and an all-ready group, so both extremes are visible. */
+const DEMO_CHECKLIST_ROWS: ChecklistRow[] = [
+  {
+    code: 'PASSPORT_CURRENT',
+    category: 'passport',
+    group: 'identity',
+    ownerType: 'applicant',
+    required: true,
+    status: 'ready',
+    state: 'ready',
+    docId: 'demo-passport',
+    validUntil: '2035-01-01',
+    expiresBeforeAppointment: false,
+    to: '/documents?doc=demo-passport',
+  },
+  {
+    code: 'PHOTOS',
+    category: 'identity',
+    group: 'identity',
+    ownerType: 'applicant',
+    required: true,
+    status: 'not_instantiated',
+    state: 'missing',
+    docId: null,
+    validUntil: null,
+    expiresBeforeAppointment: false,
+    to: '/documents?category=identity',
+  },
+  {
+    code: 'ID_CARD_COPY',
+    category: 'identity',
+    group: 'identity',
+    ownerType: 'applicant',
+    required: true,
+    status: 'needs_update',
+    state: 'needsAttention',
+    docId: 'demo-id',
+    validUntil: '2026-01-01',
+    expiresBeforeAppointment: true,
+    to: '/documents?doc=demo-id',
+  },
+]
+
+const DEMO_GROUP: SubmissionGroup = {
+  id: 'identity',
+  rows: DEMO_CHECKLIST_ROWS,
+  counts: {
+    ready: 1,
+    needsAttention: 1,
+    missing: 1,
+    optional: 0,
+    notApplicable: 0,
+    actionable: 3,
+    total: 3,
+  },
+}
+
+const DEMO_PRINT: PrintPackageModel = {
+  generatedSheets: [
+    { id: 'coverSheet', state: 'ready' },
+    { id: 'submissionChecklist', state: 'ready', itemCount: 18 },
+    { id: 'appointmentSummary', state: 'partial' },
+    { id: 'itinerarySummary', state: 'unavailable' },
+  ],
+  physicalBundles: [
+    {
+      id: 'passport',
+      state: 'ready',
+      to: '/documents',
+      counts: {
+        ready: 3,
+        needsAttention: 0,
+        missing: 0,
+        optional: 0,
+        notApplicable: 0,
+        actionable: 3,
+        total: 3,
+      },
+    },
+    {
+      id: 'bankStatements',
+      state: 'partial',
+      to: '/documents',
+      counts: {
+        ready: 1,
+        needsAttention: 0,
+        missing: 1,
+        optional: 0,
+        notApplicable: 0,
+        actionable: 2,
+        total: 2,
+      },
+    },
+  ],
+  readySheetCount: 2,
+  readyBundleCount: 1,
+}
+
+function Review() {
+  const { t } = useTranslation(['playground'])
+
+  return (
+    <Block
+      id="review"
+      title={t('playground:sections.review')}
+      description={t('playground:blurbs.review')}
+    >
+      <Row label={t('playground:rows.checklistGroup')} align="start">
+        <div className="w-full max-w-2xl">
+          <ChecklistGroup group={DEMO_GROUP} />
+        </div>
+      </Row>
+      <Row label={t('playground:rows.printPackage')} align="start">
+        <div className="w-full max-w-2xl">
+          <PrintPackage print={DEMO_PRINT} />
         </div>
       </Row>
     </Block>

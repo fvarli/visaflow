@@ -49,6 +49,7 @@ src/
 │   ├── trip/               # trip-model.ts, route-dates.ts, trip-guidance.ts (pure)
 │   ├── documents/          # documents-model.ts + filters + template-sync (pure)
 │   ├── validation/         # validation-model + finding-presentation/actions (pure)
+│   ├── review/             # review-checklist/summary/print/model — Final Review (pure)
 │   ├── employment/         # employment-model/wizard/tenure/guidance/documents (pure)
 │   ├── onboarding/         # onboarding-model.ts — first-run steps + routing decision (pure)
 │   └── import-export/      # JSON import/export services
@@ -112,7 +113,7 @@ Pages read/write state through `DossierProvider`; formatting goes through `src/l
 (never `Intl` directly), and country names through `src/lib/countries.ts` (the sole
 `Intl.DisplayNames` wrapper — codes persist, labels are resolved for display; see [ADR-023]);
 finding prose is resolved via `src/lib/finding-text.ts`. Each guided experience has a pure
-feature adapter (`src/features/{dashboard,applicant,trip,documents,employment,finance,sponsors,timeline,settings,onboarding}/*`): trip nights/coverage math
+feature adapter (`src/features/{dashboard,applicant,trip,documents,validation,employment,finance,sponsors,timeline,settings,onboarding,review}/*`): trip nights/coverage math
 lives in `route-dates.ts` (dates canonical, nights derived — [ADR-024]), and calm, non-validation
 guidance in `applicant-guidance.ts` / `trip-guidance.ts` (info-only, never affects readiness).
 The Validation Center is a thin composition over `src/features/validation/*` — a pure adapter that
@@ -145,6 +146,15 @@ pattern (`Stepper`, `?step=`, focus-to-heading) and the import/export services +
 route redirects on `hasData` alone (`firstRunTarget`) — no persisted "completed" flag, no new storage key — and
 the shared `NoDossierState` is the one canonical empty-workspace surface routing every empty page into the
 journey ([ADR-031]).
+The Final Review workspace (`/review`) is a thin composition over `src/features/review/*` — the last look
+before the appointment, answering a different question from the Validation Center ("what do I have, what am I
+missing, what do I bring?" rather than "what is inconsistent?"). It introduces **no new authority**: readiness
+comes from the Dashboard (`buildDocumentBuckets`/`deriveReadinessState`/`deriveNextActions`), findings and their
+counts from `buildValidationModel` used whole, appointment-day readiness from the Timeline's exported
+`buildAppointmentDay`, and applicability from the country pack. It adds only the submission-checklist grouping
+and the print-package split, which separates **pages VisaFlow can generate** from the applicant's **physical
+dossier** of external documents it never holds — a distinction enforced by the type shape, not just by wording
+([ADR-032]).
 Dashboard detail: [dashboard-architecture.md](./dashboard-architecture.md). Reusable UI is
 demonstrated in the [Playground](./playground.md) before use. **Depends on:** all layers below.
 **Must not:** be depended *on* by them.
@@ -217,3 +227,5 @@ same pattern for the two non-personal preferences.
 [ADR-023]: ./decisions.md
 [ADR-024]: ./decisions.md
 [ADR-025]: ./decisions.md
+[ADR-029]: ./decisions.md
+[ADR-032]: ./decisions.md

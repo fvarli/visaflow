@@ -100,7 +100,12 @@ function daysUntil(iso: string | null, now: Date): number | null {
   return iso ? differenceInCalendarDays(parseISO(iso), now) : null
 }
 
-function buildAppointmentDay(
+/**
+ * The read-only "what you need on the day" summary. Exported so the Final
+ * Review workspace reuses this exact derivation instead of writing a second
+ * appointment-readiness check that could drift from the Timeline's.
+ */
+export function buildAppointmentDay(
   applicant: Applicant | null,
   application: Application | null,
   documents: Document[],
