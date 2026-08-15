@@ -7,7 +7,7 @@ import type { Applicant } from '@/domain/schemas/applicant.schema'
 import type { Application } from '@/domain/schemas/application.schema'
 import type { Document } from '@/domain/schemas/document.schema'
 import type { Sponsor } from '@/domain/schemas/sponsor.schema'
-import type { DocumentCategory } from '@/domain/types/common'
+import type { DocumentCategory, DocumentStatus } from '@/domain/types/common'
 import type { VisaTypeTemplate } from '@/config/types'
 import type { ValidationFinding } from '@/domain/rules/types'
 import { buildDocumentReadiness } from '@/features/readiness/document-readiness'
@@ -47,6 +47,21 @@ export type BucketKey =
   | 'missing'
   | 'notApplicable'
   | 'optional'
+
+/**
+ * The document status each chip filters to — the bridge that lets the chips
+ * reuse `DOCUMENT_STATUS_TONE` instead of maintaining a parallel tone map.
+ * `optional` is a requirement-flag filter, not a status, hence null.
+ */
+export const BUCKET_STATUS: Record<BucketKey, DocumentStatus | null> = {
+  ready: 'ready',
+  obtained: 'received',
+  requested: 'requested',
+  needsUpdate: 'needs_update',
+  missing: 'not_started',
+  notApplicable: 'not_applicable',
+  optional: null,
+}
 
 /** Which readiness figure backs each chip. */
 export const BUCKET_COUNT: Record<
@@ -106,12 +121,73 @@ export function groupByCategory(documents: Document[]): DocumentGroupView[] {
   return groups
 }
 
-/** The single most useful "next document to obtain". */
-export function deriveNextDocument(documents: Document[]): Document | null {
+/**
+ * What the applicant should do about the recommended document.
+ *
+ * Each canonical status maps to the action that status actually calls for — a
+ * `requested` document is not "missing", and a `received` one must never be
+ * recommended for obtaining again (ADR-034).
+ */
+export type NextDocumentAction = 'obtain' | 'followUp' | 'update' | 'confirm'
+
+export interface NextDocumentRecommendation {
+  /** Stable code — always present, so the UI can always label the item. */
+  code: string
+  /** The dossier record, or null for an applicable requirement with no record. */
+  document: Document | null
+  /** Legacy display name from a pre-i18n export, for `documentLabel`. */
+  legacyName?: string
+  action: NextDocumentAction
+}
+
+/**
+ * The single most useful next document, and what to do about it.
+ *
+ * Priority deliberately mirrors the app-wide `deriveNextActions` ordering
+ * (`completeMissingDocs` → `updateDocuments` → `confirmDocuments`) so the
+ * Documents workspace never contradicts the Dashboard about what matters most:
+ *
+ *   not in hand (not_started, then un-instantiated, then requested)
+ *   → needs_update
+ *   → received (cheapest win, but only once nothing else is outstanding)
+ *
+ * `requiredRequirementCodes` lets it see work the dossier has no record for at
+ * all. Without it, a dossier that has never opened the Documents workspace
+ * reports "all caught up" beside a 0% readiness bar.
+ */
+export function deriveNextDocument(
+  documents: Document[],
+  requiredRequirementCodes: string[] = []
+): NextDocumentRecommendation | null {
   const required = documents.filter((d) => d.required)
+  const present = new Set(documents.map((d) => d.code))
+
+  const pick = (
+    status: Document['status'],
+    action: NextDocumentAction
+  ): NextDocumentRecommendation | null => {
+    const doc = required.find((d) => d.status === status)
+    return doc
+      ? { code: doc.code, document: doc, legacyName: doc.name, action }
+      : null
+  }
+
+  // Nothing in hand yet — an existing record first (it is one click away),
+  // then a requirement that has not even been added to the dossier.
+  const notStarted = pick('not_started', 'obtain')
+  if (notStarted) return notStarted
+
+  const uninstantiated = requiredRequirementCodes.find(
+    (code) => !present.has(code)
+  )
+  if (uninstantiated) {
+    return { code: uninstantiated, document: null, action: 'obtain' }
+  }
+
   return (
-    required.find((d) => d.status === 'not_started') ??
-    required.find((d) => d.status === 'needs_update') ??
+    pick('requested', 'followUp') ??
+    pick('needs_update', 'update') ??
+    pick('received', 'confirm') ??
     null
   )
 }
@@ -202,8 +278,19 @@ export function associateFindings(
 export interface DocumentsModel {
   /** The canonical readiness figure — identical to every other surface's. */
   readiness: DocumentReadiness
+  /**
+   * Readiness over the documents that actually exist as records.
+   *
+   * The quick-filter chips count this, not the canonical figure: a chip is a
+   * filter over the list below it, so its number must equal the rows it
+   * reveals. The canonical figure additionally counts required requirements
+   * with no record, which no filter can surface (ADR-034).
+   */
+  filterableReadiness: DocumentReadiness
+  /** Required requirements with no document record — the gap between the two. */
+  pendingRequirementCount: number
   groups: DocumentGroupView[]
-  nextDocument: Document | null
+  nextDocument: NextDocumentRecommendation | null
   template: VisaTypeTemplate | undefined
   findingsByDoc: Map<string, ValidationFinding[]>
   totalDocuments: number
@@ -232,13 +319,20 @@ export function buildDocumentsModel(
     findings = runValidation(dossier).findings
   }
 
+  const requirementCodes = requiredRequirementCodes(template, application)
+  const present = new Set(documents.map((doc) => doc.code))
+
   return {
     readiness: buildDocumentReadiness({
       documents,
-      requiredRequirementCodes: requiredRequirementCodes(template, application),
+      requiredRequirementCodes: requirementCodes,
     }),
+    filterableReadiness: buildDocumentReadiness({ documents }),
+    pendingRequirementCount: requirementCodes.filter(
+      (code) => !present.has(code)
+    ).length,
     groups: groupByCategory(documents),
-    nextDocument: deriveNextDocument(documents),
+    nextDocument: deriveNextDocument(documents, requirementCodes),
     template,
     findingsByDoc: associateFindings(documents, findings),
     totalDocuments: documents.length,

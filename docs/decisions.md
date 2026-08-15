@@ -529,3 +529,58 @@ A new `confirmDocuments` next action surfaces obtained-but-unconfirmed documents
 **Known limitations (deliberate):** the checklist's `actionable` counts optional rows and un-instantiated requirements, so it is **not** the readiness denominator — it answers "what goes in the folder", a different question ([ADR-032]); the Final Review hero therefore labels it explicitly rather than as a second readiness figure. `deriveNextDocument` still picks `not_started` then `needs_update`, skipping `requested` and `obtained` — a seventh, smaller opinion about "what's next" left for a follow-up. The example dossier is missing an `APPROVED_LEAVE` record its own employed applicant makes applicable, which is why its readiness reads 64% rather than 70%; that is the honest number and it is now stable whether or not the Documents workspace has been visited.
 
 **Implementation:** `src/features/readiness/*` (pure), consumed by `dashboard-model`, `documents-model`, `validation-model`, `timeline-model`, `review-model`, `AppLayout` and the section-scoped employment/finance views. Canonical strings live in `common:readiness.*` so every surface shares one key. Deletions: `buildDocumentBuckets`, `buildDocumentBuckets5`, `DocumentBuckets`, `DocumentBuckets5`, the inline nav-badge filter, and the dead `sponsor-documents.readyCount`. No schema, import/export, storage, validation-severity or country-requirement change; still exactly two localStorage keys.
+
+## ADR-034: Readiness Is a Ratio, the Submission Checklist Is an Inventory; `received` Shares the `info` Ramp; Recommendations Are Status-Aware
+
+**Extends** [ADR-033], which established one canonical readiness definition. It does not change those semantics — it finishes applying them at the presentation layer and closes three gaps ADR-033 itself listed as follow-ups.
+
+**Decision:** Three product-wide rules.
+
+1. **Readiness is the one ratio; the submission checklist is an inventory.** Exactly one percentage is shown for a dossier. The checklist answers *"what belongs in my appointment package, and how many of those items still want action?"* — a **count**, never a second progress metric.
+2. **`requested` and `received` share the low-chroma `info` tone**, and are told apart by icon, label and microcopy — never by hue.
+3. **Every document recommendation is status-aware**, and considers applicable requirements that have no record yet.
+
+### Context
+
+ADR-033 unified the arithmetic but left the presentation contradictory. The audit for this sprint found that for the example dossier the numerator **7** appeared against denominators **19, 11, 10, 4, 3 and 2**, and "what is left" appeared simultaneously as **12, 4, 3, 2 and 1**. Worse, ADR-033's own claim that the sidebar badge is "one meaning of remaining app-wide" was **false in shipped code**: `buildDocumentReadiness` was called in five places *without* `requiredRequirementCodes`, so the badge showed **3** while every page body showed **4**.
+
+### Readiness (ratio) vs the checklist (inventory)
+
+| | Readiness | Submission checklist |
+|---|---|---|
+| Question | *How much of my required dossier is confirmed ready?* | *What belongs in my appointment package?* |
+| Shape | a percentage + `N of M` | a count + *"M need attention"* |
+| Population | applicable **required** work | everything the applicant actually carries |
+| Owner | `src/features/readiness/` | `src/features/review/review-checklist.ts` |
+
+The Final Review hero now reads *"64% · 7 of 11 required documents ready"* beside *"11 items in your appointment package · 4 need attention"*. Group headers read *"4 items · 2 need attention"* rather than *"2 of 4 ready"*, and the print bundles carry a labelled state badge plus an item count instead of a ratio. When nothing wants action the wording is calm completion ("All prepared"), never "0 need attention".
+
+**Optional requirements with no record left the package.** `buildSubmissionChecklist` previously added a row for *every* applicable requirement, so the eight optional Greek requirements inflated the inventory and permanently depressed every ratio. An optional requirement nobody has added is a **suggestion**, not something you carry; discovery belongs to the Documents workspace's Sync action, not to a final pre-appointment check. Optional documents the applicant *did* create stay in the package.
+
+### `received` presentation
+
+`index.css` reserves cobalt for "primary actions · active navigation · focus rings · selected items · progress fill", yet `StatusTone="accent"` paints `--brand-subtle` with cobalt text and a `bg-primary` dot. `received: 'accent'` therefore violated the design system's own accent discipline on a passive state.
+
+`requested` and `received` are both non-error workflow-progress states, so both now take `info` — the ramp deliberately engineered at chroma 0.06 so it "can never be mistaken for a clickable accent element". They are distinguished by icon (`Clock` vs `PackageCheck`), by label (Requested / Obtained · Talep edildi / Alındı) and by microcopy ("Received — confirm to mark ready" / "Belge alındı — hazır olarak işaretlemeden önce kontrol edin"). Tests assert the tone is never `warning`, `danger` or `accent`, and that the differentiation does not depend on colour. No token was retuned and no colour was added.
+
+### Status-aware recommendations
+
+`deriveNextDocument` returned only `not_started` then `needs_update` over instantiated records, so it told an applicant to *obtain* nothing while readiness said work remained, and it never mentioned a `requested` or `received` document at all. It now returns `{ code, document | null, action }` where `action` is `obtain | followUp | update | confirm`, and it accepts `requiredRequirementCodes` so a dossier that has never opened the Documents workspace still gets a recommendation.
+
+Priority deliberately mirrors the app-wide `deriveNextActions` order (`completeMissingDocs` → `updateDocuments` → `confirmDocuments`) rather than any local intuition:
+
+```
+not_started → un-instantiated requirement → requested → needs_update → received
+```
+
+**Invariant, asserted per fixture:** a recommendation exists **iff** `readiness.outstanding > 0`. "All caught up" can no longer appear beside an incomplete bar.
+
+### Chip counts must equal the rows they reveal
+
+The Documents hero's "Not started" chip counted un-instantiated requirements but its filter could not surface them — 2 on the chip, "1 shown" in the list, contradicting the invariant `document-filters.ts` claims for itself. Chips now count `filterableReadiness` (documents that exist); the bar and percentage stay canonical; and the difference is stated honestly with a line pointing at the existing Sync action.
+
+### Known limitations (deliberate)
+
+The app shell now resolves the country pack to compute the nav badge, which moves ~12 kB raw (**+2.3 kB gzip**) onto the initial chunk — accepted as the price of a badge that is not wrong. `dashboard-model`'s snapshot still calls `buildDocumentReadiness` without requirement codes, which is correct because it reads only `ready`/`obtained`/`needsUpdate`, fields pending codes cannot affect. The checklist inventory remains a different population from the readiness denominator by design — it may include optional documents the applicant created — which is why it is presented as a count and never as a ratio.
+
+**Implementation:** `documents-model.ts` (`NextDocumentRecommendation`, `BUCKET_STATUS`, `filterableReadiness`, `pendingRequirementCount`), `review-checklist.ts` (required-only expansion), `ReviewHero` / `SubmissionChecklist` / `PrintPackage` / `DepartureCheck` (inventory framing), `status-badge.tsx` + `state-meta.ts` + `DocumentsHero.tsx` (tone + icons, single tone source), `AppLayout.tsx` / `timeline-model.ts` / `employment-documents.ts` / `finance-documents.ts` (canonical denominators), `data-list.tsx` (`common:states.notProvided`). No schema, import/export, storage, validation-rule or validation-severity change; still exactly two localStorage keys; `schemaVersion` remains `1.0.0`.

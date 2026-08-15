@@ -111,14 +111,17 @@
     "item": {
       "applicantOnFile": "Applicant details on file",
       "passportOnFile": "Passport on file",
-      "documentsReady": "{{count}} documents ready",
-      "documentsObtained": "{{count}} documents obtained, awaiting confirmation",
-      "documentsNeedUpdate": "{{count}} documents need updating",
       "appointmentScheduled": "Appointment scheduled",
       "tripPlanned": "Trip planned",
       "insuranceReady": "Travel insurance added",
       "financingSet": "Funding source recorded",
-      "sponsorPresent": "{{count}} sponsors added"
+      "sponsorPresent": "{{count}} sponsors added",
+      "documentsReady_one": "{{count}} document ready",
+      "documentsReady_other": "{{count}} documents ready",
+      "documentsObtained_one": "{{count}} document obtained, awaiting confirmation",
+      "documentsObtained_other": "{{count}} documents obtained, awaiting confirmation",
+      "documentsNeedUpdate_one": "{{count}} document needs updating",
+      "documentsNeedUpdate_other": "{{count}} documents need updating"
     }
   },
   "sourceStatus": {

@@ -43,6 +43,20 @@ applicable + notApplicable                              === requiredTotal
 The first is why a segmented readiness bar can be drawn honestly: every applicable document occupies
 exactly one visible segment, with no unexplained remainder.
 
+## Readiness is a ratio; the submission checklist is an inventory
+
+These are different questions and must never look like competing progress metrics
+([ADR-034](./decisions.md)):
+
+| | Readiness | Submission checklist |
+|---|---|---|
+| Question | *How much of my required dossier is confirmed ready?* | *What belongs in my appointment package?* |
+| Shape | a percentage + `N of M` | a count + *"M need attention"* |
+| Population | applicable **required** work | everything the applicant actually carries |
+
+Exactly one percentage is shown for a dossier. The checklist never renders a ratio,
+a bar or a score — only an inventory count and how many of those items want action.
+
 ## Three distinct concepts
 
 VisaFlow measures three different things and never blends them into one number.
@@ -93,6 +107,11 @@ it imports nothing from `features/` — so no consumer can introduce a cycle.
 | Timeline | the phase verdict and the outstanding count (no percentage) |
 | Final Review | the ring, the departure check, and the submission checklist |
 | App shell | the Documents nav badge (`outstanding`) |
+
+> **Every consumer must pass `requiredRequirementCodes`.** Until ADR-034 five call
+> sites omitted it, so the sidebar badge showed 3 while every page body showed 4.
+> The one sanctioned exception is the Dashboard snapshot, which reads only
+> `ready`/`obtained`/`needsUpdate` — fields pending codes cannot affect.
 
 Every user-facing readiness label resolves from `common:readiness.*`, so the surfaces share one
 string as well as one number.

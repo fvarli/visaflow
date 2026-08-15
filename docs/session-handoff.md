@@ -1390,3 +1390,110 @@ ADR-017's text is untouched). `architecture.md`, `current-status.md`, `roadmap.m
 - **No browser pass (no connected Chrome)** — re-verify at **390px** especially, plus 1440, × tr/en ×
   light/dark: the departure card, the checklist filter and its empty state, the six-segment readiness
   bars, the new `obtained` chips and tones, and keyboard/focus through both radiogroups.
+
+## Iteration 21 handoff (2026-08-16) — Checklist semantics, next-document alignment & release UX hardening
+
+Closed the presentation seams ADR-033 left open. The submission checklist stopped behaving like a
+second progress metric, document recommendations became status-aware, and — the finding that made
+this sprint bigger than planned — **five shipped call sites were still using a non-canonical
+readiness denominator**, so ADR-033's own claim that the sidebar badge means "remaining app-wide" was
+false in code. No schema, import/export, storage, validation-rule or validation-severity change;
+still exactly two localStorage keys; `schemaVersion` unchanged.
+
+### Baseline recorded (real, from this machine, before any change)
+Clean tree on `main` at `3f16f27`. `format:check` ✓ · `lint` 0 errors / **63 warnings** ·
+`typecheck` ✓ · `test` **571/571** (60 files) · `build` ✓ (`index` 261.95 kB / **80.88 kB gzip**;
+`DossierProvider` 439.87 kB / 135.82 kB gzip; `ReviewPage` 20.33 kB / 5.04 kB gzip; CSS 84.77 kB /
+17.30 kB gzip). The recorded numbers matched the Iteration 20 handoff exactly.
+
+### The audit — the numerator 7 against six denominators
+For the example dossier, **7** appeared against **19, 11, 10, 4, 3, 2**, and "what is left" appeared
+as **12, 4, 3, 2, 1** simultaneously. Three ratios sat on Final Review alone (ring 7/11, hero badge
+7/19 two centimetres away, group headers). Root cause of the 19: `buildSubmissionChecklist` expanded
+un-instantiated requirements **without filtering `req.required`**, so eight optional Greek
+requirements inflated the package and permanently blocked the "all ready" state.
+
+Also found and fixed: the Documents "Not started" chip said **2** but revealed **1 row**
+(contradicting the invariant `document-filters.ts` claims for itself); `dashboard:snapshot.item.*`
+and `review:hero.checklistReady` had **no EN plurals** ("1 documents ready"); the Review and
+Validation rings rendered a raw `64%` instead of the Turkish `%64`; `deriveNextDocument` said "all
+caught up" beside a 0% bar on an unseeded dossier.
+
+### What changed
+
+**Readiness is genuinely canonical now.** `AppLayout` (nav badge), `buildAppointmentDay`,
+`employment-documents` and `finance-documents` all pass `requiredRequirementCodes`; the last two use
+**category-scoped** codes so their caption denominator matches the list beneath it (was "0 of 2
+employer documents ready" above 7 rows). `dashboard-model`'s snapshot deliberately does not — it
+reads only `ready`/`obtained`/`needsUpdate`, which pending codes cannot affect, and now says so.
+
+**Checklist → inventory.** Hero: *"11 items in your appointment package · 4 need attention"*.
+Groups: *"4 items · 2 need attention"*, or *"All prepared"* when nothing is outstanding — never
+"0 need attention". Print bundles carry a labelled state badge plus an item count. `checklistReady`,
+`groupSummary` and `bundleSummary` are retired. Exactly one percentage remains on the page.
+
+**Recommendations are status-aware.** `deriveNextDocument` returns
+`{ code, document | null, action }` with `action ∈ obtain | followUp | update | confirm`, accepts
+`requiredRequirementCodes`, and orders work to match `deriveNextActions`
+(`not_started → un-instantiated → requested → needs_update → received`) rather than any local
+intuition. A bare requirement routes the hero CTA to the existing **Sync** dialog instead of a detail
+panel that does not exist.
+
+**`received` left the cobalt accent.** `index.css` reserves cobalt for interactive/selected/progress
+surfaces, yet `StatusTone="accent"` paints brand-subtle with a `bg-primary` dot. `received` and
+`requested` now share the low-chroma `info` ramp and are told apart by icon (`Clock` vs
+`PackageCheck`), label and microcopy. `DocumentsHero`'s parallel tone map was folded onto
+`DOCUMENT_STATUS_TONE`, and its chips gained icons so tone is never the only signal.
+
+**Documents chips now match their rows.** Chips count `filterableReadiness` (records that exist);
+the bar and percentage stay canonical; the gap is stated honestly with a line pointing at Sync.
+
+**`DataList`** resolves `common:states.notProvided` (an optional `emptyLabel` prop overrides it).
+The literal was reachable in 7 files / ~16 rows — most visibly `TripSummary` on the Dashboard, where
+6 of 7 rows rendered raw English in a Turkish session.
+
+### Gates (this iteration)
+`format:check` ✓ · `lint` **0 errors / 64 warnings** (baseline 63; the addition is the already-
+accepted `no-deprecated` category) · `typecheck` ✓ · `test` **620/620** (571 + 49 new, 61 files) ·
+`build` ✓. **Not committed, not pushed.**
+
+Bundle: `index` 80.88 → **83.19 kB gzip (+2.31)**. The cause is deliberate and worth knowing: the app
+shell is now the only eager importer of `@/config/countries`, because computing a *correct* nav badge
+requires resolving the country pack. A wrong badge was the alternative. `ReviewPage` 5.04 → 5.06;
+`DossierProvider` 135.82 → 136.34. No new dependency.
+
+### Tests (49 new, 620 total)
+New `next-document.test.ts` (21): every status → its action, `requested` never called missing,
+`received` never told to obtain again, priority matching `deriveNextActions`, un-instantiated
+requirements participating, and the load-bearing invariant **a recommendation exists iff
+`readiness.outstanding > 0`** across all six fixtures. `readiness-invariants.test.ts` grew to 65 with
+INVARIANT 6 (sidebar badge and appointment-day agree with canonical readiness per fixture) and
+INVARIANT 7 (the package never contains an optional requirement nobody added). `review-page.test.tsx`
+grew to 34: the checklist section contains **no `%` and no `X of Y`**, at most one percentage on the
+page, the package size renders as an inventory, and `received` uses obtained/confirmation language
+with a tone that is never `warning`, `danger` or `accent` and is distinguished by more than colour.
+
+### Existing assertions that changed, and why
+`documents-model.test.ts` — `deriveNextDocument(...)?.id` became `?.document?.id`: the old return
+type could not express *what to do*, only *which document*, which is exactly the defect.
+
+### Docs
+**ADR-034** appended (extends ADR-033; establishes ratio-vs-inventory, the `info`-shared workflow
+tones, and status-aware recommendations). `docs/readiness.md` gained the ratio/inventory rule and a
+warning that every consumer must pass `requiredRequirementCodes`. `docs/review-architecture.md`
+replaced its now-obsolete `actionable` caveat. `docs/vision.md` domain vocabulary gained "Submission
+checklist". `current-status.md`, `roadmap.md` updated.
+
+### Known limitations / next
+- **No browser pass.** Chrome is installed and `DISPLAY=:0`, but `list_connected_browsers` returns
+  `[]` — the extension is not paired, so automation cannot drive it. The 390px/1440px × TR/EN ×
+  light/dark pass in the brief **was not performed and is not claimed**. It was compensated with
+  render/interaction tests only; wrapping, overflow, departure-card height and long-Turkish
+  behaviour remain visually unverified.
+- The +2.31 kB gzip on the initial chunk is the price of a correct nav badge. A future option is to
+  derive the badge behind the router's lazy boundary or memoize it at the provider.
+- The checklist inventory is still a different population from the readiness denominator (it may
+  include optional documents the applicant created). That is intentional and is why it is a count,
+  not a fraction — but a user comparing "11 items" with "11 required documents" on the same card is
+  seeing two different 11s that happen to coincide for this dossier.
+- `humanizeStatus` in `status-badge.tsx` is exported, un-i18n'd English, and called nowhere.

@@ -107,6 +107,7 @@ export function SubmissionChecklist({ checklist }: SubmissionChecklistProps) {
 export function ChecklistGroup({ group }: { group: SubmissionGroup }) {
   const { t } = useTranslation('review')
   const td = dynamicT(t)
+  const groupAttention = attentionCount(group.counts)
 
   return (
     <Card>
@@ -114,19 +115,20 @@ export function ChecklistGroup({ group }: { group: SubmissionGroup }) {
         <h3 className="text-body text-foreground font-semibold">
           {td(`checklist.groups.${group.id}`)}
         </h3>
-        <StatusBadge
-          tone={
-            group.counts.actionable > 0 &&
-            group.counts.ready === group.counts.actionable
-              ? 'success'
-              : 'neutral'
-          }
-        >
-          {t('checklist.groupSummary', {
-            ready: group.counts.ready,
-            total: group.counts.actionable,
-          })}
-        </StatusBadge>
+        <span className="flex flex-wrap items-center gap-2">
+          <StatusBadge tone="neutral">
+            {t('checklist.itemCount', { count: group.counts.actionable })}
+          </StatusBadge>
+          {groupAttention > 0 ? (
+            <StatusBadge tone="warning">
+              {t('checklist.groupAttention', { count: groupAttention })}
+            </StatusBadge>
+          ) : (
+            <StatusBadge tone="success">
+              {t('checklist.groupReady')}
+            </StatusBadge>
+          )}
+        </span>
       </CardHeader>
       <CardContent>
         <ul className="divide-border divide-y">
@@ -168,7 +170,11 @@ function ChecklistItem({ row }: { row: ChecklistRow }) {
           <p className="text-caption text-muted-foreground">
             {row.status === 'not_instantiated'
               ? t('review:checklist.notCreated')
-              : td(`visa-domain:documentStatus.${row.status}`)}
+              : row.state === 'obtained'
+                ? // Say what to do about it, not just what it is: the badge
+                  // already reads "Obtained" (ADR-034).
+                  t('review:checklist.obtainedHint')
+                : td(`visa-domain:documentStatus.${row.status}`)}
             {row.expiresBeforeAppointment && (
               <span className="text-warning-foreground">
                 {' · '}

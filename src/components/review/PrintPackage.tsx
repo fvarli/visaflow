@@ -120,9 +120,8 @@ export function PrintPackage({ print }: PrintPackageProps) {
                           />
                         </Link>
                         <p className="text-caption text-muted-foreground">
-                          {t('print.physical.bundleSummary', {
-                            ready: bundle.counts.ready,
-                            total: bundle.counts.actionable,
+                          {t('checklist.itemCount', {
+                            count: bundle.counts.actionable,
                           })}
                         </p>
                       </div>

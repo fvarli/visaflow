@@ -217,9 +217,17 @@ export function buildSubmissionChecklist(
     }
   })
 
-  // Applicable requirements the applicant has no record for yet.
+  // Applicable **required** requirements the applicant has no record for yet.
+  //
+  // Optional requirements without a record are deliberately excluded: an
+  // optional requirement nobody has added is a *suggestion*, not something in
+  // this applicant's package. Discovery belongs to the Documents workspace;
+  // a final pre-appointment check should list what you actually carry. Optional
+  // documents the applicant did create stay in the package (ADR-034).
   const applicable = template
-    ? applicableRequirements(template, application)
+    ? applicableRequirements(template, application).filter(
+        (req) => req.required
+      )
     : []
   for (const req of applicable) {
     if (byCode.has(req.code)) continue

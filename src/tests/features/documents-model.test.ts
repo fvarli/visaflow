@@ -101,7 +101,7 @@ describe('documents model — grouping & next', () => {
       doc({ id: '1', required: true, status: 'ready' }),
       doc({ id: '2', required: true, status: 'not_started' }),
     ]
-    expect(deriveNextDocument(docs)?.id).toBe('2')
+    expect(deriveNextDocument(docs)?.document?.id).toBe('2')
   })
 })
 

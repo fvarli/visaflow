@@ -1,6 +1,6 @@
 # Current Implementation Status
 
-Last updated: 2026-08-15 (readiness unification)
+Last updated: 2026-08-16 (checklist semantics)
 
 ## Completed Features
 
@@ -171,6 +171,23 @@ Last updated: 2026-08-15 (readiness unification)
       possession and persists nothing; plus an *All / Needs attention* checklist filter that
       isolates the unresolved items among 20+ rows without becoming a second Documents
       workspace (ADR-033)
+- [x] **Checklist semantics** — the submission checklist is now an **inventory**, not a
+      second progress metric: "11 items in your appointment package · 4 need attention"
+      beside the one readiness ratio. Group headers and print bundles lost their
+      `X of Y ready` ratios; optional requirements with no record left the package
+      (a suggestion nobody added is not something you carry). Five call sites that
+      omitted `requiredRequirementCodes` were fixed — the sidebar badge showed 3
+      while every page body showed 4 (ADR-034)
+- [x] **Status-aware recommendations** — `deriveNextDocument` returns
+      `{ code, document, action }` (`obtain` / `followUp` / `update` / `confirm`) and
+      sees requirements with no record at all, so "all caught up" can no longer appear
+      beside an incomplete readiness bar. Priority mirrors the app-wide
+      `deriveNextActions` order (ADR-034)
+- [x] **Calmer `received`** — `received`/`obtained` left the cobalt accent (which the
+      design system reserves for interactive surfaces) for the low-chroma `info` ramp
+      it shares with `requested`, distinguished by icon, label and microcopy rather
+      than hue. `DataList`'s hardcoded English "Not provided" now resolves from
+      `common:states.notProvided` (ADR-034)
 - [x] Reusable primitives: `Stepper`, `FieldHelp`, `GuidanceNote`,
       `CountryCombobox` (searchable, ISO-code + `Intl.DisplayNames` labels),
       generic `CollectionEditor`, `SegmentedControl`, plus trip, document and
@@ -239,6 +256,10 @@ These warnings don't affect functionality.
   across all five surfaces — same number, same state, same priority; plus `not_applicable`
   neutrality, the `received` semantics incl. task-completion-vs-readiness, and
   readiness/consistency independence
+- Checklist semantics: the checklist renders no percentage and no `X of Y` ratio;
+  `received` uses obtained/confirmation language with a non-warning, non-accent tone
+  and is distinguished by more than colour; `deriveNextDocument` has a recommendation
+  iff canonical readiness reports outstanding work
 - E2E tests: not yet implemented
 
 ## Build Status
@@ -247,7 +268,7 @@ All checks pass:
 - `pnpm format:check` - PASS
 - `pnpm lint` - 0 errors (warnings acceptable, see below)
 - `pnpm typecheck` - PASS (`tsc -b`)
-- `pnpm test` - 571/571 PASS (60 files)
+- `pnpm test` - 620/620 PASS (61 files)
 - `pnpm build` - SUCCESS
 
 Note: an earlier version of this file claimed 23/23 tests and `tsc --noEmit`;

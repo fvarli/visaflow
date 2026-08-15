@@ -47,14 +47,21 @@ template requirements (deduped by `code`, the dossier record winning).
 `ChecklistState` is a *presentation grouping* of `Document.status`, never a new status system:
 `ready` · `obtained` · `needsAttention` · `missing` · `optional` · `notApplicable`.
 
+`obtained` (`received`) carries the calm `info` tone, a `PackageCheck` icon and its own microcopy
+("Received — confirm to mark ready"). It shares the tone with `requested` deliberately — both are
+workflow progress — and is told apart by icon and label, never by hue ([ADR-034]).
+
 The **All / Needs attention** filter is view state only. `filterChecklist('all')` returns the same
 object by identity; `'attention'` rebuilds the groups from the surviving rows, drops empty groups,
 preserves `SUBMISSION_GROUP_ORDER` and re-tallies — counts are always derived, never carried.
 "Needs attention" is `missing | obtained | needsAttention`.
 
-> `checklist.counts.actionable` is **not** the readiness denominator. It counts optional rows and
-> un-instantiated requirements because it answers "what goes in the folder". The hero labels it
-> explicitly so it cannot be misread as a second readiness figure.
+> `checklist.counts.actionable` is **not** the readiness denominator, and is never rendered as a
+> ratio. The checklist is an **inventory** — "11 items in your appointment package · 4 need
+> attention" — while readiness is the one percentage ([ADR-034](./decisions.md)). Optional
+> requirements with no record are excluded: a suggestion nobody added is not something you carry.
+> Optional documents the applicant *did* create stay in the package, which is why the inventory is a
+> different population from the readiness denominator and must not be shown as a fraction.
 
 ## The print package
 

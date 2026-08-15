@@ -2,9 +2,9 @@ import {
   AlertTriangle,
   Ban,
   Check,
-  CircleCheck,
   CircleDashed,
   CircleSlash,
+  PackageCheck,
   type LucideIcon,
 } from 'lucide-react'
 import type { StatusTone } from '@/components/ui/status-badge'
@@ -29,8 +29,9 @@ import type {
 
 export const CHECKLIST_STATE_TONE: Record<ChecklistState, StatusTone> = {
   ready: 'success',
-  // In hand, awaiting confirmation — progress, never a defect (ADR-033).
-  obtained: 'accent',
+  // In hand, awaiting confirmation — progress, never a defect, and never the
+  // cobalt accent, which is reserved for interactive surfaces (ADR-034).
+  obtained: 'info',
   needsAttention: 'warning',
   missing: 'neutral',
   optional: 'neutral',
@@ -39,7 +40,7 @@ export const CHECKLIST_STATE_TONE: Record<ChecklistState, StatusTone> = {
 
 export const CHECKLIST_STATE_ICON: Record<ChecklistState, LucideIcon> = {
   ready: Check,
-  obtained: CircleCheck,
+  obtained: PackageCheck,
   needsAttention: AlertTriangle,
   missing: CircleDashed,
   optional: CircleDashed,

@@ -197,7 +197,7 @@ export default function DocumentsPage() {
     )
   }
 
-  const { readiness } = model
+  const { readiness, filterableReadiness, pendingRequirementCount } = model
   const selectedDoc =
     state.documents.find((d) => d.id === selectedDocId) ?? null
 
@@ -295,6 +295,14 @@ export default function DocumentsPage() {
 
       <DocumentsHero
         readiness={readiness}
+        filterableReadiness={filterableReadiness}
+        pendingNote={
+          pendingRequirementCount > 0
+            ? t('documents:hero.pendingRequirements', {
+                count: pendingRequirementCount,
+              })
+            : undefined
+        }
         bucketLabels={{
           ready: t('common:readiness.class.ready'),
           obtained: t('common:readiness.class.obtained'),
@@ -316,15 +324,41 @@ export default function DocumentsPage() {
             : t('common:readiness.nothingToTrack')
         }
         nextTitle={t('documents:hero.nextTitle')}
-        nextDocLabel={model.nextDocument ? labelOf(model.nextDocument) : null}
-        nextEmptyLabel={t('documents:hero.nextEmpty')}
-        openLabel={t('documents:hero.open')}
+        nextDocLabel={
+          model.nextDocument
+            ? documentLabel(
+                t,
+                model.nextDocument.code,
+                model.nextDocument.legacyName
+              )
+            : null
+        }
+        nextActionLabel={
+          model.nextDocument
+            ? td(`documents:hero.nextAction.${model.nextDocument.action}`)
+            : null
+        }
+        nextEmptyLabel={
+          readiness.outstanding > 0
+            ? t('documents:hero.nextBlocked')
+            : t('documents:hero.nextEmpty')
+        }
+        openLabel={
+          model.nextDocument?.document
+            ? t('documents:hero.open')
+            : t('documents:hero.addToDossier')
+        }
         activeBucket={matchQuickFilter(filters)}
         onBucketClick={applyQuickFilter}
         onOpenNext={
           model.nextDocument
             ? () => {
-                if (model.nextDocument) openDoc(model.nextDocument.id)
+                const next = model.nextDocument
+                if (!next) return
+                // A bare requirement has no detail panel to open — the Sync
+                // dialog is where it gets added to the dossier.
+                if (next.document) openDoc(next.document.id)
+                else setSyncOpen(true)
               }
             : undefined
         }

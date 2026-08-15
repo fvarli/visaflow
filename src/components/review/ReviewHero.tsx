@@ -8,6 +8,7 @@ import { StatusBadge } from '@/components/ui/status-badge'
 import { useFormatters } from '@/lib/format'
 import { dynamicT } from '@/lib/i18n-dynamic'
 import type { FinalReviewModel } from '@/features/review/review-model'
+import { attentionCount as checklistAttention } from '@/features/review/review-checklist'
 
 interface ReviewHeroProps {
   model: FinalReviewModel
@@ -30,6 +31,10 @@ export function ReviewHero({ model }: ReviewHeroProps) {
     model
   const { attentionCount } = model.attention
   const checklistCounts = model.checklist.counts
+  // Derived, never carried: the checklist is an inventory of the appointment
+  // package, and this is how many of those items still want action. It is
+  // deliberately NOT a second readiness ratio (ADR-034).
+  const packageAttention = checklistAttention(checklistCounts)
 
   return (
     <Card className="animate-fade-in-up overflow-hidden">
@@ -38,6 +43,7 @@ export function ReviewHero({ model }: ReviewHeroProps) {
           value={readiness.percent}
           size={132}
           label={t('common:readiness.label')}
+          valueLabel={format.percent(readiness.percent)}
           caption={td(`review:hero.state.${readiness.state}`)}
           className="mx-auto shrink-0 sm:mx-0"
         />
@@ -64,12 +70,18 @@ export function ReviewHero({ model }: ReviewHeroProps) {
             </p>
 
             <div className="flex flex-wrap items-center gap-2">
-              <StatusBadge tone="accent" dot>
-                {t('review:hero.checklistReady', {
-                  ready: checklistCounts.ready,
-                  total: checklistCounts.actionable,
+              <StatusBadge tone="neutral" dot>
+                {t('review:hero.packageItems', {
+                  count: checklistCounts.actionable,
                 })}
               </StatusBadge>
+              {packageAttention > 0 && (
+                <StatusBadge tone="warning" dot>
+                  {t('review:hero.packageAttention', {
+                    count: packageAttention,
+                  })}
+                </StatusBadge>
+              )}
               {attentionCount > 0 ? (
                 <StatusBadge tone="warning" dot>
                   {t('review:hero.attention', { count: attentionCount })}

@@ -56,13 +56,22 @@ export function buildEmploymentDocuments(
   template: VisaTypeTemplate | undefined
 ): EmploymentDocumentsView {
   const employmentDocs = documents.filter((d) => d.category === 'employment')
-  const readiness = buildDocumentReadiness({ documents: employmentDocs })
 
   const applicable = template
     ? applicableRequirements(template, application).filter(
         (req) => req.category === 'employment'
       )
     : []
+
+  // Scoped to the employment category, and including applicable employment
+  // requirements with no record yet — otherwise the caption counts fewer
+  // documents than the list beneath it renders (ADR-034).
+  const readiness = buildDocumentReadiness({
+    documents: employmentDocs,
+    requiredRequirementCodes: applicable
+      .filter((req) => req.required)
+      .map((req) => req.code),
+  })
 
   const byCode = new Map(employmentDocs.map((d) => [d.code, d]))
 

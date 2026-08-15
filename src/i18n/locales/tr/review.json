@@ -12,7 +12,6 @@
     "attentionNone": "Dikkatinizi bekleyen bir konu yok",
     "attention_one": "{{count}} konu dikkatinizi bekliyor",
     "attention_other": "{{count}} konu dikkatinizi bekliyor",
-    "checklistReady": "Teslim edeceğiniz {{total}} öğeden {{ready}} tanesi hazır",
     "nextStep": "Önerilen sonraki adım",
     "state": {
       "not_started": "Henüz hiçbir şey toplanmadı",
@@ -20,7 +19,12 @@
       "waiting_reservations": "Rezervasyonlar bekleniyor",
       "documents_remaining": "Toplanacak belgeler var",
       "ready_for_appointment": "Randevunuz için düzenli"
-    }
+    },
+    "packageItems_one": "Randevu paketinizde {{count}} öğe",
+    "packageItems_other": "Randevu paketinizde {{count}} öğe",
+    "packageAttention_one": "{{count}} öğe ilginizi bekliyor",
+    "packageAttention_other": "{{count}} öğe ilginizi bekliyor",
+    "packageReady": "Tüm öğeler hazır"
   },
   "summary": {
     "title": "Başvuru özeti",
@@ -72,7 +76,6 @@
       "notApplicable": "Gerekli değil",
       "obtained": "Alındı"
     },
-    "groupSummary": "{{total}} belgeden {{ready}} tanesi hazır",
     "expiresBeforeAppointment": "Randevunuzdan önce geçerliliği doluyor",
     "notCreated": "Henüz dosyanıza eklenmedi",
     "validUntil": "{{date}} tarihine kadar geçerli",
@@ -90,7 +93,13 @@
       "title": "İlgilenmeniz gereken bir öğe yok",
       "body": "Uygulanabilir tüm kontrol listesi öğeleri hazır olarak onaylandı.",
       "showAll": "Tüm listeyi göster"
-    }
+    },
+    "itemCount_one": "{{count}} öğe",
+    "itemCount_other": "{{count}} öğe",
+    "groupAttention_one": "{{count}} ilgi bekliyor",
+    "groupAttention_other": "{{count}} ilgi bekliyor",
+    "groupReady": "Tümü hazır",
+    "obtainedHint": "Belge alındı — hazır olarak işaretlemeden önce kontrol edin"
   },
   "attention": {
     "title": "Hâlâ dikkatinizi bekliyor",
@@ -149,8 +158,7 @@
       "sponsor": "Sponsor belgeleri",
       "insurance": "Sigorta",
       "reservations": "Rezervasyonlar",
-      "supporting": "Diğer destekleyici belgeler",
-      "bundleSummary": "{{total}} belgeden {{ready}} tanesi hazır"
+      "supporting": "Diğer destekleyici belgeler"
     },
     "state": {
       "ready": "Hazır",

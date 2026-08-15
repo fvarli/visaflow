@@ -118,7 +118,10 @@ export function buildAppointmentDay(
   // (an applicable requirement marked not-applicable simply leaves the set).
   // A `received` document deliberately does not qualify here even though it
   // satisfies its preparation task on the plan — see ADR-033.
-  const allRequiredReady = buildDocumentReadiness({ documents }).complete
+  const allRequiredReady = buildDocumentReadiness({
+    documents,
+    requiredRequirementCodes: requiredRequirementCodes(template, application),
+  }).complete
   const form = documents.find((d) => d.code === 'APPLICATION_FORM')
   const formReady =
     form?.status === 'ready' || form?.status === 'not_applicable'

@@ -26,7 +26,9 @@ one production country pack (Greece — Schengen short-stay tourism) · ADR hist
 **Recently completed within Foundation:** the readiness reconciliation — six divergent
 document-readiness derivations consolidated into one canonical model
 (`src/features/readiness/`, ADR-033), so every surface shows the same number under the same
-label.
+label; then the presentation follow-through (ADR-034) — the submission checklist became an
+inventory rather than a competing ratio, document recommendations became status-aware, and the
+five call sites that still used a non-canonical denominator were fixed.
 
 **Next within Foundation:** surface `SourceNote` in the Documents detail view; add more Schengen
 visa types (business, visit) using the existing hierarchy; verify the Greece pack against a

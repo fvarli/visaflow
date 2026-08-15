@@ -12,7 +12,6 @@
     "attentionNone": "Nothing is waiting for your attention",
     "attention_one": "{{count}} item needs attention",
     "attention_other": "{{count}} items need attention",
-    "checklistReady": "{{ready}} of {{total}} items to hand over are ready",
     "nextStep": "Suggested next step",
     "state": {
       "not_started": "Nothing collected yet",
@@ -20,7 +19,12 @@
       "waiting_reservations": "Waiting on reservations",
       "documents_remaining": "Documents still to collect",
       "ready_for_appointment": "Organised for your appointment"
-    }
+    },
+    "packageItems_one": "{{count}} item in your appointment package",
+    "packageItems_other": "{{count}} items in your appointment package",
+    "packageAttention_one": "{{count}} needs attention",
+    "packageAttention_other": "{{count}} need attention",
+    "packageReady": "All items are prepared"
   },
   "summary": {
     "title": "Application summary",
@@ -72,7 +76,6 @@
       "notApplicable": "Not applicable",
       "obtained": "Obtained"
     },
-    "groupSummary": "{{ready}} of {{total}} ready",
     "expiresBeforeAppointment": "Expires before your appointment",
     "notCreated": "Not added to your dossier yet",
     "validUntil": "Valid until {{date}}",
@@ -90,7 +93,13 @@
       "title": "Nothing needs attention",
       "body": "All applicable checklist items are confirmed ready.",
       "showAll": "Show full checklist"
-    }
+    },
+    "itemCount_one": "{{count}} item",
+    "itemCount_other": "{{count}} items",
+    "groupAttention_one": "{{count}} needs attention",
+    "groupAttention_other": "{{count}} need attention",
+    "groupReady": "All prepared",
+    "obtainedHint": "Received — confirm to mark ready"
   },
   "attention": {
     "title": "Still needs your attention",
@@ -149,8 +158,7 @@
       "sponsor": "Sponsor evidence",
       "insurance": "Insurance",
       "reservations": "Reservations",
-      "supporting": "Other supporting documents",
-      "bundleSummary": "{{ready}} of {{total}} ready"
+      "supporting": "Other supporting documents"
     },
     "state": {
       "ready": "Ready",

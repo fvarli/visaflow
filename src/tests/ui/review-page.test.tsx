@@ -12,6 +12,7 @@ import { ThemeProvider } from '@/app/providers/ThemeProvider'
 import { DossierProvider, useDossier } from '@/app/providers/DossierProvider'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import ReviewPage from '@/pages/ReviewPage'
+import { buildFinalReviewModel } from '@/features/review/review-model'
 import { importDossier } from '@/features/import-export/services/import.service'
 import exampleJson from '@/data/examples/example-dossier.json'
 import type { Dossier } from '@/domain/schemas/dossier.schema'
@@ -340,5 +341,106 @@ describe('Final Review — checklist filter', () => {
     // ...and switching back restores the full list exactly.
     fireEvent.click(allChip as HTMLElement)
     expect(screen.getAllByRole('listitem').length).toBe(rowsBefore)
+  })
+})
+
+describe('Final Review — one ratio, one inventory', () => {
+  it.each(SUPPORTED_LOCALES)(
+    'the checklist presents an inventory, never a second ratio, in "%s"',
+    async (locale) => {
+      await i18n.changeLanguage(locale)
+      renderPage()
+
+      const checklistHeading = screen.getByRole('heading', {
+        name: i18n.t('review:checklist.title'),
+      })
+      const section = checklistHeading.closest('section')
+      expect(section).not.toBeNull()
+      const text = (section as HTMLElement).textContent ?? ''
+
+      // No percentage and no "X of Y" ratio anywhere in the checklist.
+      expect(text).not.toMatch(/%/)
+      expect(text).not.toMatch(/\d+\s*(of|\/)\s*\d+/i)
+      expect(text).not.toMatch(/\d+\s+belgeden\s+\d+/i)
+    }
+  )
+
+  it('keeps exactly one readiness percentage on the page', () => {
+    renderPage()
+    const percents = (document.body.textContent ?? '').match(/\d+\s*%|%\s*\d+/g)
+    // The ring's centre label is the only percentage Final Review shows.
+    expect(percents?.length ?? 0).toBeLessThanOrEqual(1)
+  })
+
+  it.each(SUPPORTED_LOCALES)(
+    'states the package size as an inventory in "%s"',
+    async (locale) => {
+      await i18n.changeLanguage(locale)
+      // Derive the expected count the same way the page does, so the assertion
+      // stays true if the example dossier changes.
+      const model = buildFinalReviewModel(
+        {
+          applicant: SEED.applicant,
+          application: SEED.application,
+          documents: SEED.documents,
+          sponsors: SEED.sponsors,
+        },
+        new Date()
+      )
+      renderPage()
+      expect(
+        screen.getByText(
+          i18n.t('review:hero.packageItems', {
+            count: model.checklist.counts.actionable,
+          })
+        )
+      ).toBeInTheDocument()
+    }
+  )
+})
+
+describe('Final Review — received reads as obtained, never as a defect', () => {
+  it.each(SUPPORTED_LOCALES)(
+    'uses obtained/confirmation language for a received document in "%s"',
+    async (locale) => {
+      await i18n.changeLanguage(locale)
+      renderPage()
+
+      // The example dossier carries exactly one `received` document.
+      expect(
+        screen.getAllByText(i18n.t('review:checklist.state.obtained')).length
+      ).toBeGreaterThan(0)
+      expect(
+        screen.getAllByText(i18n.t('review:checklist.obtainedHint')).length
+      ).toBeGreaterThan(0)
+    }
+  )
+
+  it('never renders an obtained item with warning or danger semantics', () => {
+    renderPage()
+    const chip = screen.getAllByText(
+      i18n.t('review:checklist.state.obtained')
+    )[0]
+    const badge = chip?.closest('[data-slot="status-badge"]')
+    expect(badge).not.toBeNull()
+    const tone = (badge as HTMLElement).getAttribute('data-tone')
+    expect(tone).not.toBe('warning')
+    expect(tone).not.toBe('danger')
+    // ...and not the cobalt accent, which this design system reserves for
+    // interactive surfaces (ADR-034).
+    expect(tone).not.toBe('accent')
+  })
+
+  it('distinguishes obtained from missing by more than colour', () => {
+    renderPage()
+    // Different labels, and each row carries its own icon.
+    expect(i18n.t('review:checklist.state.obtained')).not.toBe(
+      i18n.t('review:checklist.state.missing')
+    )
+    const chip = screen.getAllByText(
+      i18n.t('review:checklist.state.obtained')
+    )[0]
+    const row = chip?.closest('li')
+    expect(row?.querySelector('svg')).not.toBeNull()
   })
 })

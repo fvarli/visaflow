@@ -1232,6 +1232,22 @@ function Documents() {
             complete: false,
             hasApplicableWork: true,
           }}
+          filterableReadiness={{
+            requiredTotal: 8,
+            applicable: 7,
+            notApplicable: 1,
+            ready: 3,
+            obtained: 1,
+            inProgress: 2,
+            notStarted: 0,
+            needsUpdate: 1,
+            optional: 2,
+            percent: 43,
+            outstanding: 4,
+            complete: false,
+            hasApplicableWork: true,
+          }}
+          pendingNote="1 required document hasn't been added to your dossier yet."
           bucketLabels={{
             ready: 'Ready',
             obtained: 'Obtained',

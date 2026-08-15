@@ -10,7 +10,10 @@ import { deriveNextActions } from '@/features/readiness/readiness-model'
 import { resolveVisaTemplate } from '@/config/countries'
 import { runValidation } from '@/domain/rules/runner'
 import { deriveTasks } from '@/features/timeline/timeline-tasks'
-import { needsAttention } from '@/features/review/review-checklist'
+import {
+  attentionCount,
+  needsAttention,
+} from '@/features/review/review-checklist'
 import { DOCUMENT_STATUS_TONE } from '@/components/ui/status-badge'
 import { CHECKLIST_STATE_TONE } from '@/components/review/state-meta'
 import {
@@ -322,4 +325,63 @@ describe('optional documents never move readiness', () => {
       expect(after.optional).toBe(before.optional + 1)
     }
   )
+})
+
+describe('INVARIANT 6 — every readiness consumer uses the same denominator', () => {
+  it.each(ALL_FIXTURE_ENTRIES)(
+    'the sidebar badge equals the canonical outstanding count (%s)',
+    (_name, fixture) => {
+      // The nav badge used to omit `requiredRequirementCodes`, so it showed 3
+      // while every page body showed 4 (ADR-034).
+      const template = resolveVisaTemplate(
+        fixture.application?.destinationCountry,
+        fixture.application?.visaType
+      )
+      const badge = buildDocumentReadiness({
+        documents: fixture.documents,
+        requiredRequirementCodes: requiredRequirementCodes(
+          template,
+          fixture.application
+        ),
+      })
+      expect(badge.outstanding).toBe(canonical(fixture).outstanding)
+    }
+  )
+
+  it.each(ALL_FIXTURE_ENTRIES)(
+    'appointment-day readiness agrees with canonical completeness (%s)',
+    (_name, fixture) => {
+      const review = buildFinalReviewModel(fixture, NOW)
+      const requiredDocs = review.appointmentDay.items.find(
+        (i) => i.id === 'requiredDocuments'
+      )
+      expect(requiredDocs?.ready).toBe(canonical(fixture).complete)
+    }
+  )
+})
+
+describe('INVARIANT 7 — the checklist is an inventory, not a second ratio', () => {
+  it.each(ALL_FIXTURE_ENTRIES)(
+    'optional requirements with no record never enter the package (%s)',
+    (_name, fixture) => {
+      const review = buildFinalReviewModel(fixture, NOW)
+      const bare = review.checklist.rows.filter(
+        (row) => row.status === 'not_instantiated'
+      )
+      // A suggestion nobody added is not something you carry to the appointment.
+      expect(bare.every((row) => row.required)).toBe(true)
+    }
+  )
+
+  it('counts the package as an inventory that the attention count subsets', () => {
+    const review = buildFinalReviewModel(partiallyPrepared, NOW)
+    const counts = review.checklist.counts
+    expect(counts.actionable).toBeGreaterThan(0)
+    expect(attentionCount(counts)).toBeLessThanOrEqual(counts.actionable)
+    // The inventory is deliberately a different population from readiness —
+    // it may include optional documents the applicant actually created.
+    expect(counts.actionable).toBeGreaterThanOrEqual(
+      canonical(partiallyPrepared).ready
+    )
+  })
 })

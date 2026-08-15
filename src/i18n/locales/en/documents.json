@@ -4,9 +4,19 @@
   "shortDescription": "Organize your visa application dossier",
   "readyCount": "{{ready}} of {{total}} ready",
   "hero": {
-    "nextTitle": "Next document to obtain",
+    "nextTitle": "Next document",
     "nextEmpty": "You're all caught up — nothing required is outstanding.",
-    "open": "Open"
+    "open": "Open",
+    "pendingRequirements_one": "{{count}} required document hasn't been added to your dossier yet — use Sync to add it.",
+    "pendingRequirements_other": "{{count}} required documents haven't been added to your dossier yet — use Sync to add them.",
+    "nextBlocked": "Nothing to open yet — add your country pack's requirements with Sync.",
+    "addToDossier": "Add to dossier",
+    "nextAction": {
+      "obtain": "Obtain this document",
+      "followUp": "Requested — follow up on it",
+      "update": "Update or replace it",
+      "confirm": "Obtained — review and confirm it"
+    }
   },
   "view": {
     "label": "View",

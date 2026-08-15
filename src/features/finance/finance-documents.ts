@@ -130,11 +130,22 @@ export function buildFinanceDocuments(
   const financeDocs = documents.filter(
     (d) => financeDocGroup(d.code, d.category, d.ownerType) !== null
   )
-  const readiness = buildDocumentReadiness({ documents: financeDocs })
-
   const applicable = template
     ? applicableRequirements(template, application)
     : []
+
+  // Scoped to the finance-relevant codes, including applicable requirements
+  // with no record yet, so the caption matches the list beneath it (ADR-034).
+  const readiness = buildDocumentReadiness({
+    documents: financeDocs,
+    requiredRequirementCodes: applicable
+      .filter(
+        (req) =>
+          req.required &&
+          financeDocGroup(req.code, req.category, req.ownerType) !== null
+      )
+      .map((req) => req.code),
+  })
 
   const byCode = new Map(financeDocs.map((d) => [d.code, d]))
 

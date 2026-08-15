@@ -6,7 +6,17 @@
   "hero": {
     "nextTitle": "Sıradaki belge",
     "nextEmpty": "Her şey güncel — bekleyen zorunlu belge yok.",
-    "open": "Aç"
+    "open": "Aç",
+    "pendingRequirements_one": "{{count}} zorunlu belge henüz dosyanıza eklenmedi — eklemek için Eşitle'yi kullanın.",
+    "pendingRequirements_other": "{{count}} zorunlu belge henüz dosyanıza eklenmedi — eklemek için Eşitle'yi kullanın.",
+    "nextBlocked": "Henüz açılacak bir kayıt yok — ülke paketinizin gerekliliklerini Eşitle ile ekleyin.",
+    "addToDossier": "Dosyaya ekle",
+    "nextAction": {
+      "obtain": "Bu belgeyi edinin",
+      "followUp": "Talep edildi — takibini yapın",
+      "update": "Güncelleyin veya yenisiyle değiştirin",
+      "confirm": "Alındı — kontrol edip onaylayın"
+    }
   },
   "view": {
     "label": "Görünüm",

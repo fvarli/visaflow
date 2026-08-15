@@ -122,12 +122,16 @@ export function DepartureCheck({ model }: DepartureCheckProps) {
                         />
                         {td(`review:print.physical.${bundle.id}`)}
                       </span>
-                      <StatusBadge tone={BUNDLE_STATE_TONE[bundle.state]}>
-                        {t('review:print.physical.bundleSummary', {
-                          ready: bundle.counts.ready,
-                          total: bundle.counts.actionable,
-                        })}
-                      </StatusBadge>
+                      <span className="flex shrink-0 items-center gap-2">
+                        <span className="text-caption text-muted-foreground">
+                          {t('review:checklist.itemCount', {
+                            count: bundle.counts.actionable,
+                          })}
+                        </span>
+                        <StatusBadge tone={BUNDLE_STATE_TONE[bundle.state]}>
+                          {td(`review:print.state.${bundle.state}`)}
+                        </StatusBadge>
+                      </span>
                     </li>
                   )
                 })}

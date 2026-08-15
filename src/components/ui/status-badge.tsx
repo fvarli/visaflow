@@ -91,15 +91,21 @@ function StatusBadge({
  */
 /**
  * Tones follow the canonical readiness semantics (ADR-033), not intuition about
- * severity. `received` means "obtained, not yet confirmed" — real progress, so
- * it takes the accent rather than the amber it used to wear, which read as a
- * defect. `needs_update` is amber, not red: a document needing renewal is work,
- * not an emergency.
+ * severity.
+ *
+ * `requested` and `received` deliberately **share** the low-chroma `info` ramp:
+ * both are non-error workflow-progress states, and neither may consume the
+ * cobalt accent, which this design system reserves for interactive, selected
+ * and progress surfaces (see the ACCENT DISCIPLINE note in `index.css`). They
+ * are told apart by icon and label, never by hue (ADR-034).
+ *
+ * `needs_update` is amber, not red: a document needing renewal is work, not an
+ * emergency.
  */
 export const DOCUMENT_STATUS_TONE: Record<string, StatusTone> = {
   not_started: 'neutral',
   requested: 'info',
-  received: 'accent',
+  received: 'info',
   needs_update: 'warning',
   ready: 'success',
   not_applicable: 'neutral',

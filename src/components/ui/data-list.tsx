@@ -1,4 +1,5 @@
 import * as React from 'react'
+import { useTranslation } from 'react-i18next'
 import { cn } from '@/lib/utils'
 
 /**
@@ -24,15 +25,23 @@ interface DataListItemProps extends React.ComponentProps<'div'> {
   value: React.ReactNode
   /** Render the value in the mono face — for codes, numbers, references. */
   mono?: boolean
+  /**
+   * Shown when `value` is empty. Defaults to the shared
+   * `common:states.notProvided` string — this used to be a hardcoded English
+   * literal that rendered untranslated on the Turkish Dashboard (ADR-034).
+   */
+  emptyLabel?: React.ReactNode
 }
 
 function DataListItem({
   label,
   value,
   mono = false,
+  emptyLabel,
   className,
   ...props
 }: DataListItemProps) {
+  const { t } = useTranslation('common')
   const isEmpty =
     value === null || value === undefined || value === '' || value === false
 
@@ -54,7 +63,7 @@ function DataListItem({
           isEmpty ? 'text-muted-foreground/70 italic' : 'text-foreground'
         )}
       >
-        {isEmpty ? 'Not provided' : value}
+        {isEmpty ? (emptyLabel ?? t('states.notProvided')) : value}
       </dd>
     </div>
   )

@@ -87,7 +87,8 @@ framework-light, privacy-first codebase.
 | Country pack | A country's `visa type → requirements` template plus source metadata |
 | Requirement | A template entry describing a document an application may need |
 | Finding | A validation result (error / warning / info), rendered from a stable key |
-| Readiness | How assembled the dossier is — an organizational metric, never a prediction |
+| Readiness | How assembled the dossier is — an organizational **ratio**, never a prediction |
+| Submission checklist | The **inventory** of what goes in the appointment package — a count, never a second progress metric |
 
 ## Why this approach
 

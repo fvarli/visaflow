@@ -5,6 +5,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { ReadinessRing } from '@/components/ui/readiness-ring'
 import { StatusBadge } from '@/components/ui/status-badge'
 import { useFindingText } from '@/lib/finding-text'
+import { useFormatters } from '@/lib/format'
 import { dynamicT } from '@/lib/i18n-dynamic'
 import type { ValidationHeroModel } from '@/features/validation/validation-model'
 
@@ -22,6 +23,7 @@ export function ValidationHero({ hero }: ValidationHeroProps) {
   const { t } = useTranslation(['validation', 'common'])
   const td = dynamicT(t)
   const findingText = useFindingText()
+  const format = useFormatters()
 
   const {
     readinessPercent,
@@ -41,6 +43,7 @@ export function ValidationHero({ hero }: ValidationHeroProps) {
           value={readinessPercent}
           size={132}
           label={t('common:readiness.label')}
+          valueLabel={format.percent(readinessPercent)}
           caption={td(`validation:center.hero.verdict.${verdict}`)}
           className="mx-auto shrink-0 sm:mx-0"
         />

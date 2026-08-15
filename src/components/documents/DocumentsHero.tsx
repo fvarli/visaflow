@@ -1,21 +1,44 @@
-import { ArrowRight, FileText } from 'lucide-react'
+import type * as React from 'react'
+import {
+  ArrowRight,
+  Check,
+  CirclePlus,
+  CircleDashed,
+  CircleSlash,
+  Clock,
+  FileText,
+  PackageCheck,
+  RefreshCw,
+  type LucideIcon,
+} from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { StatusBadge, type StatusTone } from '@/components/ui/status-badge'
+import {
+  DOCUMENT_STATUS_TONE,
+  StatusBadge,
+  type StatusTone,
+} from '@/components/ui/status-badge'
 import { cn } from '@/lib/utils'
 import {
   BUCKET_COUNT,
+  BUCKET_STATUS,
   type BucketKey,
 } from '@/features/documents/documents-model'
 import type { DocumentReadiness } from '@/features/readiness/readiness-types'
 
 interface DocumentsHeroProps {
   readiness: DocumentReadiness
+  /** Counts the chips use — must equal the rows each chip reveals. */
+  filterableReadiness: DocumentReadiness
+  /** Rendered when required requirements exist with no record yet. */
+  pendingNote?: React.ReactNode
   bucketLabels: Record<BucketKey, string>
   completionLabel: string
   summaryLabel: string
   nextTitle: string
   nextDocLabel: string | null
+  /** What the recommended document actually calls for (obtain/follow up/…). */
+  nextActionLabel?: string | null
   nextEmptyLabel: string
   openLabel: string
   activeBucket: BucketKey | null
@@ -24,14 +47,32 @@ interface DocumentsHeroProps {
   className?: string
 }
 
-const BUCKET_TONE: Record<BucketKey, StatusTone> = {
-  ready: 'success',
-  obtained: 'accent',
-  requested: 'info',
-  needsUpdate: 'warning',
-  missing: 'neutral',
-  notApplicable: 'neutral',
-  optional: 'neutral',
+/**
+ * Derived from the canonical status→tone map rather than duplicated, so the
+ * chips can never drift from the badges elsewhere in the app (ADR-034).
+ */
+const BUCKET_TONE: Record<BucketKey, StatusTone> = Object.fromEntries(
+  (Object.keys(BUCKET_STATUS) as BucketKey[]).map((key) => {
+    const status = BUCKET_STATUS[key]
+    return [
+      key,
+      status ? (DOCUMENT_STATUS_TONE[status] ?? 'neutral') : 'neutral',
+    ]
+  })
+) as Record<BucketKey, StatusTone>
+
+/**
+ * `requested` and `received` share the `info` tone by design, so each chip
+ * carries an icon: status is never communicated by colour alone.
+ */
+const BUCKET_ICON: Record<BucketKey, LucideIcon> = {
+  ready: Check,
+  obtained: PackageCheck,
+  requested: Clock,
+  needsUpdate: RefreshCw,
+  missing: CircleDashed,
+  notApplicable: CircleSlash,
+  optional: CirclePlus,
 }
 
 /**
@@ -69,11 +110,14 @@ const BUCKET_ORDER: BucketKey[] = [
  */
 export function DocumentsHero({
   readiness,
+  filterableReadiness,
+  pendingNote,
   bucketLabels,
   completionLabel,
   summaryLabel,
   nextTitle,
   nextDocLabel,
+  nextActionLabel,
   nextEmptyLabel,
   openLabel,
   activeBucket,
@@ -82,7 +126,10 @@ export function DocumentsHero({
   className,
 }: DocumentsHeroProps) {
   const total = Math.max(readiness.applicable, 1)
-  const bucketCount = (key: BucketKey) => BUCKET_COUNT[key](readiness)
+  // The bar visualises canonical readiness; the chips filter the list, so they
+  // count only what a filter can actually reveal (ADR-034).
+  const barCount = (key: BucketKey) => BUCKET_COUNT[key](readiness)
+  const bucketCount = (key: BucketKey) => BUCKET_COUNT[key](filterableReadiness)
 
   return (
     <Card className={cn('py-0', className)}>
@@ -95,7 +142,7 @@ export function DocumentsHero({
           </div>
           <div className="bg-muted flex h-2 w-full overflow-hidden rounded-full">
             {BAR_SEGMENTS.map((seg) => {
-              const pct = (bucketCount(seg.key) / total) * 100
+              const pct = (barCount(seg.key) / total) * 100
               if (pct <= 0) return null
               return (
                 <div
@@ -106,6 +153,12 @@ export function DocumentsHero({
               )
             })}
           </div>
+
+          {pendingNote && (
+            <p className="text-caption text-muted-foreground text-pretty">
+              {pendingNote}
+            </p>
+          )}
 
           <div className="flex flex-wrap gap-2 pt-1">
             {BUCKET_ORDER.map((key) => {
@@ -129,7 +182,11 @@ export function DocumentsHero({
                   <span className="text-body text-foreground font-medium tabular-nums">
                     {bucketCount(key)}
                   </span>
-                  <StatusBadge tone={BUCKET_TONE[key]} dot>
+                  <StatusBadge tone={BUCKET_TONE[key]}>
+                    {(() => {
+                      const Icon = BUCKET_ICON[key]
+                      return <Icon aria-hidden />
+                    })()}
                     {bucketLabels[key]}
                   </StatusBadge>
                 </button>
@@ -154,6 +211,11 @@ export function DocumentsHero({
                   {nextDocLabel}
                 </p>
               </div>
+              {nextActionLabel && (
+                <p className="text-caption text-muted-foreground">
+                  {nextActionLabel}
+                </p>
+              )}
               <Button
                 size="sm"
                 variant="outline"

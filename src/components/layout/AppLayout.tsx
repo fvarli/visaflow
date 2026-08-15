@@ -8,6 +8,8 @@ import { MobileNav } from './MobileNav'
 import { SkipLink } from './SkipLink'
 import { useDossier } from '@/app/providers/DossierProvider'
 import { buildDocumentReadiness } from '@/features/readiness/document-readiness'
+import { requiredRequirementCodes } from '@/features/readiness/requirement-readiness'
+import { resolveVisaTemplate } from '@/config/countries'
 import { downloadDossier } from '@/features/import-export/services/export.service'
 import {
   importPartial,
@@ -117,16 +119,24 @@ export function AppLayout() {
   }, [loadDossier])
 
   // The Documents nav badge shows the canonical outstanding count — the same
-  // number the rings and the "remaining" phrasing use. It used to be an inline
-  // filter here that gave the word "remaining" a third meaning (ADR-033).
-  const navCounts = useMemo(
-    () => ({
+  // number the rings and the "remaining" phrasing use. It must pass the
+  // country pack's required requirements: without them the badge counted only
+  // instantiated records and showed 3 while every page body showed 4 (ADR-034).
+  const navCounts = useMemo(() => {
+    const template = resolveVisaTemplate(
+      state.application?.destinationCountry,
+      state.application?.visaType
+    )
+    return {
       outstandingDocuments: buildDocumentReadiness({
         documents: state.documents,
+        requiredRequirementCodes: requiredRequirementCodes(
+          template,
+          state.application
+        ),
       }).outstanding,
-    }),
-    [state.documents]
-  )
+    }
+  }, [state.documents, state.application])
 
   const handleScroll = useCallback((event: React.UIEvent<HTMLElement>) => {
     setScrolled(event.currentTarget.scrollTop > 4)
