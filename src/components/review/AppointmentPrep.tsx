@@ -58,9 +58,9 @@ export function AppointmentPrep({
               return (
                 <li
                   key={item.id}
-                  className="flex items-center justify-between gap-3 py-2.5"
+                  className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 py-2.5"
                 >
-                  <span className="text-body text-foreground flex items-center gap-2.5">
+                  <span className="text-body text-foreground flex min-w-0 items-center gap-2.5">
                     <Icon
                       aria-hidden
                       className="text-muted-foreground size-4 shrink-0"

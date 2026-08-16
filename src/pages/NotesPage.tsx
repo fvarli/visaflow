@@ -30,6 +30,8 @@ import {
 } from '@/components/ui/dialog'
 import { Plus, StickyNote, Trash2 } from 'lucide-react'
 import { NoDossierState } from '@/components/NoDossierState'
+import { PageHeader } from '@/components/ui/page-header'
+import { PageBody } from '@/components/ui/section'
 import { dynamicT } from '@/lib/i18n-dynamic'
 import { useFormatters } from '@/lib/format'
 import { generateId } from '@/domain/types/common'
@@ -100,112 +102,118 @@ export default function NotesPage() {
   }
 
   if (!hasData) {
-    return <NoDossierState section={t('notes:title')} />
+    return (
+      <PageBody>
+        <NoDossierState section={t('notes:title')} />
+      </PageBody>
+    )
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">{t('notes:title')}</h1>
-          <p className="text-muted-foreground">{t('notes:shortDescription')}</p>
-        </div>
+    <PageBody>
+      <PageHeader
+        title={t('notes:title')}
+        description={t('notes:shortDescription')}
+        actions={
+          <Dialog
+            open={dialogOpen}
+            onOpenChange={(open) => {
+              setDialogOpen(open)
+              if (!open) resetForm()
+            }}
+          >
+            <DialogTrigger asChild>
+              <Button>
+                <Plus className="mr-2 h-4 w-4" />
+                {t('notes:add')}
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>
+                  {editingNote ? t('notes:edit') : t('notes:add')}
+                </DialogTitle>
+                <DialogDescription>
+                  {t('notes:dialogDescription')}
+                </DialogDescription>
+              </DialogHeader>
 
-        <Dialog
-          open={dialogOpen}
-          onOpenChange={(open) => {
-            setDialogOpen(open)
-            if (!open) resetForm()
-          }}
-        >
-          <DialogTrigger asChild>
-            <Button>
-              <Plus className="mr-2 h-4 w-4" />
-              {t('notes:add')}
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>
-                {editingNote ? t('notes:edit') : t('notes:add')}
-              </DialogTitle>
-              <DialogDescription>
-                {t('notes:dialogDescription')}
-              </DialogDescription>
-            </DialogHeader>
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label>{t('notes:fields.title')}</Label>
+                  <Input
+                    value={formData.title}
+                    onChange={(e) =>
+                      setFormData({ ...formData, title: e.target.value })
+                    }
+                    placeholder={t('notes:fields.titlePlaceholder')}
+                  />
+                </div>
 
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label>{t('notes:fields.title')}</Label>
-                <Input
-                  value={formData.title}
-                  onChange={(e) =>
-                    setFormData({ ...formData, title: e.target.value })
-                  }
-                  placeholder={t('notes:fields.titlePlaceholder')}
-                />
+                <div className="space-y-2">
+                  <Label>{t('notes:fields.category')}</Label>
+                  <Select
+                    value={formData.category}
+                    onValueChange={(value) =>
+                      setFormData({
+                        ...formData,
+                        category: value as ApplicationNote['category'],
+                      })
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="general">
+                        {t('notes:categories.general')}
+                      </SelectItem>
+                      <SelectItem value="document">
+                        {t('notes:categories.document')}
+                      </SelectItem>
+                      <SelectItem value="timeline">
+                        {t('notes:categories.timeline')}
+                      </SelectItem>
+                      <SelectItem value="appointment">
+                        {t('notes:categories.appointment')}
+                      </SelectItem>
+                      <SelectItem value="other">
+                        {t('notes:categories.other')}
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>{t('notes:fields.content')} *</Label>
+                  <Textarea
+                    value={formData.content}
+                    onChange={(e) =>
+                      setFormData({ ...formData, content: e.target.value })
+                    }
+                    placeholder={t('notes:fields.contentPlaceholder')}
+                    rows={5}
+                  />
+                </div>
+
+                <div className="flex justify-end gap-2">
+                  <Button
+                    variant="outline"
+                    onClick={() => setDialogOpen(false)}
+                  >
+                    {t('common:actions.cancel')}
+                  </Button>
+                  <Button onClick={handleSubmit}>
+                    {editingNote
+                      ? t('common:actions.saveChanges')
+                      : t('notes:add')}
+                  </Button>
+                </div>
               </div>
-
-              <div className="space-y-2">
-                <Label>{t('notes:fields.category')}</Label>
-                <Select
-                  value={formData.category}
-                  onValueChange={(value) =>
-                    setFormData({
-                      ...formData,
-                      category: value as ApplicationNote['category'],
-                    })
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="general">
-                      {t('notes:categories.general')}
-                    </SelectItem>
-                    <SelectItem value="document">
-                      {t('notes:categories.document')}
-                    </SelectItem>
-                    <SelectItem value="timeline">
-                      {t('notes:categories.timeline')}
-                    </SelectItem>
-                    <SelectItem value="appointment">
-                      {t('notes:categories.appointment')}
-                    </SelectItem>
-                    <SelectItem value="other">
-                      {t('notes:categories.other')}
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <Label>{t('notes:fields.content')} *</Label>
-                <Textarea
-                  value={formData.content}
-                  onChange={(e) =>
-                    setFormData({ ...formData, content: e.target.value })
-                  }
-                  placeholder={t('notes:fields.contentPlaceholder')}
-                  rows={5}
-                />
-              </div>
-
-              <div className="flex justify-end gap-2">
-                <Button variant="outline" onClick={() => setDialogOpen(false)}>
-                  {t('common:actions.cancel')}
-                </Button>
-                <Button onClick={handleSubmit}>
-                  {editingNote
-                    ? t('common:actions.saveChanges')
-                    : t('notes:add')}
-                </Button>
-              </div>
-            </div>
-          </DialogContent>
-        </Dialog>
-      </div>
+            </DialogContent>
+          </Dialog>
+        }
+      />
 
       {notes.length === 0 ? (
         <Card>
@@ -221,7 +229,7 @@ export default function NotesPage() {
         <div className="grid gap-4">
           {notes.map((note) => (
             <Card key={note.id}>
-              <CardHeader className="flex flex-row items-start justify-between">
+              <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                 <div>
                   <CardTitle className="text-base">
                     {note.title ?? t('notes:untitled')}
@@ -256,6 +264,6 @@ export default function NotesPage() {
           ))}
         </div>
       )}
-    </div>
+    </PageBody>
   )
 }

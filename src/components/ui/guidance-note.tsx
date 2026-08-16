@@ -57,7 +57,7 @@ export function GuidanceNote({
           type="button"
           onClick={() => setDismissed(true)}
           aria-label={dismissLabel}
-          className="text-muted-foreground hover:text-foreground -mr-1 -mt-0.5 rounded-sm p-0.5"
+          className="text-muted-foreground hover:text-foreground -mr-2 -mt-1.5 rounded-sm p-2"
         >
           <X className="size-3.5" />
         </button>

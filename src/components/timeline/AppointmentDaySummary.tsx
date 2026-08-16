@@ -19,23 +19,32 @@ interface AppointmentDaySummaryProps {
 export function AppointmentDaySummary({ summary }: AppointmentDaySummaryProps) {
   const { t } = useTranslation(['timeline', 'visa-domain'])
   const td = dynamicT(t)
+  // Derived, never carried — mirrors the checklist's attention count.
+  const needsAttention = summary.total - summary.readyCount
 
   return (
     <div className="flex flex-col gap-4">
+      {/* An inventory, not a ratio. "2 of 4 ready" sat on the same screen as
+          the hero's "Required documents remaining: 4" — the same numeral
+          meaning two different things — and its Turkish was one word from the
+          canonical readiness caption. Readiness is the only ratio in the
+          product; everything else counts items and what needs attention
+          (ADR-034). */}
       <p className="text-caption text-muted-foreground">
-        {t('appointmentDay.readySummary', {
-          ready: summary.readyCount,
-          total: summary.total,
-        })}
+        {t('appointmentDay.itemCount', { count: summary.total })}
+        {' · '}
+        {needsAttention > 0
+          ? t('appointmentDay.attention', { count: needsAttention })
+          : t('appointmentDay.allPrepared')}
       </p>
 
       <ul className="divide-border divide-y">
         {summary.items.map((item) => (
           <li
             key={item.id}
-            className="flex items-center justify-between gap-3 py-2.5 first:pt-0"
+            className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 py-2.5 first:pt-0"
           >
-            <span className="text-body text-foreground inline-flex items-center gap-2.5">
+            <span className="text-body text-foreground inline-flex min-w-0 items-center gap-2.5">
               {item.ready ? (
                 <CheckCircle2 aria-hidden className="text-success size-4" />
               ) : (

@@ -117,10 +117,4 @@ export const SEVERITY_TONE: Record<string, StatusTone> = {
   info: 'info',
 }
 
-/** `needs_update` -> `Needs update` */
-export function humanizeStatus(value: string): string {
-  const spaced = value.replace(/_/g, ' ')
-  return spaced.charAt(0).toUpperCase() + spaced.slice(1)
-}
-
 export { StatusBadge, statusBadgeVariants }

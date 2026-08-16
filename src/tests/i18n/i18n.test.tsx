@@ -413,3 +413,29 @@ describe('playground renders in both locales', () => {
     }
   )
 })
+
+describe('count interpolation uses real plural forms', () => {
+  // `dynamicT` is the project's escape hatch for runtime-computed keys.
+  const td = dynamicT(i18n.t.bind(i18n))
+
+  // These four keys interpolated {{count}} with no `_one` form, so English
+  // rendered "1 days ago" / "1 sponsors added".
+  const CASES: [string, string][] = [
+    ['common:time.daysAgo', 'day'],
+    ['common:time.daysRemaining', 'day'],
+    ['common:time.inDays', 'day'],
+    ['dashboard:snapshot.item.sponsorPresent', 'sponsor'],
+  ]
+
+  it.each(CASES)('%s is singular at count = 1', async (key, noun) => {
+    await i18n.changeLanguage('en')
+    const singular = td(key, { count: 1 })
+    expect(singular).toContain(`1 ${noun}`)
+    expect(singular).not.toContain(`1 ${noun}s`)
+  })
+
+  it.each(CASES)('%s is plural at count = 3', async (key, noun) => {
+    await i18n.changeLanguage('en')
+    expect(td(key, { count: 3 })).toContain(`3 ${noun}s`)
+  })
+})

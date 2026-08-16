@@ -110,7 +110,7 @@ export function CountryCombobox({
             type="button"
             onClick={() => onValueChange('')}
             aria-label={t('countryCombobox.clear')}
-            className="text-muted-foreground hover:text-foreground absolute end-8 top-1/2 -translate-y-1/2 rounded-sm p-0.5"
+            className="text-muted-foreground hover:text-foreground absolute end-7 top-1/2 -translate-y-1/2 rounded-sm p-2"
           >
             <X className="size-3.5" />
           </button>

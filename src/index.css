@@ -93,6 +93,12 @@
     --popover: var(--n-0);
     --popover-foreground: var(--n-900);
 
+    /* Modal scrim. Deliberately a fixed dark value in BOTH themes rather than
+     * `--foreground`: `--foreground` inverts (L 0.193 light → 0.945 dark), so a
+     * foreground-based overlay *lightened* the page in dark mode instead of
+     * dimming it. A scrim must always darken. */
+    --overlay: oklch(0.145 0.012 264 / 0.45);
+
     /* Brand accent */
     --primary: var(--brand-500);
     --primary-hover: var(--brand-600);
@@ -208,6 +214,10 @@
     --popover: var(--n-100);
     --popover-foreground: var(--n-900);
 
+    /* Slightly deeper in dark so the scrim still separates the dialog from a
+     * near-black page. Still a darkening value — never a lightening one. */
+    --overlay: oklch(0.09 0.01 264 / 0.6);
+
     --primary: var(--brand-500);
     --primary-hover: var(--brand-600);
     --primary-foreground: oklch(0.16 0.02 264);
@@ -256,6 +266,7 @@
   --color-card-foreground: var(--card-foreground);
   --color-popover: var(--popover);
   --color-popover-foreground: var(--popover-foreground);
+  --color-overlay: var(--overlay);
 
   --color-primary: var(--primary);
   --color-primary-hover: var(--primary-hover);

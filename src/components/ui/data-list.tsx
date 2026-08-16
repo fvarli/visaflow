@@ -60,7 +60,7 @@ function DataListItem({
         className={cn(
           'text-body min-w-0 break-words',
           mono && 'font-mono text-[0.8125rem] tracking-tight',
-          isEmpty ? 'text-muted-foreground/70 italic' : 'text-foreground'
+          isEmpty ? 'text-muted-foreground italic' : 'text-foreground'
         )}
       >
         {isEmpty ? (emptyLabel ?? t('states.notProvided')) : value}

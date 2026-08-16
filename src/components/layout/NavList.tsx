@@ -34,7 +34,7 @@ export function NavList({ groups, counts, onNavigate }: NavListProps) {
           className="flex flex-col gap-1"
         >
           {group.labelKey && (
-            <h2 className="text-eyebrow text-muted-foreground/80 px-3 pb-1 uppercase">
+            <h2 className="text-eyebrow text-muted-foreground px-3 pb-1 uppercase">
               {td(group.labelKey)}
             </h2>
           )}

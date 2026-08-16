@@ -123,7 +123,7 @@ export function FinanceGatherChecklist({
                 </span>
                 <Link
                   to={docHref(row)}
-                  className="text-primary inline-flex shrink-0 items-center gap-1 rounded-sm text-sm hover:underline"
+                  className="text-primary -my-1 inline-flex shrink-0 items-center gap-1 rounded-sm py-1 text-sm hover:underline"
                 >
                   {t('finance:documents.open')}
                   <ArrowRight className="size-3.5" />

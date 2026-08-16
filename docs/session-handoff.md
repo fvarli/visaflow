@@ -1497,3 +1497,81 @@ checklist". `current-status.md`, `roadmap.md` updated.
   not a fraction — but a user comparing "11 items" with "11 required documents" on the same card is
   seeing two different 11s that happen to coincide for this dossier.
 - `humanizeStatus` in `status-badge.tsx` is exported, un-i18n'd English, and called nowhere.
+
+## Iteration 22 handoff (2026-08-16) — Release-candidate UX hardening
+
+An application-wide QA pass, not a feature sprint. **Browser automation was unavailable**, so this
+records exactly what was and was not verified.
+
+### Browser availability — the sprint's first finding
+`list_connected_browsers` → `[]`; `tabs_context_mcp` → *"Browser extension is not connected."* Chrome
+is installed with `DISPLAY=:0`, but the extension is not paired. **No visual QA was performed and
+none is claimed.** The sprint substituted static analysis where failure is provable from arithmetic,
+stronger DOM tests, and `docs/manual-qa.md` for everything that needs eyes.
+
+### Baseline recorded (real, from this machine, before any change)
+Clean tree on `main` at `0394fa5`. `format:check` ✓ · `lint` 0 errors / **64 warnings** ·
+`typecheck` ✓ · `test` **620/620** (61 files) · `build` ✓ (`index` 273.89 kB / **83.19 kB gzip**;
+`DossierProvider` 441.99 / 136.34 gzip; `ReviewPage` 20.54 / 5.06 gzip; CSS 84.77 / 17.30 gzip).
+
+**Layout budget established:** `max-w-[1120px]` + `px-5` → **350px usable at 390px** (310px in a
+`Card`, 278px in a nested `p-4` panel). `<main>` computes `overflow-x: auto`, so overflow scrolls the
+page rather than clipping. Every responsive finding was measured against that number.
+
+### FIXED — structurally provable
+
+| # | Defect | Evidence |
+|---|---|---|
+| 1 | **Modal scrim inverted in dark mode.** `bg-foreground/25` on dialog/sheet/alert-dialog. `--foreground` is L 0.193 light → **0.945 dark**, so over `--background` 0.145 the scrim composited to L≈**0.345** — it *lightened* the page. | Added one `--overlay` token (dark in both themes). A literal `bg-black/40` would have broken the codebase's zero-colour-literal property. |
+| 2 | **`SegmentedControl` overflowed the viewport.** `inline-flex`, `whitespace-nowrap` segments, nothing shrinks. Timeline's 3 modes ≈**447px EN / 496px TR** vs 350px → ~100–145px of horizontal page scroll. Review's 2 modes fit in EN (283px) but **not TR (334px)**. | `max-w-full overflow-x-auto` on the track + `shrink-0` on segments. Roving-tabindex unaffected. |
+| 3 | **Timeline's last competing ratio.** `TimelineHero` renders on *all* modes; `AppointmentDaySummary` on the default one. Screen showed "Required documents remaining: **4**" beside "**2 of 4** ready" — the same numeral, two meanings — and the TR was one word from `common:readiness.ofApplicable`. | Reframed as an inventory ("4 items to prepare · 2 need attention" / "Hazırlanacak 4 öğe · 2 öğe gözden geçirilmeli"). `buildAppointmentDay` untouched. |
+| 4 | **`/timeline` skipped h1 → h3.** `PreparationPlan` emits `h3` band headings but, unlike the other two modes, was rendered with no `Section`/`SectionHeader` above it. | **Found by the new route smoke test**, not by reading. Wrapped it; added `timeline:plan.title/description`. |
+| 5 | **Turkish glosses that also truncated.** `Banka Hesap Dökümü (Bank Statement)` etc. — 2.0–2.33× the EN length, English leakage, and truncating in **ten** `truncate` containers (the 288px Documents-hero panel allows ~32 chars; the string is 35). | Glosses dropped. |
+| 6 | **Two contrast failures.** `data-list.tsx` `text-muted-foreground/70` ≈**2.6:1 light / 3.1:1 dark**; `NavList.tsx` `/80` on 11px uppercase ≈**2.95:1 light**. | Opacity modifiers removed. |
+| 7 | **Five touch targets below WCAG 2.5.8 AA (24×24).** GuidanceNote dismiss and CountryCombobox clear at ≈20×20; three bare inline "Open" links ≈20px tall in dense lists. | Padding grown with negative margins — hit box up, visual unchanged. Targets in the 24–44px band were left alone and documented. |
+| 8 | **Deterministic mobile overflow/stacking.** Unbreakable confirmation number with no `break-words` (`DepartureCheck`); two `justify-between` rows with no `flex-wrap`/`min-w-0` against a `shrink-0` nowrap badge; two bare `grid-cols-2` that never stack; `popover.tsx` bare `w-72` with no viewport clamp. | Fixed by copying patterns already correct elsewhere in the repo (`PrintPackage`, `field-help`). |
+| 9 | **Four EN keys interpolated `{{count}}` with no plural** → "1 days ago", "1 sponsors added". TR was already correct (Turkish nouns don't pluralise after a numeral). | Plural forms added. |
+
+### Also corrected
+- **`src/App.css` deleted** — dead Vite-template leftovers with fixed pixel widths, never imported.
+- **`humanizeStatus` moved** into `PlaygroundPage`. The Iteration 21 handoff claimed it was "called
+  nowhere"; that was **false** — it had five callers, all in the Playground. It labels developer
+  vocabulary (tone ids), so localizing it would be meaningless; removing it from `components/ui/`
+  takes an un-i18n'd English function out of the shipped design system.
+- **Notes adopted `PageHeader`/`PageBody`** — the only route that never did, hand-rolling
+  `<h1 className="text-2xl font-bold">`. It also had **zero render tests**.
+
+### NOT DONE — deliberately (see `docs/manual-qa.md`)
+Vertical density (`DocumentsHero` ≈420–460px, `ReadinessHero` ≈420px, `DepartureCheck` ≈600–750px);
+the `BAR_SEGMENTS` lightness **polarity inversion** between themes (`obtained` is lighter than
+`requested` in light, darker in dark, only 14° apart in hue); the `SegmentedControl` selected chip
+being *darker* than its track in dark with an imperceptible `shadow-xs`; borderless `bg-muted/40`
+surfaces at ΔL≈0.02; `bg-primary/[0.02]` as a no-op tint; touch targets in the 24–44px band; whether
+the Documents table view should be offered at 390px; the Settings mobile rail's lack of a scroll
+affordance. **All are judgement calls that need pixels.**
+
+### Bundle — investigated, no change
+The Iteration 21 `+2.31 kB gzip` is confirmed as the country pack (`src/config/**` = 18,840 bytes)
+pulled eagerly because `AppLayout` is its only eager importer, needed for a correct nav badge. Lazy
+import turns a sync render async; `DossierProvider` is also eager; page-published counts leave the
+shell blank on first paint. The pack loads with the next chunk on 7 of 11 workspace routes anyway.
+The brief's bar — simple architecture, identical behaviour, measurable win — is not met.
+
+### Gates (this iteration)
+`format:check` ✓ · `lint` **0 errors / 63 warnings** (baseline 64 — one fewer, `humanizeStatus`
+leaving `components/ui/`) · `typecheck` ✓ · `test` **716/716** (620 + 96 new, 62 files) · `build` ✓.
+**Not committed, not pushed.**
+
+### Tests (96 new)
+`route-smoke.test.tsx` (84) — all 14 shipped routes × both locales assert exactly one `h1`, no
+skipped heading level, and no raw translation key on screen. This is what caught defect #4, and it
+gives Notes its first coverage. Plus the appointment-day inventory assertions (no `X of Y`, no `%`,
+TR + EN) and the `{{count}}` plural regressions. No existing assertion was weakened; the readiness,
+`received`, priority, parity, export and schema invariants are untouched.
+
+### Known limitations / next
+- **Nothing in this sprint was seen in a browser.** `docs/manual-qa.md` is the outstanding work.
+- jsdom has no layout, so no test here can catch a visual regression — the route smoke test protects
+  semantics and structure only.
+- The `--overlay` token's exact opacity (0.45 light / 0.6 dark) was chosen from oklch arithmetic, not
+  from looking at it.

@@ -77,7 +77,14 @@ function SegmentedControl<T extends string>({
       aria-label={ariaLabel}
       onKeyDown={onKeyDown}
       className={cn(
-        'bg-muted inline-flex items-center gap-0.5 rounded-lg p-0.5',
+        // Segments are `whitespace-nowrap` and never shrink, so a three-option
+        // control with translated labels can exceed the mobile content width
+        // (the Timeline's modes measure ~447px EN / ~496px TR against 350px).
+        // `max-w-full` + a scroll container keeps the overflow inside the
+        // control instead of scrolling the whole page. Roving-tabindex keyboard
+        // navigation is unaffected; the browser scrolls focused segments into
+        // view automatically.
+        'bg-muted scrollbar-subtle inline-flex max-w-full items-center gap-0.5 overflow-x-auto rounded-lg p-0.5',
         className
       )}
     >
@@ -96,7 +103,9 @@ function SegmentedControl<T extends string>({
             tabIndex={selected ? 0 : -1}
             onClick={() => onValueChange(option.value)}
             className={cn(
-              'inline-flex items-center justify-center gap-1.5 rounded-md font-medium whitespace-nowrap transition-colors',
+              // `shrink-0` so segments keep their natural width and the track
+              // scrolls, rather than the labels being squeezed unreadably.
+              'inline-flex shrink-0 items-center justify-center gap-1.5 rounded-md font-medium whitespace-nowrap transition-colors',
               size === 'sm' ? 'text-caption h-7 px-2.5' : 'text-body h-8 px-3',
               selected
                 ? 'bg-card text-foreground shadow-xs'

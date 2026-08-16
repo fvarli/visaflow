@@ -24,6 +24,8 @@
     "freshness": "Document freshness"
   },
   "plan": {
+    "title": "Preparation plan",
+    "description": "A suggested order of work — VisaFlow's recommendations, never official deadlines.",
     "bands": {
       "overdue": "Overdue based on your plan",
       "today": "Today",
@@ -105,7 +107,11 @@
   "appointmentDay": {
     "title": "Appointment day",
     "description": "A read-only readiness summary for the day itself.",
-    "readySummary": "{{ready}} of {{total}} ready",
+    "itemCount_one": "{{count}} item to prepare",
+    "itemCount_other": "{{count}} items to prepare",
+    "attention_one": "{{count}} needs attention",
+    "attention_other": "{{count}} need attention",
+    "allPrepared": "All prepared",
     "ready": "Ready",
     "notReady": "Not yet",
     "items": {

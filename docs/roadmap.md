@@ -28,7 +28,10 @@ document-readiness derivations consolidated into one canonical model
 (`src/features/readiness/`, ADR-033), so every surface shows the same number under the same
 label; then the presentation follow-through (ADR-034) — the submission checklist became an
 inventory rather than a competing ratio, document recommendations became status-aware, and the
-five call sites that still used a non-canonical denominator were fixed.
+five call sites that still used a non-canonical denominator were fixed; then a
+release-candidate hardening pass (dark-mode scrim inversion, mobile overflow, the last
+competing ratio, Turkish truncation, contrast and touch-target failures), with the
+judgements that need a real browser captured in `docs/manual-qa.md`.
 
 **Next within Foundation:** surface `SourceNote` in the Documents detail view; add more Schengen
 visa types (business, visit) using the existing hierarchy; verify the Greece pack against a

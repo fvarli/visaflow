@@ -161,11 +161,11 @@
       "description": "Tüm konaklama süresini kapsayan otel rezervasyonu veya konaklama belgesi"
     },
     "ITINERARY": {
-      "name": "Seyahat Planı (Travel Itinerary)",
+      "name": "Seyahat planı",
       "description": "Birden fazla yer ziyaret edilecekse gün gün seyahat planı"
     },
     "EMPLOYMENT_LETTER": {
-      "name": "İşveren Yazısı (Employment Letter)",
+      "name": "İşveren yazısı",
       "description": "Görev, maaş ve işe giriş tarihini belirten işveren yazısı"
     },
     "APPROVED_LEAVE": {
@@ -182,7 +182,7 @@
       "description": "Sosyal güvenlik kurumundan alınan çalışma geçmişi dökümü"
     },
     "BANK_STATEMENTS": {
-      "name": "Banka Hesap Dökümü (Bank Statement)",
+      "name": "Banka hesap dökümü",
       "description": "Son 3-6 aya ait banka hesap dökümü",
       "notes": "Seyahat için yeterli bakiyeyi göstermelidir"
     },

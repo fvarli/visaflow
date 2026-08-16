@@ -24,6 +24,8 @@
     "freshness": "Belgelerin güncelliği"
   },
   "plan": {
+    "title": "Hazırlık planı",
+    "description": "Önerilen bir çalışma sırası — VisaFlow'un önerileri, resmî son tarihler değil.",
     "bands": {
       "overdue": "Planlanan tarih geçti",
       "today": "Bugün",
@@ -105,7 +107,11 @@
   "appointmentDay": {
     "title": "Randevu günü",
     "description": "Randevu günü için salt okunur bir hazırlık özeti.",
-    "readySummary": "{{total}} öğeden {{ready}} tanesi hazır",
+    "itemCount_one": "Hazırlanacak {{count}} öğe",
+    "itemCount_other": "Hazırlanacak {{count}} öğe",
+    "attention_one": "{{count}} öğe gözden geçirilmeli",
+    "attention_other": "{{count}} öğe gözden geçirilmeli",
+    "allPrepared": "Tümü hazır",
     "ready": "Hazır",
     "notReady": "Henüz değil",
     "items": {

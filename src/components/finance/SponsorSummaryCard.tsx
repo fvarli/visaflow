@@ -54,7 +54,7 @@ export function SponsorSummaryCard({ sponsor }: SponsorSummaryCardProps) {
         </StatusBadge>
       </div>
 
-      <dl className="grid grid-cols-2 gap-3">
+      <dl className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         {sponsor.monthlyIncome != null && (
           <div className="flex flex-col gap-0.5">
             <dt className="text-eyebrow text-muted-foreground uppercase">

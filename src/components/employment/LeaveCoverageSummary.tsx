@@ -61,7 +61,7 @@ export function LeaveCoverageSummary({
 
   return (
     <div className="flex flex-col gap-3">
-      <dl className="grid grid-cols-2 gap-3">
+      <dl className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <div className="bg-muted/40 flex flex-col gap-0.5 rounded-lg border p-3">
           <dt className="text-eyebrow text-muted-foreground uppercase">
             {t('employment:leave.tripDates')}

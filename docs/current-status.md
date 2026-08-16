@@ -1,6 +1,6 @@
 # Current Implementation Status
 
-Last updated: 2026-08-16 (checklist semantics)
+Last updated: 2026-08-16 (release-candidate hardening)
 
 ## Completed Features
 
@@ -188,6 +188,24 @@ Last updated: 2026-08-16 (checklist semantics)
       it shares with `requested`, distinguished by icon, label and microcopy rather
       than hue. `DataList`'s hardcoded English "Not provided" now resolves from
       `common:states.notProvided` (ADR-034)
+- [x] **Release-candidate hardening** — an application-wide QA pass. Fixed, all
+      structurally provable: the modal scrim inverted in dark mode (`bg-foreground/25`
+      *lightened* the page; now a `--overlay` token that darkens in both themes);
+      `SegmentedControl` overflowed the mobile viewport (Timeline's 3 modes measure
+      ~447px EN / ~496px TR against 350px) and now scrolls inside its own track;
+      the Timeline's "2 of 4 ready" became an inventory (it collided with the hero's
+      "Required documents remaining: 4" — the same numeral, two meanings); three
+      Turkish requirement names carried `(English Gloss)` and truncated in ten
+      containers; two contrast failures (~2.6:1 and ~2.95:1); five touch targets
+      below WCAG 2.5.8 AA; deterministic mobile overflow in five components; and
+      `/timeline` skipped from `h1` to `h3`
+- [x] Notes adopted the shared page shell — it was the only route without
+      `PageHeader` and the only one with no render test. `src/App.css` (dead Vite
+      leftovers) deleted; `humanizeStatus` moved out of the shipped design system
+      into the Playground, where its only callers live
+- [x] `docs/manual-qa.md` — the route × viewport × locale × theme checklist for the
+      judgements that need a real browser. **Browser automation was unavailable this
+      sprint, so no visual verification was performed or claimed**
 - [x] Reusable primitives: `Stepper`, `FieldHelp`, `GuidanceNote`,
       `CountryCombobox` (searchable, ISO-code + `Intl.DisplayNames` labels),
       generic `CollectionEditor`, `SegmentedControl`, plus trip, document and
@@ -260,6 +278,9 @@ These warnings don't affect functionality.
   `received` uses obtained/confirmation language with a non-warning, non-accent tone
   and is distinguished by more than colour; `deriveNextDocument` has a recommendation
   iff canonical readiness reports outstanding work
+- Route smoke pass: all 14 shipped routes in both locales assert exactly one `h1`,
+  no skipped heading level, and no raw translation key on screen (this found the
+  `/timeline` h1→h3 defect)
 - E2E tests: not yet implemented
 
 ## Build Status
@@ -268,7 +289,7 @@ All checks pass:
 - `pnpm format:check` - PASS
 - `pnpm lint` - 0 errors (warnings acceptable, see below)
 - `pnpm typecheck` - PASS (`tsc -b`)
-- `pnpm test` - 620/620 PASS (61 files)
+- `pnpm test` - 716/716 PASS (62 files)
 - `pnpm build` - SUCCESS
 
 Note: an earlier version of this file claimed 23/23 tests and `tsc --noEmit`;

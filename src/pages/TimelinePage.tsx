@@ -60,7 +60,16 @@ export default function TimelinePage() {
 
       {mode === 'plan' && (
         <div className="flex flex-col gap-10">
-          <PreparationPlan model={model} />
+          {/* Wrapped in a Section like the other two modes: PreparationPlan
+              emits `h3` band headings, so without an `h2` above it the page
+              jumped h1 -> h3. */}
+          <Section>
+            <SectionHeader
+              title={t('plan.title')}
+              description={t('plan.description')}
+            />
+            <PreparationPlan model={model} />
+          </Section>
           <Section>
             <SectionHeader
               title={t('appointmentDay.title')}

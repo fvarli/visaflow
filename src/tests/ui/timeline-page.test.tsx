@@ -115,3 +115,45 @@ describe('Timeline — modes', () => {
     ).toBeInTheDocument()
   })
 })
+
+describe('Timeline — appointment day is an inventory, not a ratio', () => {
+  it.each(SUPPORTED_LOCALES)(
+    'renders no "X of Y" ratio in "%s"',
+    async (locale) => {
+      await i18n.changeLanguage(locale)
+      renderPage()
+
+      const heading = await screen.findByRole('heading', {
+        name: i18n.t('timeline:appointmentDay.title'),
+      })
+      const section = heading.closest('section')
+      expect(section).not.toBeNull()
+      const text = (section as HTMLElement).textContent ?? ''
+
+      // The readiness ratio is the only ratio in the product (ADR-034). This
+      // used to read "2 of 4 ready" / "4 öğeden 2 tanesi hazır" — the same
+      // numeral the hero uses for outstanding documents, and one word from the
+      // canonical readiness caption.
+      expect(text).not.toMatch(/\d+\s*(of|\/)\s*\d+/i)
+      expect(text).not.toMatch(/\d+\s+öğeden\s+\d+/i)
+      expect(text).not.toMatch(/%/)
+    }
+  )
+
+  it.each(SUPPORTED_LOCALES)(
+    'states the item count and what needs attention in "%s"',
+    async (locale) => {
+      await i18n.changeLanguage(locale)
+      renderPage()
+      expect(
+        await screen.findByText(
+          new RegExp(
+            i18n
+              .t('timeline:appointmentDay.itemCount', { count: 4 })
+              .replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+          )
+        )
+      ).toBeInTheDocument()
+    }
+  )
+})

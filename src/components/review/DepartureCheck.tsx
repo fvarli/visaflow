@@ -77,7 +77,7 @@ export function DepartureCheck({ model }: DepartureCheckProps) {
                   </span>
                 </p>
                 {(appointment.location ?? appointment.confirmationNumber) && (
-                  <p className="text-body text-muted-foreground">
+                  <p className="text-body text-muted-foreground break-words">
                     {[appointment.location, appointment.confirmationNumber]
                       .filter(Boolean)
                       .join(' · ')}

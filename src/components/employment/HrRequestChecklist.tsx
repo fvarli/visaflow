@@ -109,7 +109,7 @@ export function HrRequestChecklist({ requests }: HrRequestChecklistProps) {
                   ? `/documents?category=employment&doc=${row.docId}`
                   : '/documents?category=employment'
               }
-              className="text-primary inline-flex shrink-0 items-center gap-1 rounded-sm text-sm hover:underline"
+              className="text-primary -my-1 inline-flex shrink-0 items-center gap-1 rounded-sm py-1 text-sm hover:underline"
             >
               {t('employment:documents.open')}
               <ArrowRight className="size-3.5" />

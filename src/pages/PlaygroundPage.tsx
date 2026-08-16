@@ -92,7 +92,6 @@ import {
   StatusBadge,
   type StatusTone,
   DOCUMENT_STATUS_TONE,
-  humanizeStatus,
 } from '@/components/ui/status-badge'
 import { NoDossierState } from '@/components/NoDossierState'
 import { BrandMark } from '@/components/layout/BrandMark'
@@ -222,6 +221,19 @@ export default function PlaygroundPage() {
       <Review />
     </PageBody>
   )
+}
+
+/**
+ * `needs_update` -> `Needs update`.
+ *
+ * Playground-only: it labels *developer* vocabulary (tone and status ids) for
+ * the workbench, so it is deliberately English and deliberately not part of the
+ * shipped design system. Production surfaces resolve these through i18n
+ * (`visa-domain:documentStatus.*`, `common:readiness.class.*`).
+ */
+function humanizeStatus(value: string): string {
+  const spaced = value.replace(/_/g, ' ')
+  return spaced.charAt(0).toUpperCase() + spaced.slice(1)
 }
 
 /* -------------------------------------------------------------------------

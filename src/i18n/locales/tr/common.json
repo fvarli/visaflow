@@ -63,10 +63,13 @@
     "justNow": "az önce",
     "minutesAgo": "{{count}} dk önce",
     "hoursAgo": "{{count}} sa önce",
-    "daysAgo": "{{count}} gün önce",
+    "daysAgo_one": "{{count}} gün önce",
+    "daysAgo_other": "{{count}} gün önce",
     "today": "Bugün",
-    "inDays": "{{count}} gün sonra",
-    "daysRemaining": "{{count}} gün kaldı",
+    "inDays_one": "{{count}} gün sonra",
+    "inDays_other": "{{count}} gün sonra",
+    "daysRemaining_one": "{{count}} gün kaldı",
+    "daysRemaining_other": "{{count}} gün kaldı",
     "datePassed": "Tarih geçti"
   },
   "saveState": {

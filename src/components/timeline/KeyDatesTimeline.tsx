@@ -62,7 +62,7 @@ export function KeyDatesTimeline({ events }: KeyDatesTimelineProps) {
       </span>
       <Link
         to={eventLink(event.type)}
-        className="text-primary inline-flex shrink-0 items-center gap-1 rounded-sm text-sm hover:underline"
+        className="text-primary -my-1 inline-flex shrink-0 items-center gap-1 rounded-sm py-1 text-sm hover:underline"
         aria-label={t('keyDates.open')}
       >
         {t('keyDates.open')}
