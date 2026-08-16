@@ -92,4 +92,23 @@ describe('focus visibility', () => {
       expect(read(file)).not.toMatch(/data-slot="(button|input|checkbox)"/)
     }
   })
+
+  it.each(CONTAINER_EXEMPT)(
+    '%s does not suppress focus on a control it contains',
+    (file) => {
+      // Exempting a *file* is too coarse. `dialog.tsx` and `sheet.tsx` are
+      // containers, but each renders a real close button inside itself, and
+      // that button carried `focus:outline-hidden` plus a `focus:ring-*` set
+      // that resolved to a fully transparent shadow. Measured in Chrome: the
+      // overlay close control reported `:focus-visible` true with
+      // `outline: none` and `box-shadow: rgba(0,0,0,0) 0 0 0 0` — no visible
+      // focus indicator at all, the same defect class as the Button one, and it
+      // survived the first sweep precisely because the file was exempt.
+      //
+      // A plain `outline-none` on the content element stays allowed: a focus
+      // trap legitimately does not paint a ring on itself. Suppressing the ring
+      // *on focus* is what is banned.
+      expect(read(file)).not.toMatch(/focus:outline-(none|hidden)/)
+    }
+  )
 })

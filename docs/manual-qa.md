@@ -2,12 +2,27 @@
 
 **What changed.** Iterations 20–22 could not open a browser, so this page was a list of 24
 *speculations*. Iteration 23 drove the installed Chrome over the DevTools Protocol (Node built-ins
-only, no new dependency) and finally looked at the running product. Every item below is now marked
-**PASS**, **FIXED**, or **OPEN** — and "OPEN" means genuinely unverified or knowingly shipped, not
-"probably fine".
+only, no new dependency) and finally looked at the running product. Iteration 24 closed the one
+accessibility defect it left open. Every item below is marked **PASS**, **FIXED**, or **OPEN** — and
+"OPEN" means genuinely unverified, not "probably fine".
 
 Nothing here is speculation any more. Where a number appears, it was measured in Chrome 149 at that
 exact viewport, theme and locale.
+
+## Severity
+
+These labels were used for two sprints before anyone defined them, which is how the phrase
+"P1, shipped knowingly" got written down. It is now defined, and that phrase is a contradiction:
+
+| | Meaning | Release |
+|---|---|---|
+| **P0** | Broken, unusable, or data-losing | **Blocks release** |
+| **P1** | Violates a stated principle in [principles.md](./principles.md) — privacy, accessibility, i18n, determinism | **Blocks release** |
+| **P2** | A real defect that degrades quality but violates no stated principle | Ships; tracked here |
+| **P3** | Polish, or a judgement call with no single right answer | Backlog |
+
+The P0/P1 line is deliberately not about how hard something is to fix. If a defect breaks a promise
+the project has written down, it gates the tag.
 
 ## Coverage actually run
 
@@ -34,7 +49,9 @@ Not run: 1440 × TR × dark, 1440 × EN × light, 834 × dark. Desktop has 3.7×
 
 ---
 
-## Fixed this sprint (evidence → change → re-measured)
+## FIXED (evidence → change → re-measured)
+
+Iteration 23 unless noted.
 
 - **FIXED — dangling breadcrumb separator below 640px.** `Header.tsx` rendered the `/` separator
   unconditionally while the crumb after it was `hidden sm:inline`. Every route at 390px showed a
@@ -90,26 +107,63 @@ which was itself checked against a deliberately reintroduced regression.
 
 ---
 
-## OPEN — known defect, shipped knowingly
+### FIXED — P1: dialogs and sheets did not return focus to their trigger
 
-### P1 — dialogs and sheets do not return focus to their trigger
+Closing with `Escape` dropped focus to `<body>`, so a keyboard user was dumped at the top of the
+document and had to tab back through the whole page. Iteration 24 found the cause and fixed it.
 
-Closing with `Escape` drops focus to `<body>`, so a keyboard user is dumped at the top of the
-document and must tab back through the whole page.
+**Root cause, read from `@radix-ui/react-dialog@1.1.19` on disk — not inferred.** Radix restores
+focus to `context.triggerRef.current`, and `grep triggerRef` over that file shows the ref is written
+from exactly one place: `<Dialog.Trigger>`. This app opens **11 of its 16 overlays controlled with no
+Radix trigger**, because the opener is not a sibling button — `MobileNav` is opened by the header
+hamburger in a different subtree, the document and sponsor panels by a **URL search param**, and the
+import dialog by a **file-input change handler**. For all of those, `triggerRef.current` is `null`.
 
-Measured on `/documents` ("Belge ekle") and `/sponsors`, both light and 1440px, sampled at t+0,
-t+400ms and t+1200ms — stable at `BODY` every time, so it is not an animation race. On `/documents`
-the trigger **is still in the DOM** (`triggerStillInDom: true`) and focus is still not restored.
+That alone would be harmless, because `FocusScope` captures `document.activeElement` itself on mount
+and would restore it. The defect is that the modal close handler suppresses that fallback
+*unconditionally* (lines 148–151):
 
-Dialogs are fully controlled (`open` / `onOpenChange`) with no `DialogTrigger`, which is the likely
-reason Radix's restore does not fire. Not fixed here: the correct fix is real focus-management work
-in the shared `DialogContent` / `SheetContent`, and shipping an unverified focus hack at the end of a
-QA sprint is worse than shipping a documented defect. Everything else about the overlays is correct —
-they trap focus on open, close on `Escape`, and the scrim is right in both themes.
+```js
+onCloseAutoFocus: composeEventHandlers(props.onCloseAutoFocus, (event) => {
+  event.preventDefault();
+  context.triggerRef.current?.focus();
+}),
+```
 
-**This is the one accessibility caveat on the v1.0 recommendation.**
+`preventDefault()` runs even with no trigger to focus, so FocusScope's
+`focus(previouslyFocusedElement ?? document.body)` never executes and `?.focus()` no-ops. Nothing is
+focused, the content unmounts, and the browser resets to `<body>`.
+
+**Fix:** `src/components/ui/use-restore-focus.ts`, wired into `dialog.tsx`, `sheet.tsx` and
+`alert-dialog.tsx`. It re-derives the value Radix already had — `onOpenAutoFocus` fires before focus
+moves into the container, so `document.activeElement` there *is* FocusScope's
+`previouslyFocusedElement` — and claims the close event so Radix's null-trigger branch never runs.
+No timers, no per-page `.focus()`, no consumer changes.
+
+**Verified in Chrome 149**, nine steps per overlay, trigger reached by `Tab` (not `.focus()`),
+sampled at t+900ms and again at t+1500ms so a pass cannot be an exit-animation artifact:
+
+| Overlay | Path | Cell | Escape close | Visible close |
+|---|---|---|---|---|
+| Dialog | `/documents` "Belge ekle" | 1440 light | ✅ trigger, `:focus-visible`, `outline solid 2px` | ✅ trigger |
+| Sheet | `/sponsors` card "Sponsoru düzenle" | 1440 light | ✅ trigger, `:focus-visible`, `outline solid 2px` | ✅ trigger |
+| Sheet | `MobileNav` — hamburger in `Header.tsx`, sheet in `AppLayout.tsx` | **390 dark** | ✅ trigger, `outline solid 2px` | — |
+| AlertDialog | `/sponsors` "Sponsoru kaldır" | 1440 light | ✅ trigger, `outline solid 2px` | — |
+
+Focus entered the overlay and the trap held (verified with two `Tab`s inside) in every case. The
+`MobileNav` row is the hardest case in the app and the reason the fix lives in the primitives: its
+opener and its sheet are in **completely different component subtrees**, so no Radix trigger is
+possible. The AlertDialog row also confirms that composing rather than replacing left its own
+`onOpenAutoFocus` intact — focus landed on "İptal" (Cancel) on open.
+
+After a **mouse** close the restored trigger reports `focusVisible=false` and no ring. That is correct
+browser behaviour — `:focus-visible` is not meant to fire for pointer interaction — not a defect.
+
+Guarded by `src/tests/ui/overlay-focus-restore.test.tsx`, verified non-vacuous: with the restoration
+neutered, 4 of its 5 cases fail.
 
 ---
+
 
 ## PASS — verified, no change needed
 
@@ -143,7 +197,8 @@ they trap focus on open, close on `Escape`, and the scrim is right in both theme
   the one element that already drew a visible ring before the P0 fix.
 - **PASS — tab order follows visual order** with no traps, across `/applicant`, `/documents`,
   `/settings`.
-- **PASS — overlays trap focus on open and close on `Escape`.** (Focus *return* is the P1 above.)
+- **PASS — overlays trap focus on open, close on `Escape`, and return focus to their opener** —
+  the last of those was the Iteration 24 fix; see FIXED above.
 
 ### Per route
 
@@ -159,7 +214,46 @@ they trap focus on open, close on `Escape`, and the scrim is right in both theme
 
 ---
 
+### FIXED — P1: the overlay close button had no visible focus indicator
+
+Found while verifying the focus-restoration fix, and it is the *same defect class* as the P0 above —
+it survived that sweep only because `focus-visible.test.ts` exempted `dialog.tsx` and `sheet.tsx` as
+"containers". They are containers, but each renders a real close button inside itself.
+
+That button carried `focus:outline-hidden` (killing the global ring) plus
+`focus:ring-2 focus:ring-ring focus:ring-offset-2`, which resolved to a **fully transparent**
+shadow. Measured in Chrome with the button keyboard-focused:
+
+```
+focusVisible: true   outline: NONE   boxShadow: rgba(0,0,0,0) 0px 0px 0px 0px
+```
+
+No indicator at all, on the one control every overlay has. The dead classes were removed so the
+global `:focus-visible` rule applies; re-measured `outline: solid 2px` in both locales. The guard was
+the real failure, so it was tightened: exempt files may keep a plain `outline-none` on the content
+element (a focus trap should not ring itself) but may no longer suppress the ring **on focus**.
+
+### FIXED — P1: the overlay close button was hardcoded English
+
+`<span className="sr-only">Close</span>` in both `dialog.tsx` and `sheet.tsx`, plus a latent third in
+`DialogFooter`. A Turkish screen-reader user heard "Close". `common:actions.close` already existed in
+both locales. Verified in Chrome: **"Kapat"** in `tr`, **"Close"** in `en`.
+
 ## OPEN — P2/P3, documented not fixed (would be redesign, not polish)
+
+### P2 — Sponsors' empty-state button destroys itself, so there is nothing to restore focus to
+
+`SponsorsPage.handleAdd` both creates a sponsor **and** opens the editor sheet, so clicking
+"İlk sponsorunuzu ekleyin" flips `model.count` 0 → 1 and the `EmptyState` — including the button just
+clicked — unmounts in the same commit. Measured: `trigger still in DOM after open: false`, and focus
+lands on `<body>` after `Escape`. Every other sponsor path (card edit, header add) restores correctly.
+
+Not P1: the app's focus contract is correct and verified everywhere the opener still exists, and no
+focus system can return focus to a button that no longer exists — Radix's own fallback also lands on
+`<body>` here. The real defect is the page's action design (mutate the list *and* navigate on one
+click). Fixing it means either a per-page `.focus()` hack or reworking the sponsor-draft model, and
+both were explicitly out of scope for the sprint that found it. Affects one first-run path on an
+optional section.
 
 - **P2 — `/review?mode=departure` is 2130px at 390px.** It exists to be checked at the door and is
   2.5 screens deep. Reducing it means deciding what a departure check omits — a product decision, not

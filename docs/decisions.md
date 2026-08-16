@@ -584,3 +584,80 @@ The Documents hero's "Not started" chip counted un-instantiated requirements but
 The app shell now resolves the country pack to compute the nav badge, which moves ~12 kB raw (**+2.3 kB gzip**) onto the initial chunk — accepted as the price of a badge that is not wrong. `dashboard-model`'s snapshot still calls `buildDocumentReadiness` without requirement codes, which is correct because it reads only `ready`/`obtained`/`needsUpdate`, fields pending codes cannot affect. The checklist inventory remains a different population from the readiness denominator by design — it may include optional documents the applicant created — which is why it is presented as a count and never as a ratio.
 
 **Implementation:** `documents-model.ts` (`NextDocumentRecommendation`, `BUCKET_STATUS`, `filterableReadiness`, `pendingRequirementCount`), `review-checklist.ts` (required-only expansion), `ReviewHero` / `SubmissionChecklist` / `PrintPackage` / `DepartureCheck` (inventory framing), `status-badge.tsx` + `state-meta.ts` + `DocumentsHero.tsx` (tone + icons, single tone source), `AppLayout.tsx` / `timeline-model.ts` / `employment-documents.ts` / `finance-documents.ts` (canonical denominators), `data-list.tsx` (`common:states.notProvided`). No schema, import/export, storage, validation-rule or validation-severity change; still exactly two localStorage keys; `schemaVersion` remains `1.0.0`.
+
+---
+
+## ADR-035: Overlays Return Focus to Their Opener, Not to a Radix Trigger
+
+**Status:** Accepted · **Date:** 2026-08-16
+
+**Context.** A real-browser pass found that closing any Dialog or Sheet dropped focus to `<body>`.
+The overlays trapped focus correctly and closed on `Escape` correctly, but a keyboard user was
+returned to the top of the document on every dismiss. `docs/principles.md` §8 names focus management
+a requirement, not polish, so this is a release-gating defect under the severity ladder in
+`docs/manual-qa.md`.
+
+The cause is a genuine mismatch between Radix's assumption and this app's architecture, read from
+`@radix-ui/react-dialog@1.1.19` on disk rather than inferred. Radix restores focus to
+`context.triggerRef.current`, and that ref is written from exactly one place — `<Dialog.Trigger>`.
+Its modal close handler is:
+
+```js
+onCloseAutoFocus: composeEventHandlers(props.onCloseAutoFocus, (event) => {
+  event.preventDefault();
+  context.triggerRef.current?.focus();
+}),
+```
+
+`preventDefault()` runs unconditionally, which also suppresses `FocusScope`'s own correct fallback
+(`focus(previouslyFocusedElement ?? document.body)`). With no trigger, `?.focus()` no-ops and nothing
+is focused at all.
+
+**VisaFlow opens 11 of its 16 overlays controlled, with no Radix trigger, and that is not an
+oversight.** The thing that opens them is frequently not a sibling button: `MobileNav` is opened by
+the header hamburger in a different component subtree; `DocumentDetailPanel` and `SponsorEditorSheet`
+are opened by a **URL search param** so the view is deep-linkable; `ImportExportSection` is opened by
+a **file-input change handler**. There is no element to hand to `<Dialog.Trigger>` in those cases.
+
+**Decision.** Overlays restore focus to **whatever was focused when they opened**, implemented once in
+`src/components/ui/use-restore-focus.ts` and wired into `dialog.tsx`, `sheet.tsx` and
+`alert-dialog.tsx`. Consumers are unchanged.
+
+The hook re-derives the value Radix already had rather than inventing bookkeeping: `onOpenAutoFocus`
+is dispatched by `FocusScope`'s mount effect *before* focus moves into the container, so
+`document.activeElement` at that moment **is** `previouslyFocusedElement`. On close it restores that
+element and calls `preventDefault()`, which — because `composeEventHandlers` runs the caller's handler
+first and skips its own once the event is claimed — means Radix's null-trigger branch never runs.
+
+**Consequences.**
+
+- Deterministic: no `setTimeout`, no polling, no trigger elements stored in application state, and no
+  per-page `.focus()` calls. Restoration still happens on Radix's own schedule, after the exit
+  animation and `FocusScope`'s `setTimeout(0)`.
+- Composable: a caller's own `onOpenAutoFocus` / `onCloseAutoFocus` still runs, and still wins — a
+  caller that calls `preventDefault()` takes the event over entirely. This is load-bearing for
+  `AlertDialogContent`, which focuses its Cancel action on open.
+- Safe when the opener is gone: if the recorded element is no longer `isConnected` the hook does not
+  claim the event and Radix's behaviour is left exactly as it was. Restoring focus to a detached node
+  lands on `<body>` anyway, and guessing a replacement target would be worse than doing nothing.
+- One known path remains unrestored and is tracked as P2 in `docs/manual-qa.md`: Sponsors' empty-state
+  button both creates a sponsor and opens the editor, so it unmounts itself in the same commit. That
+  is the page's action design, not the focus system.
+- Verified in Chrome 149 over CDP for Dialog (`/documents`) and Sheet (`/sponsors`), reaching the
+  trigger by `Tab`, closing by both `Escape` and the visible close control, and sampling past the exit
+  animation. Guarded in jsdom by `src/tests/ui/overlay-focus-restore.test.tsx`, which fails on 4 of 5
+  cases if the restoration is removed. jsdom cannot prove the *visible* ring; Chrome confirmed
+  `:focus-visible` with `outline: solid 2px` after an `Escape` close.
+
+**Adjacent defects fixed with it,** both in the same primitives and both P1 under the severity ladder
+in `docs/manual-qa.md`: the overlay close button had **no visible focus indicator** (it carried
+`focus:outline-hidden` plus a `focus:ring-*` set that resolved to a fully transparent shadow —
+measured `outline: NONE, boxShadow: rgba(0,0,0,0) 0 0 0 0` while keyboard-focused), and its label was
+**hardcoded English** `Close` in a Turkish-default product. Both had survived the previous sweep
+because the focus guard exempted `dialog.tsx` and `sheet.tsx` *as whole files*; the guard now exempts
+the container element rather than the file, so a control rendered inside a container is still checked.
+
+**Do not** reintroduce restoration by adding a hidden `<Dialog.Trigger>`, and do not "fix" a single
+page with an ad-hoc `.focus()` — the contract belongs to the primitives so that every present and
+future overlay inherits it. No schema, storage, import/export or validation change; still exactly two
+localStorage keys; `schemaVersion` remains `1.0.0`.

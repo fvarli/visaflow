@@ -37,7 +37,9 @@ instead of estimates and found what three static sprints could not — most impo
 **no shadcn-derived control had a visible keyboard focus ring at all** (a Tailwind v4
 cascade-layer conflict), plus a dangling breadcrumb separator, a crushed page title, a
 hardcoded-English theme menu, half the Settings sections unreachable on a phone, and a
-shipped example dossier that read as 547 days overdue.
+shipped example dossier that read as 547 days overdue. A short follow-up sprint then closed
+the last accessibility defect it left open — overlays now return focus to their opener
+(ADR-035) — and codified what P0/P1 actually mean in `docs/manual-qa.md`.
 
 **Next within Foundation:** surface `SourceNote` in the Documents detail view; add more Schengen
 visa types (business, visit) using the existing hierarchy; verify the Greece pack against a
@@ -46,9 +48,6 @@ current official source and record real `lastVerifiedAt` / raise `reviewStatus` 
 Timeline feature's `timeline-dates` — onto a single shared source now that the Timeline UX has
 shipped (the Timeline redesign deliberately reused only `deriveNextActions` and left the Dashboard
 untouched; ADR-029). *Tech debt.*
-**Restore focus to the trigger when a dialog or sheet closes** — the one accessibility defect
-knowingly shipped at v1.0; `Escape` currently drops focus to `<body>`. Reproduction in
-`docs/manual-qa.md`. *Accessibility.*
 
 ---
 

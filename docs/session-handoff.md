@@ -1672,3 +1672,135 @@ not pushed.**
   appears three times on one dashboard screen.
 - CDP shows the product; it does **not** certify accessibility. No screen reader was run, and colour
   contrast was checked arithmetically, not with assistive technology.
+
+---
+
+# Iteration 24 — Pre-v1.0 accessibility closure: overlay focus restoration
+
+**A deliberately small release-gate sprint.** One defect, fixed at the right layer, verified in a real
+browser. `HEAD` at start: `dc91225`, tree clean, `724/724`.
+
+### First: the severity labels were meaningless
+
+Iteration 23 wrote "P1, shipped knowingly" into the docs — and the repository defined P0–P3
+**nowhere**. The labels came from sprint briefs and were never given meaning, so a defect could be
+called release-blocking and non-blocking in the same sentence without anything catching it.
+`docs/manual-qa.md` now defines them, tied to what the project already claims about itself:
+
+- **P0** broken/unusable/data-losing → blocks release
+- **P1** violates a stated principle in `docs/principles.md` → blocks release
+- **P2** real defect, no principle violated → ships, tracked
+- **P3** polish → backlog
+
+`principles.md` §8 already said *"focus management … are requirements, not polish"*, which makes this
+defect P1 and makes "P1, shipped knowingly" unwriteable.
+
+### Root cause — read from Radix on disk, not guessed
+
+Radix restores focus to `context.triggerRef.current`, and `grep triggerRef` over
+`@radix-ui/react-dialog@1.1.19` shows that ref is written from exactly **one** place: `<Dialog.Trigger>`.
+The modal close handler (lines 148–151) is:
+
+```js
+onCloseAutoFocus: composeEventHandlers(props.onCloseAutoFocus, (event) => {
+  event.preventDefault();
+  context.triggerRef.current?.focus();
+}),
+```
+
+`preventDefault()` runs **unconditionally**, which also suppresses `FocusScope`'s own correct fallback
+`focus(previouslyFocusedElement ?? document.body)`. With no trigger, `?.focus()` no-ops, nothing is
+focused, the content unmounts, and the browser resets to `<body>`.
+
+**11 of this app's 16 overlays are controlled with no Radix trigger — by necessity, not sloppiness.**
+`MobileNav` is opened by the header hamburger in another subtree; `DocumentDetailPanel` and
+`SponsorEditorSheet` by a **URL search param** (so they deep-link); `ImportExportSection` by a
+**file-input change handler**. There is no element to hand to `<Dialog.Trigger>`.
+
+That is why the fix is *not* "add triggers": it would mean restructuring pages, and for the
+URL-driven and file-input-driven cases it is not possible at all.
+
+### The fix — one hook, three primitives, zero consumer changes
+
+`src/components/ui/use-restore-focus.ts`, wired into `dialog.tsx`, `sheet.tsx`, `alert-dialog.tsx`
+(ADR-035). It re-derives the value Radix already had rather than inventing bookkeeping:
+`onOpenAutoFocus` fires *before* focus moves into the container, so `document.activeElement` there
+**is** `FocusScope`'s `previouslyFocusedElement`. On close it restores that element and claims the
+event, so Radix's null-trigger branch never runs.
+
+No `setTimeout`, no per-page `.focus()`, no DOM nodes in application state, no API change. Caller
+handlers still run and still win — load-bearing for `AlertDialogContent`, which focuses Cancel on
+open. If the opener is no longer `isConnected` the hook does not claim the event and Radix's
+behaviour is left untouched, because guessing a replacement target is worse than doing nothing.
+
+### Verified in Chrome 149 (the authoritative evidence)
+
+Nine steps per overlay, trigger reached by `Tab` rather than `.focus()`, sampled at t+900ms **and**
+t+1500ms so a pass cannot be an exit-animation artifact:
+
+| Path | Enters | Trap | Escape close | Visible close |
+|---|---|---|---|---|
+| Dialog `/documents` "Belge ekle" | ✅ | ✅ | ✅ trigger, `:focus-visible`, `outline solid 2px` | ✅ trigger |
+| Sheet `/sponsors` "Sponsoru düzenle" | ✅ | ✅ | ✅ trigger, `:focus-visible`, `outline solid 2px` | ✅ trigger |
+
+After a **mouse** close the trigger is restored but reports `focusVisible=false` and no ring — correct
+browser behaviour for pointer interaction, not a defect. 390px regression sweep over all 14 routes:
+byte-identical to Iteration 23 (`dashboard 3890`, `documents 3143`, `departure 2130`, zero overflow,
+one `h1`).
+
+### Known limitation, now P2 (see manual-qa.md)
+
+Sponsors' empty-state button both creates a sponsor **and** opens the sheet, so it unmounts itself in
+the same commit — measured `trigger still in DOM after open: false`, focus lands on `<body>`. Every
+other sponsor path restores. Not P1: the focus contract is correct wherever the opener survives, and
+no focus system can restore to a button that no longer exists (Radix's own fallback also lands on
+`<body>` here). The defect is the page's action design; fixing it needs either a per-page focus hack
+or a rework of the sponsor-draft model, both out of scope.
+
+### Two more P1s, found while verifying the first
+
+Both in the overlay primitives, both surfaced by looking at the close button the verification script
+had to click:
+
+1. **The close button had no visible focus indicator.** It carried `focus:outline-hidden` plus a
+   `focus:ring-*` set that resolved to a **fully transparent** shadow — measured keyboard-focused:
+   `focusVisible: true, outline: NONE, boxShadow: rgba(0,0,0,0) 0 0 0 0`. This is the *same defect
+   class* as Iteration 23's P0, and it survived that sweep only because `focus-visible.test.ts`
+   exempted `dialog.tsx`/`sheet.tsx` as "containers" — they are, but each renders a real control
+   inside itself. Dead classes removed, re-measured `outline: solid 2px`. **The guard was the actual
+   failure**, so it was tightened: exempt files may keep a plain `outline-none` on the content
+   element, but may no longer suppress the ring *on focus*.
+2. **The close button was hardcoded English** — `<span class="sr-only">Close</span>` in both files
+   plus a latent third in `DialogFooter`. A Turkish screen-reader user heard "Close".
+   `common:actions.close` already existed in both locales. Verified: "Kapat" / "Close".
+
+Both are P1 under the ladder above (Principles 8 and 9), so neither could be deferred without
+contradicting the answer this sprint exists to give. Both are two-line changes in files the sprint
+was already editing.
+
+### Tests
+
+`733/733, 64 files` (+9). `src/tests/ui/overlay-focus-restore.test.tsx` covers Dialog, Sheet and
+AlertDialog via `Escape` and via the visible close action, plus safe degradation when the opener
+unmounted. **Verified non-vacuous:** with the restoration neutered, 4 of its 5 cases fail. jsdom
+proves `document.activeElement`; it cannot prove a *visible* ring (no cascade layers, no
+`:focus-visible` heuristic) — Chrome covers that half.
+
+### Gates
+
+`format:check` ✓ · `lint` **0 errors / 63 warnings** (exactly baseline) · `typecheck` ✓ ·
+`test` **733/733** ✓ · `build` ✓. Bundle from a clean `rm -rf dist` rebuild: `index`
+273.99 → **274.33 kB** (gzip 83.16 → 83.30, **+0.14 kB**) — the hook plus its wiring in three
+primitives. CSS 85.50 → **85.47** and `DossierProvider` unchanged, i.e. flat. (An intermediate build
+read 84.99 kB of CSS; it did not reproduce on a clean rebuild, so the flat number is the one to
+trust — removing the close button's `focus:ring-*` classes did not measurably shrink the bundle,
+because `ring-offset-background` is still used by `country-combobox.tsx`.) **Not committed, not
+pushed.**
+
+### Next
+
+- The Sponsors P2 above is the only known focus gap.
+- `sheet.tsx`'s close button has no `data-slot` while `dialog.tsx`'s does — harmless, but it makes the
+  Sheet close control awkward to target in tests. Left alone deliberately this sprint.
+- **Lesson worth keeping:** exempting a whole *file* from an a11y guard is too coarse. Both extra P1s
+  lived inside files the previous sprint had marked exempt. Guards should exempt elements, not files.
