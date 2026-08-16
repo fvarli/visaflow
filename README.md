@@ -8,6 +8,8 @@ deterministic consistency engine, a timeline of the dates that matter, and count
 requirements — while keeping **every byte of your personal data on your own device**. No server,
 no account, no tracking. Your data lives in the browser and in a JSON file you own.
 
+**Current release: v1.0.0** — see [CHANGELOG.md](CHANGELOG.md).
+
 > VisaFlow is an organizational tool. It does **not** provide legal advice, represent any
 > embassy or visa center, submit applications, or predict a visa decision. Always verify
 > requirements using current official sources.
@@ -72,17 +74,10 @@ The full directory map and the layer boundaries are in
 [docs/architecture.md](docs/architecture.md). Reusable UI is developed and demonstrated in the
 [Playground](docs/playground.md) before being used in the app.
 
-## Screenshots
-
-_Placeholder — screenshots to be added._
-
-## Demo
-
-_Placeholder — a hosted demo will be linked here._
-
 ## Installation
 
-**Prerequisites:** Node.js 22+ (see `.nvmrc`) and pnpm 11+ (enforced via `packageManager`).
+**Prerequisites:** Node.js 22+ and pnpm 11+ (both declared in `package.json` via `engines` and
+`packageManager`).
 
 ```bash
 git clone https://github.com/fvarli/visaflow.git
@@ -157,9 +152,11 @@ Import/export uses one documented JSON document with an explicit `schemaVersion`
 
 VisaFlow is planned as product phases. In brief:
 
-- **Current** — a complete single-application workspace: dossier, validation engine, timeline,
-  dashboard, design system + playground, TR/EN i18n, JSON import/export, one country pack (Greece).
-- **Next** — multiple saved dossiers, a richer core workspace, more visa types and country packs.
+- **Shipped in v1.0.0 (Phase 1 — Foundation)** — a complete single-application workspace: dossier,
+  validation engine, timeline, dashboard, design system + playground, TR/EN i18n, JSON
+  import/export, one country pack (Greece).
+- **Next (Phase 2 — Core Workspace)** — multiple saved dossiers, a richer core workspace, more visa
+  types and country packs.
 - **Future** — a country-pack ecosystem with verified sources, optional self-hosting, reviewer
   collaboration, and organizational (never predictive) AI assistance.
 

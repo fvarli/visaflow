@@ -10,11 +10,20 @@ import { SCHEMA_VERSION } from '@/domain/schemas/dossier.schema'
 import { useDossier } from '@/app/providers/DossierProvider'
 
 /**
- * The application version, shown in About. Kept as a constant here (rather than
- * importing `package.json` into the client bundle) so no build metadata ships to
- * users; keep it in sync with `package.json` on release.
+ * The application version, shown in About.
+ *
+ * `package.json` is the single source of truth. Vite injects only this one
+ * string at build time (`define` in `vite.config.ts` / `vitest.config.ts`), so
+ * `package.json` is never imported into the client bundle and no other build
+ * metadata ships to users. It previously had to be hand-synced on every
+ * release, which nothing in the test suite could have caught.
+ *
+ * Distinct from `SCHEMA_VERSION` below: the release version and the dossier
+ * JSON format version move independently, and the Greece pack carries a third,
+ * unrelated `templateVersion`. At v1.0.0 all three happen to read `1.0.0` —
+ * never reconcile them with a find-and-replace.
  */
-const APP_VERSION = '0.1.0'
+const APP_VERSION = __APP_VERSION__
 
 /**
  * The Settings control-center presentation model.

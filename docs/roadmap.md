@@ -1,8 +1,9 @@
 # Roadmap
 
 VisaFlow is planned as **product phases**, not a feature backlog. Each phase has a theme and a
-reason it comes when it does; within a phase, items are tagged **Current** (shipped), **Next**
-(actively planned) or **Future** (directional). Phases are sequential in emphasis but not rigid —
+reason it comes when it does; within a phase, items are tagged **Shipped**, **Next** (actively
+planned) or **Future** (directional). A phase marked shipped means its release goal is met — not
+that no follow-up work remains under it. Phases are sequential in emphasis but not rigid —
 priority follows user need, security, and maintainability.
 
 The north star is [vision.md](./vision.md); the commitments that constrain every phase are in
@@ -11,12 +12,17 @@ prediction, ever** ([ADR-016]).
 
 ---
 
-## Phase 1 — Foundation  ·  *Current*
+## Phase 1 — Foundation  ·  *Shipped in v1.0.0*
 
 **Theme:** a trustworthy, well-architected single-application workspace.
 **Why first:** everything else (more countries, collaboration, assistance) is only worth
 building on top of a correct, private, maintainable core. Get the architecture and the
 guarantees right before scaling scope.
+
+**Status:** the Foundation phase shipped as **v1.0.0** on 2026-08-16 — the release is complete and
+the phase's goal is met. That is *not* the same as "nothing Foundation-related remains": the
+maintenance and follow-up items under **Next within Foundation** below are still open and are
+expected to land in 1.x alongside Phase 2 work.
 
 Shipped: privacy-first JSON workflow · domain-driven Zod schemas · deterministic validation
 engine · widget-based dashboard over a pure presentation adapter · design system + Playground ·

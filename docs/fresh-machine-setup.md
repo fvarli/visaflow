@@ -116,9 +116,7 @@ pnpm --version
 ### Wrong Node version
 
 ```bash
-nvm use    # Uses version from .nvmrc
-# or
-nvm install 22 && nvm use 22
+nvm install 22 && nvm use 22    # package.json requires Node >=22
 ```
 
 ### Package install fails

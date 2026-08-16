@@ -1,6 +1,11 @@
 # Current Implementation Status
 
-Last updated: 2026-08-16 (pre-v1.0 accessibility closure)
+Last updated: 2026-08-16 — **released as v1.0.0**
+
+Application version **1.0.0** (Phase 1 — Foundation shipped). The dossier JSON `schemaVersion`
+remains **1.0.0** and is versioned independently; reaching application v1.0.0 did not change the
+export format. Remaining Foundation follow-up work is listed under "Next within Foundation" in
+[roadmap.md](./roadmap.md).
 
 ## Completed Features
 
@@ -295,7 +300,7 @@ These warnings don't affect functionality.
 
 All checks pass:
 - `pnpm format:check` - PASS
-- `pnpm lint` - 0 errors (warnings acceptable, see below)
+- `pnpm lint` - 0 errors (warnings acceptable, see *Active Issues* above)
 - `pnpm typecheck` - PASS (`tsc -b`)
 - `pnpm test` - 733/733 PASS (64 files)
 - `pnpm build` - SUCCESS

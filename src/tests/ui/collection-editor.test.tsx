@@ -2,6 +2,10 @@ import { useState } from 'react'
 import { describe, it, expect } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+// `CollectionEditor` renders a `Dialog`, whose close control is translated, so
+// this test needs the same initialized i18n instance the real application has.
+// Without it react-i18next logs NO_I18NEXT_INSTANCE and falls back to raw keys.
+import '@/i18n'
 import { CollectionEditor } from '@/components/ui/collection-editor'
 import { Input } from '@/components/ui/input'
 

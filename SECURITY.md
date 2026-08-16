@@ -8,12 +8,19 @@
 
 ## Reporting a Vulnerability
 
-If you discover a security vulnerability within VisaFlow, please take the following steps:
+Please report suspected vulnerabilities privately through GitHub — **not** in a public issue:
+**Security → Report a vulnerability** on this repository
+(<https://github.com/fvarli/visaflow/security/advisories/new>).
 
-1. **Do Not** open a public issue
-2. Email the maintainers with details of the vulnerability
-3. Include steps to reproduce if possible
-4. Allow reasonable time for a response before any public disclosure
+Where possible, include:
+
+- the affected version (Settings → About in the app, or `package.json`)
+- steps to reproduce
+- the impact you believe it has
+- any supporting evidence
+
+Please allow reasonable time to investigate before public disclosure. Ordinary bugs and feature
+requests are not security reports — open a normal issue for those.
 
 ## Security Model
 
@@ -22,7 +29,9 @@ If you discover a security vulnerability within VisaFlow, please take the follow
 VisaFlow is designed with privacy as a core principle:
 
 - **No Server Storage**: All data remains in your browser's memory
-- **No localStorage**: Personal data is never written to browser storage
+- **No Personal Data in Browser Storage**: applicant, trip, employment, financial, sponsor and
+  document data are never written to `localStorage`. The only keys VisaFlow persists are
+  `visaflow-theme` and `visaflow-locale` — non-personal interface preferences
 - **No Cookies**: No tracking or session cookies
 - **No External APIs**: No network requests to third-party services
 - **Session-Only**: Data exists only during your browser session
@@ -61,9 +70,10 @@ While VisaFlow minimizes data exposure, users should be aware:
 
 ## Dependencies
 
-We monitor dependencies for known vulnerabilities using:
-- GitHub Dependabot
-- npm audit
+Dependencies are pinned in `pnpm-lock.yaml` and reviewed with `pnpm audit`.
+
+Automated dependency alerting (GitHub Dependabot) is **not currently enabled** for this repository,
+so please do not assume a vulnerable dependency has already been flagged automatically — report it.
 
 ## Content Security
 
