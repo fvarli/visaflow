@@ -112,8 +112,11 @@ describe('buildTripModel (over the example dossier)', () => {
   )
 
   it('derives the trip overview', () => {
-    expect(model.overview.entryDate).toBe('2025-04-01')
-    expect(model.overview.exitDate).toBe('2025-04-10')
+    // These echo the example dossier's trip dates, which were shifted forward
+    // so the shipped example reads as an upcoming application rather than one
+    // that is 18 months overdue. The span — and so `totalNights` — is unchanged.
+    expect(model.overview.entryDate).toBe('2027-04-01')
+    expect(model.overview.exitDate).toBe('2027-04-10')
     expect(model.overview.totalNights).toBe(9)
     expect(model.overview.destinationCountry).toBeTruthy()
   })

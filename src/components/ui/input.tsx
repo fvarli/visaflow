@@ -16,7 +16,7 @@ function Input({ className, type, ...props }: React.ComponentProps<'input'>) {
       data-slot="input"
       className={cn(
         'bg-card text-body h-9 w-full min-w-0 rounded-md border border-input px-3 py-1 shadow-xs',
-        'transition-[color,background-color,border-color] outline-none',
+        'transition-[color,background-color,border-color]',
         'hover:border-border-strong',
         'selection:bg-brand-subtle selection:text-brand-subtle-foreground',
         'file:text-foreground file:text-body file:inline-flex file:h-7 file:border-0 file:bg-transparent file:font-medium',

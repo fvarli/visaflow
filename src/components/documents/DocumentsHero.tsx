@@ -136,7 +136,10 @@ export function DocumentsHero({
       <CardContent className="flex flex-col gap-5 py-5 lg:flex-row lg:items-stretch lg:gap-8">
         {/* Readiness */}
         <div className="min-w-0 flex-1 space-y-3">
-          <div className="flex items-baseline justify-between gap-3">
+          {/* Stacked below `sm`: side by side, the 310px of card width left at
+              390px broke "%64 hazır" across two lines, stranding the word
+              beneath the number. */}
+          <div className="flex flex-col gap-1 sm:flex-row sm:items-baseline sm:justify-between sm:gap-3">
             <p className="text-title text-foreground">{completionLabel}</p>
             <p className="text-caption text-muted-foreground">{summaryLabel}</p>
           </div>

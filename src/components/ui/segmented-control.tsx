@@ -78,13 +78,19 @@ function SegmentedControl<T extends string>({
       onKeyDown={onKeyDown}
       className={cn(
         // Segments are `whitespace-nowrap` and never shrink, so a three-option
-        // control with translated labels can exceed the mobile content width
-        // (the Timeline's modes measure ~447px EN / ~496px TR against 350px).
-        // `max-w-full` + a scroll container keeps the overflow inside the
-        // control instead of scrolling the whole page. Roving-tabindex keyboard
-        // navigation is unaffected; the browser scrolls focused segments into
-        // view automatically.
-        'bg-muted scrollbar-subtle inline-flex max-w-full items-center gap-0.5 overflow-x-auto rounded-lg p-0.5',
+        // control with translated labels can exceed the mobile content width.
+        // Measured at 390px TR, exactly one control in the app overflows: the
+        // Timeline's three modes need 511px against 350px available. Scrolling
+        // the overflow (the previous treatment) hid the third mode completely
+        // and read as a clipped layout, not as a scroller — there is no fade,
+        // and touch scrollbars are invisible at rest.
+        //
+        // Wrapping shows every option instead, and costs one extra row only
+        // when the track genuinely cannot fit: the Review, Documents and
+        // Settings controls all measure under 350px and are unchanged.
+        // `overflow-x-auto` stays as the last-resort guard for a single segment
+        // wider than the whole track.
+        'bg-muted scrollbar-subtle inline-flex max-w-full flex-wrap items-center gap-0.5 overflow-x-auto rounded-lg p-0.5',
         className
       )}
     >

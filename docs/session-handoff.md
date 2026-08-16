@@ -1575,3 +1575,100 @@ TR + EN) and the `{{count}}` plural regressions. No existing assertion was weake
   semantics and structure only.
 - The `--overlay` token's exact opacity (0.45 light / 0.6 dark) was chosen from oklch arithmetic, not
   from looking at it.
+
+---
+
+# Iteration 23 — Pre-v1.0 visual QA: the first real-browser pass
+
+**Not a feature sprint, not an architecture sprint.** The one job was to look at the running product
+and decide honestly whether it is ready for v1.0. `HEAD` at start: `eab2c1d`, tree clean.
+
+### Getting pixels at all
+
+The Claude Chrome extension is **not paired** (`list_connected_browsers` → `[]`), which is what
+blocked Iterations 20–22. Rather than run a fourth static sprint, the approved path drove the
+already-installed **Chrome 149** over the DevTools Protocol using **Node 22 built-ins only** —
+global `WebSocket` + `fetch`, no Playwright, no Puppeteer, no new dependency. All harness code is
+throwaway and lives in the session scratchpad; nothing was committed, and no production code was
+changed to make the harness easier.
+
+Two methodology traps, both hit and both worth remembering (also recorded in `docs/manual-qa.md`):
+
+1. **The dossier is in-memory (ADR-006), so `Page.navigate` wipes it** and every route silently
+   renders its empty state. A sweep that reloads reports `h1: 0` on 12 of 14 routes and looks like a
+   catastrophic regression. Navigate **client-side** (`history.pushState` + `popstate`).
+2. **Two Chrome instances sharing one `--user-data-dir` corrupt each other** — identical `h1: 0`
+   signature. Two matrix cells had to be discarded and re-run serially.
+
+Example data was loaded through the app's own "Örnek veriyi yükle" button, never by injecting state.
+
+### Coverage
+
+14 routes × 7 cells: 390 × {TR,EN} × {light,dark}, 834 × TR × light, 1440 × TR × light,
+1440 × EN × dark. **Every cell: zero horizontal page overflow, exactly one `h1`, on all 14 routes.**
+Not run: 1440 × TR × dark, 1440 × EN × light, 834 × dark — desktop has 3.7× the content budget and
+both themes and locales were covered there; 390px has full 2 × 2 coverage.
+
+### The find that justified the sprint — P0, no keyboard focus ring anywhere
+
+`index.css` defines one focus ring in `@layer base`. **Tailwind v4 orders utilities after base**, so
+`outline-none` on `Button`, `Input`, `Textarea`, `Checkbox`, `Select` trigger and `Accordion` trigger
+silently beat it. Measured over CDP the split was exact: every `data-slot` control reported
+`:focus-visible` matching with `outline-style: none`, while hand-written `<button>`s on the same page
+drew `solid 2px`. Keyboard users had no focus indicator on the export button, the language and theme
+menus, "Belge ekle", the search field or any filter select — while the ad-hoc chips beside them
+highlighted fine. WCAG 2.4.7 (AA).
+
+`outline-none` removed from those six primitives; containers and menu items keep theirs (a focus trap
+is not a control; menu items highlight via `focus:bg-accent`). Re-measured: **37/37 controls now draw
+the ring.** `src/tests/ui/focus-visible.test.ts` guards it and was verified against a deliberately
+reintroduced regression. Note that `button.tsx`'s own comment had asserted this worked — the code was
+documented as correct and was not.
+
+### Also fixed (each: evidence → change → re-measured at the same cell)
+
+- **Dangling breadcrumb `/` below 640px** — separator rendered unconditionally, its crumb was
+  `hidden sm:inline`.
+- **Page title crushed to ~59px at 390px** — "Belgeler" rendered "Belg…"; the longest Turkish title
+  needs ~165px. Export and language collapse to icon + `aria-label` below `sm`. The title is the only
+  page indicator once the sidebar is hidden.
+- **`ThemeToggle` shipped hardcoded English** in a Turkish-default product. The `theme.*` keys
+  already existed in both locales, unused.
+- **Settings rail hid 4 of 8 sections** on a phone with no fade or scrollbar — now wraps, absorbed by
+  existing dead space (`docH` unchanged).
+- **Timeline mode switcher** measured `clientW 350 / scrollW 511` in TR — the third mode entirely
+  off-screen, cut mid-glyph. `SegmentedControl` wraps instead of scrolling; it was the **only**
+  overflowing control in the app, so Review/Documents/Settings are visually unchanged.
+- **`DocumentsHero` broke its own headline** — `"%64 hazır"` wrapped with "hazır" stranded.
+- **The example dossier read as 547 days overdue.** Dated Feb–Apr 2025, the primary onboarding path
+  presented a *failed* application: "Randevu tarihiniz geçti", overdue badges, and "Seyahat tarihi
+  geçmişte" as the recommended next step. Trip/appointment dates +2y; already-obtained evidence dates
+  +18mo so they stay in the recent past. Exactly one test asserted the old literals (`totalNights`,
+  the real assertion, is unchanged by a rigid shift).
+
+### Knowingly shipped — P1, dialogs do not restore focus
+
+`Escape` drops focus to `<body>`, so a keyboard user lands at the top of the document. Sampled at
+t+0 / t+400ms / t+1200ms — stable, not an animation race — and it reproduces on `/documents` where
+the trigger **is still in the DOM**. Dialogs are fully controlled with no `DialogTrigger`, the likely
+reason Radix's restore never fires. Not fixed: the correct fix is real focus-management work in the
+shared `DialogContent`/`SheetContent`, and shipping an unverified focus hack at the end of a QA
+sprint is worse than shipping a documented defect. Now on the roadmap.
+
+### Gates
+
+`format:check` ✓ · `lint` **0 errors / 63 warnings** (exactly the baseline) · `typecheck` ✓ ·
+`test` **724/724, 63 files** (716 + 8) · `build` ✓. Bundle moved within noise: `index`
+273.79 → 273.99 kB (gzip 83.14 → 83.16), CSS 85.40 → 85.50 (gzip 17.43 → 17.45). **Not committed,
+not pushed.**
+
+### Known limitations / next
+
+- **`docs/manual-qa.md` is now a status register, not a wish list** — every one of the 24 former open
+  questions is PASS, FIXED, or OPEN with a reason. Read it before the next UI sprint.
+- Three P2s are documented and deliberately unfixed because they are product decisions, not CSS:
+  `/review?mode=departure` is 2130px at 390px (it exists to be glanceable); the dashboard's
+  recommended next action sits below the fold behind a fixed 188px ring; and the readiness verdict
+  appears three times on one dashboard screen.
+- CDP shows the product; it does **not** certify accessibility. No screen reader was run, and colour
+  contrast was checked arithmetically, not with assistive technology.

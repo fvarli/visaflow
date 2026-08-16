@@ -9,10 +9,15 @@ interface SettingsNavProps {
 }
 
 /**
- * The Settings section navigator — a calm vertical rail on desktop, a
- * horizontally-scrollable selector on mobile. Keyboard-operable (native buttons)
- * with `aria-current="page"` on the active section; hierarchy comes from surface
+ * The Settings section navigator — a calm vertical rail on desktop, a wrapping
+ * selector on mobile. Keyboard-operable (native buttons) with
+ * `aria-current="page"` on the active section; hierarchy comes from surface
  * contrast, not heavy borders.
+ *
+ * Mobile **wraps** rather than scrolls horizontally. Scrolling clipped the rail
+ * mid-word at 390px with no fade, scrollbar or partial-item hint, leaving the
+ * last four of eight sections undiscoverable. Wrapping costs ~80px of vertical
+ * space on a page that has it to spare and makes every section visible at once.
  */
 export function SettingsNav({ sections, current, onSelect }: SettingsNavProps) {
   const { t } = useTranslation('settings')
@@ -20,7 +25,7 @@ export function SettingsNav({ sections, current, onSelect }: SettingsNavProps) {
   return (
     <nav
       aria-label={t('title')}
-      className="-mx-1 flex gap-1 overflow-x-auto px-1 pb-1 lg:mx-0 lg:flex-col lg:overflow-visible lg:px-0 lg:pb-0"
+      className="-mx-1 flex flex-wrap gap-1 px-1 pb-1 lg:mx-0 lg:flex-col lg:flex-nowrap lg:px-0 lg:pb-0"
     >
       {sections.map((id) => {
         const active = id === current

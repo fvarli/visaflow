@@ -12,11 +12,20 @@ import { cn } from '@/lib/utils'
  * `:focus-visible` rule in index.css so every focusable element in VisaFlow
  * looks identical when focused; components re-implementing their own ring is
  * how focus styling drifts.
+ *
+ * That rule lives in `@layer base`, and Tailwind v4 orders utilities *after*
+ * base — so an `outline-none` utility here silently beat it and left every
+ * Button with no visible keyboard focus indicator at all (WCAG 2.4.7). It was
+ * measured in a real browser: shadcn-derived controls reported
+ * `:focus-visible` matching with `outline-style: none`, while hand-written
+ * buttons on the same page drew the ring. Do not reintroduce `outline-none`
+ * here — `:focus:not(:focus-visible)` in index.css already suppresses the
+ * mouse-click outline, which is the only thing it was ever needed for.
  */
 const buttonVariants = cva(
   [
     'inline-flex shrink-0 items-center justify-center gap-2 whitespace-nowrap',
-    'rounded-md font-medium tracking-[-0.006em] outline-none',
+    'rounded-md font-medium tracking-[-0.006em]',
     'transition-[background-color,border-color,color,box-shadow,transform] duration-150',
     'disabled:pointer-events-none disabled:opacity-45',
     // A 1px press. Enough to feel mechanical, too small to read as animation.

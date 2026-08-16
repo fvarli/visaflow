@@ -47,11 +47,16 @@ export function Header({ onMenuClick, onSave, scrolled = false }: HeaderProps) {
           {current ? dynamicT(t)(current.labelKey) : t('app.name')}
         </span>
         {hasData && state.application?.destinationCountry && (
-          <>
+          // The separator and the crumb it separates must share one visibility
+          // gate. The `/` used to render unconditionally while the crumb alone
+          // was `sm:`-only, so every route below 640px showed a dangling slash
+          // pointing at nothing — and it stole width from an already-truncated
+          // page title.
+          <span className="hidden min-w-0 items-center gap-2 sm:flex">
             <span aria-hidden className="text-muted-foreground/50">
               /
             </span>
-            <span className="text-body text-muted-foreground hidden truncate sm:inline">
+            <span className="text-body text-muted-foreground truncate">
               {dynamicT(t)(
                 `visa-domain:countries.${state.application.destinationCountry}`,
                 { defaultValue: state.application.destinationCountry }
@@ -59,7 +64,7 @@ export function Header({ onMenuClick, onSave, scrolled = false }: HeaderProps) {
               {state.application.visaType &&
                 ` · ${dynamicT(t)(`visa-domain:visaTypes.${state.application.visaType}`)}`}
             </span>
-          </>
+          </span>
         )}
       </div>
 
@@ -87,9 +92,14 @@ export function Header({ onMenuClick, onSave, scrolled = false }: HeaderProps) {
             size="sm"
             onClick={onSave}
             disabled={!state.isDirty}
+            aria-label={t('actions.export')}
           >
             <Download />
-            {t('actions.export')}
+            {/* Below `sm` the action cluster crushed the page title to ~59px —
+                "Belgeler" rendered as "Belg…". The title is the only indicator
+                of which page you are on once the sidebar is hidden, so the
+                icon-plus-`aria-label` form wins the width here. */}
+            <span className="hidden sm:inline">{t('actions.export')}</span>
           </Button>
         )}
 

@@ -1,109 +1,193 @@
-# Manual visual QA checklist
+# Manual visual QA — status register
 
-**Why this exists.** Iteration 22 was a release-candidate hardening sprint, but browser automation
-was unavailable (`list_connected_browsers` → `[]`; the Claude Chrome extension is not paired). Every
-defect fixed in that sprint was one whose failure could be proven from arithmetic or structure.
-Everything on *this* page is a judgement that genuinely needs eyes, and **has never been visually
-verified**.
+**What changed.** Iterations 20–22 could not open a browser, so this page was a list of 24
+*speculations*. Iteration 23 drove the installed Chrome over the DevTools Protocol (Node built-ins
+only, no new dependency) and finally looked at the running product. Every item below is now marked
+**PASS**, **FIXED**, or **OPEN** — and "OPEN" means genuinely unverified or knowingly shipped, not
+"probably fine".
 
-Run it with `pnpm dev`. Nothing here is known-broken — these are the open questions.
+Nothing here is speculation any more. Where a number appears, it was measured in Chrome 149 at that
+exact viewport, theme and locale.
 
-## Matrix
+## Coverage actually run
 
-Prioritise **TR at 390px**, the highest known risk. Then EN 390, TR 1440, EN 1440. 834px if time.
+| Cell | Routes | Result |
+|---|---|---|
+| 390 × TR × light | 14/14 | no horizontal overflow, exactly one `h1` |
+| 390 × TR × dark | 14/14 | no horizontal overflow, exactly one `h1` |
+| 390 × EN × light | 14/14 | no horizontal overflow, exactly one `h1` |
+| 390 × EN × dark | 14/14 | no horizontal overflow, exactly one `h1` |
+| 834 × TR × light | 14/14 | no horizontal overflow, exactly one `h1` |
+| 1440 × TR × light | 14/14 | no horizontal overflow, exactly one `h1` |
+| 1440 × EN × dark | 14/14 | no horizontal overflow, exactly one `h1` |
 
-| Viewport | Why |
-|---|---|
-| **390px** | Layout budget is **350px** of content (310px inside a `Card`, 278px inside a nested `p-4` panel) |
-| 834px | Tablet; the `sm:`/`md:` breakpoints change hands here |
-| 1440px | Content caps at `max-w-[1120px]` |
+Not run: 1440 × TR × dark, 1440 × EN × light, 834 × dark. Desktop has 3.7× the content budget of
+390px and both themes and both locales were exercised there; the risk sits at 390px, which has full
+2 × 2 coverage.
 
-Each × `tr` / `en` × light / dark. Toggle language in Settings → Language, theme in Settings → Appearance.
-
-## Global checks on every route
-
-- [ ] **No horizontal page scroll at 390px.** `<main>` computes `overflow-x: auto`, so overflow shows
-      a scrollbar rather than clipping. If you can scroll sideways, something exceeded 350px.
-- [ ] Keyboard-only: `Tab` from the top reaches the skip link first, then nav, then content. Focus is
-      always visible. No tab traps.
-- [ ] Dialogs/sheets return focus to their trigger on close (`Esc` and the close button).
-- [ ] With OS "reduce motion" on, nothing animates (a global `!important` rule handles this).
+> **QA methodology note — do not lose this.** The dossier is in-memory only (ADR-006), so a full page
+> load *wipes it* and every route silently renders its empty state. A sweep that navigates with
+> `Page.navigate` will report `h1: 0` on most routes and look like a catastrophic regression. Drive
+> route changes **client-side** (`history.pushState` + a `popstate` event) after loading the example
+> once. Likewise, two Chrome instances sharing one `--user-data-dir` corrupt each other's runs — the
+> same `h1: 0` signature. Both were hit and diagnosed during this sprint.
 
 ---
 
-## Open questions — vertical density (never measured)
+## Fixed this sprint (evidence → change → re-measured)
 
-These are estimates from class analysis, not measurements.
+- **FIXED — dangling breadcrumb separator below 640px.** `Header.tsx` rendered the `/` separator
+  unconditionally while the crumb after it was `hidden sm:inline`. Every route at 390px showed a
+  slash pointing at nothing. Separator and crumb now share one visibility gate.
+- **FIXED — page title truncated to ~59px at 390px.** The header action cluster (Export label +
+  language label) crushed the title: "Belgeler" rendered as "Belg…", and the longest Turkish title,
+  "Tutarlılık kontrolleri" (22 chars, ~165px), was unreadable. The title is the *only* page
+  indicator once the sidebar is hidden. Export and language collapse to icon-plus-`aria-label`
+  below `sm`; all 13 titles now render in full.
+- **FIXED — `ThemeToggle` shipped hardcoded English** ("Light" / "Dark" / "System", plus
+  `aria-label="Change theme"`) in a Turkish-default product. The `theme.*` keys already existed in
+  both locales and were simply never wired up.
+- **FIXED — Settings mobile rail hid half the page.** The rail scrolled horizontally with **8**
+  sections, no fade, no scrollbar and no partial-item hint; "Hakkında" and "Gelişmiş" were
+  undiscoverable. It now wraps — all 8 visible, absorbed by existing dead space on that page
+  (`docH` unchanged at 844).
+- **FIXED — Timeline mode switcher read as clipped.** Measured TR@390: track `clientW 350`,
+  `scrollW 511` — 161px hidden, so the third mode was entirely off-screen and cut mid-glyph.
+  `SegmentedControl` now wraps instead of scrolling. This was the **only** overflowing control in the
+  app: Review (295px), Documents and Settings all fit inside 350px and are visually unchanged.
+- **FIXED — `DocumentsHero` broke its own headline.** `"%64 hazır"` wrapped with "hazır" stranded on
+  line 2, in both themes, because the number and the summary shared a `justify-between` row. Stacked
+  below `sm`.
+- **FIXED — the example dossier presented itself as a failed application.** Dated Feb–Apr 2025, it
+  read as **547 days overdue** against today: "Randevu tarihiniz geçti", overdue badges across
+  Timeline, and "Seyahat tarihi geçmişte" offered as the recommended next step. This is the primary
+  onboarding path. Trip and appointment dates moved forward two years; evidence-already-obtained
+  dates (bank statement, issued/requested/received) moved forward eighteen months so they stay in the
+  recent past. The dossier now reads as a healthy application ~6 months from its appointment.
 
-- [ ] **`DocumentsHero`** (`/documents`) ≈420–460px tall at 390px. The 7 quick-filter chips wrap to
-      **4 rows** at 310px. Does the hero eat the fold before any document is visible?
-- [ ] **`ReadinessHero`** (`/dashboard`) ≈420px for a single number — the ring is a fixed **188px**
-      (set via inline style, so no breakpoint applies). Should it shrink below `sm`?
-- [ ] **`DepartureCheck`** (`/review?mode=departure`) ≈600–750px: 5 blocks + 3 separators. This view
-      exists to be glanceable at the door. Is one screen of scroll acceptable?
-- [ ] **`ReadinessRing` caption** — at `size=188` the inner text box gets ~156px. Does a long Turkish
-      verdict wrap to 3 lines and crowd the percentage?
+### FIXED — P0: no visible keyboard focus indicator on any primitive control
 
-## Open questions — dark mode (arithmetic says OK, eyes may disagree)
+The most serious defect found this sprint, and invisible to every static pass that preceded it.
 
-- [ ] **`BAR_SEGMENTS` polarity inversion.** In the Documents/Dashboard readiness bar, `obtained`
-      (`bg-primary/70`) is *lighter* than `requested` (`bg-info`) in light mode (L 0.672 vs 0.55) and
-      *darker* in dark (0.530 vs 0.68). They are only 14° apart in hue and unlabelled inside the bar.
-      Distinguishable in both themes, but the learned cue reverses. Is that confusing in practice?
-- [ ] **`SegmentedControl` selected chip in dark.** Selected is `bg-card` (L 0.185) on a `bg-muted`
-      track (L 0.225) — the selected segment is **darker** than the track, and `shadow-xs` is
-      imperceptible at `--shadow-color: 264 40% 2%`. Does the selection still read as selected?
-- [ ] **Borderless muted surfaces** are ΔL≈0.02 in *both* themes — effectively invisible:
-      `ui/guidance-note.tsx:41` (`bg-muted/50`, a `role="note"` with no border) and
-      `trip/CoverageSummary.tsx:56`. Should they gain a border?
-- [ ] **`trip/DestinationCard.tsx:50`** `bg-primary/[0.02]` is a no-op tint (ΔL 0.009). The
-      `border-primary/40` is doing all the work of marking the main destination. Remove or raise?
-- [ ] Verify the new modal scrim: open any dialog/sheet in **dark** mode. It must *darken* the page.
-      (It previously used `bg-foreground/25`, which lightened it — now `--overlay`.)
+`index.css` defines one focus ring in `@layer base`. Tailwind v4 orders utilities **after** base, so
+the `outline-none` utility on `Button`, `Input`, `Textarea`, `Checkbox`, `Select` trigger and
+`Accordion` trigger silently beat it. Measured over CDP, the split was exact:
 
-## Open questions — touch targets in the 24–44px band
+| Element | `:focus-visible` | `outline-style` |
+|---|---|---|
+| shadcn-derived control (`data-slot` present) | `true` | **`none`** |
+| hand-written `<button>` on the same page | `true` | `solid 2px` |
 
-All pass WCAG 2.5.8 AA (24px); none reach the 44px mobile guideline. Anything **below** 24px was
-already fixed.
+Keyboard users had **no** focus indicator on the export button, language and theme menus, "Belge
+ekle", the search input or any of the three filter selects — while the ad-hoc filter chips beside
+them highlighted correctly. WCAG 2.4.7 Focus Visible (AA).
 
-- [ ] Documents quick-filter chips ≈30px tall — the primary filter affordance on that page.
-- [ ] `SegmentedControl` segments 28px (`sm`) / 32px (default).
-- [ ] Mobile nav trigger (`Header.tsx`, `size-8` = 32px) — the only way to open navigation on a phone.
+`outline-none` was removed from those six control primitives. Containers (`dialog`, `sheet`,
+`popover`, `scroll-area`) and menu items keep theirs — a focus trap is not a control, and menu items
+indicate focus with `focus:bg-accent`. Re-measured: **37/37 controls across `/applicant`,
+`/documents` and `/settings` now draw the ring.** Guarded by `src/tests/ui/focus-visible.test.ts`,
+which was itself checked against a deliberately reintroduced regression.
 
-## Open questions — per route
+---
 
-- [ ] **`/timeline`** — the mode selector now scrolls horizontally inside its own track at 390px
-      (3 segments measure ~447px EN / ~496px TR). Is that discoverable, or does it look cut off?
-- [ ] **`/review`** — same control, 2 segments; TR measured ~334px vs 350px available.
-- [ ] **`/documents`** — the **table** view offers 5 nowrap columns at 390px and will always scroll
-      sideways inside its container. Should `table` be hidden below `md`, or should mobile default to
-      `cards`?
-- [ ] **`/settings`** — the mobile section rail scrolls horizontally with **8** sections and no fade
-      or affordance. Are "About" and "Advanced" discoverable?
-- [ ] **`/welcome`** — the `Stepper` renders two separate trees (compact bar below `lg`, vertical rail
-      above). Check the compact bar with long Turkish step titles.
-- [ ] **Wizards** (`/applicant`, `/trip`, `/employment`, `/finance`) — step navigation, progressive
-      disclosure, and no horizontal scroll at 390px in Turkish.
-- [ ] **`/sponsors`** — the editor `Sheet` is full-screen on mobile; check focus trap and Escape.
-- [ ] **`/notes`** — newly moved onto `PageHeader`/`PageBody` this sprint. Confirm it now matches the
-      other pages' rhythm.
+## OPEN — known defect, shipped knowingly
 
-## Known-latent (not currently rendering)
+### P1 — dialogs and sheets do not return focus to their trigger
+
+Closing with `Escape` drops focus to `<body>`, so a keyboard user is dumped at the top of the
+document and must tab back through the whole page.
+
+Measured on `/documents` ("Belge ekle") and `/sponsors`, both light and 1440px, sampled at t+0,
+t+400ms and t+1200ms — stable at `BODY` every time, so it is not an animation race. On `/documents`
+the trigger **is still in the DOM** (`triggerStillInDom: true`) and focus is still not restored.
+
+Dialogs are fully controlled (`open` / `onOpenChange`) with no `DialogTrigger`, which is the likely
+reason Radix's restore does not fire. Not fixed here: the correct fix is real focus-management work
+in the shared `DialogContent` / `SheetContent`, and shipping an unverified focus hack at the end of a
+QA sprint is worse than shipping a documented defect. Everything else about the overlays is correct —
+they trap focus on open, close on `Escape`, and the scrim is right in both themes.
+
+**This is the one accessibility caveat on the v1.0 recommendation.**
+
+---
+
+## PASS — verified, no change needed
+
+### Vertical density (previously estimates; now measured `main.scrollHeight` at 390px TR)
+
+| Surface | Estimated | Measured | Verdict |
+|---|---|---|---|
+| `DocumentsHero` | 420–460px | ~1000px to the first document | **PASS with note** — tall, but the readiness bar, the five labelled counts and the next-document card are all genuinely useful; nothing is hidden |
+| `DepartureCheck` | 600–750px | 2130px | **PASS with note** — 2.5 screens, not "glanceable at the door"; see P2 below |
+| `ReadinessHero` | ~420px | ring 188px, next action at ~1340px | **PASS with note** — see P2 below |
+| `ReadinessRing` caption | might wrap to 3 lines | 2 lines ("Toplanacak belgeler var"), uncrowded | **PASS** |
+
+### Dark mode
+
+- **PASS — the modal scrim darkens.** Measured live: overlay `oklch(0.09 0.01 264 / 0.6)` against
+  body `oklch(0.145 0.007 264)`. The `--overlay` token is correct; the old `bg-foreground/25` would
+  have lightened the page.
+- **PASS — `BAR_SEGMENTS` polarity inversion is a non-issue.** The lightness relationship between
+  `obtained` and `requested` does reverse between themes, but the bar is never read alone: the five
+  labelled, icon-bearing counts sit directly beneath it, and segment *order* is fixed. Confirmed by
+  eye in both themes.
+- **PASS — the selected `SegmentedControl` chip reads as selected in dark**, despite being darker
+  than its track (checked on Settings → Tema and the Timeline switcher).
+- **PASS — borderless `bg-muted` surfaces are legible** in both themes (`GuidanceNote` on
+  `/employment`, the disclaimer on `/settings`). Low contrast is the intent; they are supporting
+  notes, not controls.
+
+### Keyboard
+
+- **PASS — `Tab` from a true document start reaches the skip link first** ("İçeriğe geç"), and it is
+  the one element that already drew a visible ring before the P0 fix.
+- **PASS — tab order follows visual order** with no traps, across `/applicant`, `/documents`,
+  `/settings`.
+- **PASS — overlays trap focus on open and close on `Escape`.** (Focus *return* is the P1 above.)
+
+### Per route
+
+- **PASS — `/review` segmented control.** Predicted ~334px vs 350px available; measured 295px.
+- **PASS — `/settings`.** All 8 sections now visible (fixed above).
+- **PASS — `/timeline`.** All 3 modes now visible (fixed above).
+- **PASS — wizards** (`/applicant`, `/trip`, `/employment`, `/finance`). One step at a time, so the
+  short `docH` (844) is correct, not a broken render. No overflow in Turkish at 390px.
+- **PASS — `/notes`** matches the other pages' `PageHeader`/`PageBody` rhythm.
+- **PASS — `/welcome`** compact stepper with long Turkish titles.
+- **PASS — touch targets.** Every tab stop measured ≥32px tall. Still short of the 44px mobile
+  guideline, but above WCAG 2.5.8 AA (24px) everywhere.
+
+---
+
+## OPEN — P2/P3, documented not fixed (would be redesign, not polish)
+
+- **P2 — `/review?mode=departure` is 2130px at 390px.** It exists to be checked at the door and is
+  2.5 screens deep. Reducing it means deciding what a departure check omits — a product decision, not
+  CSS.
+- **P2 — the dashboard's recommended next action sits below the fold at 390px.** The 188px ring
+  (fixed inline, no breakpoint) plus greeting, two buttons and a three-line disclaimer push it to
+  ~1340px. Shrinking the ring below `sm` is the obvious lever.
+- **P2 — the readiness verdict appears three times on one dashboard screen**: page eyebrow, inside
+  the ring, and as the hero title ("Kalan zorunlu belge: 4"). Correct, but repetitive.
+- **P3 — zero-count chips render** ("0 Güncellenmeli" on `/documents`). Arguably honest inventory;
+  arguably noise.
+- **P3 — `/review` is 6564px at 390px.** Expected for a full review, but it is eight phone screens.
+- **P3 — `country-combobox.tsx` keeps `outline-hidden`** on its in-popover search field. It is
+  auto-focused as the only control in an open popover, so "where am I?" never arises — but it is the
+  one control deliberately left outside the focus-ring guard.
+
+## Known-latent (still true, still not rendering)
 
 - `--chart-1` … `--chart-5` are defined only in `:root` with no `.dark` override. The first chart
   added will render light-mode colours on a dark canvas.
 - `--sidebar-primary-foreground` is a literal `oklch(0.99 0 0)` with no `.dark` override; its sibling
   `--primary-foreground` *is* correctly flipped. Currently unused.
 
-## Verified good (static analysis — no need to re-check unless something changes)
+## Verified good (static analysis, unchanged)
 
-Zero hardcoded palette classes, hex/rgb literals, or colour inline styles anywhere in `src/`.
-All six `StatusBadge` tones clear ≥0.38 ΔL in **both** themes, and every one is equal-or-better in
-dark. No border token weakens in dark (the faintest border in the app is `--sidebar-border` in
-*light*). Perfect i18n key parity (1884/1884) and all 47 plural bases complete in both locales.
-`Table` self-wraps in `overflow-x-auto`. `Stepper`, `SettingsPage` and `SubmissionChecklist` are the
-reference responsive implementations.
+Zero hardcoded palette classes, hex/rgb literals, or colour inline styles anywhere in `src/`. All six
+`StatusBadge` tones clear ≥0.38 ΔL in **both** themes. No border token weakens in dark. Perfect i18n
+key parity and all 47 plural bases complete in both locales. `Table` self-wraps in `overflow-x-auto`.
 
 > A recurring finding worth remembering: **for this design system, light mode is usually the weaker
-> theme, not dark.** `--muted`, `--accent`, `--border`, `--border-strong`, `--brand-subtle` and
-> `text-muted-foreground` all separate from their surfaces better in dark.
+> theme, not dark.** The browser pass did not contradict this.

@@ -52,14 +52,14 @@
     "status": "preparing",
     "createdAt": "2025-01-10T08:00:00.000Z",
     "appointment": {
-      "date": "2025-02-15",
+      "date": "2027-02-15",
       "time": "10:30",
       "location": "VFS Global Warsaw",
       "type": "vfs"
     },
     "trip": {
-      "entryDate": "2025-04-01",
-      "exitDate": "2025-04-10",
+      "entryDate": "2027-04-01",
+      "exitDate": "2027-04-10",
       "firstEntryCountry": "GR",
       "mainDestinationCountry": "GR",
       "entryCity": "Athens",
@@ -68,16 +68,16 @@
         {
           "city": "Athens",
           "country": "GR",
-          "arrivalDate": "2025-04-01",
-          "departureDate": "2025-04-05",
+          "arrivalDate": "2027-04-01",
+          "departureDate": "2027-04-05",
           "nights": 4,
           "purpose": "Sightseeing"
         },
         {
           "city": "Santorini",
           "country": "GR",
-          "arrivalDate": "2025-04-05",
-          "departureDate": "2025-04-10",
+          "arrivalDate": "2027-04-05",
+          "departureDate": "2027-04-10",
           "nights": 5,
           "purpose": "Beach vacation"
         }
@@ -87,11 +87,11 @@
           "type": "flight",
           "carrier": "Aegean Airlines",
           "reservationNumber": "ABC123",
-          "departureDate": "2025-04-01",
+          "departureDate": "2027-04-01",
           "departureTime": "08:00",
           "departureCity": "Warsaw",
           "departureCountry": "PL",
-          "arrivalDate": "2025-04-01",
+          "arrivalDate": "2027-04-01",
           "arrivalTime": "11:30",
           "arrivalCity": "Athens",
           "arrivalCountry": "GR",
@@ -102,11 +102,11 @@
           "type": "flight",
           "carrier": "Aegean Airlines",
           "reservationNumber": "ABC456",
-          "departureDate": "2025-04-10",
+          "departureDate": "2027-04-10",
           "departureTime": "14:00",
           "departureCity": "Athens",
           "departureCountry": "GR",
-          "arrivalDate": "2025-04-10",
+          "arrivalDate": "2027-04-10",
           "arrivalTime": "16:30",
           "arrivalCity": "Warsaw",
           "arrivalCountry": "PL",
@@ -121,8 +121,8 @@
           "address": "Syntagma Square 1",
           "city": "Athens",
           "country": "GR",
-          "checkInDate": "2025-04-01",
-          "checkOutDate": "2025-04-05",
+          "checkInDate": "2027-04-01",
+          "checkOutDate": "2027-04-05",
           "reservationNumber": "HTL001",
           "guestName": "Maria Kowalski",
           "status": "confirmed"
@@ -133,8 +133,8 @@
           "address": "Oia Main Street",
           "city": "Santorini",
           "country": "GR",
-          "checkInDate": "2025-04-05",
-          "checkOutDate": "2025-04-10",
+          "checkInDate": "2027-04-05",
+          "checkOutDate": "2027-04-10",
           "reservationNumber": "HTL002",
           "guestName": "Maria Kowalski",
           "status": "confirmed"
@@ -143,8 +143,8 @@
       "insurance": {
         "provider": "Allianz Travel",
         "policyNumber": "INS-2025-001",
-        "coverageStartDate": "2025-04-01",
-        "coverageEndDate": "2025-04-10",
+        "coverageStartDate": "2027-04-01",
+        "coverageEndDate": "2027-04-10",
         "coverageAmount": 50000,
         "currency": "EUR",
         "medicalCoverage": true,
@@ -165,8 +165,8 @@
       "monthlyNetIncome": 8000,
       "currency": "EUR",
       "salaryBank": "PKO Bank Polski",
-      "approvedLeaveStart": "2025-04-01",
-      "approvedLeaveEnd": "2025-04-10"
+      "approvedLeaveStart": "2027-04-01",
+      "approvedLeaveEnd": "2027-04-10"
     },
     "financing": {
       "source": "self",
@@ -174,7 +174,7 @@
       "currency": "EUR",
       "bankName": "PKO Bank Polski",
       "accountBalance": 15000,
-      "statementDate": "2025-01-10"
+      "statementDate": "2026-07-10"
     },
     "sponsorIds": [],
     "documentIds": [],
@@ -221,7 +221,7 @@
       "ownerId": "applicant-001",
       "required": true,
       "status": "ready",
-      "issuedAt": "2025-01-08",
+      "issuedAt": "2026-07-08",
       "verified": true
     },
     {
@@ -233,7 +233,7 @@
       "ownerId": "applicant-001",
       "required": true,
       "status": "ready",
-      "validUntil": "2025-04-10",
+      "validUntil": "2027-04-10",
       "verified": true
     },
     {
@@ -267,7 +267,7 @@
       "ownerId": "applicant-001",
       "required": true,
       "status": "requested",
-      "requestedAt": "2025-01-10",
+      "requestedAt": "2026-07-10",
       "notes": "Requested from HR, expected by Jan 20"
     },
     {
@@ -279,7 +279,7 @@
       "ownerId": "applicant-001",
       "required": true,
       "status": "received",
-      "receivedAt": "2025-01-12"
+      "receivedAt": "2026-07-12"
     },
     {
       "id": "doc-009",

@@ -35,7 +35,11 @@ export function LanguageSelect({ className }: { className?: string }) {
           aria-label={`${t('language.change')}: ${LOCALE_LABELS[locale]}`}
         >
           <Languages aria-hidden className="opacity-70" />
-          <span className="text-body">{LOCALE_LABELS[locale]}</span>
+          {/* Hidden below `sm` to leave the page title its width; the trigger
+              keeps its accessible name, which already states the language. */}
+          <span className="text-body hidden sm:inline">
+            {LOCALE_LABELS[locale]}
+          </span>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-40">

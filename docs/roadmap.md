@@ -31,7 +31,13 @@ inventory rather than a competing ratio, document recommendations became status-
 five call sites that still used a non-canonical denominator were fixed; then a
 release-candidate hardening pass (dark-mode scrim inversion, mobile overflow, the last
 competing ratio, Turkish truncation, contrast and touch-target failures), with the
-judgements that need a real browser captured in `docs/manual-qa.md`.
+judgements that need a real browser captured in `docs/manual-qa.md`; and finally the
+**first real-browser visual QA pass**, which closed those judgements against measurements
+instead of estimates and found what three static sprints could not — most importantly that
+**no shadcn-derived control had a visible keyboard focus ring at all** (a Tailwind v4
+cascade-layer conflict), plus a dangling breadcrumb separator, a crushed page title, a
+hardcoded-English theme menu, half the Settings sections unreachable on a phone, and a
+shipped example dossier that read as 547 days overdue.
 
 **Next within Foundation:** surface `SourceNote` in the Documents detail view; add more Schengen
 visa types (business, visit) using the existing hierarchy; verify the Greece pack against a
@@ -40,6 +46,9 @@ current official source and record real `lastVerifiedAt` / raise `reviewStatus` 
 Timeline feature's `timeline-dates` — onto a single shared source now that the Timeline UX has
 shipped (the Timeline redesign deliberately reused only `deriveNextActions` and left the Dashboard
 untouched; ADR-029). *Tech debt.*
+**Restore focus to the trigger when a dialog or sheet closes** — the one accessibility defect
+knowingly shipped at v1.0; `Escape` currently drops focus to `<body>`. Reproduction in
+`docs/manual-qa.md`. *Accessibility.*
 
 ---
 

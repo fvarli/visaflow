@@ -1,6 +1,6 @@
 # Current Implementation Status
 
-Last updated: 2026-08-16 (release-candidate hardening)
+Last updated: 2026-08-16 (pre-v1.0 visual QA — first real-browser pass)
 
 ## Completed Features
 
@@ -249,6 +249,15 @@ later phase in [roadmap.md](./roadmap.md):
 
 ## Active Issues
 
+### Known accessibility defect (P1, shipped knowingly)
+
+Dialogs and sheets do **not** return focus to their trigger on close; `Escape` drops focus to
+`<body>`. Measured in Chrome at t+0 / t+400ms / t+1200ms — stable, not an animation race — and it
+reproduces on `/documents` even though the trigger is still in the DOM. The overlays are otherwise
+correct: they trap focus, close on `Escape`, and the dark scrim is right. See
+[manual-qa.md](./manual-qa.md) for the reproduction. This is the single accessibility caveat on the
+v1.0 recommendation.
+
 ### Lint Warnings (Acceptable)
 - `react-refresh/only-export-components` in route/provider files
 - `react-hooks/incompatible-library` for React Hook Form watch
@@ -281,6 +290,10 @@ These warnings don't affect functionality.
 - Route smoke pass: all 14 shipped routes in both locales assert exactly one `h1`,
   no skipped heading level, and no raw translation key on screen (this found the
   `/timeline` h1→h3 defect)
+- Focus visibility: the control primitives may not carry `outline-none` /
+  `outline-hidden`, which in Tailwind v4 silently overrides the single
+  `:focus-visible` rule in `@layer base` and leaves a control with no keyboard
+  focus indicator at all (`src/tests/ui/focus-visible.test.ts`)
 - E2E tests: not yet implemented
 
 ## Build Status
@@ -289,8 +302,11 @@ All checks pass:
 - `pnpm format:check` - PASS
 - `pnpm lint` - 0 errors (warnings acceptable, see below)
 - `pnpm typecheck` - PASS (`tsc -b`)
-- `pnpm test` - 716/716 PASS (62 files)
+- `pnpm test` - 724/724 PASS (63 files)
 - `pnpm build` - SUCCESS
+
+Bundle (unchanged within noise by this sprint): `index` 273.99 kB / 83.16 kB gzip,
+`DossierProvider` 442.86 / 136.48 gzip, CSS 85.50 / 17.45 kB gzip.
 
 Note: an earlier version of this file claimed 23/23 tests and `tsc --noEmit`;
 the script is now `tsc -b` and the suite has grown.
