@@ -659,5 +659,30 @@ the container element rather than the file, so a control rendered inside a conta
 
 **Do not** reintroduce restoration by adding a hidden `<Dialog.Trigger>`, and do not "fix" a single
 page with an ad-hoc `.focus()` — the contract belongs to the primitives so that every present and
-future overlay inherits it. No schema, storage, import/export or validation change; still exactly two
+future overlay inherits it.
+
+### Amendment (2026-08-17): a caller may name a fallback destination
+
+The consequence recorded above — "one known path remains unrestored … Sponsors' empty-state button
+both creates a sponsor and opens the editor, so it unmounts itself" — is now closed, and closing it
+sharpened the contract twice.
+
+First, an `isConnected` check is not sufficient. On that path the opener is detached *before*
+`onOpenAutoFocus` runs, so what gets recorded is `document.activeElement` — i.e. `<body>`. Body is
+connected, so it passes the guard and gets focused, which is exactly the outcome this hook exists to
+prevent. `document.body` is now treated as "no opener", never as a target.
+
+Second, when there is genuinely no opener left, no amount of generic bookkeeping can invent one — the
+destination has to come from the code that knows what was created. `useRestoreFocusOnClose` therefore
+accepts an optional `restoreFocusFallback: () => HTMLElement | null`, consulted **only** when no
+usable opener exists, and only if the returned element is itself connected. With no fallback
+supplied, behaviour is byte-for-byte unchanged.
+
+It is deliberately a **callback returning an element, never a selector string or an id**. The overlay
+primitives must not learn how any page identifies its own content: the primitive knows only "the
+opener is unavailable — caller, give me a target", and what that target *means* stays with the
+caller. `SponsorsPage` supplies the new sponsor's card action from a ref map it owns; nothing about
+sponsors appears in `src/components/ui/`.
+
+No timers, no retained detached nodes, no page-specific knowledge in shared primitives. No schema, storage, import/export or validation change; still exactly two
 localStorage keys; `schemaVersion` remains `1.0.0`.

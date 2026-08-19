@@ -1,3 +1,4 @@
+import type * as React from 'react'
 import { useTranslation } from 'react-i18next'
 import { ArrowRight, Pencil, Trash2, User } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -16,6 +17,12 @@ interface SponsorWorkspaceCardProps {
   card: SponsorCardView
   onEdit: () => void
   onRemove: () => void
+  /**
+   * Lets the page reach this card's primary action. Used to send focus here
+   * when the editor closes and whatever opened it no longer exists — the page
+   * owns that decision; the card only exposes the element.
+   */
+  editButtonRef?: React.Ref<HTMLButtonElement>
 }
 
 const READINESS_TONE: Record<SponsorReadiness, StatusTone> = {
@@ -35,6 +42,7 @@ export function SponsorWorkspaceCard({
   card,
   onEdit,
   onRemove,
+  editButtonRef,
 }: SponsorWorkspaceCardProps) {
   const { t } = useTranslation(['sponsors', 'visa-domain'])
   const td = dynamicT(t)
@@ -170,7 +178,12 @@ export function SponsorWorkspaceCard({
             <span aria-hidden />
           )}
           <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" onClick={onEdit}>
+            <Button
+              ref={editButtonRef}
+              variant="outline"
+              size="sm"
+              onClick={onEdit}
+            >
               <Pencil />
               {t('sponsors:card.edit')}
             </Button>

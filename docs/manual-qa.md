@@ -165,6 +165,43 @@ neutered, 4 of its 5 cases fail.
 ---
 
 
+### FIXED — P2: Sponsors first-create left focus on `<body>`
+
+Closed in Iteration 25. The v1.0 note said the empty-state CTA "unmounts in the same commit"; the
+mechanism is sharper than that. `SponsorsPage.handleAdd` dispatches `addSponsor` **and**
+`openEditor` in one batched commit, so `model.count` flips 0 → 1 and the
+`count === 0 ? <EmptyState/> : <grid/>` ternary swaps two *different element types* — React unmounts
+the CTA rather than reconciling it. The header "Add" is gated `count > 0`, so during the empty state
+the CTA is the only opener on the page.
+
+Two consequences that only surfaced under measurement:
+
+1. The CTA is detached **before `onOpenAutoFocus` runs**, so the shared hook never records a
+   connected opener on this path — `document.activeElement` is already `<body>`.
+2. `<body>` *is* `isConnected`, so an `isConnected`-only guard treats it as a valid opener and
+   focuses it. That is precisely the outcome the hook exists to prevent, so `body` is now treated as
+   "no opener".
+
+**Fix:** `useRestoreFocusOnClose` gained an optional `restoreFocusFallback: () => HTMLElement | null`
+— a callback, never a selector string, so the overlay primitives never learn what a sponsor is.
+`SponsorsPage` owns the destination: a ref map of card edit buttons keyed by sponsor id, plus the
+last-opened id (the URL param is cleared before Radix's close-autofocus step, so `selectedId` is
+already `null` by then). Without a fallback, Dialog / Sheet / AlertDialog behaviour is unchanged.
+
+**Verified in Chrome 149**, 1440 × TR, sampled at t+1100ms and t+1700ms:
+
+| Path | CTA still in DOM | Focus after Escape | Ring |
+|---|---|---|---|
+| First-create (empty-state CTA) | **false** | "Sponsoru düzenle" on the new card | `:focus-visible`, `outline solid 2px` |
+| Normal edit (opener survives) | n/a | original trigger — unchanged | `:focus-visible`, `outline solid 2px` |
+
+Covered by `sponsors-deeplink.test.tsx` (both paths) and two cases in
+`overlay-focus-restore.test.tsx`. Note the jsdom harness must swap **different element types** on the
+two arms; same-type arms let React reuse the DOM node, the opener survives, and the test passes
+without exercising the bug at all.
+
+---
+
 ## PASS — verified, no change needed
 
 ### Vertical density (previously estimates; now measured `main.scrollHeight` at 390px TR)
@@ -240,20 +277,6 @@ element (a focus trap should not ring itself) but may no longer suppress the rin
 both locales. Verified in Chrome: **"Kapat"** in `tr`, **"Close"** in `en`.
 
 ## OPEN — P2/P3, documented not fixed (would be redesign, not polish)
-
-### P2 — Sponsors' empty-state button destroys itself, so there is nothing to restore focus to
-
-`SponsorsPage.handleAdd` both creates a sponsor **and** opens the editor sheet, so clicking
-"İlk sponsorunuzu ekleyin" flips `model.count` 0 → 1 and the `EmptyState` — including the button just
-clicked — unmounts in the same commit. Measured: `trigger still in DOM after open: false`, and focus
-lands on `<body>` after `Escape`. Every other sponsor path (card edit, header add) restores correctly.
-
-Not P1: the app's focus contract is correct and verified everywhere the opener still exists, and no
-focus system can return focus to a button that no longer exists — Radix's own fallback also lands on
-`<body>` here. The real defect is the page's action design (mutate the list *and* navigate on one
-click). Fixing it means either a per-page `.focus()` hack or reworking the sponsor-draft model, and
-both were explicitly out of scope for the sprint that found it. Affects one first-run path on an
-optional section.
 
 - **P2 — `/review?mode=departure` is 2130px at 390px.** It exists to be checked at the door and is
   2.5 screens deep. Reducing it means deciding what a departure check omits — a product decision, not

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { Plus, Users } from 'lucide-react'
@@ -35,6 +35,39 @@ export default function SponsorsPage() {
   const [searchParams, setSearchParams] = useSearchParams()
   const selectedId = searchParams.get('sponsor')
   const [removeTarget, setRemoveTarget] = useState<SponsorCardView | null>(null)
+
+  /**
+   * Card edit buttons, keyed by sponsor id.
+   *
+   * Creating the first sponsor destroys the button that created it: the
+   * empty-state CTA and the card grid are two arms of the same `count === 0`
+   * ternary, so React unmounts the CTA in the commit that opens the editor.
+   * Nothing generic can restore focus to it, so the page names the destination
+   * instead — the card for the sponsor just created and edited, which is where
+   * the user's attention now is. Normal edit flows never reach this: their
+   * opener survives and the shared hook restores it directly.
+   */
+  const editButtons = useRef(new Map<string, HTMLButtonElement>())
+  const registerEditButton = useCallback(
+    (id: string, node: HTMLButtonElement | null) => {
+      if (node) editButtons.current.set(id, node)
+      else editButtons.current.delete(id)
+    },
+    []
+  )
+
+  // Closing clears `?sponsor=` before Radix runs its close-autofocus step, so
+  // `selectedId` is already null by the time the fallback is consulted. Keep
+  // the id that was open so the destination survives the close.
+  const lastOpenedId = useRef<string | null>(null)
+  useEffect(() => {
+    if (selectedId) lastOpenedId.current = selectedId
+  }, [selectedId])
+
+  const focusOpenSponsorCard = useCallback(() => {
+    const id = lastOpenedId.current
+    return id ? (editButtons.current.get(id) ?? null) : null
+  }, [])
 
   const openEditor = (id: string) =>
     setSearchParams((prev) => {
@@ -120,6 +153,7 @@ export default function SponsorsPage() {
             <SponsorWorkspaceCard
               key={card.id}
               card={card}
+              editButtonRef={(node) => registerEditButton(card.id, node)}
               onEdit={() => openEditor(card.id)}
               onRemove={() => setRemoveTarget(card)}
             />
@@ -129,6 +163,7 @@ export default function SponsorsPage() {
 
       <SponsorEditorSheet
         sponsorId={selectedId}
+        restoreFocusFallback={focusOpenSponsorCard}
         onClose={closeEditor}
         onRequestRemove={() => {
           const card = model.sponsors.find((c) => c.id === selectedId)

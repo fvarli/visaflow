@@ -72,8 +72,10 @@ While VisaFlow minimizes data exposure, users should be aware:
 
 Dependencies are pinned in `pnpm-lock.yaml` and reviewed with `pnpm audit`.
 
-Automated dependency alerting (GitHub Dependabot) is **not currently enabled** for this repository,
-so please do not assume a vulnerable dependency has already been flagged automatically — report it.
+GitHub Dependabot vulnerability alerts and automated security fixes are enabled, so known advisories
+affecting the lockfile are flagged automatically and a fix PR is opened where one exists. Scheduled
+version-update PRs are deliberately not enabled — routine upgrades are done deliberately, not on a
+timer.
 
 ## Content Security
 

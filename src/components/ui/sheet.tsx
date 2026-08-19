@@ -5,7 +5,10 @@ import { Dialog as SheetPrimitive } from 'radix-ui'
 import { useTranslation } from 'react-i18next'
 
 import { cn } from '@/lib/utils'
-import { useRestoreFocusOnClose } from '@/components/ui/use-restore-focus'
+import {
+  useRestoreFocusOnClose,
+  type RestoreFocusFallback,
+} from '@/components/ui/use-restore-focus'
 
 function Sheet({ ...props }: React.ComponentProps<typeof SheetPrimitive.Root>) {
   return <SheetPrimitive.Root data-slot="sheet" {...props} />
@@ -52,15 +55,22 @@ function SheetContent({
   showCloseButton = true,
   onOpenAutoFocus,
   onCloseAutoFocus,
+  restoreFocusFallback,
   ...props
 }: React.ComponentProps<typeof SheetPrimitive.Content> & {
   side?: 'top' | 'right' | 'bottom' | 'left'
   showCloseButton?: boolean
+  /** Focus destination when the element that opened this sheet is gone. */
+  restoreFocusFallback?: RestoreFocusFallback
 }) {
   const { t } = useTranslation('common')
   // A Sheet *is* a Radix Dialog, so it carries the same trigger-only focus
   // restoration. See `useRestoreFocusOnClose`.
-  const restoreFocus = useRestoreFocusOnClose(onOpenAutoFocus, onCloseAutoFocus)
+  const restoreFocus = useRestoreFocusOnClose(
+    onOpenAutoFocus,
+    onCloseAutoFocus,
+    restoreFocusFallback
+  )
 
   return (
     <SheetPortal>

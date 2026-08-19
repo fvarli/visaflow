@@ -1,0 +1,59 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+# Cancel superseded runs on the same ref; a stale result is not worth the minutes.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    name: Verify
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # `packageManager` in package.json pins the pnpm version; corepack honours
+      # it, so CI and local development cannot drift apart.
+      - name: Enable corepack
+        run: corepack enable
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      - name: Format
+        run: pnpm format:check
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+      # The canonical functional gate.
+      - name: Test
+        run: pnpm test
+
+      # Vitest's default reporter hides console output from *passing* tests, so
+      # green tests alone are not evidence of a quiet suite — 360 act(...)
+      # warnings once hid behind exactly that. This re-runs with stderr visible
+      # and fails if any React act(...) warning is emitted.
+      - name: No act(...) warnings
+        run: node scripts/check-act-warnings.mjs
+
+      - name: Build
+        run: pnpm build

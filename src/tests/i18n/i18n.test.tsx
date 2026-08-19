@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest'
+import { describe, it, expect, beforeEach } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
@@ -43,12 +43,20 @@ function renderInApp(ui: React.ReactNode, route = '/documents') {
   )
 }
 
+/**
+ * Reset the locale *before* each test, never after.
+ *
+ * `i18next.changeLanguage` emits `languageChanged` synchronously here (both
+ * locales are bundled, so there is no async backend to wait for), and every
+ * mounted `useTranslation` consumer answers that event with a `setState`.
+ * Vitest resolves `sequence.hooks` to `"stack"`, which *reverses* `afterEach`,
+ * so a reset placed there runs before Testing Library's auto-cleanup — i.e.
+ * against a still-mounted tree, outside `act()`. That single misplacement
+ * produced 296 "not wrapped in act(...)" warnings from this file alone.
+ *
+ * Resetting in `beforeEach` is equivalent and correct: nothing is mounted yet.
+ */
 beforeEach(async () => {
-  window.localStorage.removeItem(LOCALE_STORAGE_KEY)
-  await i18n.changeLanguage(DEFAULT_LOCALE)
-})
-
-afterEach(async () => {
   window.localStorage.removeItem(LOCALE_STORAGE_KEY)
   await i18n.changeLanguage(DEFAULT_LOCALE)
 })

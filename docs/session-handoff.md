@@ -1804,3 +1804,95 @@ pushed.**
   Sheet close control awkward to target in tests. Left alone deliberately this sprint.
 - **Lesson worth keeping:** exempting a whole *file* from an a11y guard is too coarse. Both extra P1s
   lived inside files the previous sprint had marked exempt. Guards should exempt elements, not files.
+
+---
+
+# Iteration 25 — v1.1 maintenance & CI hygiene
+
+The first post-v1.0 sprint. Baseline: `main` @ `427015d`, tree clean, `HEAD == v1.0.0^{commit} ==
+origin/main` (main had not moved since the release). No version bump — nothing in the repo documents
+a process requiring one during development.
+
+### The act() diagnosis in the v1.0 report was wrong in the part that mattered
+
+The **count** was right (360). The **cause** was not. It was recorded as "`i18n.changeLanguage()`
+outside `act()`" as a general pattern — but 20 files call `changeLanguage` and **18 emit zero
+warnings**. All 360 came from **two lines**: `i18n.test.tsx:53` and `app-shell.test.tsx:46` called it
+inside an **`afterEach`**.
+
+Vitest resolves `sequence.hooks` to `"stack"`, which **reverses** `afterEach`, so a file's hook runs
+*before* Testing Library's auto-cleanup — i.e. into a still-mounted tree. And because both locales
+are bundled, `changeLanguage` emits `languageChanged` **synchronously**, so `await` was never going
+to help. Every mounted `useTranslation` consumer answered with a `setState`; the per-component counts
+were a census of tree size, not a bug signature (130 for the Playground page, a flat 16 for all four
+app-shell tests).
+
+Both files already reset the locale in `beforeEach`, so the `afterEach` was dead weight. Deleting it:
+**360 → 0**, and the verbose run now contains **zero stderr blocks of any kind**. No hook-ordering
+config change, no `console.error` suppression.
+
+### Sponsors first-create focus — closed, and it taught us something
+
+The v1.0 note was directionally right and mechanically incomplete. Two findings only measurement
+produced:
+
+1. The CTA is detached **before `onOpenAutoFocus` runs**, so the shared hook never held a connected
+   opener on that path — `document.activeElement` was already `<body>`.
+2. **`<body>` is `isConnected`**, so the existing guard accepted it as a valid opener and focused it —
+   precisely the outcome the hook exists to prevent. `body` is now treated as "no opener".
+
+`useRestoreFocusOnClose` gained an optional `restoreFocusFallback: () => HTMLElement | null` —
+**a callback, never a selector string**, so overlay primitives never learn what a sponsor is.
+`SponsorsPage` owns the destination via a ref map of card edit buttons plus the last-opened id (the
+URL param is cleared *before* Radix's close-autofocus step, so `selectedId` is already `null` by
+then — that cost one debugging round). See the ADR-035 amendment.
+
+Verified in Chrome 149: first-create lands on the new card's edit button with a visible ring; the
+normal edit path is unchanged.
+
+**Test-harness lesson worth keeping:** the first jsdom harness for this passed for the wrong reason.
+Both arms of the conditional were `<button>`, so React **reused the DOM node** instead of unmounting
+it — the opener survived and the bug was never exercised. The arms must be *different element types*,
+as `EmptyState` vs the card grid are.
+
+### Security and dependencies
+
+Enabled after explicit approval, verified by API: Dependabot **vulnerability alerts** and
+**automated security fixes**. Private vulnerability reporting remains on. Deliberately **not**
+enabled: scheduled version-update PRs, and no `.github/dependabot.yml` — routine upgrades stay
+deliberate rather than on a timer. `SECURITY.md`'s "not currently enabled" line was corrected.
+
+`pnpm audit` found 10 advisories. One was runtime — `react-router` GHSA-qwww-vcr4-c8h2 (high) —
+patched by an in-range 7.18.1 → 7.18.2 bump (7.18.2 is the newest 7.x, so no minor/major drift).
+The remaining **9 are dev-only** and were deliberately left: `undici` ×5 via `jsdom`,
+`brace-expansion` ×2 via `eslint`, `postcss`/`nanoid` via `@tailwindcss/vite > vite`. None reach the
+shipped bundle; bundling them into this sprint would have put vitest and jsdom — which the whole
+733-test suite rests on — under churn during the sprint meant to stabilise it.
+
+### CI exists now
+
+There was **none** — zero workflows, zero runs ever, no `.github/`, no branch protection.
+`.github/workflows/ci.yml` runs the gates on push/PR to `main` (Ubuntu, Node 22, corepack honouring
+`packageManager`, pnpm cache, `--frozen-lockfile`).
+
+`scripts/check-act-warnings.mjs` (Node built-ins, no dependency) re-runs the suite with stderr
+visible and fails on any React `act(...)` warning. It keys on **React's own message**
+(`was not wrapped in act(`), not on Vitest's reporter layout, so a formatting change cannot make it
+silently pass. Verified non-vacuous: reintroducing the `afterEach` made it exit 1 and report exactly
+64 warnings. No branch protection this sprint — that is separate repository governance.
+
+### Gates
+
+`format:check` ✓ · `lint` **0 errors / 63 warnings** (exact baseline) · `typecheck` ✓ ·
+`test` **737/737, 64 files** (733 + 4) · `build` ✓ · `git diff --check` clean. Bundle: `index`
+274.33 → **274.42 kB** (gzip +0.05), CSS and `DossierProvider` unchanged.
+
+v1.0 contract re-verified unchanged: dossier `schemaVersion` 1.0.0 · Greece `templateVersion` 1.0.0 ·
+only the two permitted storage keys · `src/domain/`, `src/features/readiness/`,
+`src/features/validation/`, `src/features/import-export/`, `src/config/`, `src/data/` **untouched** ·
+`v1.0.0` tag still peels to `427015db`.
+
+### Next
+
+The maintenance baseline is clean; the next sprint can be a real feature. The only tracked debt is
+the 9 dev-only advisories.

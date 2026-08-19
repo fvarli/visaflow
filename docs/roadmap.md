@@ -55,6 +55,13 @@ Timeline feature's `timeline-dates` — onto a single shared source now that the
 shipped (the Timeline redesign deliberately reused only `deriveNextActions` and left the Dashboard
 untouched; ADR-029). *Tech debt.*
 
+**Maintenance baseline (v1.1, done):** the 360 React `act(...)` warnings are gone at the root cause,
+CI now runs the gates on every push/PR, Dependabot alerting is on, the one runtime dependency
+advisory is patched, and the Sponsors first-create focus P2 is closed. Remaining known debt: **9
+dev-only dependency advisories** (`undici` via `jsdom`, `brace-expansion` via `eslint`,
+`postcss`/`nanoid` via `vite`) — none ship in the bundle, all deliberately deferred rather than
+bundled into a maintenance sprint. *Tech debt.*
+
 ---
 
 ## Phase 2 — Core Workspace  ·  *Next*

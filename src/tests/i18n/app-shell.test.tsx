@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest'
+import { describe, it, expect, beforeEach } from 'vitest'
 import { render, screen, within } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import i18n, {
@@ -37,12 +37,12 @@ function renderShell() {
   )
 }
 
+// Reset the locale before each test, never after — an `afterEach` reset runs
+// before Testing Library's cleanup (Vitest reverses `afterEach` under its
+// default `sequence.hooks: "stack"`), so it emits `languageChanged` into a
+// still-mounted tree outside `act()`. See the longer note in `i18n.test.tsx`.
 beforeEach(async () => {
   window.localStorage.removeItem(LOCALE_STORAGE_KEY)
-  await i18n.changeLanguage(DEFAULT_LOCALE)
-})
-
-afterEach(async () => {
   await i18n.changeLanguage(DEFAULT_LOCALE)
 })
 

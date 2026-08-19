@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { describe, it, expect } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
@@ -86,6 +86,62 @@ function ControlledSheet() {
       </button>
       <Sheet open={open} onOpenChange={setOpen}>
         <SheetContent>
+          <SheetHeader>
+            <SheetTitle>Sheet title</SheetTitle>
+            <SheetDescription>Sheet description</SheetDescription>
+          </SheetHeader>
+          <button type="button">Inside sheet</button>
+        </SheetContent>
+      </Sheet>
+    </>
+  )
+}
+
+/**
+ * Mirrors Sponsors precisely: the button that opens the sheet is replaced by a
+ * "card" in the same commit, so the opener is already detached before
+ * `onOpenAutoFocus` runs. The page — not the primitive — names where focus
+ * should land instead.
+ */
+function SelfDestructingOpenerSheet({
+  withFallback,
+}: {
+  withFallback: boolean
+}) {
+  const [open, setOpen] = useState(false)
+  const [created, setCreated] = useState(false)
+  const cardAction = useRef<HTMLButtonElement | null>(null)
+  return (
+    <>
+      {created ? (
+        // Different element types on the two arms, exactly as SponsorsPage
+        // swaps `<EmptyState>` for the card grid. Same-type arms would let
+        // React reuse the DOM node instead of unmounting it, and the opener
+        // would survive — which is not the situation being tested.
+        <div>
+          <button type="button" ref={cardAction}>
+            Card action
+          </button>
+        </div>
+      ) : (
+        <section>
+          <button
+            type="button"
+            onClick={() => {
+              setCreated(true)
+              setOpen(true)
+            }}
+          >
+            Create and open
+          </button>
+        </section>
+      )}
+      <Sheet open={open} onOpenChange={setOpen}>
+        <SheetContent
+          restoreFocusFallback={
+            withFallback ? () => cardAction.current : undefined
+          }
+        >
           <SheetHeader>
             <SheetTitle>Sheet title</SheetTitle>
             <SheetDescription>Sheet description</SheetDescription>
@@ -207,5 +263,41 @@ describe('overlay focus restoration', () => {
       expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
     )
     expect(document.activeElement).not.toBe(opener)
+  })
+  it('falls back to a page-named target when the opener destroyed itself', async () => {
+    const user = userEvent.setup()
+    render(<SelfDestructingOpenerSheet withFallback />)
+
+    await user.click(screen.getByRole('button', { name: 'Create and open' }))
+    await screen.findByRole('dialog')
+    // The opener is gone before the sheet even took focus.
+    expect(
+      screen.queryByRole('button', { name: 'Create and open' })
+    ).not.toBeInTheDocument()
+
+    await user.keyboard('{Escape}')
+
+    await waitFor(() =>
+      expect(document.activeElement).toBe(
+        screen.getByRole('button', { name: 'Card action' })
+      )
+    )
+  })
+
+  it('ignores a fallback that resolves to nothing', async () => {
+    const user = userEvent.setup()
+    // Same flow, no fallback supplied: behaviour must be exactly as before.
+    render(<SelfDestructingOpenerSheet withFallback={false} />)
+
+    await user.click(screen.getByRole('button', { name: 'Create and open' }))
+    await screen.findByRole('dialog')
+    await user.keyboard('{Escape}')
+
+    await waitFor(() =>
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    )
+    expect(document.activeElement).not.toBe(
+      screen.getByRole('button', { name: 'Card action' })
+    )
   })
 })

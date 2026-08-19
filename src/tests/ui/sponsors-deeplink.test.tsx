@@ -7,6 +7,7 @@ import {
   waitFor,
   within,
 } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { MemoryRouter, useSearchParams } from 'react-router-dom'
 import i18n, {
   DEFAULT_LOCALE,
@@ -155,6 +156,50 @@ describe('Sponsors workspace — shell', () => {
         name: i18n.t('sponsors:empty.action'),
       })
     ).toBeInTheDocument()
+  })
+
+  it('sends focus to the new sponsor card after the first-create editor closes', async () => {
+    // The empty-state CTA creates the sponsor *and* opens the editor, so the
+    // button that was clicked is unmounted with the empty state in that same
+    // commit. There is no opener left to restore, and `document.activeElement`
+    // is already `<body>` by the time the sheet takes focus — so the page names
+    // the destination instead: the card for the sponsor just created.
+    const user = userEvent.setup()
+    renderSponsors('/sponsors', EMPTY_SEED)
+
+    await user.click(
+      await screen.findByRole('button', {
+        name: i18n.t('sponsors:empty.action'),
+      })
+    )
+    await screen.findByRole('dialog')
+
+    await user.keyboard('{Escape}')
+    await waitFor(() =>
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    )
+
+    await waitFor(() =>
+      expect(document.activeElement).toBe(
+        screen.getByRole('button', { name: i18n.t('sponsors:card.edit') })
+      )
+    )
+  })
+
+  it('still restores focus to the edit button on a normal edit close', async () => {
+    // The unchanged path: the opener survives, so the shared hook restores it
+    // directly and the fallback is never consulted.
+    const user = userEvent.setup()
+    renderSponsors()
+
+    const editButton = await screen.findByRole('button', {
+      name: i18n.t('sponsors:card.edit'),
+    })
+    await user.click(editButton)
+    await screen.findByRole('dialog')
+
+    await user.keyboard('{Escape}')
+    await waitFor(() => expect(document.activeElement).toBe(editButton))
   })
 
   it('renders a workspace card for a seeded sponsor', async () => {

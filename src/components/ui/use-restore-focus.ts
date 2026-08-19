@@ -1,6 +1,17 @@
 import * as React from 'react'
 
 /**
+ * Supplies a focus destination for the case where the element that opened an
+ * overlay no longer exists when it closes.
+ *
+ * Deliberately a callback returning an element, never a selector string or an
+ * id: the overlay primitives must not learn how any particular page identifies
+ * its own content. The primitive knows only "the opener is unavailable — caller,
+ * give me a target"; *what* that target means stays with the caller.
+ */
+export type RestoreFocusFallback = () => HTMLElement | null
+
+/**
  * Returns focus to whatever opened an overlay when that overlay closes.
  *
  * ## Why this exists
@@ -47,19 +58,25 @@ import * as React from 'react'
  *
  * ## Deliberate limits
  *
- * If the opener is gone from the DOM by the time the overlay closes, we do
- * **not** claim the event and behaviour is left exactly as Radix defines it. It
- * is better to leave one path unchanged than to guess at a replacement target.
- * The known case is Sponsors: `handleAdd` creates a sponsor *and* opens the
+ * If the opener is gone from the DOM by the time the overlay closes, the caller
+ * may supply `restoreFocusFallback` to name a replacement destination. Without
+ * one we still do **not** claim the event, and behaviour is exactly as Radix
+ * defines it — guessing a target is worse than doing nothing.
+ *
+ * The motivating case is Sponsors: `handleAdd` creates a sponsor *and* opens the
  * sheet, so the empty-state button that was clicked unmounts in the same commit
- * as the card grid replaces it.
+ * as the card grid replaces it. It is already detached before `onOpenAutoFocus`
+ * runs, so `openerRef` never holds a connected node on that path — no amount of
+ * generic bookkeeping can recover it, which is why the destination has to come
+ * from the page that knows what was created.
  *
  * A caller may still opt out entirely by calling `preventDefault()` in its own
  * `onCloseAutoFocus`; its handler runs first and wins.
  */
 export function useRestoreFocusOnClose(
   onOpenAutoFocus?: (event: Event) => void,
-  onCloseAutoFocus?: (event: Event) => void
+  onCloseAutoFocus?: (event: Event) => void,
+  restoreFocusFallback?: RestoreFocusFallback
 ): {
   onOpenAutoFocus: (event: Event) => void
   onCloseAutoFocus: (event: Event) => void
@@ -84,15 +101,25 @@ export function useRestoreFocusOnClose(
       const opener = openerRef.current
       openerRef.current = null
 
-      // `isConnected` covers the opener being unmounted while the overlay was
-      // open — restoring focus to a detached node would silently land on
-      // `<body>` anyway, and is indistinguishable from doing nothing.
-      if (!opener?.isConnected) return
+      // Two ways to have no usable opener, and both must reach the fallback:
+      //
+      //  - the recorded node was unmounted while the overlay was open, so it is
+      //    no longer `isConnected`;
+      //  - the opener was *already* gone when the overlay took focus, in which
+      //    case `document.activeElement` was `<body>`. Body is connected, so it
+      //    passes an `isConnected` check while being exactly the outcome this
+      //    hook exists to avoid — treat it as "no opener", never as a target.
+      const hasOpener =
+        opener !== null && opener.isConnected && opener !== document.body
+
+      const target = hasOpener ? opener : (restoreFocusFallback?.() ?? null)
+
+      if (!target?.isConnected) return
 
       event.preventDefault()
-      opener.focus()
+      target.focus()
     },
-    [onCloseAutoFocus]
+    [onCloseAutoFocus, restoreFocusFallback]
   )
 
   return {

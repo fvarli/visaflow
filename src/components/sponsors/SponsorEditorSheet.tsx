@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { TrendingUp, Building2, Trash2 } from 'lucide-react'
 import { useDossier } from '@/app/providers/DossierProvider'
 import { Button } from '@/components/ui/button'
+import type { RestoreFocusFallback } from '@/components/ui/use-restore-focus'
 import {
   Sheet,
   SheetContent,
@@ -65,6 +66,12 @@ interface SponsorEditorSheetProps {
   sponsorId: string | null
   onClose: () => void
   onRequestRemove: () => void
+  /**
+   * Where focus should land if whatever opened this sheet is gone by the time
+   * it closes — which is the norm for the first sponsor, because the empty-state
+   * button that created it is replaced by the card grid in the same commit.
+   */
+  restoreFocusFallback?: RestoreFocusFallback
 }
 
 const CURRENCIES = CurrencySchema.options
@@ -87,6 +94,7 @@ export function SponsorEditorSheet({
   sponsorId,
   onClose,
   onRequestRemove,
+  restoreFocusFallback,
 }: SponsorEditorSheetProps) {
   const { state, updateSponsor } = useDossier()
   const model = useSponsorsModel()
@@ -110,6 +118,7 @@ export function SponsorEditorSheet({
       <SheetContent
         side="right"
         className="flex w-full flex-col gap-0 overflow-y-auto p-0 sm:max-w-lg"
+        restoreFocusFallback={restoreFocusFallback}
       >
         {sponsor && card && (
           <SponsorEditorBody

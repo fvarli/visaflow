@@ -1,6 +1,6 @@
 # Current Implementation Status
 
-Last updated: 2026-08-16 — **released as v1.0.0**
+Last updated: 2026-08-17 — v1.0.0 released; maintenance sprint (v1.1 baseline)
 
 Application version **1.0.0** (Phase 1 — Foundation shipped). The dossier JSON `schemaVersion`
 remains **1.0.0** and is versioned independently; reaching application v1.0.0 did not change the
@@ -254,6 +254,13 @@ later phase in [roadmap.md](./roadmap.md):
 
 ## Active Issues
 
+### Dependency advisories (dev-only, tracked)
+
+`pnpm audit` reports **9** advisories, all in dev/build chains that never reach the shipped bundle:
+`undici` ×5 via `jsdom`, `brace-expansion` ×2 via `eslint`, and `postcss`/`nanoid` via
+`@tailwindcss/vite > vite`. The one runtime advisory (`react-router` GHSA-qwww-vcr4-c8h2, high) was
+patched to 7.18.2. Dependabot alerts and automated security fixes are enabled, so these stay visible.
+
 ### Lint Warnings (Acceptable)
 - `react-refresh/only-export-components` in route/provider files
 - `react-hooks/incompatible-library` for React Hook Form watch
@@ -291,9 +298,12 @@ These warnings don't affect functionality.
   `:focus-visible` rule in `@layer base` and leaves a control with no keyboard
   focus indicator at all (`src/tests/ui/focus-visible.test.ts`)
 - Overlay focus restoration: Dialog, Sheet and AlertDialog return focus to
-  whatever opened them, via `Escape` and via the visible close action, and
-  degrade safely when the opener unmounted
+  whatever opened them, via `Escape` and via the visible close action; when the
+  opener no longer exists the caller may name a destination
   (`src/tests/ui/overlay-focus-restore.test.tsx`, ADR-035)
+- Sponsors first-create focus: creating the first sponsor destroys the button
+  that created it, so focus lands on the new sponsor's card; the normal edit
+  path still restores its own trigger (`src/tests/ui/sponsors-deeplink.test.tsx`)
 - E2E tests: not yet implemented
 
 ## Build Status
@@ -302,11 +312,16 @@ All checks pass:
 - `pnpm format:check` - PASS
 - `pnpm lint` - 0 errors (warnings acceptable, see *Active Issues* above)
 - `pnpm typecheck` - PASS (`tsc -b`)
-- `pnpm test` - 733/733 PASS (64 files)
+- `pnpm test` - 737/737 PASS (64 files)
 - `pnpm build` - SUCCESS
 
-Bundle: `index` 274.33 kB / 83.30 kB gzip, `DossierProvider` 442.86 / 136.48 gzip,
-CSS 85.47 / 17.45 kB gzip.
+Bundle: `index` 274.42 kB / 83.35 kB gzip, `DossierProvider` 442.86 / 136.48 gzip,
+CSS 85.50 / 17.45 kB gzip.
+
+**Continuous integration:** `.github/workflows/ci.yml` runs the gates above on every push and PR to
+`main`, plus `scripts/check-act-warnings.mjs`, which fails the build on any React `act(...)` warning.
+Vitest's default reporter hides console output from passing tests, so green tests alone are not
+evidence of a quiet suite.
 
 Note: an earlier version of this file claimed 23/23 tests and `tsc --noEmit`;
 the script is now `tsc -b` and the suite has grown.
