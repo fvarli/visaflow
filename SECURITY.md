@@ -72,10 +72,10 @@ While VisaFlow minimizes data exposure, users should be aware:
 
 Dependencies are pinned in `pnpm-lock.yaml` and reviewed with `pnpm audit`.
 
-GitHub Dependabot vulnerability alerts and automated security fixes are enabled, so known advisories
-affecting the lockfile are flagged automatically and a fix PR is opened where one exists. Scheduled
-version-update PRs are deliberately not enabled — routine upgrades are done deliberately, not on a
-timer.
+GitHub Dependabot vulnerability alerts are enabled, so known advisories affecting the lockfile are
+flagged automatically. Dependabot does **not** open pull requests here: neither automated security
+fixes nor scheduled version updates are enabled, so upgrades are always applied deliberately rather
+than on a timer. Alerts are reviewed and acted on by hand.
 
 ## Content Security
 
