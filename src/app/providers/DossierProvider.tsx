@@ -41,6 +41,15 @@ interface DossierState {
   sponsors: Sponsor[]
   isDirty: boolean
   lastSaved: Date | null
+  /**
+   * Bumped whenever the whole document is swapped rather than edited.
+   *
+   * Forms read their initial values once, at mount, so replacing the dossier
+   * underneath a mounted form would leave the old values on screen — switching
+   * dossiers, or reloading one after a cross-tab conflict, would look like it
+   * had done nothing. Used as a React `key` so those pages remount.
+   */
+  generation: number
 }
 
 // Action types
@@ -77,6 +86,7 @@ const initialState: DossierState = {
   sponsors: [],
   isDirty: false,
   lastSaved: null,
+  generation: 0,
 }
 
 // Helper to create empty applicant
@@ -130,6 +140,8 @@ function dossierReducer(
         sponsors: sponsors ?? state.sponsors,
         isDirty: false,
         lastSaved: new Date(),
+        // Loading a file also swaps what a mounted form should be showing.
+        generation: state.generation + 1,
       }
     }
 
@@ -139,6 +151,7 @@ function dossierReducer(
         ...action.payload,
         isDirty: false,
         lastSaved: state.lastSaved,
+        generation: state.generation + 1,
       }
     }
 
@@ -291,7 +304,7 @@ function dossierReducer(
       }
 
     case 'RESET':
-      return initialState
+      return { ...initialState, generation: state.generation + 1 }
 
     default:
       return state

@@ -27,9 +27,18 @@ export function createSavedDossierId(): string {
  * Falls back through what is actually known rather than inventing a name.
  */
 export function deriveDisplayTitle(
-  record: Pick<SavedDossierRecord, 'applicantName' | 'destinationCountry'>,
+  record: Pick<
+    SavedDossierRecord,
+    'applicantName' | 'destinationCountry' | 'title'
+  >,
   fallback: string
 ): string {
+  // An explicit name always wins, and is never quietly replaced when the
+  // applicant or destination later changes — the user said what this dossier is
+  // called, and edits to its contents are not a retraction of that.
+  const explicit = record.title?.trim()
+  if (explicit) return explicit
+
   const name = record.applicantName?.trim()
   if (name && record.destinationCountry)
     return `${name} · ${record.destinationCountry}`
@@ -58,6 +67,10 @@ export function toRecord(
   return {
     id,
     storageVersion: STORAGE_FORMAT_VERSION,
+    // The adapter owns the increment — it is the only place that can compare
+    // and write atomically. This is the revision being *asserted*, not claimed.
+    revision: previous?.revision ?? 1,
+    title: previous?.title ?? null,
     dossierSchemaVersion,
     createdAt: previous?.createdAt ?? now,
     updatedAt: now,
@@ -84,8 +97,19 @@ export function toSummary(
     lastOpenedAt: record.lastOpenedAt,
     lastExportedAt: record.lastExportedAt,
     documentCount: record.payload.documents.length,
+    revision: record.revision,
+    named: Boolean(record.title?.trim()),
     unreadable: false,
   }
+}
+
+/**
+ * Normalise a user-entered name. Whitespace-only clears back to `null` so the
+ * derived title returns, rather than leaving a dossier with a blank name.
+ */
+export function normalizeTitle(input: string): string | null {
+  const trimmed = input.trim()
+  return trimmed.length > 0 ? trimmed : null
 }
 
 /** An unreadable record still gets a row, so the user can see it and export it. */
@@ -103,6 +127,8 @@ export function unreadableSummary(
     lastOpenedAt: '',
     lastExportedAt: null,
     documentCount: 0,
+    revision: 0,
+    named: false,
     unreadable: true,
   }
 }

@@ -6,6 +6,7 @@ import { Header } from './Header'
 import { Footer } from './Footer'
 import { MobileNav } from './MobileNav'
 import { SkipLink } from './SkipLink'
+import { ConflictBanner } from './ConflictBanner'
 import { useDossier } from '@/app/providers/DossierProvider'
 import { useWorkspace } from '@/app/providers/WorkspaceProvider'
 import { buildDocumentReadiness } from '@/features/readiness/document-readiness'
@@ -184,7 +185,14 @@ export function AppLayout() {
 
         <div className="mx-auto flex w-full max-w-[1120px] flex-1 flex-col gap-10 px-5 py-8 md:px-8 md:py-10">
           <div className="flex-1">
-            <Outlet />
+            {/* Above the page, not inside it: the conflict is about the whole
+                open dossier, so it must be visible from wherever you were. */}
+            <ConflictBanner />
+            {/* Remount the page when the whole dossier is swapped — switching
+                dossiers, or reloading one after a cross-tab conflict. Forms
+                read their initial values at mount, so without this the fields
+                on screen would still be the previous dossier's. */}
+            <Outlet key={state.generation} />
           </div>
           <Footer />
         </div>

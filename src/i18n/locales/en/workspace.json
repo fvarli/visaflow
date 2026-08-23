@@ -27,6 +27,16 @@
     "unreadable": "Cannot be opened",
     "unreadableHint": "This dossier was saved by a newer version of VisaFlow. It has not been deleted — update VisaFlow, or export it as a file from a version that can read it."
   },
+  "rename": {
+    "action": "Rename",
+    "actionAria": "Rename {{name}}",
+    "label": "Dossier name",
+    "hint": "Only you see this name, and it stays in this browser — it is never part of the exported file.",
+    "placeholder": "e.g. Greece, September",
+    "save": "Save name",
+    "cancel": "Cancel",
+    "clearHint": "Leave it empty to go back to the automatic name."
+  },
   "remove": {
     "title": "Delete {{name}}?",
     "body": "This permanently deletes this dossier from this browser. Any JSON file you already exported is unaffected. This cannot be undone.",
@@ -56,5 +66,14 @@
     "never": "Never exported",
     "at": "Last exported {{date}}",
     "pending": "Changes since your last export"
+  },
+  "conflict": {
+    "changedTitle": "This dossier was changed in another tab",
+    "changedBody": "Your edits here have not been saved. Nothing has been thrown away — choose which version to keep.",
+    "deletedTitle": "This dossier was deleted in another tab",
+    "deletedBody": "Your edits here have not been saved, and this dossier no longer exists in this browser. You can keep your version as a new dossier.",
+    "reload": "Open the saved version",
+    "saveAsNew": "Keep my version as a new dossier",
+    "exportHint": "You can still export this version to a file first."
   }
 }

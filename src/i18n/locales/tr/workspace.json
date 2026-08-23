@@ -27,6 +27,16 @@
     "unreadable": "Açılamıyor",
     "unreadableHint": "Bu dosya VisaFlow'un daha yeni bir sürümüyle kaydedilmiş. Silinmedi — VisaFlow'u güncelleyin veya okuyabilen bir sürümden dosya olarak dışa aktarın."
   },
+  "rename": {
+    "action": "Yeniden adlandır",
+    "actionAria": "{{name}} dosyasını yeniden adlandır",
+    "label": "Dosya adı",
+    "hint": "Bu adı yalnızca siz görürsünüz ve bu tarayıcıda kalır — dışa aktarılan dosyaya hiçbir zaman eklenmez.",
+    "placeholder": "örn. Yunanistan, Eylül",
+    "save": "Adı kaydet",
+    "cancel": "Vazgeç",
+    "clearHint": "Otomatik ada dönmek için boş bırakın."
+  },
   "remove": {
     "title": "{{name}} silinsin mi?",
     "body": "Bu dosya bu tarayıcıdan kalıcı olarak silinir. Daha önce dışa aktardığınız JSON dosyası etkilenmez. Bu işlem geri alınamaz.",
@@ -56,5 +66,14 @@
     "never": "Hiç dışa aktarılmadı",
     "at": "Son dışa aktarma: {{date}}",
     "pending": "Son dışa aktarmadan bu yana değişiklikler var"
+  },
+  "conflict": {
+    "changedTitle": "Bu dosya başka bir sekmede değiştirildi",
+    "changedBody": "Buradaki düzenlemeleriniz kaydedilmedi. Hiçbir şey silinmedi — hangi sürümü tutacağınızı seçin.",
+    "deletedTitle": "Bu dosya başka bir sekmede silindi",
+    "deletedBody": "Buradaki düzenlemeleriniz kaydedilmedi ve bu dosya artık bu tarayıcıda yok. Sürümünüzü yeni bir dosya olarak saklayabilirsiniz.",
+    "reload": "Kayıtlı sürümü aç",
+    "saveAsNew": "Sürümümü yeni dosya olarak sakla",
+    "exportHint": "İsterseniz önce bu sürümü dosya olarak dışa aktarabilirsiniz."
   }
 }

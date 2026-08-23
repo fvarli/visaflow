@@ -212,3 +212,154 @@ describe('dossier switcher', () => {
     expect(trigger.textContent ?? '').not.toContain('FIXTURE-1')
   })
 })
+
+/**
+ * Renaming is local metadata, so these tests care about two things: that the
+ * name the user typed is the name they get back, and that no other gesture —
+ * Escape, clicking away — can rename a dossier by accident.
+ */
+describe('renaming a dossier', () => {
+  const pencilFor = async (name: string) =>
+    await screen.findByRole('button', { name: `Rename ${name}` })
+
+  /** The first card's pencil, plus the dossier name it is labelled with. */
+  const firstCard = async () => {
+    const pencils = await screen.findAllByRole('button', { name: /^Rename / })
+    const pencil = pencils[0]
+    if (!pencil) throw new Error('no renameable dossier rendered')
+    return {
+      pencil,
+      name: (pencil.getAttribute('aria-label') ?? '').replace(/^Rename /, ''),
+    }
+  }
+
+  it('opens an editor primed with an empty field and the derived name showing', async () => {
+    await i18n.changeLanguage('en')
+    const user = userEvent.setup()
+    renderPage(await seeded())
+
+    const { pencil, name } = await firstCard()
+    expect(name).not.toBe('')
+    await user.click(pencil)
+
+    const input = screen.getByLabelText(i18n.t('workspace:rename.label'))
+    expect(input).toHaveFocus()
+    // Empty rather than pre-filled with the derived name: committing by reflex
+    // would freeze an automatic title into an explicit one.
+    expect(input).toHaveValue('')
+  })
+
+  it('saves the typed name and shows it instead of the derived one', async () => {
+    await i18n.changeLanguage('en')
+    const user = userEvent.setup()
+    const repo = await seeded()
+    renderPage(repo)
+
+    // Both fixtures derive the same display name, so the card is identified by
+    // what the rename does to it rather than by a hard-coded id.
+    const before = await repo.list()
+    await user.click((await firstCard()).pencil)
+    await user.type(
+      screen.getByLabelText(i18n.t('workspace:rename.label')),
+      'Greece, September{Enter}'
+    )
+
+    expect(
+      await screen.findByRole('heading', {
+        level: 2,
+        name: 'Greece, September',
+      })
+    ).toBeInTheDocument()
+
+    const renamed = (await repo.list()).filter(
+      (r) => r.title === 'Greece, September'
+    )
+    expect(renamed).toHaveLength(1)
+    // The dossier itself is untouched — only workspace metadata changed.
+    const original = before.find((r) => r.id === renamed[0]?.id)
+    expect(renamed[0]?.payload).toEqual(original?.payload)
+  })
+
+  it('abandons the edit on Escape and returns focus to the pencil', async () => {
+    await i18n.changeLanguage('en')
+    const user = userEvent.setup()
+    const repo = await seeded()
+    renderPage(repo)
+
+    const { pencil, name } = await firstCard()
+    await user.click(pencil)
+    await user.type(
+      screen.getByLabelText(i18n.t('workspace:rename.label')),
+      'Never saved{Escape}'
+    )
+
+    await waitFor(() =>
+      expect(
+        screen.queryByLabelText(i18n.t('workspace:rename.label'))
+      ).not.toBeInTheDocument()
+    )
+    // Focus goes back to the control that opened the editor, not to <body>.
+    // The pencil is a freshly mounted node by now, so identify it by its label.
+    expect(document.activeElement).toHaveAttribute(
+      'aria-label',
+      `Rename ${name}`
+    )
+    expect((await repo.list()).every((r) => r.title === null)).toBe(true)
+  })
+
+  it('does not rename when the field merely loses focus', async () => {
+    await i18n.changeLanguage('en')
+    const user = userEvent.setup()
+    const repo = await seeded()
+    renderPage(repo)
+
+    await user.click((await firstCard()).pencil)
+    await user.type(
+      screen.getByLabelText(i18n.t('workspace:rename.label')),
+      'Half a thought'
+    )
+    await user.tab()
+    await user.tab()
+
+    expect((await repo.list()).every((r) => r.title === null)).toBe(true)
+  })
+
+  it('restores the derived name when the field is cleared', async () => {
+    await i18n.changeLanguage('en')
+    const user = userEvent.setup()
+    const repo = await seeded()
+    const record = await repo.get('a')
+    if (!record) throw new Error('fixture missing')
+    await repo.put({ ...record, title: 'An explicit name' }, record.revision)
+    renderPage(repo)
+
+    await user.click(await pencilFor('An explicit name'))
+    const input = screen.getByLabelText(i18n.t('workspace:rename.label'))
+    await user.clear(input)
+    await user.type(input, '   {Enter}')
+
+    // Whitespace is not a name: it clears back to null so the derived title
+    // returns, rather than persisting a blank heading.
+    await waitFor(async () => expect((await repo.get('a'))?.title).toBeNull())
+    expect(
+      screen.queryByRole('heading', { level: 2, name: 'An explicit name' })
+    ).not.toBeInTheDocument()
+  })
+
+  it('offers no rename for a dossier it cannot read', async () => {
+    await i18n.changeLanguage('en')
+    const repo = new MemoryDossierRepository()
+    repo.seedRaw('future', {
+      ...toRecord('future', payloadOf(partiallyPrepared), SCHEMA_VERSION, NOW),
+      storageVersion: 99,
+    })
+    renderPage(repo)
+
+    expect(
+      await screen.findByText(i18n.t('workspace:card.unreadable'))
+    ).toBeInTheDocument()
+    expect(
+      screen.queryByRole('button', { name: /^Rename / })
+    ).not.toBeInTheDocument()
+  })
+})

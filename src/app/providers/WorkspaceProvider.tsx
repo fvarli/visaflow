@@ -19,7 +19,14 @@ import type {
   SavedDossierSummary,
 } from '@/features/workspace/saved-dossier'
 import {
+  createWorkspaceChannel,
+  type WorkspaceChannel,
+  type WorkspaceEvent,
+  type WorkspaceEventInput,
+} from '@/features/workspace/workspace-channel'
+import {
   createSavedDossierId,
+  normalizeTitle,
   nextActiveAfterDelete,
   sortSummaries,
   toRecord,
@@ -50,8 +57,22 @@ import {
 export type PersistenceStatus =
   'idle' | 'saving' | 'saved' | 'error' | 'sessionOnly' | 'unavailable'
 
+/**
+ * Why this tab cannot save right now.
+ *
+ * `remote-change` — another tab wrote a newer revision of this dossier.
+ * `remote-delete` — another tab deleted it.
+ *
+ * In both cases autosave stops rather than retrying, and neither version is
+ * discarded until the user picks one (ADR-037).
+ */
+export type WorkspaceConflict =
+  | { kind: 'remote-change'; dossierId: string }
+  | { kind: 'remote-delete'; dossierId: string }
+
 interface WorkspaceContextValue {
   ready: boolean
+  conflict: WorkspaceConflict | null
   summaries: SavedDossierSummary[]
   activeId: string | null
   status: PersistenceStatus
@@ -68,6 +89,11 @@ interface WorkspaceContextValue {
   ) => Promise<void>
   openDossier: (id: string) => Promise<void>
   deleteDossier: (id: string) => Promise<void>
+  renameDossier: (id: string, title: string) => Promise<void>
+  /** Discard this tab's unsaved edits and adopt the stored record. */
+  reloadLatest: () => Promise<void>
+  /** Keep this tab's edits under a brand-new id, leaving the other untouched. */
+  saveAsNew: () => Promise<void>
   /** Write any pending edit immediately — used before switching and on unload. */
   flush: () => Promise<void>
 }
@@ -76,6 +102,17 @@ const WorkspaceContext = createContext<WorkspaceContextValue | null>(null)
 
 /** How long to coalesce keystrokes before writing. */
 const AUTOSAVE_DELAY_MS = 600
+
+/**
+ * Cheap identity for "is this exactly what storage already holds".
+ *
+ * Both sides are produced by the same code paths, so key order matches; if it
+ * ever did not, the only cost is one redundant write — the same behaviour we
+ * had before this check existed.
+ */
+function serializePayload(payload: DossierPayload): string {
+  return JSON.stringify(payload)
+}
 
 interface WorkspaceProviderProps {
   children: React.ReactNode
@@ -108,12 +145,34 @@ export function WorkspaceProvider({
     repo ? 'idle' : 'unavailable'
   )
   const [lastPersistedAt, setLastPersistedAt] = useState<string | null>(null)
+  const [conflict, setConflict] = useState<WorkspaceConflict | null>(null)
+
+  // The revision this tab believes it is editing. Every write asserts it, so a
+  // tab that has fallen behind is rejected instead of clobbering.
+  const revisionRef = useRef<number | null>(null)
+  const conflictRef = useRef<WorkspaceConflict | null>(null)
+  /**
+   * Owned by the subscription effect below, not by a `useMemo`.
+   *
+   * A memoized channel with its own cleanup effect looks equivalent and is not:
+   * React 19's StrictMode mounts, cleans up, and mounts again, which closed the
+   * one `BroadcastChannel` the memo would never rebuild. The tab then went
+   * silent — writes stayed safe, because revisions are what protect them, but
+   * every notification was lost. Create and destroy the resource in the same
+   * effect so a second mount gets a second channel.
+   */
+  const channelRef = useRef<WorkspaceChannel | null>(null)
+  const postEvent = useCallback((event: WorkspaceEventInput) => {
+    channelRef.current?.post(event)
+  }, [])
 
   // Refs rather than state: the autosave effect must read the *current* values
   // without re-subscribing on every keystroke.
   const activeIdRef = useRef<string | null>(null)
   const sessionOnlyRef = useRef(false)
   const pendingRef = useRef<DossierPayload | null>(null)
+  /** What storage is known to hold, so we never write it back unchanged. */
+  const lastWrittenRef = useRef<string | null>(null)
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const hydratingRef = useRef(true)
 
@@ -125,6 +184,9 @@ export function WorkspaceProvider({
   useEffect(() => {
     sessionOnlyRef.current = sessionOnly
   }, [sessionOnly])
+  useEffect(() => {
+    conflictRef.current = conflict
+  }, [conflict])
 
   const refreshSummaries = useCallback(async (): Promise<
     SavedDossierSummary[]
@@ -146,13 +208,42 @@ export function WorkspaceProvider({
     async (payload: DossierPayload) => {
       const id = activeIdRef.current
       if (!repo || !id || sessionOnlyRef.current) return
+      // A conflicted dossier stops writing entirely: retrying a doomed save
+      // would either fail forever or, worse, eventually succeed and overwrite
+      // the other tab.
+      if (conflictRef.current) return
+
       setStatus('saving')
       try {
         const previous = await repo.get(id)
         const now = new Date().toISOString()
-        await repo.put(toRecord(id, payload, SCHEMA_VERSION, now, previous))
+        const expected = revisionRef.current ?? undefined
+        const result = await repo.put(
+          toRecord(id, payload, SCHEMA_VERSION, now, previous),
+          expected
+        )
+
+        if (!result.ok) {
+          // Someone else got there first. Say so; change nothing.
+          setConflict({
+            kind:
+              result.reason === 'deleted' ? 'remote-delete' : 'remote-change',
+            dossierId: id,
+          })
+          setStatus('error')
+          await refreshSummaries()
+          return
+        }
+
+        revisionRef.current = result.revision
+        lastWrittenRef.current = serializePayload(payload)
         setLastPersistedAt(now)
         setStatus('saved')
+        postEvent({
+          type: 'updated',
+          dossierId: id,
+          revision: result.revision,
+        })
         await refreshSummaries()
       } catch {
         // Surfaced, never swallowed — and never reported as "Saved". The
@@ -160,7 +251,7 @@ export function WorkspaceProvider({
         setStatus('error')
       }
     },
-    [repo, refreshSummaries]
+    [repo, refreshSummaries, postEvent]
   )
 
   const flush = useCallback(async () => {
@@ -189,8 +280,10 @@ export function WorkspaceProvider({
           if (!cancelled && record) {
             setActiveId(record.id)
             activeIdRef.current = record.id
+            revisionRef.current = record.revision
             setLastPersistedAt(record.updatedAt)
             setStatus('saved')
+            lastWrittenRef.current = serializePayload(record.payload)
             replaceDossier(record.payload)
           }
         }
@@ -212,6 +305,7 @@ export function WorkspaceProvider({
   // Autosave: coalesce edits, then write once.
   useEffect(() => {
     if (!repo || hydratingRef.current || !activeId || sessionOnly) return
+    if (conflict) return
     if (!state.applicant && !state.application) return
 
     const payload: DossierPayload = {
@@ -220,6 +314,12 @@ export function WorkspaceProvider({
       documents: state.documents,
       sponsors: state.sponsors,
     }
+    // Hydrating, reloading and switching all push a payload into state that is
+    // already in storage. Writing it back would bump the revision, touch
+    // `updatedAt`, and make a tab that merely *looked* at a dossier announce a
+    // change to every other tab. Compare first.
+    if (serializePayload(payload) === lastWrittenRef.current) return
+
     pendingRef.current = payload
 
     if (timerRef.current) clearTimeout(timerRef.current)
@@ -232,7 +332,7 @@ export function WorkspaceProvider({
     return () => {
       if (timerRef.current) clearTimeout(timerRef.current)
     }
-  }, [repo, state, activeId, sessionOnly, writeNow])
+  }, [repo, state, activeId, sessionOnly, conflict, writeNow])
 
   // A tab being hidden or closed is the moment a debounce would lose work.
   useEffect(() => {
@@ -262,6 +362,10 @@ export function WorkspaceProvider({
       activeIdRef.current = id
       setSessionOnly(asSessionOnly)
       sessionOnlyRef.current = asSessionOnly
+      revisionRef.current = null
+      lastWrittenRef.current = null
+      setConflict(null)
+      conflictRef.current = null
       setLastPersistedAt(null)
 
       if (!repo || asSessionOnly) {
@@ -301,9 +405,16 @@ export function WorkspaceProvider({
       replaceDossier(payload)
       // Imports are worth writing immediately: the user just handed us a file
       // and expects it to be in the workspace, not 600ms from now.
-      if (id) await writeNow(payload)
+      if (id) {
+        await writeNow(payload)
+        postEvent({
+          type: 'created',
+          dossierId: id,
+          revision: revisionRef.current ?? 1,
+        })
+      }
     },
-    [flush, adoptIdentity, replaceDossier, writeNow]
+    [flush, adoptIdentity, replaceDossier, writeNow, postEvent]
   )
 
   const openDossier = useCallback(
@@ -314,16 +425,33 @@ export function WorkspaceProvider({
       await flush()
       const record = await repo.get(id)
       if (!record) return
+
+      // `lastOpenedAt` is a sorting convenience, not dossier data. Touch it
+      // under the same compare-and-swap as everything else so that *opening* a
+      // dossier can never overwrite an edit another tab just made — and if we
+      // lose that race, take their version instead of fighting for a timestamp.
       const now = new Date().toISOString()
-      await repo.put({ ...record, lastOpenedAt: now })
+      const touched = await repo.put(
+        { ...record, lastOpenedAt: now },
+        record.revision
+      )
+      const current = touched.ok
+        ? { ...record, lastOpenedAt: now, revision: touched.revision }
+        : await repo.get(id)
+      if (!current) return
+
       await repo.writeMeta({ activeDossierId: id })
       setActiveId(id)
       activeIdRef.current = id
+      revisionRef.current = current.revision
       setSessionOnly(false)
       sessionOnlyRef.current = false
-      setLastPersistedAt(record.updatedAt)
+      setConflict(null)
+      conflictRef.current = null
+      setLastPersistedAt(current.updatedAt)
       setStatus('saved')
-      replaceDossier(record.payload)
+      lastWrittenRef.current = serializePayload(current.payload)
+      replaceDossier(current.payload)
       await refreshSummaries()
     },
     [repo, flush, replaceDossier, refreshSummaries]
@@ -333,6 +461,7 @@ export function WorkspaceProvider({
     async (id: string) => {
       if (!repo) return
       await repo.delete(id)
+      postEvent({ type: 'deleted', dossierId: id })
       const remaining = await refreshSummaries()
       if (id !== activeIdRef.current) return
 
@@ -351,12 +480,165 @@ export function WorkspaceProvider({
       await repo.writeMeta({ activeDossierId: null })
       reset()
     },
-    [repo, refreshSummaries, openDossier, reset]
+    [repo, refreshSummaries, openDossier, reset, postEvent]
   )
+
+  /**
+   * Give a dossier an explicit name.
+   *
+   * A rename is a persisted workspace change like any other, so it goes through
+   * the same compare-and-swap — renaming from a stale tab must not clobber a
+   * newer edit either.
+   */
+  const renameDossier = useCallback(
+    async (id: string, title: string) => {
+      if (!repo) return
+      const record = await repo.get(id)
+      if (!record) return
+      const result = await repo.put(
+        { ...record, title: normalizeTitle(title) },
+        record.revision
+      )
+      if (result.ok) {
+        if (id === activeIdRef.current) revisionRef.current = result.revision
+        postEvent({
+          type: 'updated',
+          dossierId: id,
+          revision: result.revision,
+        })
+      }
+      await refreshSummaries()
+    },
+    [repo, refreshSummaries, postEvent]
+  )
+
+  /** Resolve a conflict by taking the stored version. Discards local edits. */
+  const reloadLatest = useCallback(async () => {
+    const id = conflictRef.current?.dossierId ?? activeIdRef.current
+    if (!repo || !id) return
+
+    const record = await repo.get(id)
+    if (!record) {
+      // Deleted while we were deciding — there is nothing to reload.
+      setConflict({ kind: 'remote-delete', dossierId: id })
+      return
+    }
+    revisionRef.current = record.revision
+    setConflict(null)
+    conflictRef.current = null
+    setLastPersistedAt(record.updatedAt)
+    setStatus('saved')
+    lastWrittenRef.current = serializePayload(record.payload)
+    replaceDossier(record.payload)
+    await refreshSummaries()
+  }, [repo, replaceDossier, refreshSummaries])
+
+  /**
+   * Resolve a conflict by keeping *this* tab's version under a new identity.
+   *
+   * Deliberately a fresh id: reusing the conflicted one would overwrite the
+   * other tab's work, and reusing a deleted one would resurrect something the
+   * user deleted on purpose. Both versions survive and the user sorts it out.
+   */
+  const saveAsNew = useCallback(async () => {
+    if (!repo) return
+    const payload: DossierPayload = {
+      applicant: state.applicant,
+      application: state.application,
+      documents: state.documents,
+      sponsors: state.sponsors,
+    }
+    const id = createSavedDossierId()
+
+    setConflict(null)
+    conflictRef.current = null
+    setActiveId(id)
+    activeIdRef.current = id
+    revisionRef.current = null
+
+    const now = new Date().toISOString()
+    const result = await repo.put(toRecord(id, payload, SCHEMA_VERSION, now))
+    if (result.ok) {
+      revisionRef.current = result.revision
+      lastWrittenRef.current = serializePayload(payload)
+      setLastPersistedAt(now)
+      setStatus('saved')
+      await repo.writeMeta({ activeDossierId: id })
+      postEvent({
+        type: 'created',
+        dossierId: id,
+        revision: result.revision,
+      })
+    } else {
+      setStatus('error')
+    }
+    await refreshSummaries()
+  }, [repo, state, refreshSummaries, postEvent])
+
+  // Listen for what other tabs did. Hints only — the compare-and-swap above is
+  // what actually keeps writes safe, so a missed message costs nothing.
+  const handleEvent = useCallback(
+    (event: WorkspaceEvent) => {
+      const openId = activeIdRef.current
+
+      if (event.type === 'deleted') {
+        if (event.dossierId === openId) {
+          setConflict({ kind: 'remote-delete', dossierId: event.dossierId })
+          setStatus('error')
+        }
+        void refreshSummaries()
+        return
+      }
+
+      if (event.type === 'created') {
+        void refreshSummaries()
+        return
+      }
+
+      // A remote write can change the list itself (a rename), so the summaries
+      // are refreshed for every `updated` event, not only for our own dossier.
+      void refreshSummaries()
+      if (event.dossierId !== openId) return
+
+      // Our open dossier moved on elsewhere. If this tab has nothing pending,
+      // adopting the newer version loses nothing and is the calmer outcome.
+      // With edits in flight, say so instead — never overwrite silently.
+      if (
+        pendingRef.current === null &&
+        revisionRef.current !== event.revision
+      ) {
+        void reloadLatest()
+      } else if (revisionRef.current !== event.revision) {
+        setConflict({ kind: 'remote-change', dossierId: event.dossierId })
+        setStatus('error')
+      }
+    },
+    [refreshSummaries, reloadLatest]
+  )
+
+  // The handler goes through a ref so the effect below can have empty
+  // dependencies: the channel is a browser resource, and reopening it whenever
+  // a callback's identity changed would drop messages for no reason.
+  const handlerRef = useRef(handleEvent)
+  useEffect(() => {
+    handlerRef.current = handleEvent
+  }, [handleEvent])
+
+  useEffect(() => {
+    const channel = createWorkspaceChannel()
+    channelRef.current = channel
+    const unsubscribe = channel.subscribe((event) => handlerRef.current(event))
+    return () => {
+      unsubscribe()
+      channel.close()
+      channelRef.current = null
+    }
+  }, [])
 
   const value = useMemo<WorkspaceContextValue>(
     () => ({
       ready,
+      conflict,
       summaries,
       activeId,
       status,
@@ -366,10 +648,14 @@ export function WorkspaceProvider({
       adoptImported,
       openDossier,
       deleteDossier,
+      renameDossier,
+      reloadLatest,
+      saveAsNew,
       flush,
     }),
     [
       ready,
+      conflict,
       summaries,
       activeId,
       status,
@@ -379,6 +665,9 @@ export function WorkspaceProvider({
       adoptImported,
       openDossier,
       deleteDossier,
+      renameDossier,
+      reloadLatest,
+      saveAsNew,
       flush,
     ]
   )

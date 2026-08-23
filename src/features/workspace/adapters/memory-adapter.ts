@@ -1,6 +1,7 @@
 import { migrateRecord } from '@/features/workspace/migrations'
 import type {
   DossierRepository,
+  PutResult,
   SavedDossierRecord,
   UnreadableRecord,
   WorkspaceMeta,
@@ -73,7 +74,11 @@ export class MemoryDossierRepository implements DossierRepository {
     return Promise.resolve(result.ok ? result.record : null)
   }
 
-  put(record: SavedDossierRecord): Promise<void> {
+  /** Same compare-and-swap semantics as the IndexedDB adapter, synchronously. */
+  put(
+    record: SavedDossierRecord,
+    expectedRevision?: number
+  ): Promise<PutResult> {
     try {
       this.takeFailure()
     } catch (error) {
@@ -81,9 +86,32 @@ export class MemoryDossierRepository implements DossierRepository {
         error instanceof Error ? error : new Error(String(error))
       )
     }
-    // Structured-clone-equivalent: stored records must not alias live state.
-    this.records.set(record.id, structuredClone(record))
-    return Promise.resolve()
+
+    const stored = this.records.get(record.id) as SavedDossierRecord | undefined
+
+    if (expectedRevision === undefined) {
+      const fresh = { ...record, revision: 1 }
+      // Structured-clone-equivalent: stored records must not alias live state.
+      this.records.set(record.id, structuredClone(fresh))
+      return Promise.resolve({ ok: true, revision: 1 })
+    }
+
+    if (stored === undefined) {
+      // Deleted elsewhere. Do not recreate it.
+      return Promise.resolve({ ok: false, reason: 'deleted' })
+    }
+
+    if (stored.revision !== expectedRevision) {
+      return Promise.resolve({
+        ok: false,
+        reason: 'conflict',
+        currentRevision: stored.revision,
+      })
+    }
+
+    const next = { ...record, revision: stored.revision + 1 }
+    this.records.set(record.id, structuredClone(next))
+    return Promise.resolve({ ok: true, revision: next.revision })
   }
 
   delete(id: string): Promise<void> {

@@ -1,6 +1,7 @@
 import { migrateRecord } from '@/features/workspace/migrations'
 import type {
   DossierRepository,
+  PutResult,
   SavedDossierRecord,
   UnreadableRecord,
   WorkspaceMeta,
@@ -130,10 +131,55 @@ export class IndexedDbDossierRepository implements DossierRepository {
     return result.ok ? result.record : null
   }
 
-  async put(record: SavedDossierRecord): Promise<void> {
+  /**
+   * Compare-and-swap.
+   *
+   * The read and the write happen in **one** `readwrite` transaction, which is
+   * what makes this safe: IndexedDB serialises transactions per object store,
+   * so no other tab can commit between the comparison and the write. Doing the
+   * same two steps in two transactions — as this adapter originally did — is
+   * exactly the last-write-wins hole this closes (ADR-037).
+   */
+  async put(
+    record: SavedDossierRecord,
+    expectedRevision?: number
+  ): Promise<PutResult> {
+    let result: PutResult = { ok: true, revision: record.revision }
+
     await this.run(DOSSIER_STORE, 'readwrite', async (store) => {
-      await request(store.put(record))
+      const stored = (await request(
+        store.get(record.id) as IDBRequest<unknown>
+      )) as SavedDossierRecord | undefined
+
+      if (expectedRevision === undefined) {
+        // First write for this id.
+        const fresh = { ...record, revision: 1 }
+        await request(store.put(fresh))
+        result = { ok: true, revision: 1 }
+        return
+      }
+
+      if (stored === undefined) {
+        // Deleted elsewhere. Do not recreate it.
+        result = { ok: false, reason: 'deleted' }
+        return
+      }
+
+      if (stored.revision !== expectedRevision) {
+        result = {
+          ok: false,
+          reason: 'conflict',
+          currentRevision: stored.revision,
+        }
+        return
+      }
+
+      const next = { ...record, revision: stored.revision + 1 }
+      await request(store.put(next))
+      result = { ok: true, revision: next.revision }
     })
+
+    return result
   }
 
   async delete(id: string): Promise<void> {

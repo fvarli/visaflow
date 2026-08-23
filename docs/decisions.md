@@ -756,3 +756,82 @@ and re-pointed at that boundary rather than deleted.
 `REPLACE_DOSSIER` action in `DossierProvider` — switching must clear absent slices, which the
 merging `LOAD_DOSSIER` deliberately does not. No schema, import/export-format, readiness or
 validation change.
+
+---
+
+## ADR-037: Two Tabs Are Safe Because of Revisions, Not Because of Messages; Conflicts Are Surfaced, Never Merged
+
+**Status:** Accepted · **Date:** 2026-08-23 · **Extends:** [ADR-036]
+
+**Decision:** Every saved record carries a `revision` counter, and every write is a
+**compare-and-swap**: the writer states the revision it believed it was editing, and the repository
+refuses the write if the stored record has moved on. `BroadcastChannel` is added *on top* of that as
+a courtesy notification, never as a correctness mechanism. When a write is refused, VisaFlow stops
+autosaving that dossier and asks the user which version to keep. It never merges.
+
+**Context:** ADR-036 shipped saved dossiers with one documented gap: *"no cross-tab coordination —
+last write wins."* That is not a rough edge, it is silent data loss. `WorkspaceProvider.writeNow`
+read the stored record and then wrote it back in **two separate IndexedDB transactions**; anything
+another tab committed in between was overwritten with no error, no warning, and no trace. Two tabs is
+not an exotic state — it is what happens when someone opens VisaFlow from a bookmark while already
+having it open.
+
+**Why revisions rather than locks or timestamps.** `navigator.locks` is unavailable in this
+project's test environment and unnecessary once writes are conditional; a lock would also have to be
+held across think-time, which is exactly when a tab gets closed. Timestamps are worse: two tabs on
+the same machine can produce the same millisecond, and clock changes are real. A monotonic counter
+per record needs no clock and no coordination — it only needs the compare and the write to happen
+together, and IndexedDB gives that for free by serialising transactions per object store. The whole
+mechanism is one `readwrite` transaction that reads, compares, and writes.
+
+**Why messages cannot be the mechanism.** A `BroadcastChannel` message can be missed (the tab was
+loading), duplicated, delivered out of order, or unavailable entirely — Safari's private mode and
+older browsers have shipped without it. Any design where correctness depends on a message arriving
+is a design that loses data on the day it does not. So the channel is demoted to a hint: it makes
+the *good* case pleasant (a tab with no unsaved edits quietly catches up; a rename appears in the
+other tab's list) and it is provably unnecessary for safety — there is a test suite that runs the
+same scenarios with `BroadcastChannel` stubbed out and expects identical protection.
+
+**Rationale:**
+
+- **Detection over merging.** Field-level merging of two dossiers is a research problem with a
+  wrong answer for every heuristic — silently combining one tab's passport number with another
+  tab's travel dates would be far worse than saying "these diverged". Both versions are kept and
+  the user decides.
+- **A refused write pauses autosave.** Continuing to retry would either hammer the repository or,
+  worse, eventually succeed and overwrite. While a dossier is conflicted, nothing is written until
+  the user picks an exit.
+- **Neither exit destroys anything without being asked.** *Open the saved version* discards this
+  tab's edits, but only on an explicit click. *Keep my version as a new dossier* writes to a
+  **fresh id** — never the conflicted one (that would overwrite the other tab) and never a deleted
+  one (that would resurrect something deleted on purpose).
+- **The active dossier is tab-local.** `meta.activeDossierId` is demoted to an explicit "last
+  opened" hint, read only when a *fresh* tab hydrates. Two tabs may sit on different dossiers, and
+  switching in one never yanks the other. This was already almost true — the value was written on
+  every switch but only ever read at startup — so the change is mostly a matter of saying so.
+- **Coordination carries no personal data.** Messages contain an id, a revision and a sender tab
+  id. No payload, no names, no numbers. Nothing is written to `localStorage` for coordination
+  either — the two permitted keys (ADR-013) are unchanged.
+- **The title is local, not part of the dossier.** A user-chosen name lives in the workspace record
+  as `title`, never in `payload` and never in the exported file: a name typed in this browser is not
+  part of the document the user hands to a consulate, and exports must not vary by browser. An empty
+  or whitespace-only name clears back to `null` so the derived title returns, and an explicit title
+  is never auto-overwritten when applicant or destination data later changes.
+
+**Trade-off:** `STORAGE_FORMAT_VERSION` moves 1 → 2, because `revision` and `title` change the
+stored shape. This is the first real use of ADR-036's migration ladder — v1 records exist in a
+shipped build and in users' browsers, and they upgrade in place with `revision: 1` and `title: null`
+rather than being discarded.
+
+**Consequences:** `put` gained an `expectedRevision` argument and a `PutResult` union, so callers
+must handle refusal; both adapters implement identical semantics. `openDossier`'s `lastOpenedAt`
+touch became a compare-and-swap too — opening a dossier must never overwrite an edit — and it yields
+rather than fighting for a timestamp. Autosave now skips writes whose payload matches what storage
+already holds, which also stops a freshly hydrated tab from announcing a change it did not make.
+
+**Implementation:** `src/features/workspace/saved-dossier.ts` (`revision`, `title`, `PutResult`),
+`workspace-channel.ts` (guarded `BroadcastChannel`), `migrations.ts` (v1 → v2),
+`adapters/{indexeddb,memory}-adapter.ts`, `src/app/providers/WorkspaceProvider.tsx` (conflict state,
+`renameDossier`, `reloadLatest`, `saveAsNew`), `src/components/layout/ConflictBanner.tsx`, and
+inline rename on `src/pages/DossiersPage.tsx`. No schema, import/export-format, readiness or
+validation change; `schemaVersion` remains `1.0.0`.

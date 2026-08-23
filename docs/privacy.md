@@ -39,6 +39,11 @@ Since v1.1, VisaFlow saves your dossiers in **this browser**, using its built-in
 database, so your work is still there when you come back (ADR-036). Two non-personal interface
 preferences — `visaflow-theme` and `visaflow-locale` — remain in `localStorage` (ADR-013).
 
+Since the cross-tab work in v1.1, open tabs also coordinate with each other through a
+`BroadcastChannel`. That channel carries **only** a dossier id, a revision number, and a random
+per-tab id — never applicant names, passport numbers, financial figures, or any part of a dossier.
+It stays inside the browser, writes nothing to `localStorage`, and reaches no network (ADR-037).
+
 What this does and does not mean:
 
 - **Saved locally, never uploaded.** There is still no server, no account, and no network request

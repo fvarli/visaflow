@@ -1,10 +1,11 @@
-import { useCallback, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
-import { FolderOpen, Plus, Trash2 } from 'lucide-react'
+import { Check, FolderOpen, Pencil, Plus, Trash2, X } from 'lucide-react'
 import { PageHeader } from '@/components/ui/page-header'
 import { PageBody } from '@/components/ui/section'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import { Card, CardContent } from '@/components/ui/card'
 import { EmptyState } from '@/components/ui/empty-state'
 import { GuidanceNote } from '@/components/ui/guidance-note'
@@ -24,6 +25,85 @@ import type { SavedDossierSummary } from '@/features/workspace/saved-dossier'
 import { useFormatters } from '@/lib/format'
 
 /**
+ * Inline title editing for one card.
+ *
+ * Mounted only while editing, so the draft resets naturally each time and no
+ * abandoned text can leak into the next rename. Enter commits, Escape abandons,
+ * and **blur does not commit**: clicking away from a half-typed name should
+ * never quietly rename someone's dossier.
+ */
+function TitleEditor({
+  summary,
+  onDone,
+}: {
+  summary: SavedDossierSummary
+  /** `null` cancels; a string commits it (empty restores the derived name). */
+  onDone: (title: string | null) => void
+}) {
+  const { t } = useTranslation('workspace')
+  const [draft, setDraft] = useState(summary.named ? summary.title : '')
+
+  // A ref callback rather than `autoFocus`: this runs exactly once, on mount,
+  // and selecting the text means typing replaces the old name immediately.
+  const focusAndSelect = useCallback((node: HTMLInputElement | null) => {
+    node?.focus()
+    node?.select()
+  }, [])
+
+  const inputId = `rename-${summary.id}`
+
+  return (
+    <form
+      className="flex w-full flex-wrap items-center gap-2"
+      onSubmit={(event) => {
+        event.preventDefault()
+        onDone(draft)
+      }}
+    >
+      <label htmlFor={inputId} className="sr-only">
+        {t('rename.label')}
+      </label>
+      <Input
+        id={inputId}
+        ref={focusAndSelect}
+        value={draft}
+        onChange={(event) => setDraft(event.target.value)}
+        onKeyDown={(event) => {
+          if (event.key === 'Escape') {
+            event.preventDefault()
+            onDone(null)
+          }
+        }}
+        placeholder={t('rename.placeholder')}
+        aria-describedby={`${inputId}-hint`}
+        className="h-8 w-full min-w-40 flex-1 sm:w-auto"
+      />
+      <div className="flex items-center gap-1">
+        <Button type="submit" size="sm" variant="outline">
+          <Check />
+          {t('rename.save')}
+        </Button>
+        <Button
+          type="button"
+          size="sm"
+          variant="ghost"
+          onClick={() => onDone(null)}
+        >
+          <X />
+          {t('rename.cancel')}
+        </Button>
+      </div>
+      <p
+        id={`${inputId}-hint`}
+        className="text-caption text-muted-foreground w-full"
+      >
+        {t('rename.clearHint')} {t('rename.hint')}
+      </p>
+    </form>
+  )
+}
+
+/**
  * The workspace home: every dossier saved in this browser.
  *
  * Deliberately calm — a list, an open action, a delete behind a confirmation.
@@ -34,10 +114,31 @@ export default function DossiersPage() {
   const { t } = useTranslation(['workspace', 'common'])
   const format = useFormatters()
   const navigate = useNavigate()
-  const { summaries, activeId, openDossier, deleteDossier } = useWorkspace()
+  const { summaries, activeId, openDossier, deleteDossier, renameDossier } =
+    useWorkspace()
 
   const [pendingDelete, setPendingDelete] =
     useState<SavedDossierSummary | null>(null)
+  const [renamingId, setRenamingId] = useState<string | null>(null)
+
+  // Leaving edit mode replaces the input with a freshly mounted pencil, so the
+  // button is looked up after that render rather than captured beforehand.
+  const renameButtons = useRef(new Map<string, HTMLButtonElement | null>())
+  const returnFocusTo = useRef<string | null>(null)
+  useEffect(() => {
+    if (renamingId !== null || !returnFocusTo.current) return
+    renameButtons.current.get(returnFocusTo.current)?.focus()
+    returnFocusTo.current = null
+  }, [renamingId])
+
+  const finishRename = useCallback(
+    (id: string, title: string | null) => {
+      returnFocusTo.current = id
+      setRenamingId(null)
+      if (title !== null) void renameDossier(id, title)
+    },
+    [renameDossier]
+  )
 
   // Deleting a dossier destroys the row that opened the dialog, so name an
   // explicit destination rather than letting focus fall to <body> (ADR-035).
@@ -88,21 +189,48 @@ export default function DossiersPage() {
           {summaries.map((summary) => (
             <Card key={summary.id}>
               <CardContent className="flex flex-col gap-3">
-                <div className="flex flex-wrap items-start justify-between gap-2">
-                  <h2 className="text-body text-foreground font-semibold">
-                    {summary.title}
-                  </h2>
-                  {summary.id === activeId && (
-                    <StatusBadge tone="accent">
-                      {t('workspace:card.current')}
-                    </StatusBadge>
-                  )}
-                  {summary.unreadable && (
-                    <StatusBadge tone="warning">
-                      {t('workspace:card.unreadable')}
-                    </StatusBadge>
-                  )}
-                </div>
+                {renamingId === summary.id ? (
+                  <TitleEditor
+                    summary={summary}
+                    onDone={(title) => finishRename(summary.id, title)}
+                  />
+                ) : (
+                  <div className="flex flex-wrap items-start justify-between gap-2">
+                    <div className="flex min-w-0 items-center gap-1">
+                      <h2 className="text-body text-foreground font-semibold">
+                        {summary.title}
+                      </h2>
+                      {/* An unreadable record cannot be rewritten safely, so it
+                          cannot be renamed either — better than a button that
+                          silently does nothing. */}
+                      {!summary.unreadable && (
+                        <Button
+                          ref={(node) => {
+                            renameButtons.current.set(summary.id, node)
+                          }}
+                          variant="ghost"
+                          size="icon-sm"
+                          aria-label={t('workspace:rename.actionAria', {
+                            name: summary.title,
+                          })}
+                          onClick={() => setRenamingId(summary.id)}
+                        >
+                          <Pencil />
+                        </Button>
+                      )}
+                    </div>
+                    {summary.id === activeId && (
+                      <StatusBadge tone="accent">
+                        {t('workspace:card.current')}
+                      </StatusBadge>
+                    )}
+                    {summary.unreadable && (
+                      <StatusBadge tone="warning">
+                        {t('workspace:card.unreadable')}
+                      </StatusBadge>
+                    )}
+                  </div>
+                )}
 
                 {summary.unreadable ? (
                   <GuidanceNote tone="neutral">

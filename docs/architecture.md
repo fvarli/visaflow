@@ -179,7 +179,11 @@ uploaded ([ADR-036]); `localStorage` still holds only the non-personal `visaflow
 A single `DossierProvider` (`src/app/providers/DossierProvider.tsx`) holds the working state
 with React's `useReducer` ([ADR-005]), and stays synchronous and storage-unaware.
 `WorkspaceProvider` sits above it and owns the saved-dossier workspace — which dossiers exist,
-which is open, and autosaving the open one through a `DossierRepository` port ([ADR-036]). React
+which is open, its local name, and autosaving the open one through a `DossierRepository` port
+([ADR-036]). Every write is a **compare-and-swap on a per-record `revision`**, so a second tab can
+never silently overwrite the first; when a write is refused, autosave stops and the user chooses
+between the saved version and keeping theirs as a new dossier ([ADR-037]). A `BroadcastChannel`
+carries ids and revisions between tabs as a hint only — the app is fully safe without it. React
 components never call storage APIs directly — a flat shape (`applicant`, `application`, `documents`,
 `sponsors`, plus dirty/saved flags), not a nested `Dossier`. Actions are explicit
 (`LOAD_DOSSIER`, `UPDATE_APPLICANT`, `ADD_DOCUMENT`, …). Redux/Zustand would add dependencies and
@@ -240,3 +244,5 @@ same pattern for the two non-personal preferences.
 [ADR-029]: ./decisions.md
 [ADR-032]: ./decisions.md
 [ADR-033]: ./decisions.md
+[ADR-036]: ./decisions.md
+[ADR-037]: ./decisions.md

@@ -1,6 +1,6 @@
 # Current Implementation Status
 
-Last updated: 2026-08-23 — v1.1 development: saved dossiers & local persistence
+Last updated: 2026-08-23 — v1.1 development: dossier identity, rename & cross-tab safety
 
 Application version **1.0.0** (Phase 1 — Foundation shipped). The dossier JSON `schemaVersion`
 remains **1.0.0** and is versioned independently; reaching application v1.0.0 did not change the
@@ -250,10 +250,15 @@ later phase in [roadmap.md](./roadmap.md):
    refresh; there is no cross-device sync and no encryption. Clearing browser data deletes them,
    so export remains the durable backup. A per-dossier "Session only" mode reproduces the v1.0
    in-memory behaviour for shared computers.
-3. **Document references are text** — no file uploads yet.
-4. **One country pack** — Greece (Schengen short-stay tourism); more via the country-pack
+3. **Two tabs are safe, but not collaborative** — each dossier carries a `revision` and every write
+   is a compare-and-swap, so a stale tab is refused rather than allowed to overwrite. The tab is
+   told and offered the saved version or a fork under a new id. There is deliberately **no
+   field-level merging**: divergence is surfaced, never guessed at (ADR-037). Tabs may hold
+   different dossiers; the stored "active" id is only a hint for a freshly opened tab.
+4. **Document references are text** — no file uploads yet.
+5. **One country pack** — Greece (Schengen short-stay tourism); more via the country-pack
    system (Country Ecosystem).
-5. **No offline PWA** — requires a browser session.
+6. **No offline PWA** — requires a browser session.
 
 ## Active Issues
 
@@ -296,6 +301,15 @@ These warnings don't affect functionality.
 - Route smoke pass: all 14 shipped routes in both locales assert exactly one `h1`,
   no skipped heading level, and no raw translation key on screen (this found the
   `/timeline` h1→h3 defect)
+- Cross-tab concurrency: the repository contract (revision increments, stale write refused
+  with the current revision, a deleted record never recreated, a fresh identity written without
+  an expectation) and the storage migration v1 → v2; then the same scenarios end-to-end through
+  two `WorkspaceProvider`s sharing one repository — including one suite with `BroadcastChannel`
+  stubbed out, because safety must not depend on a message arriving, and a StrictMode test that
+  fails if the channel is closed by a remount
+- Rename: an explicit title wins over the derived one, whitespace clears back to derived, an
+  explicit title is never auto-overwritten, and the title never appears in exported JSON
+  (asserted against the exact key set, with `schemaVersion` still `1.0.0`)
 - Focus visibility: the control primitives may not carry `outline-none` /
   `outline-hidden`, which in Tailwind v4 silently overrides the single
   `:focus-visible` rule in `@layer base` and leaves a control with no keyboard
@@ -315,11 +329,11 @@ All checks pass:
 - `pnpm format:check` - PASS
 - `pnpm lint` - 0 errors (warnings acceptable, see *Active Issues* above)
 - `pnpm typecheck` - PASS (`tsc -b`)
-- `pnpm test` - 737/737 PASS (64 files)
+- `pnpm test` - 811/811 PASS (69 files)
 - `pnpm build` - SUCCESS
 
-Bundle: `index` 274.42 kB / 83.35 kB gzip, `DossierProvider` 442.86 / 136.48 gzip,
-CSS 85.50 / 17.45 kB gzip.
+Bundle: `index` 316.49 kB / 97.95 kB gzip, `DossierProvider` 449.70 / 138.54 gzip,
+CSS 85.61 / 17.48 kB gzip.
 
 **Continuous integration:** `.github/workflows/ci.yml` runs the gates above on every push and PR to
 `main`, plus `scripts/check-act-warnings.mjs`, which fails the build on any React `act(...)` warning.

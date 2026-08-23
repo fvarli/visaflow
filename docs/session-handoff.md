@@ -1974,3 +1974,101 @@ Nothing in the workspace layer is half-built, but note: rename is not implemente
 derived), there is no cross-tab sync (two tabs on the same dossier will last-write-wins), and
 `STORAGE_FORMAT_VERSION` is 1 with an empty migration ladder — the seam exists and is tested, but
 has never been exercised by a real migration.
+
+---
+
+# Iteration 27 — v1.1: Dossier identity, rename & cross-tab safety
+
+Baseline `eca76e8`, clean, CI green, 774/774. Iteration 26 shipped saved dossiers with one line of
+honest debt in its own handoff: *"there is no cross-tab sync (two tabs on the same dossier will
+last-write-wins)"*. That is data loss, not a rough edge, and this iteration closes it — along with
+the other gap it named, rename.
+
+### The bug was exact, and so was its home
+
+`writeNow` called `repo.get(id)` and then `repo.put(...)` in **two separate IndexedDB
+transactions**. Anything another tab committed in between was overwritten with no error and no
+trace. `openDossier` had the same shape for its `lastOpenedAt` touch — meaning merely *opening* a
+dossier could destroy an edit.
+
+The fix needed no new primitive: the adapter's existing `run()` helper already scopes a body to one
+transaction, and IndexedDB serialises transactions per object store. Read, compare and write inside
+one `readwrite` transaction is atomic. `put(record, expectedRevision?)` returns
+`{ok:true, revision} | {ok:false, reason:'conflict', currentRevision} | {ok:false, reason:'deleted'}`.
+
+### Revisions are the mechanism; messages are a courtesy
+
+`BroadcastChannel` was measured to work in this repo's jsdom before it was designed in, so cross-tab
+behaviour is deterministically testable with no abstraction port. But it is deliberately **not**
+load-bearing: a whole test suite runs the same scenarios with `BroadcastChannel` stubbed to
+`undefined` and expects identical protection. A design whose correctness depends on a message
+arriving is a design that loses data the day it does not.
+
+### Two real bugs that only a real browser could show
+
+Both were found by the two-tab CDP run, not by 811 passing tests:
+
+1. **The channel was dead in development.** It was built in a `useMemo` and closed by a separate
+   cleanup effect — so React 19's StrictMode mount/cleanup/mount closed the only instance the memo
+   would ever produce. Writes stayed safe (revisions do that), but every notification was silently
+   lost. Now created and destroyed by the same effect. The regression test renders two tabs inside
+   `<StrictMode>` and was confirmed to **fail against the old shape** before being kept.
+2. **A replaced dossier left stale values in mounted forms.** `defaultValues` is read once, at
+   mount, so "Open the saved version" changed the state without changing the screen. This also
+   affected dossier *switching*, which shipped in Iteration 26. `DossierState` gained a `generation`
+   counter that only wholesale swaps increment, and `<Outlet>` is keyed on it.
+
+A third, quieter fix: autosave now compares the payload against what storage is known to hold, so a
+freshly hydrated tab no longer writes back what it just read — which had also made a tab that merely
+*looked* at a dossier announce a change to every other tab.
+
+### The first real migration
+
+`revision` and `title` change the stored shape, so `STORAGE_FORMAT_VERSION` went 1 → 2 with a
+genuine step (`revision: 1`, `title: null`). Iteration 26 built that ladder and never used it; v1
+records exist in a shipped build and in users' browsers, and they now upgrade in place rather than
+being discarded.
+
+### Rename is local, and stays local
+
+`title` lives on the workspace record, never in `payload` and never in the exported file — asserted
+against the exact exported key set, with `schemaVersion` still `1.0.0`. Empty or whitespace clears
+back to `null` so the derived title returns, and an explicit title is never auto-overwritten when
+applicant or destination data changes later. Inline on the card: Enter commits, Escape abandons,
+focus returns to the pencil, and **blur does not commit** — clicking away from a half-typed name
+must never rename someone's dossier.
+
+### Harness lessons worth keeping
+
+- `toHaveTextContent` is a **substring** match. `expect(active).not.toHaveTextContent('x')` passed
+  ~90% of the time and failed whenever the generated id happened to contain an `x`. Compare ids
+  exactly.
+- An `afterEach` that calls `i18n.changeLanguage` runs **before** Testing Library's cleanup, so it
+  re-renders a still-mounted tree and produces act warnings that have nothing to do with the code.
+  Set the language in `beforeEach` only.
+- In the CDP harness: `Page.addScriptToEvaluateOnNewDocument` persists across navigations (it needs
+  `Page.removeScriptToEvaluateOnNewDocument`), a backgrounded tab does not paint so
+  `Page.captureScreenshot` never resolves without `Page.bringToFront`, and a leftover profile
+  silently satisfied a "does a dossier exist yet" poll — clear the origin's storage explicitly.
+
+### Gates
+
+`format:check` ✓ · `lint` **0 errors / 68 warnings** (unchanged from baseline) · `typecheck` ✓ ·
+`test` **811/811, 69 files** (774 + 37) · `build` ✓ · act guard **0** · `diff --check` clean.
+Bundle `index` 311.49 → **316.49 kB** (gzip 96.59 → 97.95, **+1.36 kB gzip**) — the conflict banner,
+the rename editor, the channel, and their bilingual keys.
+
+Verified in real Chrome across two tabs sharing one profile: 26 checks, all passing, including the
+decisive one — a stale tab's write is refused and the newer data survives. Evidence in
+`docs/manual-qa.md`.
+
+`schemaVersion` still `1.0.0`; `templateVersion` still `1.0.0`; export contract unchanged;
+`localStorage` still exactly two non-personal keys; the coordination channel carries ids and
+revisions only.
+
+### Next
+
+Nothing here is half-built. Deliberately not done: field-level merging (ADR-037 argues against it),
+any form of sync or collaboration, and encryption. The `generation` key remounts a whole page on a
+dossier swap — correct, but if a page ever needs to preserve local UI state across a swap it will
+need a finer-grained signal.

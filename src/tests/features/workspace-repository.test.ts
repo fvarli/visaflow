@@ -189,7 +189,7 @@ describe('workspace model', () => {
   it('falls back rather than inventing a name', () => {
     expect(
       deriveDisplayTitle(
-        { applicantName: null, destinationCountry: null },
+        { applicantName: null, destinationCountry: null, title: null },
         'Untitled'
       )
     ).toBe('Untitled')

@@ -12,9 +12,9 @@ import {
  * ends in "return it as unreadable" and the workspace surfaces it with an export
  * route out.
  *
- * There are no migrations yet — `STORAGE_FORMAT_VERSION` is 1 and nothing has
- * shipped before it. This is the seam, not a speculative ladder: when the layout
- * genuinely changes, add a step to `STEPS` and a test beside it.
+ * The ladder is real now. v1 shipped without `revision` or `title`; v2 adds
+ * both, and v1 records already exist in browsers running the previous build, so
+ * they have to open without losing anything.
  */
 
 /** One version hop. Pure, so a migration is testable without a browser. */
@@ -24,7 +24,20 @@ interface MigrationStep {
   migrate: (record: SavedDossierRecord) => SavedDossierRecord
 }
 
-const STEPS: MigrationStep[] = []
+const STEPS: MigrationStep[] = [
+  {
+    // v1 → v2: cross-tab safety and rename.
+    //
+    // `revision` starts at 1 rather than 0 so "never written by this build" and
+    // "written once" are not the same number; the first compare-and-swap after
+    // migrating asserts 1 and moves to 2. `title: null` means "no explicit
+    // name", which `deriveDisplayTitle` reads as "use the derived one" — the
+    // record keeps exactly the title it appeared to have before.
+    from: 1,
+    to: 2,
+    migrate: (record) => ({ ...record, revision: 1, title: null }),
+  },
+]
 
 export type MigrationResult =
   | { ok: true; record: SavedDossierRecord; migrated: boolean }

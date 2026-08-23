@@ -74,7 +74,9 @@ data they've already entered.
 - **Multiple saved dossiers** — **shipped in v1.1.** Dossiers are saved in the browser's IndexedDB
   behind a repository port, survive refresh and restart, and can be created, switched and deleted
   from `/dossiers` or the header switcher. Persistence is on by default with a per-dossier
-  "Session only" escape hatch (ADR-036). *Done.*
+  "Session only" escape hatch (ADR-036). Each dossier can be given a name of your own, and two
+  open tabs are safe: every write is a compare-and-swap on a per-record revision, so a stale tab
+  is told rather than allowed to overwrite (ADR-037). *Done.*
 - **Richer dossier & timeline** — deeper trip/finance/sponsor structure and a fuller timeline. *Next.*
 - **PDF / printable index** — generate a dossier index and a printable checklist for the
   appointment. The Final Review workspace already models what is printable: a closed set of

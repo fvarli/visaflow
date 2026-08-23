@@ -40,8 +40,11 @@ Not run: 1440 × TR × dark, 1440 × EN × light, 834 × dark. Desktop has 3.7×
 390px and both themes and both locales were exercised there; the risk sits at 390px, which has full
 2 × 2 coverage.
 
-> **QA methodology note — do not lose this.** The dossier is in-memory only (ADR-006), so a full page
-> load *wipes it* and every route silently renders its empty state. A sweep that navigates with
+> **QA methodology note — do not lose this.** *(Partly historical: dossiers now persist in IndexedDB
+> (ADR-036), so a page load no longer wipes them. The rest still applies, and the note is kept
+> because the failure signature is identical whenever the workspace happens to be empty.)* The
+> dossier was in-memory only (ADR-006), so a full page
+> load *wiped it* and every route silently rendered its empty state. A sweep that navigates with
 > `Page.navigate` will report `h1: 0` on most routes and look like a catastrophic regression. Drive
 > route changes **client-side** (`history.pushState` + a `popstate` event) after loading the example
 > once. Likewise, two Chrome instances sharing one `--user-data-dir` corrupt each other's runs — the
@@ -308,3 +311,50 @@ key parity and all 47 plural bases complete in both locales. `Table` self-wraps 
 
 > A recurring finding worth remembering: **for this design system, light mode is usually the weaker
 > theme, not dark.** The browser pass did not contradict this.
+
+---
+
+## Cross-tab safety — real Chrome, two tabs (v1.1, ADR-037)
+
+Driven through CDP against two real tabs sharing one browser profile and one IndexedDB, using
+fictional data only. The scenario is scripted rather than clicked by hand so it can be repeated:
+create → edit in A → observe in B → make B stale → let B write → resolve → rename → delete →
+import → reload both.
+
+**Making a tab genuinely stale.** With both tabs live, `BroadcastChannel` delivers and a clean tab
+just catches up, which is the *good* path and proves nothing about safety. Tab B is therefore run a
+second time with `BroadcastChannel` forced to `undefined` before any app code loads — the exact
+state of a tab that missed the message, or of a browser that never had the API. Everything below
+still held.
+
+| Check | Result |
+|---|---|
+| Record carries `revision`, `storageVersion: 2` in real IndexedDB | PASS |
+| Both tabs open the same dossier | PASS |
+| A edits; clean B adopts it with no prompt and no conflict | PASS |
+| Blindfolded B still hydrates (persistence never needed the channel) | PASS |
+| **Stale B writes → A's data survives, revision unmoved** | **PASS** |
+| B is told in plain language, and never blames a "sync" | PASS |
+| B's own edit stays on screen — nothing discarded behind the user | PASS |
+| "Open the saved version" clears the conflict and resumes autosave | PASS |
+| Rename in A appears in B | PASS |
+| Delete in A → B is told; stale B cannot resurrect the record | PASS |
+| "Keep my version as a new dossier" writes a fresh id, never the deleted one | PASS |
+| Import in A is discovered by B; both tabs agree after reload | PASS |
+| No console errors in either tab | PASS |
+
+**What this found.** Two real defects that no jsdom test would have caught:
+
+1. **The notification channel was dead in development.** The `BroadcastChannel` was built in a
+   `useMemo` and closed by a separate cleanup effect, so React 19's StrictMode remount closed the
+   only instance the memo would ever produce. Writes stayed safe — revisions do that — but every
+   cross-tab hint was silently lost. Now created and destroyed by the same effect, with a
+   StrictMode regression test that fails against the old shape.
+2. **A replaced dossier left stale values in mounted forms.** Form fields read their initial values
+   once, at mount, so "Open the saved version" (and switching dossiers, which shipped in v1.1)
+   changed the state without changing what was on screen. The page is now keyed on a `generation`
+   counter that only a wholesale swap increments.
+
+**390px, both languages, both themes.** The rename editor and the conflict banner were measured at
+390 × 844 in TR and EN, light and dark: no horizontal overflow, no element extending past the
+viewport, buttons stacking rather than truncating.
