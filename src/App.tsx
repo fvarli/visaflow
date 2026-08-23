@@ -11,6 +11,7 @@ import '@/i18n/types'
 import { RouterProvider } from 'react-router-dom'
 import { router } from '@/app/router/routes'
 import { DossierProvider } from '@/app/providers/DossierProvider'
+import { WorkspaceProvider } from '@/app/providers/WorkspaceProvider'
 import { ThemeProvider } from '@/app/providers/ThemeProvider'
 import { LocaleProvider } from '@/app/providers/LocaleProvider'
 import { TooltipProvider } from '@/components/ui/tooltip'
@@ -21,9 +22,14 @@ function App() {
     <LocaleProvider>
       <ThemeProvider>
         <DossierProvider>
-          <TooltipProvider delayDuration={200}>
-            <RouterProvider router={router} />
-          </TooltipProvider>
+          {/* Inside DossierProvider so it can observe working state to autosave
+              and drive it to switch; outside the router so every route sees the
+              same workspace. */}
+          <WorkspaceProvider>
+            <TooltipProvider delayDuration={200}>
+              <RouterProvider router={router} />
+            </TooltipProvider>
+          </WorkspaceProvider>
         </DossierProvider>
       </ThemeProvider>
     </LocaleProvider>

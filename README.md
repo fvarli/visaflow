@@ -53,7 +53,7 @@ VisaFlow will **never** estimate an approval probability or refusal-risk score.
   official-source metadata.
 - **Bilingual** — Turkish (default) and English; the choice is a non-personal preference and the
   exported JSON is identical regardless of language.
-- **Privacy-first** — all data stays in your browser; nothing is sent anywhere.
+- **Saved dossiers** — several applications, saved in your browser, surviving refresh; nothing is sent anywhere.
 - **Open JSON import/export** — full control of your data in a portable, documented format.
 
 ## Product architecture
@@ -111,13 +111,17 @@ Privacy is the architecture, not a feature:
 
 - **No server, no account, no database** — VisaFlow is a static client-side app.
 - **No analytics, no tracking, no third-party or CDN requests** — all assets are bundled.
-- **No personal data in browser storage** — the dossier lives only in memory; the *only*
-  permitted `localStorage` keys are `visaflow-theme` and `visaflow-locale`, both non-personal
-  interface preferences.
-- **Explicit export/import** — your data leaves the browser only when you download a JSON file.
+- **Saved on your device, not on a server** — dossiers are stored in this browser's IndexedDB so
+  your work survives a refresh. Nothing is uploaded. The two `localStorage` keys remain
+  `visaflow-theme` and `visaflow-locale`, both non-personal interface preferences.
+- **Local storage is not encryption** — anyone who can use this browser profile can open your
+  dossiers. On a shared computer, create a dossier as **Session only** (kept in memory, discarded
+  when the tab closes) or delete saved dossiers when you are done.
+- **Explicit export/import** — a JSON file is still the portable, durable copy you own. Clearing
+  browser data deletes saved dossiers, so export a backup.
 
-Closing or refreshing the tab discards in-memory data by design — export first. Full details in
-[docs/privacy.md](docs/privacy.md); the security policy is in [SECURITY.md](SECURITY.md).
+Full details in [docs/privacy.md](docs/privacy.md); the security policy is in
+[SECURITY.md](SECURITY.md).
 
 ## Data ownership
 

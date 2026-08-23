@@ -18,6 +18,21 @@ import type {
 } from '@/domain/schemas/application.schema'
 import { createApplicantId, createApplicationId } from '@/domain/types/common'
 
+/**
+ * The four data slices, with `null` meaning "absent" rather than "unchanged".
+ *
+ * `LOAD_DOSSIER` merges — a missing key keeps what was there — which is right
+ * for importing a partial file. Switching between saved dossiers is the opposite
+ * operation: dossier B not having an applicant must not leave dossier A's
+ * applicant on screen. `REPLACE_DOSSIER` is that operation.
+ */
+export interface DossierSlices {
+  applicant: Applicant | null
+  application: Application | null
+  documents: Document[]
+  sponsors: Sponsor[]
+}
+
 // State type
 interface DossierState {
   applicant: Applicant | null
@@ -31,6 +46,7 @@ interface DossierState {
 // Action types
 type DossierAction =
   | { type: 'LOAD_DOSSIER'; payload: Partial<Dossier> }
+  | { type: 'REPLACE_DOSSIER'; payload: DossierSlices }
   | { type: 'UPDATE_APPLICANT'; payload: Partial<Applicant> }
   | { type: 'UPDATE_APPLICATION'; payload: Partial<Application> }
   | { type: 'UPDATE_TRIP'; payload: Partial<Trip> }
@@ -114,6 +130,15 @@ function dossierReducer(
         sponsors: sponsors ?? state.sponsors,
         isDirty: false,
         lastSaved: new Date(),
+      }
+    }
+
+    case 'REPLACE_DOSSIER': {
+      // Wholesale, including nulls — see `DossierSlices`.
+      return {
+        ...action.payload,
+        isDirty: false,
+        lastSaved: state.lastSaved,
       }
     }
 
@@ -278,6 +303,8 @@ interface DossierContextValue {
   state: DossierState
   // Loaders
   loadDossier: (dossier: Partial<Dossier>) => void
+  /** Swap the whole dossier, clearing absent slices. Used when switching. */
+  replaceDossier: (slices: DossierSlices) => void
   initializeEmpty: (destinationCountry: string) => void
   // Applicant
   updateApplicant: (updates: Partial<Applicant>) => void
@@ -311,6 +338,10 @@ export function DossierProvider({ children }: { children: ReactNode }) {
 
   const loadDossier = useCallback((dossier: Partial<Dossier>) => {
     dispatch({ type: 'LOAD_DOSSIER', payload: dossier })
+  }, [])
+
+  const replaceDossier = useCallback((slices: DossierSlices) => {
+    dispatch({ type: 'REPLACE_DOSSIER', payload: slices })
   }, [])
 
   const initializeEmpty = useCallback((destinationCountry: string) => {
@@ -391,6 +422,7 @@ export function DossierProvider({ children }: { children: ReactNode }) {
   const value: DossierContextValue = {
     state,
     loadDossier,
+    replaceDossier,
     initializeEmpty,
     updateApplicant,
     updateApplication,

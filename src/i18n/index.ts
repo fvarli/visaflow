@@ -18,6 +18,7 @@ import trSettings from './locales/tr/settings.json'
 import trOnboarding from './locales/tr/onboarding.json'
 import trPlayground from './locales/tr/playground.json'
 import trVisaDomain from './locales/tr/visa-domain.json'
+import trWorkspace from './locales/tr/workspace.json'
 
 import enCommon from './locales/en/common.json'
 import enNavigation from './locales/en/navigation.json'
@@ -36,6 +37,7 @@ import enSettings from './locales/en/settings.json'
 import enOnboarding from './locales/en/onboarding.json'
 import enPlayground from './locales/en/playground.json'
 import enVisaDomain from './locales/en/visa-domain.json'
+import enWorkspace from './locales/en/workspace.json'
 
 /**
  * Supported locales. Turkish first — see ADR-011.
@@ -109,6 +111,7 @@ export const resources = {
     onboarding: trOnboarding,
     playground: trPlayground,
     'visa-domain': trVisaDomain,
+    workspace: trWorkspace,
   },
   en: {
     common: enCommon,
@@ -128,6 +131,7 @@ export const resources = {
     onboarding: enOnboarding,
     playground: enPlayground,
     'visa-domain': enVisaDomain,
+    workspace: enWorkspace,
   },
 } as const
 

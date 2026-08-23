@@ -73,8 +73,15 @@ export default function WelcomePage() {
     if (id) setStep(id)
   }
 
-  // A dossier already exists — don't restart the flow.
-  if (hadDataAtMount) {
+  // A dossier already exists and the visitor did not ask for a specific step:
+  // don't restart the flow underneath them.
+  //
+  // An explicit `?step=` *is* a request, and since v1.1 a returning user has a
+  // real reason to make it — creating a second dossier. Blocking that would
+  // leave "New dossier" in the switcher pointing at a dead end.
+  const askedForStep = searchParams.get('step') !== null
+
+  if (hadDataAtMount && !askedForStep) {
     return (
       <PageBody>
         <PageHeader

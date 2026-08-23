@@ -1,6 +1,6 @@
 # Current Implementation Status
 
-Last updated: 2026-08-17 — v1.0.0 released; maintenance sprint (v1.1 baseline)
+Last updated: 2026-08-23 — v1.1 development: saved dossiers & local persistence
 
 Application version **1.0.0** (Phase 1 — Foundation shipped). The dossier JSON `schemaVersion`
 remains **1.0.0** and is versioned independently; reaching application v1.0.0 did not change the
@@ -243,10 +243,13 @@ export format. Remaining Foundation follow-up work is listed under "Next within 
 These are deliberate boundaries of the current (Foundation) phase, not defects. Each maps to a
 later phase in [roadmap.md](./roadmap.md):
 
-1. **Single application** — one dossier at a time (multiple saved dossiers → Core Workspace).
-   The dashboard model is already shaped for multi-application.
-2. **In-memory only** — data is lost on refresh unless exported (optional persistence →
-   Optional Self-Hosting; kept opt-in by design).
+1. **Multiple saved dossiers** — create, switch, and delete several applications from `/dossiers`
+   or the header switcher. One dossier is open at a time; the dashboard still renders the open
+   one.
+2. **Local persistence, no sync** — dossiers are saved in this browser (IndexedDB) and survive
+   refresh; there is no cross-device sync and no encryption. Clearing browser data deletes them,
+   so export remains the durable backup. A per-dossier "Session only" mode reproduces the v1.0
+   in-memory behaviour for shared computers.
 3. **Document references are text** — no file uploads yet.
 4. **One country pack** — Greece (Schengen short-stay tourism); more via the country-pack
    system (Country Ecosystem).

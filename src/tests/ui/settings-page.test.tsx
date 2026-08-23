@@ -10,6 +10,7 @@ import i18n, {
 import { LocaleProvider } from '@/app/providers/LocaleProvider'
 import { ThemeProvider } from '@/app/providers/ThemeProvider'
 import { DossierProvider, useDossier } from '@/app/providers/DossierProvider'
+import { WorkspaceProvider } from '@/app/providers/WorkspaceProvider'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import SettingsPage from '@/pages/SettingsPage'
 import { importDossier } from '@/features/import-export/services/import.service'
@@ -48,14 +49,16 @@ function renderPage(entry = '/settings', data: Dossier | null = SEED) {
     <LocaleProvider>
       <ThemeProvider>
         <DossierProvider>
-          <TooltipProvider>
-            <MemoryRouter initialEntries={[entry]}>
-              <Seed data={data}>
-                <SettingsPage />
-                <Probe />
-              </Seed>
-            </MemoryRouter>
-          </TooltipProvider>
+          <WorkspaceProvider>
+            <TooltipProvider>
+              <MemoryRouter initialEntries={[entry]}>
+                <Seed data={data}>
+                  <SettingsPage />
+                  <Probe />
+                </Seed>
+              </MemoryRouter>
+            </TooltipProvider>
+          </WorkspaceProvider>
         </DossierProvider>
       </ThemeProvider>
     </LocaleProvider>

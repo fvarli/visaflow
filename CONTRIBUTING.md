@@ -20,8 +20,9 @@ significant change. A few expectations follow directly from them:
   (`src/components/ui/`) or dashboard widget (`src/components/dashboard/`) must appear in
   `/playground` in the same change that introduces it — it is our lightweight Storybook. See
   [docs/playground.md](docs/playground.md).
-- **Privacy and ownership are non-negotiable.** No server, no analytics, no personal data in
-  browser storage, open JSON format. And never introduce approval/refusal prediction (ADR-016).
+- **Privacy and ownership are non-negotiable.** No server, no analytics, no upload of personal
+  data, open JSON format. Local persistence goes through the repository port, never straight from
+  a component. And never introduce approval/refusal prediction (ADR-016).
 - **Record decisions.** Architectural choices go in [docs/decisions.md](docs/decisions.md) as an
   append-only ADR.
 
@@ -128,7 +129,7 @@ When contributing, please keep privacy in mind:
 
 - Do not add analytics or tracking
 - Do not add external API calls without discussion
-- Do not store personal data in localStorage
+- Do not store personal data in localStorage (dossiers belong in IndexedDB via the repository port)
 - Keep example data fictional
 
 ## Questions?

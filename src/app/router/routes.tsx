@@ -23,6 +23,7 @@ const ConsistencyChecksPage = lazy(
 )
 const ReviewPage = lazy(() => import('@/pages/ReviewPage'))
 const NotesPage = lazy(() => import('@/pages/NotesPage'))
+const DossiersPage = lazy(() => import('@/pages/DossiersPage'))
 const SettingsPage = lazy(() => import('@/pages/SettingsPage'))
 
 // Design system playground. Lazy like everything else, so it costs nothing
@@ -178,6 +179,14 @@ export const router = createBrowserRouter([
         element: (
           <LazyPage>
             <NotesPage />
+          </LazyPage>
+        ),
+      },
+      {
+        path: 'dossiers',
+        element: (
+          <LazyPage>
+            <DossiersPage />
           </LazyPage>
         ),
       },

@@ -82,8 +82,8 @@
   },
   "privacy": {
     "title": "Verileriniz bu tarayıcıdan çıkmaz",
-    "body": "Her şey yalnızca bellekte tutulur; hiçbir veri sunucuya gönderilmez ve diske yazılmaz. Sekmeyi kapatmadan önce ilerlemenizi kaydetmek için dosyanızı dışa aktarın.",
-    "memoryOnly": "İçe aktarılan veriler yalnızca tarayıcı belleğinde tutulur. Yaptığınız değişiklikleri kaydetmek için tekrar dışa aktarın."
+    "body": "Dosyanız bu tarayıcıda saklanır ve hiçbir sunucuya gönderilmez. Taşınabilir bir yedek için JSON dosyası olarak dışa aktarın.",
+    "memoryOnly": "İçe aktarılan veriler bu tarayıcıda saklanır ve hiçbir yere yüklenmez. Yedek için bir JSON kopyası dışa aktarın."
   },
   "theme": {
     "label": "Tema",

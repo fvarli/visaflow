@@ -5,7 +5,10 @@ import { AlertDialog as AlertDialogPrimitive } from 'radix-ui'
 
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
-import { useRestoreFocusOnClose } from '@/components/ui/use-restore-focus'
+import {
+  useRestoreFocusOnClose,
+  type RestoreFocusFallback,
+} from '@/components/ui/use-restore-focus'
 
 function AlertDialog({
   ...props
@@ -50,14 +53,24 @@ function AlertDialogContent({
   size = 'default',
   onOpenAutoFocus,
   onCloseAutoFocus,
+  restoreFocusFallback,
   ...props
 }: React.ComponentProps<typeof AlertDialogPrimitive.Content> & {
   size?: 'default' | 'sm'
+  /**
+   * Focus destination when the element that opened this dialog is gone — a
+   * destructive confirmation usually destroys its own trigger row.
+   */
+  restoreFocusFallback?: RestoreFocusFallback
 }) {
   // Built on the same Radix Dialog primitive. Composing rather than replacing
   // matters here: `AlertDialogContent` supplies its own `onOpenAutoFocus` to
   // focus the Cancel action, and that must keep working.
-  const restoreFocus = useRestoreFocusOnClose(onOpenAutoFocus, onCloseAutoFocus)
+  const restoreFocus = useRestoreFocusOnClose(
+    onOpenAutoFocus,
+    onCloseAutoFocus,
+    restoreFocusFallback
+  )
 
   return (
     <AlertDialogPortal>

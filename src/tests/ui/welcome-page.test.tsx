@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 import { describe, it, expect, beforeEach } from 'vitest'
-import { render, screen, fireEvent } from '@testing-library/react'
+import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import i18n, {
   DEFAULT_LOCALE,
@@ -10,6 +10,7 @@ import i18n, {
 import { LocaleProvider } from '@/app/providers/LocaleProvider'
 import { ThemeProvider } from '@/app/providers/ThemeProvider'
 import { DossierProvider, useDossier } from '@/app/providers/DossierProvider'
+import { WorkspaceProvider } from '@/app/providers/WorkspaceProvider'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import WelcomePage from '@/pages/WelcomePage'
 import { importDossier } from '@/features/import-export/services/import.service'
@@ -53,27 +54,29 @@ function renderWelcome(entry = '/welcome', data: Dossier | null = null) {
     <LocaleProvider>
       <ThemeProvider>
         <DossierProvider>
-          <TooltipProvider>
-            <SeedGate data={data}>
-              <MemoryRouter initialEntries={[entry]}>
-                <Routes>
-                  <Route
-                    path="/welcome"
-                    element={
-                      <>
-                        <WelcomePage />
-                        <Probe />
-                      </>
-                    }
-                  />
-                  <Route
-                    path="/dashboard"
-                    element={<div>DASHBOARD_STUB</div>}
-                  />
-                </Routes>
-              </MemoryRouter>
-            </SeedGate>
-          </TooltipProvider>
+          <WorkspaceProvider>
+            <TooltipProvider>
+              <SeedGate data={data}>
+                <MemoryRouter initialEntries={[entry]}>
+                  <Routes>
+                    <Route
+                      path="/welcome"
+                      element={
+                        <>
+                          <WelcomePage />
+                          <Probe />
+                        </>
+                      }
+                    />
+                    <Route
+                      path="/dashboard"
+                      element={<div>DASHBOARD_STUB</div>}
+                    />
+                  </Routes>
+                </MemoryRouter>
+              </SeedGate>
+            </TooltipProvider>
+          </WorkspaceProvider>
         </DossierProvider>
       </ThemeProvider>
     </LocaleProvider>
@@ -183,7 +186,11 @@ describe('Welcome — create a dossier', () => {
         name: i18n.t('onboarding:create.createAction'),
       })
     )
-    expect(screen.getByTestId('has-applicant')).toHaveTextContent('yes')
+    // Creating now claims a workspace slot before seeding the reducer, so the
+    // dossier appears asynchronously rather than within the click.
+    await waitFor(() =>
+      expect(screen.getByTestId('has-applicant')).toHaveTextContent('yes')
+    )
     expect(
       await screen.findByRole('heading', {
         level: 2,
@@ -201,14 +208,20 @@ describe('Welcome — create a dossier', () => {
     ).toBeInTheDocument()
   })
 
-  it('writes no new storage keys while setting up', async () => {
+  it('writes no new localStorage keys while setting up', async () => {
+    // Still exactly two localStorage keys, both non-personal interface
+    // preferences. Dossiers are persisted too as of v1.1 — but in IndexedDB,
+    // through the repository port, never here (ADR-036). This test guards that
+    // boundary: personal data must never appear in localStorage.
     renderWelcome('/welcome?step=create')
     fireEvent.click(
       await screen.findByRole('button', {
         name: i18n.t('onboarding:create.createAction'),
       })
     )
-    expect(screen.getByTestId('has-applicant')).toHaveTextContent('yes')
+    await waitFor(() =>
+      expect(screen.getByTestId('has-applicant')).toHaveTextContent('yes')
+    )
     const allowed = ['visaflow-theme', 'visaflow-locale']
     for (const key of Object.keys(window.localStorage)) {
       expect(allowed).toContain(key)

@@ -44,9 +44,9 @@
   "privacy": {
     "title": "Gizlilik",
     "description": "VisaFlow verilerinizi nasıl ele alır.",
-    "inMemory": "Dosyanız yalnızca bu tarayıcı sekmesinin belleğinde tutulur. Hiçbir yere gönderilmez ve sekmeyi kapattığınızda veya yenilediğinizde silinir — bir kopyasını saklamak için dışa aktarın.",
+    "inMemory": "Dosyalarınız bu tarayıcıda saklanır; geri döndüğünüzde burada olur. Hiçbir sunucuya gönderilmez. Tarayıcı verilerinizi temizlemek bunları siler — yedek olarak bir JSON kopyası dışa aktarın.",
     "storedTitle": "Bu cihazda saklananlar",
-    "storedBody": "Yalnızca iki kişisel olmayan arayüz tercihi hatırlanır: temanız ve diliniz. Başvuru dosyası, başvuru sahibi, pasaport veya finansal veriler hiçbir zaman saklanmaz.",
+    "storedBody": "Dosyalarınız bu tarayıcının yerel veritabanında, kişisel olmayan iki arayüz tercihiyle (tema ve dil) birlikte saklanır. Yerel depolama şifreleme değildir: bu tarayıcı profilini kullanabilen herkes dosyalarınızı açabilir. Ortak bir bilgisayarda dosya oluştururken \"Yalnızca oturum\" seçeneğini kullanın veya işiniz bitince kayıtlı dosyaları silin.",
     "noTracking": "Hesap yok, sunucu yok, analiz yok, takip yok, üçüncü taraf isteği yok. Her şey tarayıcınızda yerel olarak çalışır."
   },
   "data": {
@@ -67,7 +67,7 @@
   "reset": {
     "action": "Tüm verileri sıfırla",
     "confirmTitle": "Tüm veriler sıfırlansın mı?",
-    "confirmBody": "Bu işlem başvuru dosyasını tarayıcı belleğinden siler. Dışa aktarmadığınız her şey kaybolur. Bu işlem geri alınamaz.",
+    "confirmBody": "Bu işlem şu anda açık olan dosyayı temizler. Kayıtlı dosyalar Dosyalar sayfasından yönetilir. Dışa aktarmadığınız her şey kaybolur. Bu işlem geri alınamaz.",
     "confirm": "Her şeyi sıfırla"
   },
   "dangerZone": "Riskli işlemler",
@@ -112,6 +112,6 @@
     "description": "Geliştiriciye yönelik ayrıntılar. Çoğu kişinin bunlara ihtiyacı yoktur.",
     "schemaVersion": "Dosya şeması sürümü",
     "storageKeys": "Yerel depolama anahtarları",
-    "storageNote": "Bunlar VisaFlow'un tarayıcınızın yerel depolamasına yazdığı tek anahtarlardır ve her ikisi de kişisel değildir."
+    "storageNote": "Bunlar VisaFlow'un tarayıcınızın yerel depolamasına yazdığı tek anahtarlardır ve her ikisi de kişisel değildir. Dosyaların kendisi bu tarayıcının IndexedDB veritabanında ayrıca saklanır."
   }
 }

@@ -6,9 +6,27 @@ import { ThemeToggle } from '@/components/ui/theme-toggle'
 import { LanguageSelect } from '@/components/ui/language-select'
 import { StatusBadge } from '@/components/ui/status-badge'
 import { useDossier } from '@/app/providers/DossierProvider'
+import { useWorkspace } from '@/app/providers/WorkspaceProvider'
+import { DossierSwitcher } from '@/components/layout/DossierSwitcher'
 import { getNavItemByPath } from '@/config/navigation'
 import { cn } from '@/lib/utils'
 import { dynamicT } from '@/lib/i18n-dynamic'
+import type { PersistenceStatus } from '@/app/providers/WorkspaceProvider'
+import type { StatusTone } from '@/components/ui/status-badge'
+
+/**
+ * Tones for local-save state. `sessionOnly` and `unavailable` are informational,
+ * not failures — the user either chose not to save, or the browser refused —
+ * so neither is red. Only a genuine write failure is.
+ */
+const SAVE_TONE: Record<PersistenceStatus, StatusTone> = {
+  idle: 'neutral',
+  saving: 'info',
+  saved: 'success',
+  error: 'danger',
+  sessionOnly: 'warning',
+  unavailable: 'warning',
+}
 
 interface HeaderProps {
   onMenuClick?: () => void
@@ -18,9 +36,11 @@ interface HeaderProps {
 }
 
 export function Header({ onMenuClick, onSave, scrolled = false }: HeaderProps) {
-  const { state, hasData } = useDossier()
+  const { hasData } = useDossier()
+  const { status, lastPersistedAt } = useWorkspace()
   const { pathname } = useLocation()
   const { t } = useTranslation('common')
+  const { t: tw } = useTranslation('workspace')
   const current = getNavItemByPath(pathname)
 
   return (
@@ -46,52 +66,37 @@ export function Header({ onMenuClick, onSave, scrolled = false }: HeaderProps) {
         <span className="text-body text-foreground truncate font-medium">
           {current ? dynamicT(t)(current.labelKey) : t('app.name')}
         </span>
-        {hasData && state.application?.destinationCountry && (
-          // The separator and the crumb it separates must share one visibility
-          // gate. The `/` used to render unconditionally while the crumb alone
-          // was `sm:`-only, so every route below 640px showed a dangling slash
-          // pointing at nothing — and it stole width from an already-truncated
-          // page title.
-          <span className="hidden min-w-0 items-center gap-2 sm:flex">
+        {hasData && (
+          <>
             <span aria-hidden className="text-muted-foreground/50">
               /
             </span>
-            <span className="text-body text-muted-foreground truncate">
-              {dynamicT(t)(
-                `visa-domain:countries.${state.application.destinationCountry}`,
-                { defaultValue: state.application.destinationCountry }
-              )}
-              {state.application.visaType &&
-                ` · ${dynamicT(t)(`visa-domain:visaTypes.${state.application.visaType}`)}`}
-            </span>
-          </span>
+            <DossierSwitcher />
+          </>
         )}
       </div>
 
       <div className="ml-auto flex items-center gap-2">
         {hasData && (
           <StatusBadge
-            tone={state.isDirty ? 'warning' : 'success'}
+            tone={SAVE_TONE[status]}
             dot
             size="md"
             className="hidden sm:inline-flex"
           >
-            {state.isDirty
-              ? t('saveState.unsaved')
-              : state.lastSaved
-                ? t('saveState.savedAt', {
-                    when: formatRelativeTime(state.lastSaved, t),
-                  })
-                : t('saveState.noChanges')}
+            {status === 'saved' && lastPersistedAt
+              ? tw('status.savedAt', {
+                  date: formatRelativeTime(new Date(lastPersistedAt), t),
+                })
+              : tw(`status.${status}`)}
           </StatusBadge>
         )}
 
         {hasData && onSave && (
           <Button
-            variant={state.isDirty ? 'default' : 'outline'}
+            variant="outline"
             size="sm"
             onClick={onSave}
-            disabled={!state.isDirty}
             aria-label={t('actions.export')}
           >
             <Download />

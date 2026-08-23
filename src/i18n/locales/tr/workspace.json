@@ -1,0 +1,60 @@
+{
+  "title": "Dosyalarınız",
+  "description": "Bu tarayıcıda kayıtlı tüm vize başvurularınız.",
+  "empty": {
+    "title": "Henüz kayıtlı dosya yok",
+    "description": "Bir dosya oluşturun; burada otomatik olarak saklanır.",
+    "action": "Dosyanı başlat"
+  },
+  "switcher": {
+    "label": "Dosya değiştir",
+    "current": "Açık dosya",
+    "manage": "Dosyaları yönet",
+    "create": "Yeni dosya",
+    "sessionOnly": "Yalnızca oturum"
+  },
+  "card": {
+    "open": "Aç",
+    "openAria": "{{name}} dosyasını aç",
+    "delete": "Sil",
+    "deleteAria": "{{name}} dosyasını sil",
+    "current": "Şu anda açık",
+    "documents_one": "{{count}} belge",
+    "documents_other": "{{count}} belge",
+    "updated": "{{date}} tarihinde düzenlendi",
+    "neverExported": "Hiç dışa aktarılmadı",
+    "lastExported": "{{date}} tarihinde dışa aktarıldı",
+    "unreadable": "Açılamıyor",
+    "unreadableHint": "Bu dosya VisaFlow'un daha yeni bir sürümüyle kaydedilmiş. Silinmedi — VisaFlow'u güncelleyin veya okuyabilen bir sürümden dosya olarak dışa aktarın."
+  },
+  "remove": {
+    "title": "{{name}} silinsin mi?",
+    "body": "Bu dosya bu tarayıcıdan kalıcı olarak silinir. Daha önce dışa aktardığınız JSON dosyası etkilenmez. Bu işlem geri alınamaz.",
+    "cancel": "Dosyayı koru",
+    "confirm": "Dosyayı sil"
+  },
+  "status": {
+    "idle": "Henüz kaydedilmedi",
+    "saving": "Kaydediliyor…",
+    "saved": "Kaydedildi",
+    "savedAt": "{{date}} tarihinde kaydedildi",
+    "error": "Kaydedilemedi",
+    "errorHint": "Dosyanız hâlâ açık ve hiçbir şey kaybolmadı, ancak bu tarayıcı veriyi saklamayı reddetti. Güvende olmak için bir JSON kopyası dışa aktarın.",
+    "sessionOnly": "Yalnızca oturum",
+    "sessionOnlyHint": "Bu dosya kaydedilmiyor. Sekmeyi kapattığınızda veya yenilediğinizde kaybolur — bir kopyasını saklamak için dışa aktarın.",
+    "unavailable": "Kaydetme kullanılamıyor",
+    "unavailableHint": "Bu tarayıcı VisaFlow'un veri saklamasına izin vermiyor; dosyanız yalnızca bellekte tutuluyor. Sekmeyi kapatmadan önce bir JSON kopyası dışa aktarın."
+  },
+  "mode": {
+    "legend": "Bu dosya nerede saklansın?",
+    "save": "Bu cihazda sakla",
+    "saveHint": "Bu tarayıcıda tutulur; geri döndüğünüzde burada olur. Hiçbir sunucuya gönderilmez.",
+    "session": "Yalnızca oturum",
+    "sessionHint": "Bu tarayıcıya hiçbir şey yazılmaz. Ortak veya herkese açık bilgisayarlarda önerilir."
+  },
+  "export": {
+    "never": "Hiç dışa aktarılmadı",
+    "at": "Son dışa aktarma: {{date}}",
+    "pending": "Son dışa aktarmadan bu yana değişiklikler var"
+  }
+}

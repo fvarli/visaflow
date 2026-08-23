@@ -28,13 +28,14 @@ requests are not security reports — open a normal issue for those.
 
 VisaFlow is designed with privacy as a core principle:
 
-- **No Server Storage**: All data remains in your browser's memory
-- **No Personal Data in Browser Storage**: applicant, trip, employment, financial, sponsor and
-  document data are never written to `localStorage`. The only keys VisaFlow persists are
-  `visaflow-theme` and `visaflow-locale` — non-personal interface preferences
+- **No Server Storage**: all data remains on your device; there is no backend
+- **Local Storage On Your Device**: dossiers are saved in this browser's IndexedDB database so they
+  survive a refresh. `localStorage` holds only `visaflow-theme` and `visaflow-locale` —
+  non-personal interface preferences
+- **Not Encrypted**: local storage is not a password. Anyone who can use this browser profile can
+  open saved dossiers. A **Session only** mode keeps a dossier in memory for shared computers
 - **No Cookies**: No tracking or session cookies
 - **No External APIs**: No network requests to third-party services
-- **Session-Only**: Data exists only during your browser session
 
 ### Data Flow
 
@@ -47,17 +48,18 @@ User Input -> Browser Memory -> JSON Export (user-initiated download)
 
 ### What This Means
 
-1. **Closing the browser clears all data** - Export before closing
-2. **Refreshing the page clears all data** - Export before refreshing
-3. **Your data never leaves your device** - Unless you explicitly share the JSON file
-4. **No account required** - No registration, no login, no tracking
+1. **Your dossiers survive closing and refreshing** - they are saved in this browser
+2. **Clearing browser or site data deletes them** - export a JSON backup you control
+3. **Your data never leaves your device** - unless you explicitly share the JSON file
+4. **On a shared computer** - use Session only, or delete saved dossiers when finished
+5. **No account required** - No registration, no login, no tracking
 
 ### Potential Risks
 
 While VisaFlow minimizes data exposure, users should be aware:
 
 1. **JSON files contain personal data** - Store exported files securely
-2. **Browser memory is not encrypted** - Other browser extensions may have access
+2. **Browser storage is not encrypted** - other profile users and extensions may have access
 3. **Screenshots may capture sensitive data** - Be cautious when sharing screens
 4. **Shared computers** - Ensure you export and close properly on shared machines
 

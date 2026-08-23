@@ -7,6 +7,7 @@ import { Footer } from './Footer'
 import { MobileNav } from './MobileNav'
 import { SkipLink } from './SkipLink'
 import { useDossier } from '@/app/providers/DossierProvider'
+import { useWorkspace } from '@/app/providers/WorkspaceProvider'
 import { buildDocumentReadiness } from '@/features/readiness/document-readiness'
 import { requiredRequirementCodes } from '@/features/readiness/requirement-readiness'
 import { resolveVisaTemplate } from '@/config/countries'
@@ -35,7 +36,8 @@ export function AppLayout() {
   const [scrolled, setScrolled] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  const { state, loadDossier, markSaved } = useDossier()
+  const { state, markSaved } = useDossier()
+  const { adoptImported } = useWorkspace()
 
   const handleExport = useCallback(() => {
     downloadDossier(
@@ -71,9 +73,11 @@ export function AppLayout() {
         }
 
         if (result.success && result.data) {
-          loadDossier({
-            applicant: result.data.applicant,
-            application: result.data.application,
+          // Additive: a file becomes a new saved dossier, never a replacement
+          // for whatever happens to be open (ADR-036).
+          await adoptImported({
+            applicant: result.data.applicant ?? null,
+            application: result.data.application ?? null,
             documents: result.data.documents ?? [],
             sponsors: result.data.sponsors ?? [],
           })
@@ -95,7 +99,7 @@ export function AppLayout() {
         fileInputRef.current.value = ''
       }
     },
-    [loadDossier]
+    [adoptImported]
   )
 
   const handleLoadExample = useCallback(async () => {
@@ -105,9 +109,11 @@ export function AppLayout() {
       const result = importPartial(JSON.stringify(exampleData.default))
 
       if (result.success && result.data) {
-        loadDossier({
-          applicant: result.data.applicant,
-          application: result.data.application,
+        // Additive: a file becomes a new saved dossier, never a replacement for
+        // whatever happens to be open (ADR-036).
+        await adoptImported({
+          applicant: result.data.applicant ?? null,
+          application: result.data.application ?? null,
           documents: result.data.documents ?? [],
           sponsors: result.data.sponsors ?? [],
         })
@@ -116,7 +122,7 @@ export function AppLayout() {
     } catch {
       setImportErrors([t('importDialog.failedExample')])
     }
-  }, [loadDossier])
+  }, [adoptImported])
 
   // The Documents nav badge shows the canonical outstanding count — the same
   // number the rings and the "remaining" phrasing use. It must pass the

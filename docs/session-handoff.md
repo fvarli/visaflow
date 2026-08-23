@@ -1896,3 +1896,81 @@ only the two permitted storage keys · `src/domain/`, `src/features/readiness/`,
 
 The maintenance baseline is clean; the next sprint can be a real feature. The only tracked debt is
 the 9 dev-only advisories.
+
+---
+
+# Iteration 26 — v1.1: Saved Dossiers & local persistence
+
+The first substantial v1.1 feature. Baseline `f5c0399`, clean, CI green, 737/737.
+
+### What the map changed about the plan
+
+Three findings reshaped the approach before any code was written:
+
+1. **10 of 12 feature models were already pure** `build*(input)` + a 4-line hook. The domain, rules
+   and readiness layers needed **no change at all** — those 10 hooks were the entire coupling to
+   "one in-memory dossier". The 158 direct `state.*` reads look alarming and are almost all
+   irrelevant.
+2. **The state layer was 100% synchronous** — no `async`, no `useEffect` anywhere in
+   `DossierProvider`. That is why `WorkspaceProvider` exists as a separate layer rather than
+   persistence being bolted into the reducer.
+3. **`isDirty`/`lastSaved` meant "unexported"** — `markSaved()` fired only on export, so
+   "Saved 5 minutes ago" was a lie about local storage that had simply never mattered before.
+
+### Storage: IndexedDB, and *not* because of size
+
+Measured first: a dossier is ~6 KB minified, fifty heavy ones ~1.1 MB — comfortably inside
+localStorage's quota. Capacity was never the argument. The argument is write behaviour:
+localStorage is synchronous and string-only, so every autosave would serialize and rewrite a blob
+on the main thread with no per-record atomicity.
+
+`jsdom` has no IndexedDB, so the adapter cannot be unit-tested here. Rather than add a polyfill
+dependency, the *contract* is tested against an in-memory adapter and the production adapter is
+proven in real Chrome. Everything testable without a browser — migration, record assembly, summary
+derivation, ordering — lives in pure modules, leaving the IndexedDB adapter as thin plumbing.
+
+### Bugs the work surfaced (all fixed)
+
+- **`LOAD_DOSSIER` merges** (`applicant ?? state.applicant`), which is right for importing a partial
+  file and wrong for switching: dossier B lacking an applicant would leave dossier A's on screen.
+  Added `REPLACE_DOSSIER`, which replaces wholesale including nulls.
+- **`WelcomePage` blocked creating a second dossier.** `hadDataAtMount` short-circuited the whole
+  flow, so the switcher's "New dossier" led to an "you already have one" dead end. Now an explicit
+  `?step=` is honoured; the bare `/welcome` still shows the panel. **Found only by real-browser
+  testing** — no unit test would have caught it.
+- **An unguarded `writeMeta` produced an unhandled rejection** on a storage failure. Caught by a
+  test that deliberately fails the next write.
+- **The "replace what is open?" confirmation became a lie** once import turned additive, so it was
+  removed rather than left to warn about something that no longer happens.
+
+### Verified in real Chrome (jsdom cannot do this)
+
+Typed `DURABILITY4711` into the applicant field → it appeared in IndexedDB → **full page reload** →
+record intact and the field repopulated. Then: second dossier created and became active; active
+dossier survived reload; `/dossiers` rendered both; deleting the active one fell back to the
+survivor and the deletion persisted across another reload. Export keys unchanged.
+
+### Privacy
+
+The promise genuinely changed and ~20 bilingual strings plus six docs were rewritten. The line that
+mattered most: **local storage is not encryption** — anyone who can use the browser profile can open
+the dossiers. Saying that plainly is the price of storing anything. ADR-006's rationale (shared
+computers, users forgetting data is stored) was not dismissed; it is why **Session only** exists.
+
+### Gates
+
+`format:check` ✓ · `lint` **0 errors / 68 warnings** (63 baseline + 5 new, all the accepted
+`react-refresh/only-export-components` category) · `typecheck` ✓ · `test` **774/774, 67 files**
+(737 + 37) · `build` ✓ · act guard **0** · `diff --check` clean. Bundle `index` 274.42 → **311.49 kB**
+(gzip 83.35 → 96.59, **+13.2 kB**) — the workspace layer plus a new bilingual namespace, which is
+bundled eagerly like every other locale file. `DossiersPage` is code-split (3.12 kB).
+
+`schemaVersion` still `1.0.0`; `templateVersion` still `1.0.0`; export contract unchanged;
+`localStorage` still exactly two non-personal keys.
+
+### Next
+
+Nothing in the workspace layer is half-built, but note: rename is not implemented (titles are
+derived), there is no cross-tab sync (two tabs on the same dossier will last-write-wins), and
+`STORAGE_FORMAT_VERSION` is 1 with an empty migration ladder — the seam exists and is tested, but
+has never been exercised by a real migration.

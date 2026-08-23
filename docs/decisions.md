@@ -686,3 +686,73 @@ sponsors appears in `src/components/ui/`.
 
 No timers, no retained detached nodes, no page-specific knowledge in shared primitives. No schema, storage, import/export or validation change; still exactly two
 localStorage keys; `schemaVersion` remains `1.0.0`.
+
+---
+
+## ADR-036: Dossiers Persist Locally in IndexedDB Behind a Repository Port; Session-Only Is the Escape Hatch
+
+**Status:** Accepted · **Date:** 2026-08-23 · **Supersedes:** [ADR-006]
+
+**Decision:** VisaFlow saves dossiers in the browser's IndexedDB, behind a `DossierRepository`
+port, and supports several saved dossiers. Persistence is **on by default**, with a per-dossier
+**Session only** mode that reproduces the v1.0 in-memory behaviour exactly.
+
+**Context:** ADR-001 and ADR-006 chose in-memory-only state and accepted the trade-off "data is lost
+on page refresh unless exported". In practice that was the product's biggest complaint: a visa
+dossier is prepared over weeks, and losing it to a stray refresh is itself a harm.
+
+ADR-006's rationale is not obsolete, though — *"localStorage persists after session ends… shared
+computers pose risk… user may forget data is stored"* is exactly right, and applies to IndexedDB
+too. That reasoning is why **Session only** exists rather than being dropped: the risk it names is
+real, so it gets an answer instead of a silence.
+
+**Why IndexedDB, and not localStorage.** Not capacity — a dossier is ~6 KB minified and fifty heavy
+ones are ~1.1 MB, well inside localStorage's quota. The reasons are write behaviour and shape:
+localStorage is synchronous and string-only, so every autosave would serialize and rewrite a blob on
+the main thread with no per-record atomicity, and multiple dossiers would mean either one giant
+value or a hand-rolled index. IndexedDB writes one record in one transaction, off the main thread,
+storing structured clones.
+
+**Why a port.** `jsdom` implements no IndexedDB, so an adapter cannot be unit-tested in this suite at
+all. Rather than add a polyfill dependency to make the browser adapter convenient to test, the
+*contract* is tested against an in-memory adapter and the production adapter is verified in real
+Chrome. Everything that can be tested without a browser — migration, record assembly, summary
+derivation, ordering — lives in pure modules, leaving the IndexedDB adapter as thin plumbing. The
+port also keeps React components from ever touching storage APIs, and keeps `DossierProvider` a
+synchronous reducer instead of a god object: `WorkspaceProvider` owns the async work.
+
+**Rationale:**
+
+- **A fourth version axis, kept separate.** `STORAGE_FORMAT_VERSION` versions how a record is laid
+  out in *this browser*. It is not the app version, not the dossier `schemaVersion` (still `1.0.0`,
+  unchanged by this ADR), and not a country pack's `templateVersion`. Rearranging local storage is
+  not a change to the file a user exports.
+- **A record we cannot read is never destroyed.** A record from a newer build is reported as
+  unreadable, listed, and left alone — data loss is worse than a support question.
+- **Import is additive.** A file becomes a *new* saved dossier with a locally generated id; an
+  exported dossier is a portable document, never a claim on a slot in someone else's browser. Two
+  imports of the same file are two dossiers, because duplicate detection from names or passport
+  numbers would be brittle and wrong. This also removed the "replace what is open?" confirmation:
+  nothing is destroyed, so there is nothing to warn about.
+- **Local-save state and export state are different things.** v1.0 conflated them — `markSaved()`
+  fired only on export, so "Saved 5 minutes ago" actually meant "exported". Now the header reports
+  local persistence and export recency is tracked separately. Export is no longer disabled when
+  nothing changed: re-exporting to a second location is legitimate.
+
+**Trade-off:** the privacy promise changed and had to be rewritten honestly. "Nothing is ever
+stored" became "stored on your device, never on a server" — and, explicitly, **local storage is not
+encryption**: anyone who can use the browser profile can open the dossiers. Saying that plainly is
+the price of storing anything at all.
+
+**Consequences:** `docs/privacy.md`, `README.md`, `SECURITY.md`, `CLAUDE.md`, `CONTRIBUTING.md` and
+the Settings/onboarding copy were updated in both locales. ADR-021's "until persistence" caveat and
+ADR-031's "no persistence" note are now historical. `localStorage` still holds exactly the two
+non-personal keys; dossiers live in IndexedDB, and the guard test that checks localStorage was kept
+and re-pointed at that boundary rather than deleted.
+
+**Implementation:** `src/features/workspace/` (`saved-dossier.ts`, `workspace-model.ts`,
+`migrations.ts`, `adapters/{indexeddb,memory}-adapter.ts`), `src/app/providers/WorkspaceProvider.tsx`,
+`src/pages/DossiersPage.tsx`, `src/components/layout/DossierSwitcher.tsx`, and a new
+`REPLACE_DOSSIER` action in `DossierProvider` — switching must clear absent slices, which the
+merging `LOAD_DOSSIER` deliberately does not. No schema, import/export-format, readiness or
+validation change.

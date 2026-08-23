@@ -22,7 +22,8 @@ preparation — a structured dossier, validation engine, timeline, and country-s
 requirements. Greece (Schengen short-stay tourism) is the first implemented country pack; the
 architecture is built to add more. See `docs/vision.md`.
 
-**Key principle:** All personal data stays in-memory. No localStorage for data, no external APIs,
+**Key principle:** All personal data stays on the user's device. Dossiers persist in IndexedDB
+via the repository port; no personal data in localStorage, no external APIs,
 no tracking. Users explicitly export/import JSON files.
 
 ## Technology Stack
@@ -76,9 +77,12 @@ src/
 - NEVER use localStorage for personal data
 - NEVER make external API calls
 - NEVER add analytics or tracking
-- Data exists only in browser memory until exported
+- Dossiers persist locally in IndexedDB through `DossierRepository`; React
+  components never touch storage APIs directly (ADR-036)
 - The ONLY permitted localStorage keys are `visaflow-theme` and
-  `visaflow-locale` — non-personal interface preferences (ADR-006/ADR-013)
+  `visaflow-locale` — non-personal interface preferences (ADR-013)
+- Never claim local storage is encrypted; "Session only" is the shared-computer
+  escape hatch
 
 ### Internationalization
 - Bilingual (Turkish default, English). Never hardcode user-visible text —

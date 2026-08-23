@@ -82,8 +82,8 @@
   },
   "privacy": {
     "title": "Your data never leaves this browser",
-    "body": "Everything stays in memory only — nothing is sent to a server and nothing is written to disk. Export your dossier to save your progress before closing the tab.",
-    "memoryOnly": "Imported data stays in browser memory only. Export again to save any changes you make."
+    "body": "Your dossier is stored in this browser and never sent to a server. Export a JSON file to keep a portable backup.",
+    "memoryOnly": "Imported data is saved in this browser and never uploaded. Export a JSON copy to keep a backup."
   },
   "theme": {
     "label": "Theme",

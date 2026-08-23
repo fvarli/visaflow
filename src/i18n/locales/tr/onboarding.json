@@ -18,9 +18,9 @@
   "welcome": {
     "heading": "VisaFlow'a hoş geldin",
     "lead": "VisaFlow, bir vize başvurusunu — belgelerini, tarihlerini ve bilgilerini — tek bir yapılandırılmış, gizli çalışma alanında düzenlemene yardımcı olur.",
-    "privacy": "Her şey bu tarayıcı sekmesinde kalır. Verilerin hiçbir yere gönderilmez ve bir sunucuda saklanmaz.",
+    "privacy": "Her şey bu cihazda kalır. Verilerin bu tarayıcıda saklanır; hiçbir yere gönderilmez ve bir sunucuda tutulmaz.",
     "noPrediction": "VisaFlow dosyanı düzenler; bir vizenin verilip verilmeyeceğini asla tahmin etmez.",
-    "autosave": "Çalışman ilerledikçe kaydedilir — kaydet düğmesi yoktur. Bir kopyasını saklamak istediğinde JSON dosyası olarak dışa aktar.",
+    "autosave": "Çalışman ilerledikçe kaydedilir — kaydet düğmesi yoktur. Taşınabilir bir yedek istediğinde JSON dosyası olarak dışa aktar.",
     "getStarted": "Başla",
     "exploreFirst": "Önce uygulamayı keşfet"
   },
@@ -37,7 +37,7 @@
     "heading": "Oluştur veya içe aktar",
     "lead": "Yeni bir dosya başlat ya da daha önce dışa aktardığın bir dosyayı geri yükle.",
     "createTitle": "Yeni bir dosya başlat",
-    "createBody": "{{country}} için tarayıcı belleğinde boş bir dosya oluşturur; doldurmaya hazır.",
+    "createBody": "{{country}} için boş bir dosya oluşturur; doldurmaya hazır.",
     "createAction": "Dosya oluştur",
     "importTitle": "Mevcut bir dosyayı içe aktar",
     "importBody": "Daha önce VisaFlow'dan dışa aktardığın bir JSON dosyasından dosyayı yükle. Hiçbir şey yüklenmez — dosya yerel olarak okunur.",

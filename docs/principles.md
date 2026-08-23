@@ -6,19 +6,21 @@ where a principle is enforced by code or tests, that is noted so it stays true o
 
 ## 1. Privacy first
 
-Sensitive personal data never leaves the user's device. No server, no database, no account, no
-analytics, no third-party calls, no CDN. **Why:** the data is passport numbers and bank
-balances; the safest place for it is nowhere but the user's own browser and files.
-**Enforced by:** [ADR-001] (no database), [ADR-006] (no localStorage for data), the
+Sensitive personal data never leaves the user's device. No server, no remote database, no
+account, no analytics, no third-party calls, no CDN. Dossiers are saved locally so work is not
+lost, and the model says plainly that local storage is not encryption. **Why:** the data is
+passport numbers and bank balances; the safest place for it is nowhere but the user's own device.
+**Enforced by:** [ADR-001] (no backend), [ADR-036] (local persistence, session-only escape
+hatch), the
 [privacy model](./privacy.md), and the strict Content-Security-Policy posture (all assets
 bundled, no network for user data).
 
 ## 2. The user owns the data
 
 The dossier is the user's, in a portable file they control. Export and import are explicit user
-actions; closing the tab discards in-memory state by design. **Why:** ownership means the
-ability to leave. **Enforced by:** the import/export services and the "no silent persistence"
-rule ([ADR-006]).
+actions, and a saved dossier can be deleted at any time. **Why:** ownership means the ability to
+leave — and to be told exactly where the data is. **Enforced by:** the import/export services and
+the "local only, never uploaded" rule ([ADR-036]).
 
 ## 3. No vendor lock-in
 

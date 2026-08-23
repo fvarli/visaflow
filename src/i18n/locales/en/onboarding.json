@@ -18,9 +18,9 @@
   "welcome": {
     "heading": "Welcome to VisaFlow",
     "lead": "VisaFlow helps you organize a visa application — your documents, dates, and details — in one structured, private workspace.",
-    "privacy": "Everything stays in this browser tab. Your data is never sent anywhere and is never stored on a server.",
+    "privacy": "Everything stays on this device. Your data is saved in this browser and is never sent anywhere or stored on a server.",
     "noPrediction": "VisaFlow organizes your dossier; it never predicts whether a visa will be granted or refused.",
-    "autosave": "Your work saves as you go — there is no save button. Export a JSON file whenever you want to keep a copy.",
+    "autosave": "Your work saves as you go — there is no save button. Export a JSON file whenever you want a portable backup.",
     "getStarted": "Get started",
     "exploreFirst": "Explore the app first"
   },
@@ -37,7 +37,7 @@
     "heading": "Create or import",
     "lead": "Start a fresh dossier, or restore one you exported earlier.",
     "createTitle": "Start a new dossier",
-    "createBody": "Creates an empty dossier for {{country}} in this browser's memory, ready for you to fill in.",
+    "createBody": "Creates an empty dossier for {{country}}, ready for you to fill in.",
     "createAction": "Create dossier",
     "importTitle": "Import an existing dossier",
     "importBody": "Load a dossier from a JSON file you exported from VisaFlow before. Nothing is uploaded — the file is read locally.",

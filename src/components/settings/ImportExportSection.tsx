@@ -2,19 +2,10 @@ import { useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { FileDown, FileUp, FlaskConical } from 'lucide-react'
 import { useDossier } from '@/app/providers/DossierProvider'
+import { useWorkspace } from '@/app/providers/WorkspaceProvider'
 import { Button } from '@/components/ui/button'
 import { GuidanceNote } from '@/components/ui/guidance-note'
 import { Separator } from '@/components/ui/separator'
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog'
 import {
   downloadDossier,
   importPartial,
@@ -30,22 +21,20 @@ import {
  */
 export function ImportExportSection() {
   const { t } = useTranslation(['settings', 'common'])
-  const { state, loadDossier, markSaved, hasData } = useDossier()
+  const { state, markSaved, hasData } = useDossier()
+  const { adoptImported } = useWorkspace()
   const fileRef = useRef<HTMLInputElement>(null)
-  const [pending, setPending] = useState<{
-    data: PartialDossierImport
-    warnings: string[]
-  } | null>(null)
   const [feedback, setFeedback] = useState<string | null>(null)
 
-  const doLoad = (data: PartialDossierImport, warnings: string[]) => {
-    loadDossier({
-      applicant: data.applicant,
-      application: data.application,
+  const doLoad = async (data: PartialDossierImport, warnings: string[]) => {
+    // Additive: importing adds a dossier to the workspace rather than replacing
+    // the open one, so nothing can be lost by importing (ADR-036).
+    await adoptImported({
+      applicant: data.applicant ?? null,
+      application: data.application ?? null,
       documents: data.documents ?? [],
       sponsors: data.sponsors ?? [],
     })
-    setPending(null)
     setFeedback(
       warnings.length > 0
         ? t('importExport.warningsTitle')
@@ -53,14 +42,17 @@ export function ImportExportSection() {
     )
   }
 
+  /**
+   * No "replace what is open?" gate any more: an import adds a dossier to the
+   * workspace instead of overwriting one, so there is nothing left to destroy
+   * and nothing to warn about (ADR-036).
+   */
   const apply = (result: ReturnType<typeof importPartial>) => {
     if (!result.success || !result.data) {
       setFeedback(t('importExport.importError'))
       return
     }
-    const warnings = result.warnings ?? []
-    if (hasData) setPending({ data: result.data, warnings })
-    else doLoad(result.data, warnings)
+    void doLoad(result.data, result.warnings ?? [])
   }
 
   const onFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -162,33 +154,6 @@ export function ImportExportSection() {
           {t('importExport.exampleAction')}
         </Button>
       </div>
-
-      <AlertDialog
-        open={pending !== null}
-        onOpenChange={(open) => {
-          if (!open) setPending(null)
-        }}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>
-              {t('importExport.replaceTitle')}
-            </AlertDialogTitle>
-            <AlertDialogDescription>
-              {t('importExport.replaceBody')}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>{t('common:actions.cancel')}</AlertDialogCancel>
-            <AlertDialogAction
-              variant="destructive"
-              onClick={() => pending && doLoad(pending.data, pending.warnings)}
-            >
-              {t('importExport.replaceConfirm')}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </div>
   )
 }

@@ -9,8 +9,9 @@ and the dependency rules between them. Per-layer deep dives live in dedicated do
 
 ## Shape of the system
 
-VisaFlow is a **client-only** React/TypeScript application. There is no backend. State lives in
-memory; the only durable artifact is a JSON file the user exports. The code is organized into
+VisaFlow is a **client-only** React/TypeScript application. There is no backend. Working state
+lives in memory and is autosaved to this browser's IndexedDB (ADR-036); the portable artifact is
+still a JSON file the user exports. The code is organized into
 layers whose dependencies point **downward only** — presentation depends on the domain, never
 the reverse.
 
@@ -167,16 +168,19 @@ demonstrated in the [Playground](./playground.md) before use. **Depends on:** al
 
 ### 6. Privacy (cross-cutting)
 
-**Responsibility:** the invariant that nothing personal leaves the device. No server, no
-database, no analytics, no third-party calls; the dossier lives only in memory; the only
-`localStorage` keys are the non-personal `visaflow-theme` and `visaflow-locale` ([ADR-006],
-[ADR-013]). This is not a module but a constraint every layer respects. Model:
+**Responsibility:** the invariant that nothing personal leaves the device. No server, no remote
+database, no analytics, no third-party calls. Dossiers are stored locally in IndexedDB and never
+uploaded ([ADR-036]); `localStorage` still holds only the non-personal `visaflow-theme` and
+`visaflow-locale` ([ADR-013]). Local storage is not encryption, and the model says so. This is not a module but a constraint every layer respects. Model:
 [privacy.md](./privacy.md).
 
 ## State management
 
 A single `DossierProvider` (`src/app/providers/DossierProvider.tsx`) holds the working state
-with React's `useReducer` ([ADR-005]) — a flat shape (`applicant`, `application`, `documents`,
+with React's `useReducer` ([ADR-005]), and stays synchronous and storage-unaware.
+`WorkspaceProvider` sits above it and owns the saved-dossier workspace — which dossiers exist,
+which is open, and autosaving the open one through a `DossierRepository` port ([ADR-036]). React
+components never call storage APIs directly — a flat shape (`applicant`, `application`, `documents`,
 `sponsors`, plus dirty/saved flags), not a nested `Dossier`. Actions are explicit
 (`LOAD_DOSSIER`, `UPDATE_APPLICANT`, `ADD_DOCUMENT`, …). Redux/Zustand would add dependencies and
 concepts the app's simple state doesn't need. `LocaleProvider` and `ThemeProvider` follow the

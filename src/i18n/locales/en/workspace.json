@@ -1,0 +1,60 @@
+{
+  "title": "Your dossiers",
+  "description": "Every visa application saved in this browser.",
+  "empty": {
+    "title": "No saved dossiers yet",
+    "description": "Start a dossier and it will be saved here automatically.",
+    "action": "Start your dossier"
+  },
+  "switcher": {
+    "label": "Switch dossier",
+    "current": "Open dossier",
+    "manage": "Manage dossiers",
+    "create": "New dossier",
+    "sessionOnly": "Session only"
+  },
+  "card": {
+    "open": "Open",
+    "openAria": "Open {{name}}",
+    "delete": "Delete",
+    "deleteAria": "Delete {{name}}",
+    "current": "Open now",
+    "documents_one": "{{count}} document",
+    "documents_other": "{{count}} documents",
+    "updated": "Edited {{date}}",
+    "neverExported": "Never exported",
+    "lastExported": "Exported {{date}}",
+    "unreadable": "Cannot be opened",
+    "unreadableHint": "This dossier was saved by a newer version of VisaFlow. It has not been deleted — update VisaFlow, or export it as a file from a version that can read it."
+  },
+  "remove": {
+    "title": "Delete {{name}}?",
+    "body": "This permanently deletes this dossier from this browser. Any JSON file you already exported is unaffected. This cannot be undone.",
+    "cancel": "Keep dossier",
+    "confirm": "Delete dossier"
+  },
+  "status": {
+    "idle": "Not saved yet",
+    "saving": "Saving…",
+    "saved": "Saved",
+    "savedAt": "Saved {{date}}",
+    "error": "Couldn't save",
+    "errorHint": "Your dossier is still open and nothing was lost, but this browser refused to store it. Export a JSON copy to be safe.",
+    "sessionOnly": "Session only",
+    "sessionOnlyHint": "This dossier is not being saved. It disappears when you close or refresh the tab — export it to keep a copy.",
+    "unavailable": "Saving unavailable",
+    "unavailableHint": "This browser will not let VisaFlow store data, so your dossier is kept in memory only. Export a JSON copy before closing the tab."
+  },
+  "mode": {
+    "legend": "Where should this dossier live?",
+    "save": "Save on this device",
+    "saveHint": "Kept in this browser so it is here when you come back. Never sent to a server.",
+    "session": "Session only",
+    "sessionHint": "Nothing is written to this browser. Best on a shared or public computer."
+  },
+  "export": {
+    "never": "Never exported",
+    "at": "Last exported {{date}}",
+    "pending": "Changes since your last export"
+  }
+}

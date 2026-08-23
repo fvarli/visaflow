@@ -44,9 +44,9 @@
   "privacy": {
     "title": "Privacy",
     "description": "How VisaFlow handles your data.",
-    "inMemory": "Your dossier lives only in this browser tab's memory. It is never sent anywhere, and it is lost when you close or refresh the tab — export it to keep a copy.",
+    "inMemory": "Your dossiers are saved in this browser so they are here when you come back. They are never sent to a server. Clearing your browser data deletes them — export a JSON copy to keep a backup.",
     "storedTitle": "Stored on this device",
-    "storedBody": "Only two non-personal interface preferences are remembered: your theme and your language. No dossier, applicant, passport, or financial data is ever stored.",
+    "storedBody": "Your dossiers are stored in this browser's local database, along with two non-personal interface preferences (theme and language). Local storage is not encryption: anyone who can use this browser profile can open your dossiers. On a shared computer, choose \"Session only\" when creating a dossier, or delete saved dossiers when you finish.",
     "noTracking": "No accounts, no server, no analytics, no tracking, no third-party requests. Everything runs locally in your browser."
   },
   "data": {
@@ -67,7 +67,7 @@
   "reset": {
     "action": "Reset all data",
     "confirmTitle": "Reset all data?",
-    "confirmBody": "This clears the dossier from browser memory. Anything you have not exported will be lost. This cannot be undone.",
+    "confirmBody": "This clears the dossier currently open. Saved dossiers are managed from the Dossiers page. Anything you have not exported will be lost. This cannot be undone.",
     "confirm": "Reset everything"
   },
   "dangerZone": "Danger zone",
@@ -112,6 +112,6 @@
     "description": "Developer-oriented details. Most people don't need these.",
     "schemaVersion": "Dossier schema version",
     "storageKeys": "Local storage keys",
-    "storageNote": "These are the only keys VisaFlow writes to your browser's local storage, and both are non-personal."
+    "storageNote": "These are the only keys VisaFlow writes to your browser's local storage, and both are non-personal. Dossiers themselves are stored separately in this browser's IndexedDB database."
   }
 }

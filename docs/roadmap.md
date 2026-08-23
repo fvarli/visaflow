@@ -71,9 +71,10 @@ bundled into a maintenance sprint. *Tech debt.*
 actually preparing — the ability to manage more than one application and to get more out of the
 data they've already entered.
 
-- **Multiple saved dossiers** — hold and switch between several applications. The dashboard model
-  is already shaped for this (`{ applications, active }`); this phase adds the UI and in-memory
-  management. *Next.*
+- **Multiple saved dossiers** — **shipped in v1.1.** Dossiers are saved in the browser's IndexedDB
+  behind a repository port, survive refresh and restart, and can be created, switched and deleted
+  from `/dossiers` or the header switcher. Persistence is on by default with a per-dossier
+  "Session only" escape hatch (ADR-036). *Done.*
 - **Richer dossier & timeline** — deeper trip/finance/sponsor structure and a fuller timeline. *Next.*
 - **PDF / printable index** — generate a dossier index and a printable checklist for the
   appointment. The Final Review workspace already models what is printable: a closed set of
@@ -118,9 +119,11 @@ ecosystem, so they land after those exist.
 it is strictly opt-in and only considered once the in-memory model is mature.
 
 - **Local file adapter** — save/load to the local filesystem (user-run), never a hosted service.
-- **Optional encrypted local persistence** — opt-in, password-protected, fully offline.
+- **Optional encrypted local persistence** — opt-in, password-protected, fully offline. Note that
+  v1.1's local persistence is deliberately **not** encrypted and says so; encryption at rest is
+  the work that remains here.
 
-A local-only, in-memory option always remains the default. Data ownership never regresses.
+A local-only option always remains the default. Data ownership never regresses.
 
 ---
 

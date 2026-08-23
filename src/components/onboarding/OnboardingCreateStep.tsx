@@ -1,7 +1,8 @@
 import { useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { FilePlus2, FileUp, FlaskConical } from 'lucide-react'
-import { useDossier } from '@/app/providers/DossierProvider'
+import { useWorkspace } from '@/app/providers/WorkspaceProvider'
+import { SegmentedControl } from '@/components/ui/segmented-control'
 import { Button } from '@/components/ui/button'
 import { GuidanceNote } from '@/components/ui/guidance-note'
 import { Separator } from '@/components/ui/separator'
@@ -26,8 +27,10 @@ export function OnboardingCreateStep({
   onCreated: () => void
 }) {
   const { t } = useTranslation(['onboarding', 'visa-domain'])
+  const { t: tw } = useTranslation('workspace')
   const td = dynamicT(t)
-  const { initializeEmpty, loadDossier } = useDossier()
+  const { createDossier, adoptImported, status } = useWorkspace()
+  const [sessionOnly, setSessionOnly] = useState(false)
   const fileRef = useRef<HTMLInputElement>(null)
   const [error, setError] = useState<string | null>(null)
 
@@ -35,22 +38,27 @@ export function OnboardingCreateStep({
     defaultValue: country,
   })
 
-  const handleCreate = () => {
-    initializeEmpty(country)
+  const handleCreate = async () => {
+    await createDossier(country, sessionOnly)
     onCreated()
   }
 
-  const load = (result: ReturnType<typeof importPartial>) => {
+  const load = async (result: ReturnType<typeof importPartial>) => {
     if (!result.success || !result.data) {
       setError(t('create.importError'))
       return
     }
-    loadDossier({
-      applicant: result.data.applicant,
-      application: result.data.application,
-      documents: result.data.documents ?? [],
-      sponsors: result.data.sponsors ?? [],
-    })
+    // Additive by design: an import always becomes a new saved dossier and
+    // never overwrites one that already exists (see ADR-036).
+    await adoptImported(
+      {
+        applicant: result.data.applicant ?? null,
+        application: result.data.application ?? null,
+        documents: result.data.documents ?? [],
+        sponsors: result.data.sponsors ?? [],
+      },
+      sessionOnly
+    )
     onCreated()
   }
 
@@ -59,18 +67,42 @@ export function OnboardingCreateStep({
     event.target.value = ''
     if (!file) return
     setError(null)
-    load(importPartial(await readFileAsText(file)))
+    await load(importPartial(await readFileAsText(file)))
   }
 
   const handleExample = async () => {
     setError(null)
     const mod = await import('@/data/examples/example-dossier.json')
-    load(importPartial(JSON.stringify(mod.default)))
+    await load(importPartial(JSON.stringify(mod.default)))
   }
 
   return (
     <div className="space-y-6">
       {error && <GuidanceNote tone="info">{error}</GuidanceNote>}
+
+      {/* Where this dossier lives. Saving is the default because losing work on
+          refresh was the single biggest complaint about v1.0; session-only
+          exists because a shared or library computer is a real situation and a
+          saved passport number outliving the session is a privacy regression. */}
+      {status !== 'unavailable' && (
+        <div className="flex flex-col gap-1.5">
+          <p className="text-eyebrow text-muted-foreground uppercase">
+            {tw('mode.legend')}
+          </p>
+          <SegmentedControl<'save' | 'session'>
+            ariaLabel={tw('mode.legend')}
+            value={sessionOnly ? 'session' : 'save'}
+            onValueChange={(next) => setSessionOnly(next === 'session')}
+            options={[
+              { value: 'save', label: tw('mode.save') },
+              { value: 'session', label: tw('mode.session') },
+            ]}
+          />
+          <p className="text-caption text-muted-foreground text-pretty">
+            {sessionOnly ? tw('mode.sessionHint') : tw('mode.saveHint')}
+          </p>
+        </div>
+      )}
 
       <div className="flex flex-col gap-1.5">
         <h3 className="text-body text-foreground font-medium">
@@ -79,7 +111,7 @@ export function OnboardingCreateStep({
         <p className="text-caption text-muted-foreground text-pretty">
           {t('create.createBody', { country: countryLabel })}
         </p>
-        <Button className="mt-1 self-start" onClick={handleCreate}>
+        <Button className="mt-1 self-start" onClick={() => void handleCreate()}>
           <FilePlus2 />
           {t('create.createAction')}
         </Button>
