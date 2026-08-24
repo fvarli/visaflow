@@ -1,5 +1,11 @@
 import { useTranslation } from 'react-i18next'
-import { Copy, Download, HardDriveDownload, RefreshCw } from 'lucide-react'
+import {
+  Copy,
+  Download,
+  HardDriveDownload,
+  RefreshCw,
+  TriangleAlert,
+} from 'lucide-react'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { useWorkspace } from '@/app/providers/WorkspaceProvider'
@@ -29,7 +35,7 @@ interface WorkspaceNoticeProps {
  * Never "sync failed" — nothing was ever syncing, and nothing left the device.
  */
 export function WorkspaceNotice({ onExport }: WorkspaceNoticeProps) {
-  const { t } = useTranslation('workspace')
+  const { t } = useTranslation(['workspace', 'common'])
   const {
     conflict,
     status,
@@ -37,35 +43,62 @@ export function WorkspaceNotice({ onExport }: WorkspaceNoticeProps) {
     reloadLatest,
     saveAsNew,
     promoteToDevice,
+    importReport,
+    dismissImportReport,
   } = useWorkspace()
+
+  /**
+   * What the last import could not read.
+   *
+   * Deliberately first and deliberately *not* exclusive with the states below:
+   * it is about the file that just arrived, and a browser that also refuses to
+   * store it is a second, separate thing the user needs to know. It is also the
+   * reason this lives here at all — a successful import swaps the dossier, which
+   * remounts the page, so the importing screen cannot hold its own message
+   * (ADR-041).
+   */
+  const report = importReport !== null && (
+    <Notice
+      title={t('common:import.omitted', { count: importReport })}
+      body={t('common:import.omittedHint')}
+      icon={<TriangleAlert />}
+    >
+      <Button size="sm" variant="outline" onClick={dismissImportReport}>
+        {t('common:actions.dismiss')}
+      </Button>
+    </Notice>
+  )
 
   // A conflict is the most specific thing that can be wrong, so it wins.
   if (conflict) {
     const deleted = conflict.kind === 'remote-delete'
     return (
-      <Notice
-        title={
-          deleted ? t('conflict.deletedTitle') : t('conflict.changedTitle')
-        }
-        body={deleted ? t('conflict.deletedBody') : t('conflict.changedBody')}
-        footnote={t('conflict.exportHint')}
-      >
-        {/* Reloading is meaningless once the record is gone. */}
-        {!deleted && (
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() => void reloadLatest()}
-          >
-            <RefreshCw />
-            {t('conflict.reload')}
+      <>
+        {report}
+        <Notice
+          title={
+            deleted ? t('conflict.deletedTitle') : t('conflict.changedTitle')
+          }
+          body={deleted ? t('conflict.deletedBody') : t('conflict.changedBody')}
+          footnote={t('conflict.exportHint')}
+        >
+          {/* Reloading is meaningless once the record is gone. */}
+          {!deleted && (
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => void reloadLatest()}
+            >
+              <RefreshCw />
+              {t('conflict.reload')}
+            </Button>
+          )}
+          <Button size="sm" variant="outline" onClick={() => void saveAsNew()}>
+            <Copy />
+            {t('conflict.saveAsNew')}
           </Button>
-        )}
-        <Button size="sm" variant="outline" onClick={() => void saveAsNew()}>
-          <Copy />
-          {t('conflict.saveAsNew')}
-        </Button>
-      </Notice>
+        </Notice>
+      </>
     )
   }
 
@@ -73,53 +106,61 @@ export function WorkspaceNotice({ onExport }: WorkspaceNoticeProps) {
   // and now that they are classified apart they can finally be worded apart.
   if (status === 'error' || status === 'unavailable') {
     return (
-      <Notice
-        title={t(`status.${status}`)}
-        body={t(
-          status === 'unavailable'
-            ? 'status.unavailableHint'
-            : 'status.errorHint'
-        )}
-      >
-        <Button size="sm" variant="outline" onClick={onExport}>
-          <Download />
-          {t('backup.action')}
-        </Button>
-      </Notice>
+      <>
+        {report}
+        <Notice
+          title={t(`status.${status}`)}
+          body={t(
+            status === 'unavailable'
+              ? 'status.unavailableHint'
+              : 'status.errorHint'
+          )}
+        >
+          <Button size="sm" variant="outline" onClick={onExport}>
+            <Download />
+            {t('backup.action')}
+          </Button>
+        </Notice>
+      </>
     )
   }
 
   if (sessionOnly) {
     return (
-      <Notice title={t('session.title')} body={t('status.sessionOnlyHint')}>
-        <Button
-          size="sm"
-          variant="outline"
-          onClick={() => void promoteToDevice()}
-        >
-          <HardDriveDownload />
-          {t('session.promote')}
-        </Button>
-        <Button size="sm" variant="outline" onClick={onExport}>
-          <Download />
-          {t('backup.action')}
-        </Button>
-      </Notice>
+      <>
+        {report}
+        <Notice title={t('session.title')} body={t('status.sessionOnlyHint')}>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => void promoteToDevice()}
+          >
+            <HardDriveDownload />
+            {t('session.promote')}
+          </Button>
+          <Button size="sm" variant="outline" onClick={onExport}>
+            <Download />
+            {t('backup.action')}
+          </Button>
+        </Notice>
+      </>
     )
   }
 
-  return null
+  return report || null
 }
 
 function Notice({
   title,
   body,
   footnote,
+  icon,
   children,
 }: {
   title: string
   body: string
   footnote?: string
+  icon?: React.ReactNode
   children: React.ReactNode
 }) {
   return (
@@ -131,6 +172,7 @@ function Notice({
       aria-atomic="true"
       className="mb-6"
     >
+      {icon}
       <AlertTitle>{title}</AlertTitle>
       <AlertDescription className="gap-3">
         <p>{body}</p>

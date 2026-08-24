@@ -63,7 +63,7 @@
   "reset": {
     "action": "Açık dosyayı kapat",
     "confirmTitle": "Açık dosya kapatılsın mı?",
-    "confirmBody": "Bu işlem düzenleyiciyi temizler ve dosyanın otomatik olarak yeniden açılmasını durdurur. Dosya bu cihazda kayıtlıysa kayıtlı kalır ve Dosyalar sayfasından yeniden açabilirsiniz. Bu cihazda kayıtlı olmayan her şey kaybolur.",
+    "confirmBody": "Bu işlem düzenleyiciyi temizler ve dosyanın otomatik olarak yeniden açılmasını durdurur. Dosya bu cihazda kayıtlıysa kayıtlı kalır ve Dosyalar sayfasından yeniden açabilirsiniz. Kayıtlı değilse VisaFlow, hiçbir şey silinmeden önce ne yapmak istediğinizi sorar.",
     "confirm": "Dosyayı kapat"
   },
   "dangerZone": "Riskli işlemler",
@@ -80,9 +80,7 @@
     "exampleTitle": "Örnek yükle",
     "exampleBody": "VisaFlow'u keşfetmek için kurgusal bir örnek dosya yükleyin. Yeni bir dosya olarak eklenir; mevcut dosyalarınızın yerine geçmez.",
     "exampleAction": "Örnek veriyi yükle",
-    "importError": "Bu dosya içe aktarılamadı. VisaFlow JSON dışa aktarımı olduğundan emin olun.",
-    "importSuccess": "Dosya yüklendi.",
-    "warningsTitle": "Notlarla yüklendi"
+    "importError": "Bu dosya içe aktarılamadı. VisaFlow JSON dışa aktarımı olduğundan emin olun."
   },
   "disclaimer": {
     "title": "Yasal uyarı",

@@ -40,7 +40,8 @@ no tracking. Users explicitly export/import JSON files.
 
 ```
 src/
-├── app/providers/         # DossierProvider (React Context + useReducer)
+├── app/providers/         # DossierProvider (editor state) + WorkspaceProvider
+│                          #   (which dossiers exist, which is open, autosave)
 ├── app/router/            # Route definitions
 ├── components/ui/         # shadcn/ui components
 ├── components/layout/     # AppLayout, Sidebar
@@ -49,6 +50,7 @@ src/
 ├── domain/types/          # Branded types (ApplicantId, DocumentId, etc.)
 ├── config/countries/      # Country-specific document requirements
 ├── features/import-export/# JSON import/export services
+├── features/workspace/    # Saved-dossier port, adapters, migrations, model
 ├── pages/                 # Page components
 ├── data/examples/         # Example dossier JSON
 └── tests/                 # Unit tests
@@ -69,8 +71,15 @@ src/
 - Rules are composed in `src/domain/rules/runner.ts`
 
 ### State Management
-- Single `DossierContext` using React `useReducer`
+- `DossierContext` (React `useReducer`) owns the **open dossier's contents**. It is
+  synchronous and storage-unaware on purpose.
 - Actions: `LOAD_DOSSIER`, `UPDATE_APPLICANT`, `ADD_DOCUMENT`, etc.
+- `WorkspaceProvider` sits inside it and owns **which dossiers exist, which one is
+  open, and writing the open one down** through `DossierRepository`. Components
+  never touch storage (ADR-036).
+- Any operation that replaces or empties the editor — open, create, import, close —
+  goes through `guardLeave` first, so work that is not in storage is never
+  discarded silently (ADR-041).
 - No external state library needed
 
 ### Privacy Constraints
@@ -122,7 +131,9 @@ src/
 
 | File | Purpose |
 |------|---------|
-| `src/app/providers/DossierProvider.tsx` | Central state management |
+| `src/app/providers/DossierProvider.tsx` | Open dossier's contents (reducer) |
+| `src/app/providers/WorkspaceProvider.tsx` | Saved dossiers, autosave, leave guard |
+| `src/features/workspace/saved-dossier.ts` | The persistence port + record shape |
 | `src/domain/rules/runner.ts` | Validation rule composition |
 | `src/domain/schemas/dossier.schema.ts` | Combined schema for import/export |
 | `src/config/countries/greece/` | Greece country pack (first implemented) |

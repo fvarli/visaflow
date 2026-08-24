@@ -295,9 +295,37 @@ The schema version is included in every exported file to enable future migration
 
 See `src/data/examples/example-dossier.json` for a complete example.
 
-## Validation
+## What this file is, and is not
 
-All imported JSON is validated against Zod schemas before being loaded. Invalid data will be rejected with detailed error messages indicating which fields failed validation.
+This file is the **portable dossier**. It is deliberately not a snapshot of the workspace around
+it: the local name you gave a dossier, its `revision`, its `lastExportedAt`, its `storageVersion`
+and which dossier was open are all workspace metadata, stored in this browser and never written
+here (ADR-036, ADR-037, ADR-038). Two consequences worth stating:
+
+- The same dossier exported from two browsers produces the same document, whatever it is called
+  in each.
+- Importing a file never restores a name or a revision. It creates a **new** dossier.
+
+The export is also language-independent: only stable codes and raw values are written, never
+translated prose, so the file does not change with the interface language (ADR-014).
+
+## Validation, and what happens to a file that is not perfect
+
+Import is **additive and forgiving**, by design. A file always becomes a *new* dossier — it never
+replaces or merges into one you already have — and each top-level section is validated on its own:
+
+| In the file | Result |
+|---|---|
+| a valid section | imported |
+| an invalid `applicant` or `application` | that section is left out; the rest still imports |
+| one invalid entry in `documents` / `sponsors` | that entry is left out; the others still import |
+| `documents` / `sponsors` present but not an array | the whole collection is left out |
+| a different `schemaVersion` | imported anyway, with a note |
+| nothing valid at all, or not JSON | refused, with the parse errors |
+
+Whenever anything is left out, the app says how many items it dropped, in your language, at the
+point you imported (ADR-041). Rescuing four of five documents from a file you can no longer edit
+is better than refusing the file — but only if you are told it was four of five.
 
 ## Migration Notes
 
@@ -314,6 +342,9 @@ a display fallback for codes with no translation. `schemaVersion` stays
 ### Version 1.0.0 (Current)
 - Initial schema version
 - All fields and structures as documented above
+- **Unchanged by application v1.1.0.** The saved-dossier workspace added local storage around the
+  dossier, not inside the file. A v1.0 export imports into v1.1 unchanged, and a file exported by
+  v1.1 is byte-compatible with what v1.0 wrote for the same data.
 
 ### Future Versions
 - Schema migrations will be handled automatically

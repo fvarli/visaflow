@@ -26,33 +26,42 @@ export function ImportExportSection() {
   const fileRef = useRef<HTMLInputElement>(null)
   const [feedback, setFeedback] = useState<string | null>(null)
 
-  const doLoad = async (data: PartialDossierImport, warnings: string[]) => {
+  const doLoad = async (data: PartialDossierImport, omitted: number) => {
     // Additive: importing adds a dossier to the workspace rather than replacing
     // the open one, so nothing can be lost by importing (ADR-036).
-    await adoptImported({
-      applicant: data.applicant ?? null,
-      application: data.application ?? null,
-      documents: data.documents ?? [],
-      sponsors: data.sponsors ?? [],
-    })
-    setFeedback(
-      warnings.length > 0
-        ? t('importExport.warningsTitle')
-        : t('importExport.importSuccess')
+    const imported = await adoptImported(
+      {
+        applicant: data.applicant ?? null,
+        application: data.application ?? null,
+        documents: data.documents ?? [],
+        sponsors: data.sponsors ?? [],
+      },
+      false,
+      omitted
     )
+    // Never "Dossier loaded." while the leave guard is still asking. This is
+    // the one branch that can say anything here: a *successful* import swaps
+    // the dossier, which remounts this page and takes any message with it, so
+    // the count is reported by the workspace instead (ADR-041).
+    if (!imported) setFeedback(t('common:import.blocked'))
   }
 
   /**
    * No "replace what is open?" gate any more: an import adds a dossier to the
    * workspace instead of overwriting one, so there is nothing left to destroy
    * and nothing to warn about (ADR-036).
+   *
+   * What it does still have to do is admit what did not survive. A file with one
+   * unreadable document used to import the other two and say "Dossier loaded."
+   * — the count is the difference between a restore the user can trust and one
+   * they discover is short months later (ADR-041).
    */
   const apply = (result: ReturnType<typeof importPartial>) => {
     if (!result.success || !result.data) {
       setFeedback(t('importExport.importError'))
       return
     }
-    void doLoad(result.data, result.warnings ?? [])
+    void doLoad(result.data, result.omitted ?? 0)
   }
 
   const onFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {

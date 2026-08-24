@@ -45,8 +45,7 @@
     "exampleTitle": "Örneği keşfet",
     "exampleBody": "VisaFlow'un nasıl çalıştığını görmek için kurgusal bir örnek dosya yükle. İstediğin zaman sıfırlayabilirsin.",
     "exampleAction": "Örnek veriyi yükle",
-    "importError": "Bu dosya okunamadı. Bir VisaFlow JSON dışa aktarımı olduğundan emin ol.",
-    "importWarnings": "Bazı notlarla yüklendi — birkaç alan gözden geçirilmeli."
+    "importError": "Bu dosya okunamadı. Bir VisaFlow JSON dışa aktarımı olduğundan emin ol."
   },
   "ready": {
     "heading": "Hazırsın",

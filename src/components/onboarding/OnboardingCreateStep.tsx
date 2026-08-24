@@ -26,7 +26,7 @@ export function OnboardingCreateStep({
   country: string
   onCreated: () => void
 }) {
-  const { t } = useTranslation(['onboarding', 'visa-domain'])
+  const { t } = useTranslation(['onboarding', 'visa-domain', 'common'])
   const { t: tw } = useTranslation('workspace')
   const td = dynamicT(t)
   const { createDossier, adoptImported, status } = useWorkspace()
@@ -50,15 +50,24 @@ export function OnboardingCreateStep({
     }
     // Additive by design: an import always becomes a new saved dossier and
     // never overwrites one that already exists (see ADR-036).
-    await adoptImported(
+    const imported = await adoptImported(
       {
         applicant: result.data.applicant ?? null,
         application: result.data.application ?? null,
         documents: result.data.documents ?? [],
         sponsors: result.data.sponsors ?? [],
       },
-      sessionOnly
+      sessionOnly,
+      // What the file lost is reported by the workspace, not here: importing
+      // swaps the dossier, which remounts this step (ADR-041).
+      result.omitted ?? 0
     )
+    // Blocked by the leave guard: advancing to "Ready" would announce a dossier
+    // that does not exist yet.
+    if (!imported) {
+      setError(t('common:import.blocked'))
+      return
+    }
     onCreated()
   }
 

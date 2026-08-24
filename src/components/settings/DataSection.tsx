@@ -31,6 +31,14 @@ import { useSettingsModel } from '@/features/settings/settings-model'
  * The action below closes the open dossier. It does not delete anything —
  * deletion lives on the Dossiers page, and having exactly one place that
  * destroys data is worth more than the convenience of a second one.
+ *
+ * That is also why the confirm is *not* styled destructive, despite sitting
+ * under "Danger zone": closing a saved dossier is completely reversible from
+ * the Dossiers page, and closing one that is **not** saved no longer discards
+ * anything here — `closeDossier` routes through the same leave guard as every
+ * other editor-replacing action, and that dialog owns the destructive choice
+ * (ADR-041). A red button here would dramatise the reversible case and
+ * duplicate the irreversible one.
  */
 export function DataSection() {
   const { t } = useTranslation(['settings', 'common', 'workspace'])

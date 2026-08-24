@@ -1,7 +1,7 @@
 {
   "name": "visaflow",
   "private": true,
-  "version": "1.0.0",
+  "version": "1.1.0",
   "type": "module",
   "description": "Privacy-first visa application dossier and document checklist manager",
   "packageManager": "pnpm@11.15.1",

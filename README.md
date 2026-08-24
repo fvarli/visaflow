@@ -8,7 +8,7 @@ deterministic consistency engine, a timeline of the dates that matter, and count
 requirements — while keeping **every byte of your personal data on your own device**. No server,
 no account, no tracking. Your data lives in the browser and in a JSON file you own.
 
-**Current release: v1.0.0** — see [CHANGELOG.md](CHANGELOG.md).
+**Current release: v1.1.0** — see [CHANGELOG.md](CHANGELOG.md).
 
 > VisaFlow is an organizational tool. It does **not** provide legal advice, represent any
 > embassy or visa center, submit applications, or predict a visa decision. Always verify
@@ -53,7 +53,9 @@ VisaFlow will **never** estimate an approval probability or refusal-risk score.
   official-source metadata.
 - **Bilingual** — Turkish (default) and English; the choice is a non-personal preference and the
   exported JSON is identical regardless of language.
-- **Saved dossiers** — several applications, saved in your browser, surviving refresh; nothing is sent anywhere.
+- **Saved dossiers** — several applications side by side in your browser, each with its own name,
+  surviving refresh and restart. Two open tabs are safe, closing a dossier keeps it, and a
+  **Session only** mode writes nothing at all. Nothing is sent anywhere.
 - **Open JSON import/export** — full control of your data in a portable, documented format.
 
 ## Product architecture
@@ -114,11 +116,17 @@ Privacy is the architecture, not a feature:
 - **Saved on your device, not on a server** — dossiers are stored in this browser's IndexedDB so
   your work survives a refresh. Nothing is uploaded. The two `localStorage` keys remain
   `visaflow-theme` and `visaflow-locale`, both non-personal interface preferences.
+- **This browser profile only, and it is not sync** — a dossier saved in Chrome on your laptop is
+  not on your phone, in another browser, or in another profile. There is no cloud copy to fall
+  back on, by design.
+- **Clearing browser data deletes them, permanently** — site data, "clear cookies and site data",
+  and uninstalling the browser all remove saved dossiers. VisaFlow cannot recover them.
+- **The file you export is the backup** — the browser's copy is not one. VisaFlow tracks, per
+  dossier, whether you have ever exported it and whether the dossier has changed since, and says
+  so on the Dossiers page.
 - **Local storage is not encryption** — anyone who can use this browser profile can open your
-  dossiers. On a shared computer, create a dossier as **Session only** (kept in memory, discarded
-  when the tab closes) or delete saved dossiers when you are done.
-- **Explicit export/import** — a JSON file is still the portable, durable copy you own. Clearing
-  browser data deletes saved dossiers, so export a backup.
+  dossiers. On a shared computer, create a dossier as **Session only** (kept in memory, written
+  nowhere, discarded when the tab closes) or delete saved dossiers when you are done.
 
 Full details in [docs/privacy.md](docs/privacy.md); the security policy is in
 [SECURITY.md](SECURITY.md).
@@ -159,8 +167,10 @@ VisaFlow is planned as product phases. In brief:
 - **Shipped in v1.0.0 (Phase 1 — Foundation)** — a complete single-application workspace: dossier,
   validation engine, timeline, dashboard, design system + playground, TR/EN i18n, JSON
   import/export, one country pack (Greece).
-- **Next (Phase 2 — Core Workspace)** — multiple saved dossiers, a richer core workspace, more visa
-  types and country packs.
+- **Shipped in v1.1.0 (Phase 2 — Core Workspace, in progress)** — multiple saved dossiers: local
+  persistence behind a repository port, rename, cross-tab safety, backup freshness, session-only
+  mode, and a workspace home at `/dossiers`.
+- **Next (Phase 2, remaining)** — a richer dossier and timeline, and a printable appointment index.
 - **Future** — a country-pack ecosystem with verified sources, optional self-hosting, reviewer
   collaboration, and organizational (never predictive) AI assistance.
 

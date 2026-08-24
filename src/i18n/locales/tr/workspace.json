@@ -46,11 +46,25 @@
     "promoteAria": "Bu dosyayı bu cihazda sakla"
   },
   "leave": {
-    "title": "Bu yalnızca oturumluk dosyadan çıkılsın mı?",
-    "body": "Bu dosya bu cihaza kaydedilmedi. Başka bir dosya açmak, bu sekmedeki çalışmayı siler.",
     "stay": "Burada kal",
-    "save": "Bu cihazda sakla",
-    "discard": "Sil ve devam et"
+    "session-only": {
+      "title": "Bu yalnızca oturumluk dosyadan çıkılsın mı?",
+      "body": "Bu dosya bu cihaza kaydedilmedi. Buradan çıkmak, bu sekmedeki çalışmayı siler.",
+      "rescue": "Bu cihazda sakla",
+      "discard": "Sil ve devam et"
+    },
+    "conflict": {
+      "title": "Kaydedilemeyen değişikliklerden çıkılsın mı?",
+      "body": "Başka bir sekme bu dosyanın daha yeni bir sürümünü kaydetti; burada yaptığınız değişiklikler hiç saklanmadı. Çıkmak onları siler — ya da ayrı bir dosya olarak saklayıp sonra karar verin.",
+      "rescue": "Benim sürümümü yeni dosya olarak sakla",
+      "discard": "Değişikliklerimi sil ve devam et"
+    },
+    "storage-failure": {
+      "title": "Kaydedilemeyen değişikliklerden çıkılsın mı?",
+      "body": "Bu tarayıcı son değişikliklerinizi saklamadı; bu yüzden yalnızca bu sekmede varlar. Çıkmak onları siler. Saklamak istiyorsanız önce bir kopya dışa aktarın.",
+      "rescue": "Yedek dışa aktar",
+      "discard": "Değişikliklerimi sil ve devam et"
+    }
   },
   "rename": {
     "action": "Yeniden adlandır",
@@ -92,10 +106,10 @@
   },
   "conflict": {
     "changedTitle": "Bu dosya başka bir sekmede değiştirildi",
-    "changedBody": "Buradaki düzenlemeleriniz kaydedilmedi. Hiçbir şey silinmedi — hangi sürümü tutacağınızı seçin.",
+    "changedBody": "Başka bir sekme bu dosyanın daha yeni bir sürümünü kaydetti; burada yaptığınız değişiklikler hiç saklanmadı. Siz birini seçene kadar iki sürüm de duruyor. Kayıtlı sürümü açmak, ekrandakileri siler.",
     "deletedTitle": "Bu dosya başka bir sekmede silindi",
     "deletedBody": "Buradaki düzenlemeleriniz kaydedilmedi ve bu dosya artık bu tarayıcıda yok. Sürümünüzü yeni bir dosya olarak saklayabilirsiniz.",
-    "reload": "Kayıtlı sürümü aç",
+    "reload": "Değişikliklerimi sil ve kayıtlı sürümü aç",
     "saveAsNew": "Sürümümü yeni dosya olarak sakla",
     "exportHint": "İsterseniz önce bu sürümü dosya olarak dışa aktarabilirsiniz."
   }

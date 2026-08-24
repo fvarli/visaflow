@@ -447,3 +447,91 @@ the page or the header.
 `.replace(/\s+/g, ' ')` through `Runtime.evaluate` silently replaces every letter *s* with a space
 ("Dashboard" → "Da hboard"). Cosmetic in logging, but it made one check look like a failure. Escape
 it as `\\s` in CDP-evaluated strings.
+
+## v1.1.0 release verification — real Chrome against `vite preview`
+
+The production build, served by `vite preview` on a fresh profile, driven over CDP. All storage
+assertions read IndexedDB directly rather than trusting the interface.
+
+### Workspace lifecycle
+
+| Check | Result |
+|---|---|
+| An empty workspace lands on `/welcome` | PASS |
+| Creating a dossier writes exactly one record | PASS |
+| An edit survives a full reload | PASS |
+| …and a returning user reloads straight into `/dashboard` | PASS |
+| `document.title` carries route and dossier | PASS |
+| An inline rename commits, survives a reload and is shown | PASS |
+| …and the local name is nowhere inside the exported payload | PASS |
+| Exporting a dossier records a backup timestamp | PASS |
+| **A content write afterwards does not erase the backup mark** | PASS |
+| Closing a *saved* dossier is not guarded — no friction | PASS |
+| …the record is kept and the reopen pointer is cleared | PASS |
+| A closed workspace lands on `/dossiers` | PASS |
+| A session-only dossier writes nothing to storage, and says so | PASS |
+
+### Storage format v1 → v2
+
+A dossier created by the running build, then demoted to the previous storage format — deliberately
+not a hand-written fixture, which proves only that the fixture was wrong.
+
+| Check | Result |
+|---|---|
+| A v1 record hydrates and opens | PASS |
+| Its first edit saves and heals it to `sv: 2, rev: 2` | PASS |
+| …without fabricating a cross-tab conflict | PASS |
+| A record from a *newer* build is never destroyed, and is surfaced | PASS |
+
+### Two tabs
+
+Tab B blindfolded (`BroadcastChannel` removed before any app code runs): safety must not depend on
+a message arriving.
+
+| Check | Result |
+|---|---|
+| The stale tab is refused, not allowed to overwrite | PASS |
+| …and is told | PASS |
+| The banner no longer claims "Nothing has been thrown away" | PASS |
+| The reload action says what it discards | PASS |
+| Reload-latest clears the conflict and adopts the stored version | PASS |
+| …and the tab can save again afterwards | PASS |
+| Switching away from a conflicted dossier is guarded, offering a fork | PASS |
+| The fork is saved and neither version is lost (3 records, both payloads) | PASS |
+
+### The leave guard (ADR-041)
+
+| Check | Result |
+|---|---|
+| Storage refuses the write → closing is guarded, not silent | PASS |
+| …the offer is "Export a backup" | PASS |
+| …the destructive choice is explicit and destructive-styled | PASS |
+| …initial focus is "Stay here", never the destructive action | PASS |
+| …nothing is discarded while the dialog is up | PASS |
+| Taking the destructive branch completes the close | PASS |
+| …and focus lands on `main`, not `<body>` | PASS |
+| …and the saved record was never deleted by any of it | PASS |
+| Unsaved session-only work offers "Save on this device" | PASS |
+| Deleting a dossier leaves focus somewhere real | PASS |
+
+### Import
+
+| Check | Result |
+|---|---|
+| A canonical v1.0 export imports as a *new* dossier, replacing nothing | PASS |
+| A clean import reports no loss | PASS |
+| A file with one unreadable document keeps the other two | PASS |
+| …and says "1 item in that file could not be read and was left out." | PASS |
+| …and that report survives the remount **and** a route change | PASS |
+
+**The bug this last row closes.** The first implementation put the count in each entry point's own
+state. It unit-tested green and did nothing in a real browser: a successful import swaps the
+dossier, `AppLayout` remounts the page on `state.generation`, and the message went with it — the
+pre-existing "Dossier loaded." was never visible either. The count now lives in `WorkspaceProvider`,
+above the remount. **Only the browser found this.**
+
+### Responsive
+
+`/dossiers` at 390 × 844 in TR and EN, light and dark: no horizontal overflow, exactly one `h1`, no
+raw translation key on screen, in all four combinations. No console errors or uncaught exceptions in
+any scenario above.

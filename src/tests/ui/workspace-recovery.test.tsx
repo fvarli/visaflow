@@ -49,7 +49,9 @@ function Probe() {
       <span data-testid="status">{w.status}</span>
       <span data-testid="ready">{String(w.ready)}</span>
       <span data-testid="session">{String(w.sessionOnly)}</span>
-      <span data-testid="pending">{w.pendingLeave?.kind ?? 'none'}</span>
+      <span data-testid="pending">{w.pendingLeave?.intent.kind ?? 'none'}</span>
+      <span data-testid="reason">{w.pendingLeave?.reason ?? 'none'}</span>
+      <span data-testid="conflict">{w.conflict?.kind ?? 'none'}</span>
       <span data-testid="active">{w.activeId ?? 'none'}</span>
       <span data-testid="count">{w.summaries.length}</span>
       <span data-testid="backup">
@@ -477,5 +479,223 @@ describe('closing a dossier', () => {
     expect(await repo.list()).toHaveLength(1)
     // …and it stays closed, which the old "reset" never managed.
     expect((await repo.readMeta()).activeDossierId).toBeNull()
+  })
+})
+
+/**
+ * The guard is not about session-only dossiers. It is about *this editor holds
+ * work that storage does not*, which happens for three unrelated reasons — and
+ * two of them used to discard edits through the very same switcher click that
+ * the third had a dialog for (ADR-041).
+ */
+describe('leaving an editor that cannot be saved', () => {
+  const seeded = async () => {
+    const repo = new MemoryDossierRepository()
+    await repo.put(
+      toRecord('a', payloadOf(partiallyPrepared), SCHEMA_VERSION, SEEDED_AT)
+    )
+    await repo.put(
+      toRecord('b', payloadOf(allApplicableReady), SCHEMA_VERSION, SEEDED_AT)
+    )
+    return repo
+  }
+
+  /** Open `a`, let another writer move ahead of us, then fail to save. */
+  const intoConflict = async (repo: MemoryDossierRepository) => {
+    await act(async () => {
+      await ws().openDossier('a')
+    })
+    const behind = await repo.get('a')
+    if (!behind) throw new Error('seeded record vanished')
+    await repo.put(
+      { ...behind, payload: payloadOf(allApplicableReady) },
+      behind.revision
+    )
+
+    await settle(() => ed().updateApplicant({ firstName: 'OnlyInThisTab' }))
+    await act(async () => {
+      await ws().flush()
+    })
+    await waitFor(() =>
+      expect(screen.getByTestId('conflict')).toHaveTextContent('remote-change')
+    )
+  }
+
+  /** Open `a`, then have the store refuse the write. */
+  const intoStorageFailure = async (repo: MemoryDossierRepository) => {
+    await act(async () => {
+      await ws().openDossier('a')
+    })
+    repo.failNext = new Error('the browser refused to store this')
+    await settle(() => ed().updateApplicant({ firstName: 'NeverStored' }))
+    await act(async () => {
+      await ws().flush()
+    })
+    await waitFor(() =>
+      expect(screen.getByTestId('status')).toHaveTextContent('error')
+    )
+  }
+
+  it('blocks a switch away from a conflicted dossier and says why', async () => {
+    const repo = await seeded()
+    mount(repo)
+    await ready()
+    await intoConflict(repo)
+
+    await act(async () => {
+      await ws().openDossier('b')
+    })
+
+    expect(screen.getByTestId('pending')).toHaveTextContent('open')
+    expect(screen.getByTestId('reason')).toHaveTextContent('conflict')
+    // Nothing moved: the editor still holds the version only this tab has.
+    expect(activeId()).toBe('a')
+    expect(ed().state.applicant?.firstName).toBe('OnlyInThisTab')
+  })
+
+  it('blocks closing, which used to bypass the guard entirely', async () => {
+    const repo = await seeded()
+    mount(repo)
+    await ready()
+    await intoConflict(repo)
+
+    await act(async () => {
+      await ws().closeDossier()
+    })
+
+    expect(screen.getByTestId('pending')).toHaveTextContent('close')
+    expect(activeId()).toBe('a')
+    expect(ed().state.applicant?.firstName).toBe('OnlyInThisTab')
+  })
+
+  it('blocks a new dossier and an import too', async () => {
+    const repo = await seeded()
+    mount(repo)
+    await ready()
+    await intoConflict(repo)
+
+    await act(async () => {
+      await ws().createDossier('GR')
+    })
+    expect(screen.getByTestId('pending')).toHaveTextContent('create')
+
+    await settle(() => ws().cancelLeave())
+    await act(async () => {
+      await ws().adoptImported(payloadOf(allApplicableReady))
+    })
+    expect(screen.getByTestId('pending')).toHaveTextContent('import')
+    expect(ed().state.applicant?.firstName).toBe('OnlyInThisTab')
+  })
+
+  it('forks the conflicted version to a new dossier, then completes the switch', async () => {
+    const repo = await seeded()
+    mount(repo)
+    await ready()
+    await intoConflict(repo)
+
+    await act(async () => {
+      await ws().openDossier('b')
+    })
+    await act(async () => {
+      await ws().saveAndLeave()
+    })
+
+    // Three dossiers: the two seeded ones, plus this tab's rescued version.
+    await waitFor(async () => expect(await repo.list()).toHaveLength(3))
+    const forked = (await repo.list()).find(
+      (record) => record.id !== 'a' && record.id !== 'b'
+    )
+    expect(forked?.payload.applicant?.firstName).toBe('OnlyInThisTab')
+    // The other tab's version of `a` is untouched.
+    expect((await repo.get('a'))?.payload.applicant?.firstName).toBe(
+      allApplicableReady.applicant?.firstName
+    )
+    // …and the switch the user originally asked for actually happened.
+    expect(activeId()).toBe('b')
+    expect(screen.getByTestId('pending')).toHaveTextContent('none')
+  })
+
+  it('discards the conflicted edits only when the user says so', async () => {
+    const repo = await seeded()
+    mount(repo)
+    await ready()
+    await intoConflict(repo)
+
+    await act(async () => {
+      await ws().openDossier('b')
+    })
+    await act(async () => {
+      await ws().discardAndLeave()
+    })
+
+    expect(activeId()).toBe('b')
+    expect(screen.getByTestId('conflict')).toHaveTextContent('none')
+    // Nothing was forked, and `a` still holds the other tab's version.
+    expect(await repo.list()).toHaveLength(2)
+    expect((await repo.get('a'))?.payload.applicant?.firstName).toBe(
+      allApplicableReady.applicant?.firstName
+    )
+  })
+
+  it('blocks a switch when the store refused the write, and offers a file', async () => {
+    const repo = await seeded()
+    mount(repo)
+    await ready()
+    await intoStorageFailure(repo)
+
+    await act(async () => {
+      await ws().openDossier('b')
+    })
+    expect(screen.getByTestId('pending')).toHaveTextContent('open')
+    expect(screen.getByTestId('reason')).toHaveTextContent('storage-failure')
+
+    // Taking a copy is not a decision: the dialog has to stay up.
+    await settle(() => {
+      ws().exportPending()
+    })
+    expect(screen.getByTestId('pending')).toHaveTextContent('open')
+    expect(ed().state.applicant?.firstName).toBe('NeverStored')
+  })
+
+  it('blocks a switch when the browser has no storage at all', async () => {
+    mount()
+    await ready()
+    await act(async () => {
+      await ws().adoptImported(payloadOf(partiallyPrepared))
+    })
+    await waitFor(() =>
+      expect(screen.getByTestId('status')).toHaveTextContent('unavailable')
+    )
+
+    await act(async () => {
+      await ws().closeDossier()
+    })
+    expect(screen.getByTestId('reason')).toHaveTextContent('storage-failure')
+    expect(ed().state.applicant).not.toBeNull()
+  })
+
+  it('stays out of the way when the dossier really is saved', async () => {
+    const repo = await seeded()
+    mount(repo)
+    await ready()
+    await act(async () => {
+      await ws().openDossier('a')
+    })
+    await settle(() => ed().updateApplicant({ firstName: 'SavedFine' }))
+    await act(async () => {
+      await ws().flush()
+    })
+
+    await act(async () => {
+      await ws().openDossier('b')
+    })
+    expect(screen.getByTestId('pending')).toHaveTextContent('none')
+    expect(activeId()).toBe('b')
+
+    await act(async () => {
+      await ws().closeDossier()
+    })
+    expect(screen.getByTestId('pending')).toHaveTextContent('none')
+    expect(activeId()).toBe('none')
   })
 })

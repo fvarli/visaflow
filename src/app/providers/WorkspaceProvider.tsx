@@ -81,17 +81,41 @@ export type WorkspaceConflict =
   | { kind: 'remote-delete'; dossierId: string }
 
 /**
- * A dossier switch that is waiting for the user to decide.
- *
- * Session-only work exists nowhere but this tab, so replacing it is
- * unrecoverable. Rather than each caller remembering to ask, the provider
- * refuses to proceed and records what was wanted; one dialog resolves it for
- * the header switcher, the dossiers page and the import flow alike (ADR-039).
+ * What the user was trying to do when the editor turned out to be unsafe to
+ * leave. Every operation that replaces or empties the editor is here — the
+ * point of the list is that none of them can bypass the guard (ADR-041).
  */
-export type PendingLeave =
+export type LeaveIntent =
   | { kind: 'open'; dossierId: string }
   | { kind: 'create'; destinationCountry: string; asSessionOnly: boolean }
   | { kind: 'import'; payload: DossierPayload; asSessionOnly: boolean }
+  | { kind: 'close' }
+
+/**
+ * Why the open dossier cannot simply be left.
+ *
+ * All three mean the same thing to the user — *what is on screen is not in
+ * storage* — but each offers a different way out, so the reason is captured
+ * when the guard fires rather than re-derived while the dialog is open.
+ *
+ * `session-only` — deliberately never persisted (ADR-039).
+ * `conflict`     — autosave has stopped because another tab moved ahead (ADR-037).
+ * `storage-failure` — the browser refused to store, or refuses storage at all.
+ */
+export type LeaveReason = 'session-only' | 'conflict' | 'storage-failure'
+
+/**
+ * A blocked editor change, waiting for the user to decide.
+ *
+ * Unsaved work exists nowhere but this tab, so replacing it is unrecoverable.
+ * Rather than each caller remembering to ask, the provider refuses to proceed
+ * and records what was wanted; one dialog resolves it for the header switcher,
+ * the dossiers page, the import flow and closing alike.
+ */
+export interface PendingLeave {
+  reason: LeaveReason
+  intent: LeaveIntent
+}
 
 interface WorkspaceContextValue {
   ready: boolean
@@ -116,10 +140,29 @@ interface WorkspaceContextValue {
     destinationCountry: string,
     sessionOnly?: boolean
   ) => Promise<void>
+  /**
+   * Add an imported file to the workspace as a new dossier.
+   *
+   * `omitted` is how many items the file lost on the way in; it is reported
+   * from here rather than by the caller because a successful import swaps the
+   * dossier, which remounts the page — and takes any message the importing
+   * screen was holding with it (ADR-041).
+   *
+   * Returns `false` when the guard stood it down, so a caller cannot announce
+   * "Dossier loaded." over a dialog that is still asking whether the open one
+   * may be replaced.
+   */
   adoptImported: (
     payload: DossierPayload,
-    sessionOnly?: boolean
-  ) => Promise<void>
+    sessionOnly?: boolean,
+    omitted?: number
+  ) => Promise<boolean>
+  /**
+   * How many items the last import left behind, or `null` when there is
+   * nothing to say. Lives here because it must outlive the page that caused it.
+   */
+  importReport: number | null
+  dismissImportReport: () => void
   openDossier: (id: string) => Promise<void>
   deleteDossier: (id: string) => Promise<void>
   renameDossier: (id: string, title: string) => Promise<void>
@@ -133,16 +176,33 @@ interface WorkspaceContextValue {
   cancelLeave: () => void
   /** Throw away the session-only dossier and complete the blocked switch. */
   discardAndLeave: () => Promise<void>
-  /** Persist the session-only dossier first, then complete the switch. */
+  /**
+   * Take the way out the blocking reason offers, then complete the change.
+   *
+   * Session-only work is promoted to this device; a conflicted editor is forked
+   * to a new dossier. Either way the change only proceeds if the write
+   * committed — continuing after a failed save would discard exactly the work
+   * the dialog exists to protect.
+   */
   saveAndLeave: () => Promise<void>
+  /**
+   * Download what is in the editor right now, without touching storage.
+   *
+   * The escape hatch when storage itself is the problem: `exportDossier` reads
+   * the *stored* record, which is precisely the copy that is missing the edits.
+   */
+  exportPending: () => void
   /** Close the open dossier without deleting anything it is saved into. */
   closeDossier: () => Promise<void>
   /** Record that the open dossier was exported, for backup freshness. */
   noteExported: () => Promise<void>
   /** Discard this tab's unsaved edits and adopt the stored record. */
   reloadLatest: () => Promise<void>
-  /** Keep this tab's edits under a brand-new id, leaving the other untouched. */
-  saveAsNew: () => Promise<void>
+  /**
+   * Keep this tab's edits under a brand-new id, leaving the other untouched.
+   * Returns whether the new dossier was actually written.
+   */
+  saveAsNew: () => Promise<boolean>
   /** Write any pending edit immediately — used before switching and on unload. */
   flush: () => Promise<void>
 }
@@ -212,11 +272,18 @@ export function WorkspaceProvider({
   }, [untitled])
   const [conflict, setConflict] = useState<WorkspaceConflict | null>(null)
   const [pendingLeave, setPendingLeave] = useState<PendingLeave | null>(null)
+  const [importReport, setImportReport] = useState<number | null>(null)
 
   // The revision this tab believes it is editing. Every write asserts it, so a
   // tab that has fallen behind is rejected instead of clobbering.
   const revisionRef = useRef<number | null>(null)
   const conflictRef = useRef<WorkspaceConflict | null>(null)
+  /**
+   * Read by the leave guard, which runs from an event callback rather than from
+   * render. An effect is enough here — unlike `sessionOnlyRef`, nothing reads
+   * this in the same tick it is written — so it stays with the other mirrors.
+   */
+  const statusRef = useRef<PersistenceStatus>(repo ? 'idle' : 'unavailable')
   /**
    * Owned by the subscription effect below, not by a `useMemo`.
    *
@@ -261,6 +328,9 @@ export function WorkspaceProvider({
   useEffect(() => {
     conflictRef.current = conflict
   }, [conflict])
+  useEffect(() => {
+    statusRef.current = status
+  }, [status])
 
   const currentPayload = useCallback((): DossierPayload => {
     const live = stateRef.current
@@ -499,21 +569,53 @@ export function WorkspaceProvider({
   )
 
   /**
-   * Refuse to replace unsaved session-only work, and remember what was wanted.
+   * Why the editor cannot be safely left right now, or `null` when it can.
    *
-   * Returns `true` when the caller must stand down. Deliberately asks the
-   * payload whether there is anything worth losing rather than trusting a dirty
-   * flag: choosing a destination country during setup is not work (ADR-039).
+   * Deliberately asks the payload whether there is anything worth losing rather
+   * than trusting a dirty flag: choosing a destination country during setup is
+   * not work (ADR-039). The order matters — a conflicted dossier also reports
+   * status `error`, and the fork is the better offer than a doomed retry.
+   */
+  const leaveReason = useCallback((): LeaveReason | null => {
+    if (!hasMeaningfulContent(currentPayload())) return null
+    if (conflictRef.current) return 'conflict'
+    if (statusRef.current === 'error' || statusRef.current === 'unavailable')
+      return 'storage-failure'
+    if (sessionOnlyRef.current) return 'session-only'
+    return null
+  }, [currentPayload])
+
+  /**
+   * Refuse to replace work that is not in storage, and remember what was wanted.
+   *
+   * Returns `true` when the caller must stand down. Session-only was the only
+   * case this covered originally, which left the two failure states — a stopped
+   * autosave and a browser refusing to store — silently discarding edits
+   * through the very same code paths (ADR-041).
    */
   const guardLeave = useCallback(
-    (intent: PendingLeave): boolean => {
-      if (!sessionOnlyRef.current) return false
-      if (!hasMeaningfulContent(currentPayload())) return false
-      setPendingLeave(intent)
+    (intent: LeaveIntent): boolean => {
+      const reason = leaveReason()
+      if (!reason) return false
+      setPendingLeave({ reason, intent })
       return true
     },
-    [currentPayload]
+    [leaveReason]
   )
+
+  /**
+   * Forget the debounced write.
+   *
+   * Discarding has to mean it: leaving a queued payload behind would let the
+   * work the user just chose to abandon land on the *next* dossier's flush.
+   */
+  const dropPendingWrite = useCallback(() => {
+    if (timerRef.current) {
+      clearTimeout(timerRef.current)
+      timerRef.current = null
+    }
+    pendingRef.current = null
+  }, [])
 
   const performCreate = useCallback(
     async (destinationCountry: string, asSessionOnly: boolean) => {
@@ -556,12 +658,22 @@ export function WorkspaceProvider({
   )
 
   const adoptImported = useCallback(
-    async (payload: DossierPayload, asSessionOnly = false) => {
-      if (guardLeave({ kind: 'import', payload, asSessionOnly })) return
+    async (
+      payload: DossierPayload,
+      asSessionOnly = false,
+      omitted = 0
+    ): Promise<boolean> => {
+      if (guardLeave({ kind: 'import', payload, asSessionOnly })) return false
       await performImport(payload, asSessionOnly)
+      // Set *after* the import, so the state survives the remount the import
+      // triggers rather than being wiped by it.
+      setImportReport(omitted > 0 ? omitted : null)
+      return true
     },
     [guardLeave, performImport]
   )
+
+  const dismissImportReport = useCallback(() => setImportReport(null), [])
 
   const performOpen = useCallback(
     async (id: string) => {
@@ -587,6 +699,9 @@ export function WorkspaceProvider({
       if (!current) return
 
       await repo.writeMeta({ activeDossierId: id })
+      // A different dossier is on screen now; the previous import's tally is
+      // about a dossier the user has moved on from.
+      setImportReport(null)
       setActiveId(id)
       activeIdRef.current = id
       revisionRef.current = current.revision
@@ -628,7 +743,14 @@ export function WorkspaceProvider({
       const next = nextActiveAfterDelete(remaining, id)
       if (next) {
         activeIdRef.current = null
-        await openDossier(next)
+        // `performOpen`, not `openDossier`: the dossier that was open no longer
+        // exists, so there is nothing left to guard — and prompting to rescue
+        // edits to a record the user just deleted would be nonsense.
+        try {
+          await performOpen(next)
+        } catch (error) {
+          reportFailure(error)
+        }
         return
       }
       // Nothing left to open: return to a genuinely empty workspace rather than
@@ -640,7 +762,7 @@ export function WorkspaceProvider({
       await repo.writeMeta({ activeDossierId: null })
       reset()
     },
-    [repo, refreshSummaries, openDossier, reset, postEvent]
+    [repo, refreshSummaries, performOpen, reset, postEvent, reportFailure]
   )
 
   /**
@@ -700,8 +822,8 @@ export function WorkspaceProvider({
    * other tab's work, and reusing a deleted one would resurrect something the
    * user deleted on purpose. Both versions survive and the user sorts it out.
    */
-  const saveAsNew = useCallback(async () => {
-    if (!repo) return
+  const saveAsNew = useCallback(async (): Promise<boolean> => {
+    if (!repo) return false
     const payload: DossierPayload = {
       applicant: state.applicant,
       application: state.application,
@@ -717,6 +839,7 @@ export function WorkspaceProvider({
     revisionRef.current = null
 
     const now = new Date().toISOString()
+    let forked = false
     try {
       const result = await repo.put(toRecord(id, payload, SCHEMA_VERSION, now))
       if (result.ok) {
@@ -730,6 +853,7 @@ export function WorkspaceProvider({
           dossierId: id,
           revision: result.revision,
         })
+        forked = true
       } else {
         setStatus('error')
       }
@@ -739,6 +863,7 @@ export function WorkspaceProvider({
       reportFailure(error)
     }
     await refreshSummaries()
+    return forked
   }, [repo, state, refreshSummaries, postEvent, reportFailure])
 
   /**
@@ -785,37 +910,6 @@ export function WorkspaceProvider({
     }
   }, [repo, currentPayload, refreshSummaries, postEvent, reportFailure])
 
-  const runPendingLeave = useCallback(
-    async (intent: PendingLeave) => {
-      if (intent.kind === 'open') await performOpen(intent.dossierId)
-      else if (intent.kind === 'create')
-        await performCreate(intent.destinationCountry, intent.asSessionOnly)
-      else await performImport(intent.payload, intent.asSessionOnly)
-    },
-    [performOpen, performCreate, performImport]
-  )
-
-  const cancelLeave = useCallback(() => setPendingLeave(null), [])
-
-  const discardAndLeave = useCallback(async () => {
-    const intent = pendingLeave
-    if (!intent) return
-    setPendingLeave(null)
-    // The user was told plainly what this does; the session dossier goes.
-    await runPendingLeave(intent)
-  }, [pendingLeave, runPendingLeave])
-
-  const saveAndLeave = useCallback(async () => {
-    const intent = pendingLeave
-    if (!intent) return
-    const promoted = await promoteToDevice()
-    // Stay put on failure. Continuing would discard the work we just failed to
-    // save, which is precisely the outcome the dialog exists to prevent.
-    if (!promoted) return
-    setPendingLeave(null)
-    await runPendingLeave(intent)
-  }, [pendingLeave, promoteToDevice, runPendingLeave])
-
   /**
    * Close the open dossier without destroying it.
    *
@@ -823,7 +917,9 @@ export function WorkspaceProvider({
    * stays closed after a reload. The saved record is untouched — deletion lives
    * on the dossiers page and nowhere else.
    */
-  const closeDossier = useCallback(async () => {
+  const performClose = useCallback(async () => {
+    dropPendingWrite()
+    setImportReport(null)
     setActiveId(null)
     activeIdRef.current = null
     revisionRef.current = null
@@ -842,7 +938,76 @@ export function WorkspaceProvider({
       }
     }
     reset()
-  }, [repo, reset, reportFailure])
+  }, [repo, reset, reportFailure, dropPendingWrite])
+
+  const runPendingLeave = useCallback(
+    async (intent: LeaveIntent) => {
+      if (intent.kind === 'open') await performOpen(intent.dossierId)
+      else if (intent.kind === 'create')
+        await performCreate(intent.destinationCountry, intent.asSessionOnly)
+      else if (intent.kind === 'import')
+        await performImport(intent.payload, intent.asSessionOnly)
+      else await performClose()
+    },
+    [performOpen, performCreate, performImport, performClose]
+  )
+
+  const cancelLeave = useCallback(() => setPendingLeave(null), [])
+
+  const discardAndLeave = useCallback(async () => {
+    const pending = pendingLeave
+    if (!pending) return
+    setPendingLeave(null)
+    // The user was told plainly what this does. Drop the queued write too, or
+    // it would follow the abandoned edits into the next dossier's flush.
+    dropPendingWrite()
+    await runPendingLeave(pending.intent)
+  }, [pendingLeave, runPendingLeave, dropPendingWrite])
+
+  const saveAndLeave = useCallback(async () => {
+    const pending = pendingLeave
+    if (!pending) return
+    // Which rescue is even possible depends on why we are stuck: session-only
+    // work can be promoted in place, but a conflicted editor must fork — its id
+    // now belongs to the version another tab saved.
+    const rescued =
+      pending.reason === 'conflict'
+        ? await saveAsNew()
+        : await promoteToDevice()
+    // Stay put on failure. Continuing would discard the work we just failed to
+    // save, which is precisely the outcome the dialog exists to prevent.
+    if (!rescued) return
+    setPendingLeave(null)
+    await runPendingLeave(pending.intent)
+  }, [pendingLeave, promoteToDevice, saveAsNew, runPendingLeave])
+
+  /**
+   * Hand the user a file of what is on screen, and change nothing else.
+   *
+   * Deliberately does not resolve the pending decision: exporting makes
+   * discarding safe, it does not make it chosen. The dialog stays up.
+   */
+  const exportPending = useCallback(() => {
+    const payload = currentPayload()
+    downloadDossier(
+      payload.applicant,
+      payload.application,
+      payload.documents,
+      payload.sponsors
+    )
+  }, [currentPayload])
+
+  /**
+   * Close the open dossier, unless what is on screen is not in storage.
+   *
+   * Closing empties the editor exactly as opening another dossier replaces it,
+   * so it goes through the same guard. It previously did not, which made it the
+   * one-click way to lose session-only work that every other path asked about.
+   */
+  const closeDossier = useCallback(async () => {
+    if (guardLeave({ kind: 'close' })) return
+    await performClose()
+  }, [guardLeave, performClose])
 
   /** Remember that the open dossier was exported. Session-only has no record. */
   const noteExported = useCallback(async () => {
@@ -1024,6 +1189,9 @@ export function WorkspaceProvider({
       cancelLeave,
       discardAndLeave,
       saveAndLeave,
+      exportPending,
+      importReport,
+      dismissImportReport,
       closeDossier,
       noteExported,
     }),
@@ -1051,6 +1219,9 @@ export function WorkspaceProvider({
       cancelLeave,
       discardAndLeave,
       saveAndLeave,
+      exportPending,
+      importReport,
+      dismissImportReport,
       closeDossier,
       noteExported,
     ]

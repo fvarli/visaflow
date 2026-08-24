@@ -4,6 +4,12 @@ This document records key architectural decisions and their rationale.
 
 ## ADR-001: No Database
 
+> **Amended by [ADR-036] (2026-08-23).** The "no backend, no third party" half of this decision
+> stands unchanged and always will. The "browser memory only" half does not: dossiers are now
+> saved in this browser's IndexedDB behind a repository port, with a session-only mode for the
+> case this ADR originally assumed. The trade-off below — losing data on refresh — was the cost
+> that eventually justified revisiting it. The text is kept as written.
+
 **Decision:** Store all data in browser memory with JSON export.
 
 **Context:** Visa applications contain sensitive personal data. Users may not trust cloud services.
@@ -94,6 +100,11 @@ const passportValidAfterTrip = (dossier: Dossier): ValidationFinding[] => {
 - User may forget data is stored
 
 **Exception:** Theme preference may use localStorage (non-personal).
+
+> **Still in force, and narrower than it looks.** [ADR-013] fixed the exception at exactly two
+> keys (`visaflow-theme`, `visaflow-locale`). [ADR-036] added durable storage for dossiers, but
+> deliberately in **IndexedDB**, not here — every reason listed above is a reason about
+> `localStorage`'s ergonomics as a personal-data store, and none of them was waved away.
 
 ## ADR-007: shadcn/ui Over Component Libraries
 
@@ -291,6 +302,12 @@ const passportValidAfterTrip = (dossier: Dossier): ValidationFinding[] => {
 
 **Implementation:** `buildDossierSnapshot` in `src/features/dashboard/dashboard-model.ts`; `src/components/dashboard/DossierSnapshot.tsx`; demonstrated (populated + empty) in `/playground`. Reaffirms [ADR-006] (in-memory only) and [ADR-016] (no prediction).
 
+> **Still a snapshot, deliberately ([ADR-036], 2026-08-23).** Persistence arrived, which is the
+> condition this ADR named — and the snapshot stayed. A stored dossier is not an event log:
+> VisaFlow records the dossier's *state*, not a history of edits, so there is still nothing
+> truthful to source a feed from. Building one would mean starting to keep a record of what the
+> user did and when, which is a privacy decision, not a dashboard one.
+
 ## ADR-022: Dashboard Is a Command Center, Not a Metrics Panel
 
 **Decision:** The dashboard communicates through purpose-driven product sections with **readiness as the single dominant progress indicator**. It carries no standalone KPI-card row.
@@ -422,11 +439,24 @@ const passportValidAfterTrip = (dossier: Dossier): ValidationFinding[] => {
 
 **Known limitations (deliberate):** one country pack (Greece, honestly unverified); the version constant must be kept in sync with `package.json` on release; "unsaved changes" is tracked in memory only (no route/beforeunload guard); Advanced is navigation, not a stored dev-mode flag (a flag would be a storage change).
 
+> **Three of these have since moved ([ADR-036], [ADR-038], [ADR-041]).** The version is injected
+> from `package.json` at build time rather than kept in sync by hand. "Unsaved changes" is gone as
+> a concept — the dossier is autosaved, and what Settings reports is where it lives and how fresh
+> its exported backup is, read from the stored record. The Privacy section's "in-memory model" is
+> now the local-only model, and Import & export no longer confirms a replacement, because importing
+> is additive and replaces nothing.
+
 **Implementation:** `src/features/settings/settings-model.ts` (pure), `src/components/settings/*` (SettingsSection, SettingRow, SettingsNav + the eight section components), `src/pages/SettingsPage.tsx` (two-pane shell, `?section=` reader, focus-to-`h2`). No schema, import/export, storage, or rule change; no changes to the domain pages or validation.
 
 ## ADR-031: Onboarding Is a First-Run Product Surface (Dedicated `/welcome`, `hasData`-Derived, No Persistence)
 
 **Decision:** The first five minutes become a deliberate product surface: a dedicated `/welcome` route hosting a calm, ≤4-step guided setup (Welcome → Language & destination → Create or import → Ready) that gets a brand-new user to create (or import) their first dossier in about a minute, then hands off to the Dashboard. The index route (`/`) redirects to `/welcome` when there is no dossier and to `/dashboard` when there is, derived purely from `hasData` via `firstRunTarget`. The shared `NoDossierState` is upgraded into the one canonical empty-workspace component, so every empty page routes into the journey instead of dead-ending. It is **pure presentation**: it reuses the existing wizard architecture, the import/export services, and provider actions, and changes no schema, import/export format, storage, or validation behaviour.
+
+> **Superseded in part by [ADR-040] (2026-08-24).** The `/welcome` surface, its steps and the
+> `NoDossierState` role all stand. What changed is the routing input: deriving entry from
+> `hasData` was correct while a dossier could only live in memory, and became wrong the moment
+> storage answered asynchronously — every returning user landed in onboarding. `firstRunTarget`
+> now takes the workspace's state, not a boolean.
 
 **Context:** First run was an accidental empty state — `/` → `/dashboard`, and an empty Dashboard showed a single hard-coded "Start Greece" button (`initializeEmpty('GR')`); every other page dead-ended to a back-to-dashboard `NoDossierState`. Nothing welcomed the user, explained the local-first/no-prediction model, or offered a language/country choice at creation.
 
@@ -1047,4 +1077,100 @@ gallery, a page test harness — where "no provider" and "no saved dossiers" are
 `src/components/NoDossierState.tsx`, `src/features/dashboard/dashboard-model.ts`, and
 `src/app/providers/WorkspaceProvider.tsx` (`activeTitle`, `useWorkspaceOptional`). No schema,
 storage-format, import/export, readiness or validation change; `schemaVersion` remains `1.0.0` and
+`STORAGE_FORMAT_VERSION` remains `2`.
+
+## ADR-041: Leaving an Editor That Cannot Be Saved Is One Guarded Decision; Deleting a Dossier Is Authoritative; an Import Must Report What It Dropped
+
+**Status:** Accepted · **Date:** 2026-08-25 · **Extends:** [ADR-036], [ADR-037], [ADR-038],
+[ADR-039]
+
+**Decision:** Three rules about the moments where local-first work can quietly disappear.
+
+1. **One guard, three reasons.** Any operation that replaces or empties the editor — open another
+   dossier, create one, adopt an import, **close** — first asks whether what is on screen is in
+   storage. If it is not, the operation is refused and the user is asked, once, in one dialog. The
+   *reason* chooses the way out:
+
+   | Why it cannot be left | The offer |
+   |---|---|
+   | session-only (ADR-039) | Save on this device |
+   | conflict — autosave stopped (ADR-037) | Keep my version as a new dossier |
+   | storage failed or is unavailable | Export a backup |
+
+   The rescue must commit before the operation proceeds. Exporting deliberately resolves nothing:
+   it makes discarding safe, it does not make it chosen.
+
+2. **Deletion is authoritative.** `DossierRepository.delete` takes no revision and never will.
+
+3. **`lastExportedAt` is owned by the store, not the caller** — and an import that drops data says
+   how much, everywhere, in the user's language.
+
+**Context:** The v1.1 release-candidate audit found three remaining ways for personal data to vanish
+without a word, each of them a seam between two changes that were individually correct.
+
+- `guardLeave` only ever asked about session-only work, because that is the case ADR-039 was written
+  for. But `flush()` is a no-op in two other states — a set conflict, and a repository that is
+  failing or absent — and every switch calls `flush()` and then `replaceDossier()`. So a tab holding
+  the only copy of an edit lost it to a click in the switcher, silently, exactly as ADR-039 had set
+  out to prevent. `closeDossier` did not consult the guard at all.
+- `writeNow` read the previous record in one transaction and wrote in another, and `toRecord`
+  copied `lastExportedAt` from that earlier read. An export committing in between was reverted by
+  the next keystroke — and compare-and-swap could not catch it, because `markExported` deliberately
+  does not move `revision` (ADR-038). "Never exported" reappeared on a dossier exported a minute ago.
+- `importPartial` returns `success` when *anything* survived, which is right. Five of the six
+  production entry points then reported that as an unqualified success: Settings said "Dossier
+  loaded.", onboarding said nothing and advanced to "Ready". A `documents` key that was not an array
+  was dropped with no error recorded at all. The one caller that did report anything printed raw
+  English Zod paths into a Turkish-default interface.
+
+**Rationale:**
+
+- **The reason to stop is one idea, not three.** "What is on screen is not in storage" is the whole
+  predicate; session-only, conflicted and unstorable are just how it came about. Modelling them as
+  one guard with a reason keeps every entry point covered by construction — the alternative, a
+  second conflict-specific modal, would have left the third case to be discovered by a third audit.
+- **Closing is an editor-replacing operation.** It empties the editor exactly as opening another
+  dossier replaces it. Exempting it made it the one-click way to lose work that every other path
+  asked about.
+- **Persisted → session-only is not offered.** ADR-039 records that the transition is not symmetric;
+  faking it here would widen the architecture to make a dialog look tidier.
+- **Delete targets an identity, not a version.** The user picked the dossier by name, in a
+  confirmation that says the action cannot be undone. A revision assertion would leave a tab whose
+  list is a few seconds stale unable to delete at all — worse for a single-user local product, and
+  no safety gain, because the same person made both changes. Stated here so the absence reads as a
+  decision rather than an oversight.
+- **A field that moves without moving `revision` cannot be caller-owned.** Compare-and-swap is blind
+  to it by design, so the only place where the caller's copy and the stored value are known at the
+  same instant is inside the write transaction. Making `lastExportedAt` adapter-owned fixes the
+  autosave race, the open path and the rename path with one change and no new stored field.
+- **Forgiving parsing and honest reporting are different jobs.** Rescuing four of five documents
+  from a file the user can no longer edit is the right behaviour; saying "Dossier loaded" afterwards
+  is not. The count is in units a person recognises — an applicant, a trip, one document, one
+  sponsor — not Zod issues, of which one bad document produces several.
+- **The import report belongs to the workspace, not to the importing screen.** The first fix put a
+  translated count in each entry point's own state, which unit-tested green and did nothing in a
+  real browser: a successful import swaps the dossier, `AppLayout` remounts the page on
+  `state.generation`, and the message went with it. Verified in Chrome — the *pre-existing*
+  "Dossier loaded." was never visible either. So the count is held by `WorkspaceProvider`, above the
+  remount, and rendered once by `WorkspaceNotice`. A caller cannot forget to report, and a partial
+  restore stays on screen across the route change that follows it.
+
+**Trade-off:** closing a dossier can now open a dialog, which is friction on an action that was
+instant. It only appears when the alternative is silent loss, and never for a dossier that is saved.
+
+**Consequences:** `PendingLeave` carries a `reason` alongside the intent, and `LeaveIntent` gained
+`close`. `adoptImported` and `saveAsNew` return whether they actually happened, so no caller can
+announce an outcome that was refused. `ImportResult` gained `omitted`. The conflict banner no longer
+claims "Nothing has been thrown away" above a button that throws this tab's edits away; that button
+now says what it does. Settings' close confirmation is **not** styled destructive: closing a saved
+dossier is reversible from `/dossiers`, and the irreversible case belongs to the guard.
+
+**Implementation:** `src/app/providers/WorkspaceProvider.tsx` (`leaveReason`, `guardLeave`,
+`performClose`, `exportPending`, `importReport`), `src/components/layout/SessionLeaveDialog.tsx`
+and `src/components/layout/WorkspaceNotice.tsx`,
+`src/features/workspace/adapters/{indexeddb,memory}-adapter.ts`,
+`src/features/import-export/services/import.service.ts` (`omitted`), and the three import entry
+points in
+`src/components/{layout/AppLayout,settings/ImportExportSection,onboarding/OnboardingCreateStep}.tsx`.
+No schema, storage-format or export-format change: `schemaVersion` remains `1.0.0` and
 `STORAGE_FORMAT_VERSION` remains `2`.

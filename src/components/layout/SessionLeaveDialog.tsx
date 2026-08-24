@@ -13,27 +13,37 @@ import {
 import { useWorkspace } from '@/app/providers/WorkspaceProvider'
 
 /**
- * The last thing standing between unsaved session-only work and oblivion.
+ * The last thing standing between work that is not in storage and oblivion.
  *
- * Session-only data exists nowhere but this tab, and until now one click in the
- * header switcher discarded it silently — no warning, no dirty check, nothing to
- * undo. The provider refuses the switch and records what was wanted; this asks
- * the user which of the three real outcomes they meant (ADR-039).
+ * One dialog, three reasons. The editor can be unsafe to leave because the
+ * dossier is session-only, because autosave stopped at a conflict, or because
+ * the browser refused to store it — and originally only the first of those
+ * asked anything at all, so the other two discarded edits through the very same
+ * switcher click. The provider refuses the change and records *why*; this asks
+ * the user which of the real outcomes they meant (ADR-041).
  *
- * "Save on this device" is the interesting one: it must persist *before* the
- * switch happens, and if the write fails the switch does not happen at all.
- * Continuing after a failed promotion would discard exactly the work we just
- * failed to save.
+ * The middle action is the interesting one, because the way out differs: promote
+ * in place, fork to a new dossier, or take a file. The first two must commit
+ * *before* the change happens — continuing after a failed save would discard
+ * exactly the work we just failed to save. Exporting resolves nothing on
+ * purpose: it makes discarding safe, it does not make it chosen.
  */
 export function SessionLeaveDialog() {
   const { t } = useTranslation('workspace')
-  const { pendingLeave, cancelLeave, saveAndLeave, discardAndLeave } =
-    useWorkspace()
+  const {
+    pendingLeave,
+    cancelLeave,
+    saveAndLeave,
+    discardAndLeave,
+    exportPending,
+  } = useWorkspace()
 
   // The control that started this is often inside a dropdown that has since
   // closed, so name a destination rather than letting focus fall to <body>
   // (ADR-035).
   const focusFallback = useCallback(() => document.getElementById('main'), [])
+
+  const reason = pendingLeave?.reason ?? 'session-only'
 
   return (
     <AlertDialog
@@ -45,14 +55,16 @@ export function SessionLeaveDialog() {
     >
       <AlertDialogContent restoreFocusFallback={focusFallback}>
         <AlertDialogHeader>
-          <AlertDialogTitle>{t('leave.title')}</AlertDialogTitle>
-          <AlertDialogDescription>{t('leave.body')}</AlertDialogDescription>
+          <AlertDialogTitle>{t(`leave.${reason}.title`)}</AlertDialogTitle>
+          <AlertDialogDescription>
+            {t(`leave.${reason}.body`)}
+          </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
           {/* Radix focuses Cancel on open, which is what we want: the safe
               choice, never the destructive one. */}
           <AlertDialogCancel>{t('leave.stay')}</AlertDialogCancel>
-          {/* Discard sits before Save in the DOM on purpose. The footer is
+          {/* Discard sits before the rescue in the DOM on purpose. The footer is
               `flex-col-reverse` on narrow screens, so this order puts the
               recommended action at the top of the stack and the destructive one
               below it — rather than handing a phone user a big red button in
@@ -61,18 +73,31 @@ export function SessionLeaveDialog() {
             variant="destructive"
             onClick={() => void discardAndLeave()}
           >
-            {t('leave.discard')}
+            {t(`leave.${reason}.discard`)}
           </AlertDialogAction>
-          <AlertDialogAction
-            variant="outline"
-            onClick={(event) => {
-              // Keep the dialog up until the write actually commits.
-              event.preventDefault()
-              void saveAndLeave()
-            }}
-          >
-            {t('leave.save')}
-          </AlertDialogAction>
+          {reason === 'storage-failure' ? (
+            <AlertDialogAction
+              variant="outline"
+              onClick={(event) => {
+                // Nothing is resolved by taking a copy, so stay open.
+                event.preventDefault()
+                exportPending()
+              }}
+            >
+              {t('leave.storage-failure.rescue')}
+            </AlertDialogAction>
+          ) : (
+            <AlertDialogAction
+              variant="outline"
+              onClick={(event) => {
+                // Keep the dialog up until the write actually commits.
+                event.preventDefault()
+                void saveAndLeave()
+              }}
+            >
+              {t(`leave.${reason}.rescue`)}
+            </AlertDialogAction>
+          )}
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>

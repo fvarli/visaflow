@@ -24,9 +24,11 @@ import type { BackupState } from '@/features/workspace/saved-dossier'
  * release, which nothing in the test suite could have caught.
  *
  * Distinct from `SCHEMA_VERSION` below: the release version and the dossier
- * JSON format version move independently, and the Greece pack carries a third,
- * unrelated `templateVersion`. At v1.0.0 all three happen to read `1.0.0` —
- * never reconcile them with a find-and-replace.
+ * JSON format version move independently, the Greece pack carries a third,
+ * unrelated `templateVersion`, and `STORAGE_FORMAT_VERSION` is a fourth. v1.1.0
+ * is the release where they visibly diverged — the app moved, the dossier schema
+ * stayed at `1.0.0`, the storage format stayed at `2`. Never reconcile them with
+ * a find-and-replace.
  */
 const APP_VERSION = __APP_VERSION__
 

@@ -151,6 +151,12 @@ export interface DossierRepository {
    * write: the adapter compares and writes **inside one transaction**, so no
    * caller ever performs a read-compare-write of its own and no interleaving
    * tab can slip between the two halves.
+   *
+   * Two fields on the record are **owned by the adapter and ignored on update**:
+   * `revision`, and `lastExportedAt`. The backup mark moves without touching
+   * `revision` (see `markExported`), so compare-and-swap cannot detect that a
+   * caller's copy of it went stale — the adapter therefore carries it forward
+   * from the row it just read rather than trusting the caller's snapshot.
    */
   put(record: SavedDossierRecord, expectedRevision?: number): Promise<PutResult>
   /**
@@ -166,6 +172,16 @@ export interface DossierRepository {
    * recreated just to remember that it was once exported (ADR-038).
    */
   markExported(id: string, at: string): Promise<boolean>
+  /**
+   * Remove a dossier. Deliberately **authoritative** — no revision assertion.
+   *
+   * Deletion targets a dossier *identity*, not a particular version of its
+   * contents: the user picked it by name in a confirmation that says the action
+   * cannot be undone. Requiring a revision match would mean a tab whose list is
+   * a few seconds stale could not delete at all, which is worse for a
+   * single-user local product and buys no real safety — the same person made
+   * both changes (ADR-041).
+   */
   delete(id: string): Promise<void>
   readMeta(): Promise<WorkspaceMeta>
   writeMeta(meta: WorkspaceMeta): Promise<void>

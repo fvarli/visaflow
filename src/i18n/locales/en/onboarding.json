@@ -45,8 +45,7 @@
     "exampleTitle": "Explore the example",
     "exampleBody": "Load a fictional example dossier to see how VisaFlow works. You can reset it any time.",
     "exampleAction": "Load example data",
-    "importError": "Couldn't read that file. Check that it is a VisaFlow JSON export.",
-    "importWarnings": "Loaded with some notes — a few fields may need review."
+    "importError": "Couldn't read that file. Check that it is a VisaFlow JSON export."
   },
   "ready": {
     "heading": "You're ready",

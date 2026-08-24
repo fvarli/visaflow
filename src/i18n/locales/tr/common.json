@@ -20,7 +20,8 @@
     "save": "Kaydet",
     "saveChanges": "Değişiklikleri kaydet",
     "search": "Ara",
-    "viewAll": "Tümünü gör"
+    "viewAll": "Tümünü gör",
+    "dismiss": "Kapat"
   },
   "states": {
     "all": "Tümü",
@@ -111,6 +112,13 @@
     "loadExample": "Örnek veriyi yükle",
     "failedToRead": "Dosya okunamadı",
     "failedExample": "Örnek veri yüklenemedi"
+  },
+  "import": {
+    "omitted_one": "Bu dosyadaki {{count}} öğe okunamadı ve dışarıda bırakıldı.",
+    "omitted_other": "Bu dosyadaki {{count}} öğe okunamadı ve dışarıda bırakıldı.",
+    "versionNote": "Bu dosya {{found}} dosya biçimi için yazılmış; bu sürüm {{expected}} bekliyor. Yine de içe aktarıldı — gözden geçirin.",
+    "blocked": "Henüz hiçbir şey içe aktarılmadı — önce açık dosyayla ne yapacağınıza karar verin.",
+    "omittedHint": "Dosyadaki diğer her şey içe aktarıldı. Neyin eksik olduğunu görmek için dosyayı bir metin düzenleyicide açın ya da geldiği yerden yeniden dışa aktarın."
   },
   "noDossier": {
     "title": "Yüklü başvuru yok",

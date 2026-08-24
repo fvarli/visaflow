@@ -1,11 +1,12 @@
 # Current Implementation Status
 
-Last updated: 2026-08-24 — v1.1 development: workspace home & dashboard alignment
+Last updated: 2026-08-25 — v1.1.0 release preparation
 
-Application version **1.0.0** (Phase 1 — Foundation shipped). The dossier JSON `schemaVersion`
-remains **1.0.0** and is versioned independently; reaching application v1.0.0 did not change the
-export format. Remaining Foundation follow-up work is listed under "Next within Foundation" in
-[roadmap.md](./roadmap.md).
+Application version **1.1.0** (Phase 1 — Foundation shipped; Phase 2 — the saved-dossier workspace
+— shipped in this release). Four version numbers move independently and only the first of them
+changed here: the dossier JSON `schemaVersion` remains **1.0.0**, the local `STORAGE_FORMAT_VERSION`
+remains **2**, and country-pack `templateVersion`s are untouched. A v1.0 export still imports, and a
+v1.0 export written by this build is still readable by v1.0.
 
 ## Completed Features
 
@@ -121,20 +122,23 @@ export format. Remaining Foundation follow-up work is listed under "Next within 
       segmented control) · Language (TR/EN segmented control) · Country packs
       (informational, scale-ready list with honest review status via
       `ReviewStatusBadge`/`SourceNote`, plus the active-destination selector) ·
-      Privacy (in-memory model + the two localStorage keys + the no-prediction
-      disclaimer) · Local data (status + isolated Reset) · Import & export
-      (export/import/example reusing the existing services, replace-confirm) ·
-      About · Advanced. Pure presentation — no schema/storage/validation change,
-      fixes the heading outline and hardcoded theme labels (ADR-030)
+      Privacy (the local-only model + the two localStorage keys + the IndexedDB
+      database + the no-prediction disclaimer) · Local data (where the dossier
+      lives, how fresh its backup is, and closing it) · Import & export
+      (export/import/example reusing the existing services; importing is additive,
+      so there is nothing to confirm away) · About · Advanced. Pure presentation —
+      no schema/storage/validation change, fixes the heading outline and hardcoded
+      theme labels (ADR-030, amended by ADR-036/038/041)
 - [x] First-run experience — a dedicated `/welcome` surface (not an accidental
       empty state): a calm ≤4-step guided setup (Welcome → Language & destination
       → Create or import → Ready) over a pure adapter
       (`src/features/onboarding/onboarding-model.ts`) that reuses the wizard
       pattern (`Stepper`, `?step=` synced to the URL, focus-to-heading) and the
-      import/export services + `initializeEmpty`. The index route redirects on
-      `hasData` alone (`firstRunTarget`) — no persisted "completed" flag, no new
-      storage key; a returning user with a dossier gets a calm "continue," never a
-      restart. The shared `NoDossierState` is upgraded into the one canonical
+      import/export services + `initializeEmpty`. The index route derives entry
+      from the workspace (`firstRunTarget`, ADR-040 — originally `hasData` alone)
+      — no persisted "completed" flag, no new storage key; a returning user with a
+      dossier gets a calm "continue," never a restart. The shared
+      `NoDossierState` is upgraded into the one canonical
       empty-workspace surface (injectable title/description/icon/hint + start /
       import / how-it-works) so every empty page routes into the journey. Pure
       presentation — no schema/storage/validation change (ADR-031)
@@ -240,8 +244,9 @@ export format. Remaining Foundation follow-up work is listed under "Next within 
 
 ## Current scope
 
-These are deliberate boundaries of the current (Foundation) phase, not defects. Each maps to a
-later phase in [roadmap.md](./roadmap.md):
+What the workspace does and, just as deliberately, what it does not. Items 1–6 and 10–11 describe
+behaviour that shipped in v1.1.0, including the limits it chose on purpose; items 7–9 are boundaries
+of the current phase, not defects, and each maps to a later phase in [roadmap.md](./roadmap.md):
 
 1. **Multiple saved dossiers** — create, switch, and delete several applications from `/dossiers`
    or the header switcher. One dossier is open at a time; the dashboard still renders the open
@@ -260,10 +265,12 @@ later phase in [roadmap.md](./roadmap.md):
    (`lastExportedAt` vs `updatedAt`), so it survives a reload and never follows the user from one
    dossier to another. Any dossier can be exported from `/dossiers` without opening it, and doing so
    moves neither its revision nor its `updatedAt` (ADR-038).
-5. **Session-only is reversible, and never silently discarded** — it can be promoted to a saved
-   dossier keeping the same identity, and switching away from unsaved session-only work asks first.
-   A refresh still discards it; that limit is stated on screen rather than engineered around
-   (ADR-039).
+5. **Work that is not in storage is never silently discarded** — one guard covers every operation
+   that replaces or empties the editor, including closing. It fires for three reasons and offers the
+   way out each one allows: promote a session-only dossier, fork a conflicted one to a new id, or
+   take a file when the browser refuses to store. Session-only can be promoted keeping the same
+   identity; a refresh still discards it, and that limit is stated on screen rather than engineered
+   around (ADR-039, ADR-041).
 6. **Two tabs are safe, but not collaborative** — each dossier carries a `revision` and every write
    is a compare-and-swap, so a stale tab is refused rather than allowed to overwrite. The tab is
    told and offered the saved version or a fork under a new id. There is deliberately **no
@@ -273,6 +280,12 @@ later phase in [roadmap.md](./roadmap.md):
 8. **One country pack** — Greece (Schengen short-stay tourism); more via the country-pack
    system (Country Ecosystem).
 9. **No offline PWA** — requires a browser session.
+10. **Deleting a dossier is authoritative** — `delete` asserts no revision, so a tab whose list is
+    a few seconds stale still deletes what the user named. This is the intended semantic for a
+    single-user local product, recorded rather than left to be rediscovered (ADR-041).
+11. **An import keeps what it can and says what it could not** — a file with one unreadable
+    document imports the rest and reports the count, in the user's language, at every entry
+    point. It never replaces the open dossier (ADR-041).
 
 ## Active Issues
 
@@ -281,7 +294,9 @@ later phase in [roadmap.md](./roadmap.md):
 `pnpm audit` reports **9** advisories, all in dev/build chains that never reach the shipped bundle:
 `undici` ×5 via `jsdom`, `brace-expansion` ×2 via `eslint`, and `postcss`/`nanoid` via
 `@tailwindcss/vite > vite`. The one runtime advisory (`react-router` GHSA-qwww-vcr4-c8h2, high) was
-patched to 7.18.2. Dependabot alerts and automated security fixes are enabled, so these stay visible.
+patched to 7.18.2. Dependabot **vulnerability alerts** are enabled, so these stay visible;
+Dependabot **security updates** are deliberately off, so no upgrade PR is opened automatically and
+every bump is applied by hand. `SECURITY.md` is the canonical statement of this.
 
 ### Lint Warnings (Acceptable)
 - `react-refresh/only-export-components` in route/provider files
@@ -347,6 +362,20 @@ These warnings don't affect functionality.
 - Rename: an explicit title wins over the derived one, whitespace clears back to derived, an
   explicit title is never auto-overwritten, and the title never appears in exported JSON
   (asserted against the exact key set, with `schemaVersion` still `1.0.0`)
+- The leave guard (ADR-041): every editor-replacing path — open, create, import and **close** —
+  is blocked when the editor holds work that storage does not, with the reason carried so the
+  offer matches it; the conflict branch forks to a new id and completes the switch, the
+  storage-failure branch hands over a file without resolving anything, discard really discards, and
+  a dossier that is genuinely saved passes through with no friction at all
+- Import reporting (ADR-041): the production path (`importPartial`) had **zero** tests and now has
+  eight, including the worked case — three documents, one unreadable, two imported, one counted —
+  a collection that is not an array, a schema-version mismatch as a note rather than a refusal, and
+  a file with nothing salvageable refused outright. Plus the entry points: the count is rendered
+  above the page, so it survives the remount a successful import causes
+- Backup ownership (ADR-041): a `markExported` that lands between an editor's read and its write is
+  not reverted by that write — the regression test fails against the previous adapter
+- Deletion semantics (ADR-041): a pinned test documents that `delete` is authoritative and asserts
+  no revision, so the absence reads as a decision rather than an oversight
 - Focus visibility: the control primitives may not carry `outline-none` /
   `outline-hidden`, which in Tailwind v4 silently overrides the single
   `:focus-visible` rule in `@layer base` and leaves a control with no keyboard
@@ -366,13 +395,17 @@ All checks pass:
 - `pnpm format:check` - PASS
 - `pnpm lint` - 0 errors (warnings acceptable, see *Active Issues* above)
 - `pnpm typecheck` - PASS (`tsc -b`)
-- `pnpm test` - 869/869 PASS (72 files)
+- `pnpm test` - 892/892 PASS (74 files)
 - `pnpm build` - SUCCESS
 
-Bundle: `index` 304.44 kB / 93.69 kB gzip plus the eagerly-preloaded shared chunk
-(`WorkspaceProvider`) 475.43 / 145.95 gzip — 779.87 kB raw across the two, CSS 85.82 / 17.49 kB
+Bundle: `index` 305.55 kB / 94.02 kB gzip plus the eagerly-preloaded shared chunk
+(`WorkspaceProvider`) 479.23 / 147.24 gzip — 784.78 kB raw across the two, CSS 85.82 / 17.49 kB
 gzip. The shared chunk carries every locale namespace; its name tracks whichever module Rollup
 picks, so compare the eager *pair*, not either half.
+
+**Verified in a real browser.** The v1.1.0 release scenarios were run against the production build
+served by `vite preview`, on a fresh Chrome profile, with every storage assertion read straight out
+of IndexedDB. The matrix and its results are in [manual-qa.md](./manual-qa.md).
 
 **Continuous integration:** `.github/workflows/ci.yml` runs the gates above on every push and PR to
 `main`, plus `scripts/check-act-warnings.mjs`, which fails the build on any React `act(...)` warning.

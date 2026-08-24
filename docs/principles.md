@@ -11,9 +11,11 @@ account, no analytics, no third-party calls, no CDN. Dossiers are saved locally 
 lost, and the model says plainly that local storage is not encryption. **Why:** the data is
 passport numbers and bank balances; the safest place for it is nowhere but the user's own device.
 **Enforced by:** [ADR-001] (no backend), [ADR-036] (local persistence, session-only escape
-hatch), the
-[privacy model](./privacy.md), and the strict Content-Security-Policy posture (all assets
-bundled, no network for user data).
+hatch), the [privacy model](./privacy.md), and the build itself: every asset is bundled and
+served from the app's own origin, and no code path sends dossier data anywhere. There is
+deliberately no claim of a Content-Security-Policy here — VisaFlow ships none, and naming an
+enforcement mechanism it does not have would be exactly the kind of security theatre the
+privacy model exists to avoid.
 
 ## 2. The user owns the data
 
@@ -111,3 +113,4 @@ outcomes. **Enforced by:** [ADR-016] and the Settings disclaimer.
 [ADR-016]: ./decisions.md
 [ADR-017]: ./decisions.md
 [ADR-020]: ./decisions.md
+[ADR-036]: ./decisions.md

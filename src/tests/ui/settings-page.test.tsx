@@ -17,6 +17,7 @@ import { LocaleProvider } from '@/app/providers/LocaleProvider'
 import { ThemeProvider } from '@/app/providers/ThemeProvider'
 import { DossierProvider, useDossier } from '@/app/providers/DossierProvider'
 import { WorkspaceProvider } from '@/app/providers/WorkspaceProvider'
+import { MemoryDossierRepository } from '@/features/workspace/adapters/memory-adapter'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import SettingsPage from '@/pages/SettingsPage'
 import { importDossier } from '@/features/import-export/services/import.service'
@@ -55,7 +56,12 @@ function renderPage(entry = '/settings', data: Dossier | null = SEED) {
     <LocaleProvider>
       <ThemeProvider>
         <DossierProvider>
-          <WorkspaceProvider>
+          {/* A working store, because jsdom has no IndexedDB and the provider
+              would otherwise report storage as unavailable — which now makes
+              closing a dossier a guarded decision rather than a plain one
+              (ADR-041). That guard has its own tests; this file is about the
+              settings page. */}
+          <WorkspaceProvider repository={new MemoryDossierRepository()}>
             <TooltipProvider>
               <MemoryRouter initialEntries={[entry]}>
                 <Seed data={data}>

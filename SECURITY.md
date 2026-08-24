@@ -4,7 +4,8 @@
 
 | Version | Supported          |
 | ------- | ------------------ |
-| 1.0.x   | :white_check_mark: |
+| 1.1.x   | :white_check_mark: |
+| 1.0.x   | :x:                |
 
 ## Reporting a Vulnerability
 
@@ -40,11 +41,17 @@ VisaFlow is designed with privacy as a core principle:
 ### Data Flow
 
 ```
-User Input -> Browser Memory -> JSON Export (user-initiated download)
+User Input -> Browser Memory -> IndexedDB in this browser profile
+                    |            (saved dossiers; cleared with site data)
+                    |
+                    +---------> JSON Export (user-initiated download)
                                      |
                                      v
                               Local File System (user-controlled)
 ```
+
+A dossier can also be opened in **Session only** mode, in which the IndexedDB branch above does
+not happen at all and the dossier exists solely in memory until the tab is closed.
 
 ### What This Means
 
@@ -67,8 +74,12 @@ While VisaFlow minimizes data exposure, users should be aware:
 
 1. **Export regularly** - Avoid data loss from accidental closures
 2. **Secure your exports** - Store JSON files in an encrypted location
-3. **Use incognito mode** - For additional privacy on shared computers
-4. **Clear browser data** - If concerned about memory forensics
+3. **Use Session only, or a private window, on a shared computer** - in either case the dossier
+   is not written to that browser profile. Note that a private window also means nothing you do
+   there survives closing it, so export before you finish
+4. **Clear browser data when you are done with a device** - this permanently deletes every saved
+   dossier in that browser profile. Export the JSON files you want to keep first; there is no
+   other copy
 
 ## Dependencies
 
@@ -81,6 +92,12 @@ than on a timer. Alerts are reviewed and acted on by hand.
 
 ## Content Security
 
-- No inline scripts
-- No external resources loaded
-- All assets bundled locally
+- **No external resources loaded** - no CDN, no web fonts, no analytics, no third-party frames
+- **All assets bundled locally** and served from the app's own origin
+- **One inline script**, in `index.html`: it applies the stored theme and language before first
+  paint, reads only the two non-personal preference keys, and touches no dossier data. It is
+  called out here rather than described away, because it is the reason a `script-src 'self'`
+  Content-Security-Policy would need a hash or a nonce
+- **No Content-Security-Policy is currently shipped.** VisaFlow serves no user content and makes
+  no third-party requests, so there is nothing for one to constrain today — but the absence is a
+  gap, not a control, and it is recorded as one rather than claimed as a feature

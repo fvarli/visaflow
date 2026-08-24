@@ -213,7 +213,17 @@ export class IndexedDbDossierRepository implements DossierRepository {
 
       // `record` already carries the current STORAGE_FORMAT_VERSION, so a
       // migrated row heals to the new format on its first successful write.
-      const next = { ...record, revision: stored.revision + 1 }
+      // `lastExportedAt` belongs to the store, not to the caller. A content
+      // write carries whatever value the editor was hydrated with, which can be
+      // minutes old, and `markExported` deliberately does not move `revision`
+      // (ADR-038) — so compare-and-swap cannot see that the backup mark has
+      // since moved. Reading it from the row inside *this* transaction is the
+      // only point where both facts are known at the same instant.
+      const next = {
+        ...record,
+        revision: stored.revision + 1,
+        lastExportedAt: stored.lastExportedAt,
+      }
       await request(store.put(next))
       result = { ok: true, revision: next.revision }
     })

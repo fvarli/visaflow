@@ -190,8 +190,8 @@ nobody notices is not a meaningful choice. If VisaFlow ever adds storage that le
 The **Settings → Privacy** section restates this model to users in plain language: dossiers are saved in
 this browser and never sent to a server; local storage is not encryption; clearing browser data deletes
 them; export keeps a portable backup; and there are no accounts, servers, analytics, tracking, or
-third-party requests. **Settings → Advanced** lists the two `localStorage` keys and names the IndexedDB
-database separately. **Settings → Advanced** lists the exact two localStorage keys. Settings itself is
+third-party requests. **Settings → Advanced** lists the exact two `localStorage` keys and names the
+IndexedDB database separately. Settings itself is
 pure presentation — it reads and reuses the existing import/export services and provider state and changes
 nothing about how data is stored (ADR-030).
 

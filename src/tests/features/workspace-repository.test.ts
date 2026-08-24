@@ -116,6 +116,29 @@ describe('dossier repository contract', () => {
     expect(await repo.get('b')).not.toBeNull()
   })
 
+  it('deletes authoritatively, on purpose, from a stale caller', async () => {
+    // Not an oversight — a decision (ADR-041). `delete` takes no revision
+    // because it targets a dossier *identity*, which the user named in a
+    // confirmation that says the action cannot be undone. Requiring a revision
+    // match would leave a tab whose list is seconds old unable to delete at
+    // all, for no real safety: the same person made both changes.
+    const repo = new MemoryDossierRepository()
+    await repo.put(record('a', payloadOf(partiallyPrepared)))
+    const stale = await repo.get('a')
+    if (!stale) throw new Error('seeded record vanished')
+
+    // Somebody edits it after our caller last looked.
+    await repo.put(
+      { ...stale, payload: payloadOf(allApplicableReady) },
+      stale.revision
+    )
+    expect((await repo.get('a'))?.revision).toBe(stale.revision + 1)
+
+    await repo.delete('a')
+
+    expect(await repo.get('a')).toBeNull()
+  })
+
   it('persists the active dossier id in meta', async () => {
     const repo = new MemoryDossierRepository()
     expect((await repo.readMeta()).activeDossierId).toBeNull()

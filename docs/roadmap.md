@@ -64,14 +64,18 @@ bundled into a maintenance sprint. *Tech debt.*
 
 ---
 
-## Phase 2 — Core Workspace  ·  *Next*
+## Phase 2 — Core Workspace  ·  *In progress*
 
 **Theme:** make it a workspace, not a single form.
 **Why now:** with the foundation solid, the highest-value step is depth for the applicant who is
 actually preparing — the ability to manage more than one application and to get more out of the
 data they've already entered.
 
-- **Multiple saved dossiers** — **shipped in v1.1.** Dossiers are saved in the browser's IndexedDB
+**Status:** the phase's flagship — multiple saved dossiers — shipped as **v1.1.0** on 2026-08-25.
+The phase itself stays open: the richer dossier/timeline and the printable index below are still
+ahead.
+
+- **Multiple saved dossiers** — **shipped in v1.1.0.** Dossiers are saved in the browser's IndexedDB
   behind a repository port, survive refresh and restart, and can be created, switched and deleted
   from `/dossiers` or the header switcher. Persistence is on by default with a per-dossier
   "Session only" escape hatch (ADR-036). Each dossier can be given a name of your own, and two
@@ -82,6 +86,8 @@ data they've already entered.
   (ADR-038, ADR-039). The workspace and the open dossier are now distinct product surfaces with a
   home each — *Your dossiers* above *Dashboard* in the navigation, entry derived from what is saved
   rather than from the editor, and the dashboard headed by the dossier it describes (ADR-040).
+  Leaving an editor whose work is not in storage is one guarded decision with a way out per reason,
+  deletion is authoritative by design, and an import reports what it could not read (ADR-041).
   *Done.*
 - **Richer dossier & timeline** — deeper trip/finance/sponsor structure and a fuller timeline. *Next.*
 - **PDF / printable index** — generate a dossier index and a printable checklist for the
@@ -124,7 +130,8 @@ ecosystem, so they land after those exist.
 
 **Theme:** more durability for users who want it, without weakening the default.
 **Why optional and late:** persistence is the one thing that can erode the privacy guarantee, so
-it is strictly opt-in and only considered once the in-memory model is mature.
+anything beyond the browser's own storage is strictly opt-in, and only considered once the local
+model shipped in v1.1.0 has proven itself.
 
 - **Local file adapter** — save/load to the local filesystem (user-run), never a hosted service.
 - **Optional encrypted local persistence** — opt-in, password-protected, fully offline. Note that

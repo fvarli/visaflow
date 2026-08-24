@@ -26,8 +26,10 @@ The existing options are poor:
   travel history to a third party, often to upsell or to monetize the data.
 
 VisaFlow is the alternative: software that *understands* the domain (structured dossier +
-validation) **without ever taking custody of your data**. It runs entirely in your browser;
-the only persistence is a JSON file you own.
+validation) **without ever taking custody of your data**. It runs entirely in your browser.
+Dossiers are saved in that browser so a refresh does not cost you your work, and the file you
+export is the copy you own — the browser's is not a backup, because clearing site data removes
+it. Nothing is uploaded, ever.
 
 ## What VisaFlow is becoming
 
@@ -56,11 +58,12 @@ zorunlu belgeler, güncellenmesi gereken belgeler, tutarlılık bulguları*.
 
 ## Where we are — Current / Next / Future
 
-- **Current** — a complete single-application workspace: structured dossier, validation engine,
-  timeline, widget-based dashboard, design system + playground, TR/EN internationalization,
-  JSON import/export, and one production country pack (Greece — Schengen short-stay tourism).
-- **Next** — multiple saved dossiers, a richer core workspace, more visa types, and additional
-  country packs.
+- **Current** — a saved-dossier workspace: several dossiers kept side by side in this browser,
+  each with a structured dossier, validation engine, timeline, widget-based dashboard, rename,
+  cross-tab safety, backup tracking, and a session-only mode for shared computers — plus the
+  design system + playground, TR/EN internationalization, JSON import/export, and one production
+  country pack (Greece — Schengen short-stay tourism).
+- **Next** — a richer core workspace, more visa types, and additional country packs.
 - **Future** — a country-pack ecosystem with verified sources, optional self-hosting, reviewer
   collaboration, and organizational (never predictive) AI assistance.
 

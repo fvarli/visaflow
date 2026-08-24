@@ -69,12 +69,19 @@ for your appointment", "Documents remaining"). It describes how assembled the do
 **never** an approval-probability or risk indicator ([ADR-016]). New dashboard signals must
 respect this line.
 
-## Built for where the product is going
+## One dossier, deliberately
 
-`buildDashboardModel` returns `{ applications, active }` — a list of per-application view models
-with the active one selected. Today there is always exactly one application; the shape exists so
-a future multi-application phase (see [roadmap.md](./roadmap.md)) fits without reshaping any
-widget prop. No multi-application UI, selection or storage is built yet — this is structure only.
+`buildDashboardModel` returns the view model for **the dossier that is open**, and nothing else.
+
+It used to return `{ applications, active }` — a single-element list with the active item
+selected — as shape-only scaffolding for a future multi-application phase. That phase arrived, at
+the *workspace* level rather than the dashboard's: several dossiers now exist side by side, and
+`/dossiers` is where you see them ([ADR-040]). The list here was never populated with a second
+entry and would have been the wrong place for one, so it was removed.
+
+Nothing on the dashboard sums, ranks, scores or compares dossiers. It reads the workspace for the
+active dossier's **name** and for nothing else; every number it shows comes from that dossier
+alone.
 
 ## Reusable primitives
 
@@ -104,3 +111,4 @@ by the global `prefers-reduced-motion` rule — widgets do not implement their o
 [ADR-022]: ./decisions.md
 
 [ADR-033]: ./decisions.md
+[ADR-040]: ./decisions.md

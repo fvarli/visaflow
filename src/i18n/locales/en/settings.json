@@ -63,7 +63,7 @@
   "reset": {
     "action": "Close the open dossier",
     "confirmTitle": "Close the open dossier?",
-    "confirmBody": "This clears the editor and stops this dossier from reopening automatically. If it is saved on this device it stays saved, and you can open it again from the Dossiers page. Anything not saved on this device will be gone.",
+    "confirmBody": "This clears the editor and stops this dossier from reopening automatically. If it is saved on this device it stays saved, and you can open it again from the Dossiers page. If it is not, VisaFlow asks what to do with it before anything is discarded.",
     "confirm": "Close dossier"
   },
   "dangerZone": "Danger zone",
@@ -80,9 +80,7 @@
     "exampleTitle": "Load example",
     "exampleBody": "Load a fictional example dossier to explore VisaFlow. It is added as a new dossier — nothing you already have is replaced.",
     "exampleAction": "Load example data",
-    "importError": "Couldn't import that file. Check that it is a VisaFlow JSON export.",
-    "importSuccess": "Dossier loaded.",
-    "warningsTitle": "Loaded with notes"
+    "importError": "Couldn't import that file. Check that it is a VisaFlow JSON export."
   },
   "disclaimer": {
     "title": "Disclaimer",

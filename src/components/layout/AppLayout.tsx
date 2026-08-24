@@ -1,5 +1,6 @@
 import { useState, useCallback, useRef, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
+import { SCHEMA_VERSION } from '@/domain/schemas/dossier.schema'
 import { Outlet } from 'react-router-dom'
 import { Sidebar } from './Sidebar'
 import { Header } from './Header'
@@ -36,6 +37,14 @@ export function AppLayout() {
   const [importDialogOpen, setImportDialogOpen] = useState(false)
   const [importErrors, setImportErrors] = useState<string[]>([])
   const [importWarnings, setImportWarnings] = useState<string[]>([])
+  /**
+   * One translated sentence about what actually happened, above the technical
+   * detail. The list below is Zod's — untranslated paths and messages, useful to
+   * someone repairing a file by hand and useless to everyone else. Before this,
+   * that list *was* the only report, so a Turkish user restoring a backup with
+   * one bad document got English field paths and no count (ADR-041).
+   */
+  const [importSummary, setImportSummary] = useState<string | null>(null)
   const [scrolled, setScrolled] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
@@ -58,6 +67,7 @@ export function AppLayout() {
   const handleImportClick = useCallback(() => {
     setImportErrors([])
     setImportWarnings([])
+    setImportSummary(null)
     setImportDialogOpen(true)
   }, [])
 
@@ -74,23 +84,33 @@ export function AppLayout() {
           setImportErrors(result.errors.map((e) => `${e.path}: ${e.message}`))
         }
 
-        if (result.warnings && result.warnings.length > 0) {
-          setImportWarnings(result.warnings)
+        // Translated from the versions themselves rather than from the English
+        // sentence the service composes — that string is a diagnostic, not copy.
+        const found = result.data?.schemaVersion
+        if (found && found !== SCHEMA_VERSION) {
+          setImportWarnings([
+            t('import.versionNote', { found, expected: SCHEMA_VERSION }),
+          ])
         }
 
         if (result.success && result.data) {
           // Additive: a file becomes a new saved dossier, never a replacement
           // for whatever happens to be open (ADR-036).
-          await adoptImported({
-            applicant: result.data.applicant ?? null,
-            application: result.data.application ?? null,
-            documents: result.data.documents ?? [],
-            sponsors: result.data.sponsors ?? [],
-          })
+          const imported = await adoptImported(
+            {
+              applicant: result.data.applicant ?? null,
+              application: result.data.application ?? null,
+              documents: result.data.documents ?? [],
+              sponsors: result.data.sponsors ?? [],
+            },
+            false,
+            // Reported by the workspace above the page, because a successful
+            // import remounts everything below it (ADR-041).
+            result.omitted ?? 0
+          )
 
-          if (!result.errors || result.errors.length === 0) {
-            setImportDialogOpen(false)
-          }
+          if (imported) setImportDialogOpen(false)
+          else setImportSummary(t('import.blocked'))
         }
       } catch (error) {
         setImportErrors([
@@ -105,7 +125,7 @@ export function AppLayout() {
         fileInputRef.current.value = ''
       }
     },
-    [adoptImported]
+    [adoptImported, t]
   )
 
   const handleLoadExample = useCallback(async () => {
@@ -117,18 +137,23 @@ export function AppLayout() {
       if (result.success && result.data) {
         // Additive: a file becomes a new saved dossier, never a replacement for
         // whatever happens to be open (ADR-036).
-        await adoptImported({
-          applicant: result.data.applicant ?? null,
-          application: result.data.application ?? null,
-          documents: result.data.documents ?? [],
-          sponsors: result.data.sponsors ?? [],
-        })
-        setImportDialogOpen(false)
+        const imported = await adoptImported(
+          {
+            applicant: result.data.applicant ?? null,
+            application: result.data.application ?? null,
+            documents: result.data.documents ?? [],
+            sponsors: result.data.sponsors ?? [],
+          },
+          false,
+          result.omitted ?? 0
+        )
+        if (imported) setImportDialogOpen(false)
+        else setImportSummary(t('import.blocked'))
       }
     } catch {
       setImportErrors([t('importDialog.failedExample')])
     }
-  }, [adoptImported])
+  }, [adoptImported, t])
 
   // The Documents nav badge shows the canonical outstanding count — the same
   // number the rings and the "remaining" phrasing use. It must pass the
@@ -264,6 +289,13 @@ export function AppLayout() {
               <FileJson />
               {t('importDialog.loadExample')}
             </Button>
+
+            {importSummary && (
+              <Alert variant="warning" role="status" aria-atomic="true">
+                <AlertCircle />
+                <AlertDescription>{importSummary}</AlertDescription>
+              </Alert>
+            )}
 
             {importErrors.length > 0 && (
               <Alert variant="destructive">

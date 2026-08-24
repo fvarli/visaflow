@@ -20,7 +20,8 @@
     "save": "Save",
     "saveChanges": "Save changes",
     "search": "Search",
-    "viewAll": "View all"
+    "viewAll": "View all",
+    "dismiss": "Dismiss"
   },
   "states": {
     "all": "All",
@@ -111,6 +112,13 @@
     "loadExample": "Load example data",
     "failedToRead": "Failed to read file",
     "failedExample": "Failed to load example data"
+  },
+  "import": {
+    "omitted_one": "{{count}} item in that file could not be read and was left out.",
+    "omitted_other": "{{count}} items in that file could not be read and were left out.",
+    "versionNote": "That file was written for dossier format {{found}}; this build expects {{expected}}. It was imported anyway — check it over.",
+    "blocked": "Nothing has been imported yet — decide what to do with the dossier you have open first.",
+    "omittedHint": "Everything else in the file was imported. Open the file in a text editor to see what is there, or re-export it from wherever it came from."
   },
   "noDossier": {
     "title": "No application loaded",

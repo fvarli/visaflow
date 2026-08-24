@@ -46,11 +46,25 @@
     "promoteAria": "Save this dossier on this device"
   },
   "leave": {
-    "title": "Leave this session-only dossier?",
-    "body": "This dossier is not saved on this device. Opening another one will discard the work held in this tab.",
     "stay": "Stay here",
-    "save": "Save on this device",
-    "discard": "Discard and continue"
+    "session-only": {
+      "title": "Leave this session-only dossier?",
+      "body": "This dossier is not saved on this device. Leaving it discards the work held in this tab.",
+      "rescue": "Save on this device",
+      "discard": "Discard and continue"
+    },
+    "conflict": {
+      "title": "Leave edits that were never saved?",
+      "body": "Another tab saved a newer version of this dossier, so the changes you made here were never stored. Leaving discards them — or keep them as a separate dossier and decide later.",
+      "rescue": "Keep my version as a new dossier",
+      "discard": "Discard my edits and continue"
+    },
+    "storage-failure": {
+      "title": "Leave edits that could not be saved?",
+      "body": "This browser would not store your latest changes, so they exist only in this tab. Leaving discards them. Export a copy first if you want to keep them.",
+      "rescue": "Export a backup",
+      "discard": "Discard my edits and continue"
+    }
   },
   "rename": {
     "action": "Rename",
@@ -92,10 +106,10 @@
   },
   "conflict": {
     "changedTitle": "This dossier was changed in another tab",
-    "changedBody": "Your edits here have not been saved. Nothing has been thrown away — choose which version to keep.",
+    "changedBody": "Another tab saved a newer version of this dossier, so the changes you have made here were never stored. Both versions still exist — until you pick one. Opening the saved version discards what is on screen.",
     "deletedTitle": "This dossier was deleted in another tab",
     "deletedBody": "Your edits here have not been saved, and this dossier no longer exists in this browser. You can keep your version as a new dossier.",
-    "reload": "Open the saved version",
+    "reload": "Discard my edits and open the saved version",
     "saveAsNew": "Keep my version as a new dossier",
     "exportHint": "You can still export this version to a file first."
   }

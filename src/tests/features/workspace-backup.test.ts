@@ -97,6 +97,27 @@ describe('markExported', () => {
     expect(result).toEqual({ ok: true, revision: held.revision + 1 })
   })
 
+  it('is not reverted by an edit that began before the export', async () => {
+    // The race that made "Never exported" reappear: the editor holds the record
+    // it hydrated with, the user exports, and the next keystroke's autosave
+    // writes the pre-export snapshot back. Compare-and-swap cannot catch it,
+    // because exporting deliberately does not move `revision` (ADR-038) — so
+    // the adapter has to own the field.
+    const repo = new MemoryDossierRepository()
+    await repo.put(record('a'))
+    const held = await stored(repo, 'a')
+    expect(held.lastExportedAt).toBeNull()
+
+    await repo.markExported('a', LATE)
+
+    const result = await repo.put(record('a', held), held.revision)
+    expect(result.ok).toBe(true)
+
+    const after = await stored(repo, 'a')
+    expect(after.lastExportedAt).toBe(LATE)
+    expect(backupStateOf(after)).toBe('fresh')
+  })
+
   it('does not resurrect a record deleted in the meantime', async () => {
     const repo = new MemoryDossierRepository()
     await repo.put(record('a'))

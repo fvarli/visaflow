@@ -140,14 +140,16 @@ VisaFlow's not official deadlines, and the highlighted next action reuses the Da
 `deriveNextActions` (reuse-only — no dashboard change) ([ADR-029], [timeline-architecture.md](./timeline-architecture.md)).
 Settings is the application control center — a responsive two-pane shell (section rail + content, `?section=`
 deep-link) over pure `src/features/settings/settings-model.ts`, composing existing primitives + the
-import/export services; it lists installed country packs with honest review status, reinforces the in-memory
-privacy model, and changes no schema, storage, or validation ([ADR-030]).
+import/export services; it lists installed country packs with honest review status, restates the
+local-only privacy model — saved in this browser, never uploaded, never encrypted, deleted with site
+data — and changes no schema, storage, or validation ([ADR-030], amended by [ADR-036]).
 The first-run experience is a dedicated `/welcome` surface over pure `src/features/onboarding/onboarding-model.ts`
 — a calm ≤4-step guided setup (Welcome → Language & destination → Create or import → Ready) reusing the wizard
 pattern (`Stepper`, `?step=`, focus-to-heading) and the import/export services + `initializeEmpty`. The index
-route redirects on `hasData` alone (`firstRunTarget`) — no persisted "completed" flag, no new storage key — and
-the shared `NoDossierState` is the one canonical empty-workspace surface routing every empty page into the
-journey ([ADR-031]).
+route derives entry from the workspace rather than from `hasData` alone (`firstRunTarget`, see below)
+— no persisted "completed" flag, no new storage key — and the shared `NoDossierState` is the one
+canonical empty-workspace surface routing every empty page into the journey ([ADR-031], superseded in
+part by [ADR-040]).
 The Final Review workspace (`/review`) is a thin composition over `src/features/review/*` — the last look
 before the appointment, answering a different question from the Validation Center ("what do I have, what am I
 missing, what do I bring?" rather than "what is inconsistent?"). It introduces **no new authority**: readiness
@@ -217,10 +219,20 @@ anywhere aggregates across dossiers.
 │                     │                                                                       │
 │                     ├──▶ runValidation(dossier) ──▶ findings ──▶ finding-text ──▶ UI       │
 │                     ├──▶ buildDashboardModel(state) ──▶ dashboard widgets                   │
-│                     └──▶ resolveVisaTemplate(country, visaType) ──▶ requirements/timeline   │
+│                     ├──▶ resolveVisaTemplate(country, visaType) ──▶ requirements/timeline   │
+│                     │                                                                       │
+│                     └──▶ WorkspaceProvider ──▶ DossierRepository (port)                     │
+│                                     │                    │                                  │
+│                                     │                    └──▶ IndexedDB (this profile)      │
+│                                     │                         · session-only writes nothing │
+│                                     │                                                       │
+│                                     └──▶ BroadcastChannel (ids + revisions only, hint-only) │
 │                                                                                            │
 │  Import service ◀────────── JSON file ──────────▶ Export service                            │
 └────────────────────────────────────────────────────────────────────────────────────────────┘
+
+The repository is the **only** thing that touches a storage API; no component reaches past it
+([ADR-036]). The channel carries dossier ids and revision numbers, never payloads ([ADR-037]).
 ```
 
 ## Performance
@@ -260,6 +272,8 @@ anywhere aggregates across dossiers.
 [ADR-024]: ./decisions.md
 [ADR-025]: ./decisions.md
 [ADR-029]: ./decisions.md
+[ADR-030]: ./decisions.md
+[ADR-031]: ./decisions.md
 [ADR-032]: ./decisions.md
 [ADR-033]: ./decisions.md
 [ADR-036]: ./decisions.md
@@ -267,3 +281,4 @@ anywhere aggregates across dossiers.
 [ADR-038]: ./decisions.md
 [ADR-039]: ./decisions.md
 [ADR-040]: ./decisions.md
+[ADR-041]: ./decisions.md

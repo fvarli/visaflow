@@ -114,7 +114,17 @@ export class MemoryDossierRepository implements DossierRepository {
       })
     }
 
-    const next = { ...record, revision: stored.revision + 1 }
+    // `lastExportedAt` belongs to the store, not to the caller. A content
+    // write carries whatever value the editor was hydrated with, which can be
+    // minutes old, and `markExported` deliberately does not move `revision`
+    // (ADR-038) — so compare-and-swap cannot see that the backup mark has
+    // since moved. Reading it from the row inside *this* transaction is the
+    // only point where both facts are known at the same instant.
+    const next = {
+      ...record,
+      revision: stored.revision + 1,
+      lastExportedAt: stored.lastExportedAt,
+    }
     this.records.set(record.id, structuredClone(next))
     return Promise.resolve({ ok: true, revision: next.revision })
   }
