@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next'
 import { useSearchParams } from 'react-router-dom'
 import { PageHeader } from '@/components/ui/page-header'
-import { Section, SectionHeader } from '@/components/ui/section'
+import { PageBody, Section, SectionHeader } from '@/components/ui/section'
 import { NoDossierState } from '@/components/NoDossierState'
 import { ReadinessSummary } from '@/components/validation/ReadinessSummary'
 import { useFinalReviewModel } from '@/features/review/review-model'
@@ -49,7 +49,11 @@ export default function ReviewPage() {
     })
 
   if (!model.hasData) {
-    return <NoDossierState section={t('review:title')} />
+    return (
+      <PageBody>
+        <NoDossierState section={t('review:title')} />
+      </PageBody>
+    )
   }
 
   return (

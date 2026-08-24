@@ -1,3 +1,4 @@
+import { useCallback, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { XCircle } from 'lucide-react'
 import { useWorkspace } from '@/app/providers/WorkspaceProvider'
@@ -34,6 +35,18 @@ import { useSettingsModel } from '@/features/settings/settings-model'
 export function DataSection() {
   const { t } = useTranslation(['settings', 'common', 'workspace'])
   const { closeDossier } = useWorkspace()
+  const focusAfterClose = useCallback(() => document.getElementById('main'), [])
+  /**
+   * Controlled so the dialog can stay up until the close has actually happened.
+   * Letting it close first left focus on a trigger that `reset()` was about to
+   * unmount, which drops focus to <body> (ADR-035).
+   */
+  const [confirmOpen, setConfirmOpen] = useState(false)
+  const confirmClose = async (event: React.MouseEvent) => {
+    event.preventDefault()
+    await closeDossier()
+    setConfirmOpen(false)
+  }
   const model = useSettingsModel()
   const { localData } = model
 
@@ -80,14 +93,16 @@ export function DataSection() {
         <h3 className="text-eyebrow text-muted-foreground uppercase">
           {t('settings:dangerZone')}
         </h3>
-        <AlertDialog>
+        <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
           <AlertDialogTrigger asChild>
             <Button variant="outline" className="self-start">
               <XCircle />
               {t('settings:reset.action')}
             </Button>
           </AlertDialogTrigger>
-          <AlertDialogContent>
+          {/* Closing resets the editor, which remounts the page and destroys
+              the trigger this dialog would otherwise return focus to. */}
+          <AlertDialogContent restoreFocusFallback={focusAfterClose}>
             <AlertDialogHeader>
               <AlertDialogTitle>
                 {t('settings:reset.confirmTitle')}
@@ -100,7 +115,7 @@ export function DataSection() {
               <AlertDialogCancel>
                 {t('common:actions.cancel')}
               </AlertDialogCancel>
-              <AlertDialogAction onClick={() => void closeDossier()}>
+              <AlertDialogAction onClick={(event) => void confirmClose(event)}>
                 {t('settings:reset.confirm')}
               </AlertDialogAction>
             </AlertDialogFooter>

@@ -178,9 +178,7 @@ export class IndexedDbDossierRepository implements DossierRepository {
     let result: PutResult = { ok: true, revision: record.revision }
 
     await this.run(DOSSIER_STORE, 'readwrite', async (store) => {
-      const stored = (await request(
-        store.get(record.id) as IDBRequest<unknown>
-      )) as SavedDossierRecord | undefined
+      const raw = await request(store.get(record.id) as IDBRequest<unknown>)
 
       if (expectedRevision === undefined) {
         // First write for this id.
@@ -190,21 +188,31 @@ export class IndexedDbDossierRepository implements DossierRepository {
         return
       }
 
-      if (stored === undefined) {
+      if (raw === undefined) {
         // Deleted elsewhere. Do not recreate it.
         result = { ok: false, reason: 'deleted' }
         return
       }
 
-      if (stored.revision !== expectedRevision) {
+      // Compare against the **migrated** view — the same one `get()` handed the
+      // caller whose revision we are about to check. Reading the raw row here
+      // instead meant an older storage format had no `revision` at all, so
+      // `undefined !== 1` reported a conflict and every migrated dossier became
+      // permanently unsaveable, blaming a second tab that did not exist.
+      const migrated = migrateRecord(raw)
+      const stored = migrated.ok ? migrated.record : undefined
+
+      if (stored === undefined || stored.revision !== expectedRevision) {
         result = {
           ok: false,
           reason: 'conflict',
-          currentRevision: stored.revision,
+          currentRevision: stored?.revision ?? 0,
         }
         return
       }
 
+      // `record` already carries the current STORAGE_FORMAT_VERSION, so a
+      // migrated row heals to the new format on its first successful write.
       const next = { ...record, revision: stored.revision + 1 }
       await request(store.put(next))
       result = { ok: true, revision: next.revision }

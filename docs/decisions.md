@@ -968,3 +968,83 @@ thing in exactly one place.
 `promoteToDevice`, `saveAndLeave`, `discardAndLeave`, `cancelLeave` and `closeDossier` in
 `WorkspaceProvider`; `SessionLeaveDialog` and `WorkspaceNotice` in `components/layout`. No schema or
 storage-format change.
+
+---
+
+## ADR-040: Workspace Level and Active-Dossier Level Are Different Surfaces; Entry Is Derived from the Workspace, Not the Editor
+
+**Status:** Accepted · **Date:** 2026-08-24 · **Supersedes (in part):** [ADR-031] · **Extends:** [ADR-036]
+
+**Decision:** VisaFlow has two levels and each has exactly one home. `/dossiers` is the **workspace**
+level: what you have. `/dashboard` is the **active dossier** level: how the one you are inside is
+doing. Every other content route is an active-dossier surface; Settings is workspace-level. The index
+route waits for the workspace to hydrate and then routes from what is actually stored:
+
+| Situation | Destination |
+|---|---|
+| a dossier is open (saved or session-only) | `/dashboard` |
+| dossiers are saved but none is open | `/dossiers` |
+| nothing saved and nothing open | `/welcome` |
+
+**Context:** ADR-031 derived entry "purely from `hasData` via `firstRunTarget`", which was correct
+when a dossier could only ever live in memory. Durable storage (ADR-036) made `hasData` answer a
+narrower question than the router was asking: *is a dossier open in this tab right now*, not *does
+this person have work here*. Two consequences shipped:
+
+1. **Every returning user landed in onboarding.** `FirstRunRedirect` decided on the first commit,
+   before `repo.readMeta()` had resolved, so `hasData` was always false at that moment. Verified in
+   real Chrome with three saved dossiers: reload `/` → `/welcome`, headed *"Let's prepare your visa
+   application"*. `WorkspaceProvider` had exposed `ready` since ADR-036 and **nothing consumed it**.
+2. **Closing a dossier stranded the user.** "Close the open dossier" (ADR-038) clears the editor and
+   the last-opened pointer by design. With entry derived from the editor, that returned the whole app
+   to its brand-new state: `/` → `/welcome`, all eleven pages showing "No application loaded", and
+   the header switcher — the *only* route to `/dossiers` — unmounted, while the action's own
+   confirmation promised "you can open it again from the Dossiers page".
+
+**Rationale:**
+
+- **Waiting is the fix, not a nicer spinner.** A router that decides before storage answers is not
+  slow, it is wrong. The index renders the existing `PageLoader` until `ready`, chooses nothing, and
+  above all creates nothing.
+- **Having saved work is not consent to reopen it.** The router never picks a dossier. `/dossiers`
+  exists precisely so "you have work, none of it is open" has an honest destination, and so a
+  deliberate close survives the reload that follows it. The last-opened pointer stays a tab-local
+  hint (ADR-037); no global active pointer is introduced.
+- **The workspace needs a door.** `/dossiers` had no navigation entry at all — its single affordance
+  was a menu item *inside* the switcher, itself gated on `hasData`. It is now the first nav item,
+  above Dashboard, so the hierarchy is visible rather than inferred. Deliberately **not** filed
+  under the existing "Dossier" group: that group means the contents of one dossier, and using the
+  word for both levels is the confusion this ADR removes.
+- **A surface must say what it is about.** The dashboard's heading was a greeting — identical across
+  every dossier belonging to the same applicant, and useless on a phone where the switcher's label is
+  hidden. The active dossier's name is now the `h1` and the greeting is the subtitle. The dashboard
+  reads the workspace for **identity only**; it still derives everything it *shows* from the active
+  dossier alone.
+- **Tabs are distinguishable.** Every tab was titled "VisaFlow" in an app that explicitly supports a
+  dossier per tab. The title now carries route and dossier, from the same resolved title everything
+  else uses, so a rename reaches the tab strip for the same reason it reaches the switcher.
+- **Still no aggregates.** Nothing sums, ranks, scores or compares dossiers. `/dossiers` lists;
+  `/dashboard` reports on one. `DashboardModel` lost its `applications: [active]` array — shape-only
+  scaffolding for a multi-application future that arrived at the *workspace* level instead — and a
+  test now guards that the model exposes the active dossier and nothing else.
+
+**Trade-off:** the dashboard now imports `useWorkspace`, which the previous sprint's audit had noted
+it pointedly did not. That is deliberate and narrow — one string, no data — and stating the exception
+plainly is better than a second title derivation drifting out of sync with `/dossiers`.
+
+**Consequences:** `firstRunTarget` takes an `EntryState` rather than a boolean. `NoDossierState` — the
+canonical empty state on eleven pages — now offers the saved dossiers when any exist, and gained a
+`PageHeader`, fixing a real regression where switching to an empty dossier left the document with no
+`h1`. The switcher marks the open dossier with radio semantics instead of an `aria-hidden` check
+icon, and renders whenever there is something to switch between rather than only when a dossier is
+open (which also stopped it unmounting its own trigger mid-switch and dropping focus to `<body>`).
+`useWorkspaceOptional` exists so shared components can render outside a workspace — the component
+gallery, a page test harness — where "no provider" and "no saved dossiers" are the same answer.
+
+**Implementation:** `src/app/router/routes.tsx`, `src/features/onboarding/onboarding-model.ts`,
+`src/config/navigation.ts`, `src/components/layout/use-document-title.ts`,
+`src/components/layout/{Header,DossierSwitcher,AppLayout}.tsx`, `src/pages/DashboardPage.tsx`,
+`src/components/NoDossierState.tsx`, `src/features/dashboard/dashboard-model.ts`, and
+`src/app/providers/WorkspaceProvider.tsx` (`activeTitle`, `useWorkspaceOptional`). No schema,
+storage-format, import/export, readiness or validation change; `schemaVersion` remains `1.0.0` and
+`STORAGE_FORMAT_VERSION` remains `2`.

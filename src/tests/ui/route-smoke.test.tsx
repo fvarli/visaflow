@@ -11,6 +11,7 @@ import i18n, {
 import { LocaleProvider } from '@/app/providers/LocaleProvider'
 import { ThemeProvider } from '@/app/providers/ThemeProvider'
 import { DossierProvider, useDossier } from '@/app/providers/DossierProvider'
+import { WorkspaceProvider } from '@/app/providers/WorkspaceProvider'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import { importDossier } from '@/features/import-export/services/import.service'
 import exampleJson from '@/data/examples/example-dossier.json'
@@ -81,13 +82,15 @@ function renderRoute(Page: () => React.JSX.Element, entry: string) {
     <LocaleProvider>
       <ThemeProvider>
         <DossierProvider>
-          <TooltipProvider>
-            <MemoryRouter initialEntries={[entry]}>
-              <Seed data={SEED}>
-                <Page />
-              </Seed>
-            </MemoryRouter>
-          </TooltipProvider>
+          <WorkspaceProvider untitledLabel="Untitled">
+            <TooltipProvider>
+              <MemoryRouter initialEntries={[entry]}>
+                <Seed data={SEED}>
+                  <Page />
+                </Seed>
+              </MemoryRouter>
+            </TooltipProvider>
+          </WorkspaceProvider>
         </DossierProvider>
       </ThemeProvider>
     </LocaleProvider>

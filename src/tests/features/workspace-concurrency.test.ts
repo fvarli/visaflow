@@ -210,6 +210,33 @@ describe('storage migration v1 → v2', () => {
     expect(deriveDisplayTitle(result.record, 'Untitled')).toBe(before)
   })
 
+  it('can still be written after migrating — the whole point of the ladder', async () => {
+    // The bug this exists for: `get()` migrated a v1 row (revision 1) while
+    // `put()` compared against the *raw* row, whose `revision` is `undefined`.
+    // `undefined !== 1` reported a conflict, so every dossier carried over from
+    // an older storage format became permanently unsaveable and blamed a second
+    // tab that did not exist.
+    const repo = new MemoryDossierRepository()
+    repo.seedRaw('legacy', v1Record())
+
+    const loaded = await stored(repo, 'legacy')
+    expect(loaded.revision).toBe(1)
+
+    const result = await repo.put(
+      { ...loaded, applicantName: 'Edited after migrating' },
+      loaded.revision
+    )
+    expect(result).toEqual({ ok: true, revision: 2 })
+
+    const after = await stored(repo, 'legacy')
+    expect(after.applicantName).toBe('Edited after migrating')
+    // …and the row heals to the current format on that first write.
+    expect(after.storageVersion).toBe(STORAGE_FORMAT_VERSION)
+    expect(after.payload.documents).toHaveLength(
+      partiallyPrepared.documents.length
+    )
+  })
+
   it('is readable through the repository after migrating', async () => {
     const repo = new MemoryDossierRepository()
     repo.seedRaw('legacy', v1Record())

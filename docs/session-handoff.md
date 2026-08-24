@@ -2154,3 +2154,82 @@ browser cannot host an async save during unload, and a dialog that implies other
 rescue it cannot perform), and any second permanent-delete path in Settings. The unreadable-record
 delete stays *possible* but now warns specifically and offers a raw recovery download first — the
 accidental path is closed without trapping data behind an undeletable card.
+
+---
+
+# Iteration 29 — v1.1: Workspace home & dashboard product alignment
+
+Baseline `8e25281`, clean, CI green, 845/845. The storage work of iterations 26–28 was finished; the
+question this time was whether the *product* had caught up with it, or whether VisaFlow was still the
+old single-dossier app with a switcher bolted on.
+
+### The audit answered it in one sentence
+
+The architecture was already right — `/dashboard` reads only `useDossier()`, `/dossiers` reads only
+`useWorkspace()`, and nothing anywhere aggregates across dossiers — and the product hid that
+structure completely.
+
+1. **Every returning user landed in onboarding.** `FirstRunRedirect` decided from `hasData` on the
+   first commit, before IndexedDB answered. `WorkspaceProvider` had exposed `ready` since iteration
+   26 and **nothing consumed it**. Confirmed in real Chrome with three seeded dossiers: reload `/` →
+   `/welcome`, headed *"Let's prepare your visa application"*.
+2. **Iteration 28's own "Close the open dossier" was a trap.** It clears the editor and the
+   last-opened pointer by design, which returned the whole app to brand-new-user — with the header
+   switcher (the *only* route to `/dossiers`) unmounted, while its confirmation promised "you can
+   open it again from the Dossiers page".
+3. **`/dossiers` had no navigation entry at all.** One affordance, inside a dropdown, gated on
+   `hasData`.
+4. **The dashboard never named its dossier.** `h1` was a greeting; identity lived only in a switcher
+   label that is `hidden sm:inline`. Every tab was titled "VisaFlow".
+5. `DashboardModel.applications` was `[active]` — always length one, never read, scaffolding for a
+   multi-application future that arrived at the *workspace* level instead.
+6. `NoDossierState` rendered no `h1`, so switching to an empty dossier left the document headless.
+
+### What changed
+
+`firstRunTarget` takes an `EntryState` instead of a boolean and the index waits for `ready`, then
+routes on workspace truth — `/dashboard`, `/dossiers`, or `/welcome`. It never opens a dossier on the
+user's behalf, which is what makes a deliberate close survive a reload. *Your dossiers* is now the
+first nav item, above Dashboard, deliberately **not** inside the group named "Dossier" (that group
+means the contents of one). The dashboard is headed by the dossier's own title with the greeting
+demoted to a subtitle, and `document.title` carries route + dossier from the same resolved
+`activeTitle` everything else uses.
+
+### Lessons worth keeping
+
+- **A shared component should not hard-require a provider.** Making `NoDossierState` call
+  `useWorkspace()` broke **178 tests** at once. `useWorkspaceOptional()` is the honest fix: no
+  workspace and no saved dossiers are the same answer to the only question it asks.
+- **`failNext` on the memory repository only fails writes.** A test called "creates nothing when
+  storage cannot be read" was passing because the repository was empty. A real read failure needs an
+  explicitly unreadable repository.
+- **A `useEffect` that strips a stale URL param must not run before the data arrives** — the first
+  version deleted a perfectly good `?doc=` deep link during load.
+- **Assigning to an outer variable during render** trips the React Compiler lint rule; use the
+  effect-based probe pattern the other workspace tests already use.
+- Changing the language while components are mounted still needs `act(...)` — the same act-warning
+  trap as iteration 27, caught by the CI guard rather than by review.
+- Rollup names a shared chunk after a module inside it: `DossierProvider` became `WorkspaceProvider`
+  purely because `routes.tsx` now imports it. Compare the eager *pair*, not either half.
+
+### Gates
+
+`format:check` ✓ · `lint` **0 errors / 70 warnings** (69 baseline + 1, the accepted
+`react-refresh/only-export-components` category, from the new `useWorkspaceOptional` export) ·
+`typecheck` ✓ · `test` **869/869, 72 files** (845 + 24) · `build` ✓ · act guard **0** ·
+`diff --check` clean.
+
+Eager payload: `index` 326.25 → **304.44 kB** and the shared preloaded chunk 451.19 → **475.43 kB** —
+**779.87 kB raw across the pair, +2.43 kB (+0.32 kB gzip)**. The `index` drop is a chunk-boundary
+shift, not a saving. `/dossiers` stayed route-local at 5.50 kB: the nav entry is configuration only.
+
+`schemaVersion` still `1.0.0`; `STORAGE_FORMAT_VERSION` still **2**; export contract unchanged;
+`localStorage` still exactly two non-personal keys.
+
+### Next
+
+Nothing here is half-built. Deliberately not done: no new home route (the two that exist now mean
+different things), no aggregate readiness, no ranking or comparison across dossiers. Known and
+unchanged: switching dossiers while on `/documents` still re-seeds a checklist into an empty incoming
+dossier — pre-existing behaviour of visiting that page, not switch-specific, and left alone rather
+than changed on the way past.

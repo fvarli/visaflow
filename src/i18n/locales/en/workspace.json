@@ -88,7 +88,7 @@
     "save": "Save on this device",
     "saveHint": "Kept in this browser so it is here when you come back. Never sent to a server.",
     "session": "Session only",
-    "sessionHint": "Nothing is written to this browser. Best on a shared or public computer."
+    "sessionHint": "No part of this dossier is written to this browser. Best on a shared or public computer."
   },
   "conflict": {
     "changedTitle": "This dossier was changed in another tab",

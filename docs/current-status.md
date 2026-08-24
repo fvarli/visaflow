@@ -1,6 +1,6 @@
 # Current Implementation Status
 
-Last updated: 2026-08-24 — v1.1 development: workspace recovery, backup & storage UX
+Last updated: 2026-08-24 — v1.1 development: workspace home & dashboard alignment
 
 Application version **1.0.0** (Phase 1 — Foundation shipped). The dossier JSON `schemaVersion`
 remains **1.0.0** and is versioned independently; reaching application v1.0.0 did not change the
@@ -250,24 +250,29 @@ later phase in [roadmap.md](./roadmap.md):
    refresh; there is no cross-device sync and no encryption. Clearing browser data deletes them,
    so export remains the durable backup. A per-dossier "Session only" mode reproduces the v1.0
    in-memory behaviour for shared computers.
-3. **Saved is not backed up, and the app says which is which** — local persistence and portable
+3. **The workspace and the open dossier are different places** — `/dossiers` is what you have,
+   `/dashboard` is how the one you are inside is doing, and the navigation shows that order. Entry is
+   derived from what is saved: a returning user reaches their dossier, someone who closed one reaches
+   the list, and only a genuinely empty workspace sees onboarding. The dashboard is headed by the
+   dossier's own name and nothing aggregates across dossiers (ADR-040).
+4. **Saved is not backed up, and the app says which is which** — local persistence and portable
    backup are separate, per-dossier facts. Backup freshness comes from the stored record
    (`lastExportedAt` vs `updatedAt`), so it survives a reload and never follows the user from one
    dossier to another. Any dossier can be exported from `/dossiers` without opening it, and doing so
    moves neither its revision nor its `updatedAt` (ADR-038).
-4. **Session-only is reversible, and never silently discarded** — it can be promoted to a saved
+5. **Session-only is reversible, and never silently discarded** — it can be promoted to a saved
    dossier keeping the same identity, and switching away from unsaved session-only work asks first.
    A refresh still discards it; that limit is stated on screen rather than engineered around
    (ADR-039).
-5. **Two tabs are safe, but not collaborative** — each dossier carries a `revision` and every write
+6. **Two tabs are safe, but not collaborative** — each dossier carries a `revision` and every write
    is a compare-and-swap, so a stale tab is refused rather than allowed to overwrite. The tab is
    told and offered the saved version or a fork under a new id. There is deliberately **no
    field-level merging**: divergence is surfaced, never guessed at (ADR-037). Tabs may hold
    different dossiers; the stored "active" id is only a hint for a freshly opened tab.
-6. **Document references are text** — no file uploads yet.
-7. **One country pack** — Greece (Schengen short-stay tourism); more via the country-pack
+7. **Document references are text** — no file uploads yet.
+8. **One country pack** — Greece (Schengen short-stay tourism); more via the country-pack
    system (Country Ecosystem).
-8. **No offline PWA** — requires a browser session.
+9. **No offline PWA** — requires a browser session.
 
 ## Active Issues
 
@@ -316,6 +321,18 @@ These warnings don't affect functionality.
   two `WorkspaceProvider`s sharing one repository — including one suite with `BroadcastChannel`
   stubbed out, because safety must not depend on a message arriving, and a StrictMode test that
   fails if the channel is closed by a remount
+- Workspace entry: the index route waits for hydration and then routes from what is stored —
+  nothing saved → `/welcome`, a restored dossier → `/dashboard`, saved dossiers with none open →
+  `/dossiers` — with an explicit assertion that no onboarding flashes while storage is still
+  answering, that an unreadable workspace creates nothing, and that a dossier is never reopened
+  merely because one exists
+- Workspace navigation: `/dossiers` is a primary nav entry above Dashboard, marked workspace-scoped,
+  deliberately outside the group that means "inside one dossier", and named in both locales
+- Dashboard identity: the heading is the active dossier's title, follows a rename, changes on a
+  switch with nothing stale left over, stays a single `h1`; the browser tab carries route + dossier
+  and is translated
+- Dashboard scope: the model exposes the active dossier and nothing else — a guard against any
+  future cross-dossier aggregate
 - Backup semantics: `markExported` writes only `lastExportedAt` — revision and `updatedAt` are
   untouched, so exporting cannot hand a concurrent editor a false conflict — and refuses to
   recreate a deleted record; the three freshness states; per-dossier independence across switches;
@@ -349,11 +366,13 @@ All checks pass:
 - `pnpm format:check` - PASS
 - `pnpm lint` - 0 errors (warnings acceptable, see *Active Issues* above)
 - `pnpm typecheck` - PASS (`tsc -b`)
-- `pnpm test` - 811/811 PASS (69 files)
+- `pnpm test` - 869/869 PASS (72 files)
 - `pnpm build` - SUCCESS
 
-Bundle: `index` 316.49 kB / 97.95 kB gzip, `DossierProvider` 449.70 / 138.54 gzip,
-CSS 85.61 / 17.48 kB gzip.
+Bundle: `index` 304.44 kB / 93.69 kB gzip plus the eagerly-preloaded shared chunk
+(`WorkspaceProvider`) 475.43 / 145.95 gzip — 779.87 kB raw across the two, CSS 85.82 / 17.49 kB
+gzip. The shared chunk carries every locale namespace; its name tracks whichever module Rollup
+picks, so compare the eager *pair*, not either half.
 
 **Continuous integration:** `.github/workflows/ci.yml` runs the gates above on every push and PR to
 `main`, plus `scripts/check-act-warnings.mjs`, which fails the build on any React `act(...)` warning.

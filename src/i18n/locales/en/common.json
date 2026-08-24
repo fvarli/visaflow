@@ -118,7 +118,11 @@
     "descriptionFor": "Start a new application or import an existing dossier to work on {{section}}.",
     "startAction": "Start your dossier",
     "importAction": "Import a dossier",
-    "learnAction": "How VisaFlow works"
+    "learnAction": "How VisaFlow works",
+    "savedTitle": "No dossier open",
+    "savedDescription_one": "You have {{count}} dossier saved in this browser. Open it to carry on, or start another.",
+    "savedDescription_other": "You have {{count}} dossiers saved in this browser. Open one to carry on, or start another.",
+    "openAction": "Open a saved dossier"
   },
   "sources": {
     "heading": "Source",

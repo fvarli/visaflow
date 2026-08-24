@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { FilePlus2, FileText, RefreshCw } from 'lucide-react'
@@ -90,13 +90,28 @@ export default function DocumentsPage() {
       next.set('doc', id)
       return next
     })
-  const closeDoc = () =>
-    setSearchParams((prev) => {
-      // Remove only `doc`; keep any other active params (e.g. category).
-      const next = new URLSearchParams(prev)
-      next.delete('doc')
-      return next
-    })
+  const closeDoc = useCallback(
+    () =>
+      setSearchParams((prev) => {
+        // Remove only `doc`; keep any other active params (e.g. category).
+        const next = new URLSearchParams(prev)
+        next.delete('doc')
+        return next
+      }),
+    [setSearchParams]
+  )
+
+  // Switching dossiers leaves the previous dossier's `?doc=` in the URL. The
+  // detail panel already fails closed, but the dead id would survive a copy, a
+  // bookmark or a reload — so clear it, the way the sponsors sheet already does
+  // for `?sponsor=`.
+  useEffect(() => {
+    // Not while the dossier is still arriving — an empty `documents` during
+    // load would strip a perfectly good deep link.
+    if (!hasData || !selectedDocId) return
+    if (state.documents.some((doc) => doc.id === selectedDocId)) return
+    closeDoc()
+  }, [hasData, selectedDocId, state.documents, closeDoc])
 
   const categorySeeded = useRef(false)
   useEffect(() => {

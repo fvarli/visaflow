@@ -87,7 +87,7 @@ export class MemoryDossierRepository implements DossierRepository {
       )
     }
 
-    const stored = this.records.get(record.id) as SavedDossierRecord | undefined
+    const raw = this.records.get(record.id)
 
     if (expectedRevision === undefined) {
       const fresh = { ...record, revision: 1 }
@@ -96,16 +96,21 @@ export class MemoryDossierRepository implements DossierRepository {
       return Promise.resolve({ ok: true, revision: 1 })
     }
 
-    if (stored === undefined) {
+    if (raw === undefined) {
       // Deleted elsewhere. Do not recreate it.
       return Promise.resolve({ ok: false, reason: 'deleted' })
     }
 
-    if (stored.revision !== expectedRevision) {
+    // Same as the IndexedDB adapter: compare the migrated view, not the raw
+    // row, or a record in an older storage format can never be written again.
+    const migrated = migrateRecord(raw)
+    const stored = migrated.ok ? migrated.record : undefined
+
+    if (stored === undefined || stored.revision !== expectedRevision) {
       return Promise.resolve({
         ok: false,
         reason: 'conflict',
-        currentRevision: stored.revision,
+        currentRevision: stored?.revision ?? 0,
       })
     }
 

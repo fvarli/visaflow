@@ -37,7 +37,7 @@ interface HeaderProps {
 
 export function Header({ onMenuClick, onSave, scrolled = false }: HeaderProps) {
   const { hasData } = useDossier()
-  const { status, lastPersistedAt } = useWorkspace()
+  const { status, lastPersistedAt, summaries, sessionOnly } = useWorkspace()
   const { pathname } = useLocation()
   const { t } = useTranslation('common')
   const { t: tw } = useTranslation('workspace')
@@ -66,7 +66,12 @@ export function Header({ onMenuClick, onSave, scrolled = false }: HeaderProps) {
         <span className="text-body text-foreground truncate font-medium">
           {current ? dynamicT(t)(current.labelKey) : t('app.name')}
         </span>
-        {hasData && (
+        {/* Shown whenever there is something to switch between — not only when a
+            dossier happens to be open. Gating on `hasData` meant the switcher
+            vanished at exactly the moment someone with saved dossiers needed
+            it, and it unmounted its own trigger mid-switch, dropping focus to
+            <body> (ADR-040). */}
+        {(hasData || sessionOnly || summaries.length > 0) && (
           <>
             <span aria-hidden className="text-muted-foreground/50">
               /

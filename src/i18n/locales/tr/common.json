@@ -118,7 +118,11 @@
     "descriptionFor": "{{section}} bölümünde çalışmak için yeni bir başvuru oluşturun veya mevcut bir dosyayı içe aktarın.",
     "startAction": "Dosyanı başlat",
     "importAction": "Dosya içe aktar",
-    "learnAction": "VisaFlow nasıl çalışır"
+    "learnAction": "VisaFlow nasıl çalışır",
+    "savedTitle": "Açık dosya yok",
+    "savedDescription_one": "Bu tarayıcıda kayıtlı {{count}} dosyanız var. Devam etmek için açın veya yeni bir tane oluşturun.",
+    "savedDescription_other": "Bu tarayıcıda kayıtlı {{count}} dosyanız var. Devam etmek için birini açın veya yeni bir tane oluşturun.",
+    "openAction": "Kayıtlı bir dosyayı aç"
   },
   "sources": {
     "heading": "Kaynak",

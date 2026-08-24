@@ -88,7 +88,7 @@
     "save": "Bu cihazda sakla",
     "saveHint": "Bu tarayıcıda tutulur; geri döndüğünüzde burada olur. Hiçbir sunucuya gönderilmez.",
     "session": "Yalnızca oturum",
-    "sessionHint": "Bu tarayıcıya hiçbir şey yazılmaz. Ortak veya herkese açık bilgisayarlarda önerilir."
+    "sessionHint": "Bu dosyanın hiçbir bölümü bu tarayıcıya yazılmaz. Ortak veya herkese açık bilgisayarlarda önerilir."
   },
   "conflict": {
     "changedTitle": "Bu dosya başka bir sekmede değiştirildi",

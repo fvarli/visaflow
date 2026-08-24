@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next'
 import { PageHeader } from '@/components/ui/page-header'
+import { PageBody } from '@/components/ui/section'
 import { NoDossierState } from '@/components/NoDossierState'
 import { GuidanceNote } from '@/components/ui/guidance-note'
 import { useValidationModel } from '@/features/validation/validation-model'
@@ -22,7 +23,11 @@ export default function ConsistencyChecksPage() {
   const model = useValidationModel()
 
   if (!model.hasData) {
-    return <NoDossierState section={t('center.title')} />
+    return (
+      <PageBody>
+        <NoDossierState section={t('center.title')} />
+      </PageBody>
+    )
   }
 
   const hasFindings = model.groups.length > 0

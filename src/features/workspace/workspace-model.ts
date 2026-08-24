@@ -49,7 +49,8 @@ export function deriveDisplayTitle(
 }
 
 /** The given name only — see `deriveDisplayTitle` for why the surname is dropped. */
-function displayNameOf(payload: DossierPayload): string | null {
+/** Exported so a live, unsaved dossier can be titled by the same rule. */
+export function displayNameOf(payload: DossierPayload): string | null {
   const first = payload.applicant?.firstName?.trim()
   return first && first.length > 0 ? first : null
 }

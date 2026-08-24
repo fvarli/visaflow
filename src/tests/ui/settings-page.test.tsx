@@ -1,6 +1,12 @@
 import { useEffect } from 'react'
 import { describe, it, expect, beforeEach } from 'vitest'
-import { render, screen, fireEvent, within } from '@testing-library/react'
+import {
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import i18n, {
   DEFAULT_LOCALE,
@@ -169,6 +175,14 @@ describe('Settings — country packs & data', () => {
         name: i18n.t('settings:reset.confirm'),
       })
     )
-    expect(screen.getByTestId('has-applicant')).toHaveTextContent('no')
+    // Closing is asynchronous on purpose: the dialog stays up until the close
+    // has actually committed, so focus is not restored to a trigger that is
+    // about to be unmounted (ADR-035).
+    await waitFor(() =>
+      expect(screen.getByTestId('has-applicant')).toHaveTextContent('no')
+    )
+    await waitFor(() =>
+      expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument()
+    )
   })
 })

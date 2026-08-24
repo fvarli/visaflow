@@ -50,14 +50,37 @@ export function deriveOnboardingStepStatuses(current: number): StepStatus[] {
   })
 }
 
+/** What the index route knows once the workspace has finished hydrating. */
+export interface EntryState {
+  /** Is a dossier open in this tab's editor right now? */
+  hasData: boolean
+  /** How many dossiers are saved in this browser. */
+  savedCount: number
+}
+
 /**
- * The first-run routing decision used by the index route: a brand-new visitor
- * with no dossier starts in the welcome flow; a returning visitor with a dossier
- * goes straight to the dashboard. Kept pure so the redirect is unit-testable and
- * never depends on a persisted flag.
+ * Where a visitor lands, derived from the **workspace**, not just the editor.
+ *
+ * ADR-031 derived this purely from `hasData`, which was correct when a dossier
+ * could only ever be in memory. With durable storage it stopped being: `hasData`
+ * answers "is a dossier open in this tab", not "does this person have work
+ * here". A returning user was therefore routed into onboarding, and closing a
+ * dossier stranded someone with saved dossiers in the brand-new-user
+ * experience (ADR-040).
+ *
+ * The three destinations mean three different things and must stay distinct:
+ * `/welcome` — nothing exists yet · `/dossiers` — a workspace exists but nothing
+ * is open · `/dashboard` — a dossier is open.
+ *
+ * Deliberately does **not** pick a dossier to open. Having saved work is not
+ * consent to reopen an arbitrary one, and a deliberate close must survive a
+ * reload.
  */
-export function firstRunTarget(hasData: boolean): '/welcome' | '/dashboard' {
-  return hasData ? '/dashboard' : '/welcome'
+export function firstRunTarget(
+  entry: EntryState
+): '/welcome' | '/dashboard' | '/dossiers' {
+  if (entry.hasData) return '/dashboard'
+  return entry.savedCount > 0 ? '/dossiers' : '/welcome'
 }
 
 /**

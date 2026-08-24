@@ -79,7 +79,10 @@ data they've already entered.
   is told rather than allowed to overwrite (ADR-037). Each dossier reports its own backup freshness
   and can be exported without being opened, storage failures explain themselves and offer export as
   the way out, and a session-only dossier can be promoted to a saved one instead of being discarded
-  (ADR-038, ADR-039). *Done.*
+  (ADR-038, ADR-039). The workspace and the open dossier are now distinct product surfaces with a
+  home each — *Your dossiers* above *Dashboard* in the navigation, entry derived from what is saved
+  rather than from the editor, and the dashboard headed by the dossier it describes (ADR-040).
+  *Done.*
 - **Richer dossier & timeline** — deeper trip/finance/sponsor structure and a fuller timeline. *Next.*
 - **PDF / printable index** — generate a dossier index and a printable checklist for the
   appointment. The Final Review workspace already models what is printable: a closed set of

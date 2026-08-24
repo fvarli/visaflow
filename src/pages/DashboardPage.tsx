@@ -1,7 +1,15 @@
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
-import { Compass, FileText, ListChecks, Plus, ShieldCheck } from 'lucide-react'
+import {
+  Compass,
+  FolderOpen,
+  FileText,
+  ListChecks,
+  Plus,
+  ShieldCheck,
+} from 'lucide-react'
 import { useDossier } from '@/app/providers/DossierProvider'
+import { useWorkspace } from '@/app/providers/WorkspaceProvider'
 import { useDashboardModel } from '@/features/dashboard/dashboard-model'
 import { PageHeader } from '@/components/ui/page-header'
 import { PageBody, Section, SectionHeader } from '@/components/ui/section'
@@ -25,6 +33,10 @@ import { DossierSnapshot } from '@/components/dashboard/DossierSnapshot'
  */
 export default function DashboardPage() {
   const { hasData } = useDossier()
+  // Identity only — never data. The dashboard still derives everything it
+  // *shows* from the active dossier alone; it just says which one that is
+  // (ADR-040).
+  const { activeTitle } = useWorkspace()
   const { t } = useTranslation(['dashboard', 'common', 'visa-domain'])
   const td = dynamicT(t)
   const model = useDashboardModel()
@@ -60,7 +72,12 @@ export default function DashboardPage() {
     <PageBody>
       <PageHeader
         eyebrow={eyebrow || undefined}
-        title={greeting}
+        // The dossier, not the person, is what this page is about. With several
+        // dossiers open in several tabs a greeting is the same everywhere,
+        // while the name answers "which one am I in" at any width — including
+        // below `sm`, where the header switcher's label is hidden.
+        title={activeTitle ?? greeting}
+        description={activeTitle ? greeting : undefined}
         actions={
           <>
             <Button asChild variant="outline" size="sm">
@@ -127,27 +144,59 @@ export default function DashboardPage() {
  * (the index redirect sends brand-new users there); if someone lands on an empty
  * Dashboard directly, this invites them into that flow rather than dead-ending.
  */
+/**
+ * No dossier is open. That is two different situations, and telling them apart
+ * is the point: a brand-new visitor is welcomed, while someone who simply
+ * closed a dossier is shown the way back to the ones they have (ADR-040).
+ */
 function DashboardEmptyState() {
   const { t } = useTranslation(['dashboard', 'common'])
+  const { summaries } = useWorkspace()
+  const savedCount = summaries.length
+  const hasSaved = savedCount > 0
 
   return (
     <PageBody>
       <PageHeader
-        eyebrow={t('dashboard:welcome')}
-        title={t('dashboard:welcomeDescription')}
+        eyebrow={hasSaved ? undefined : t('dashboard:welcome')}
+        title={
+          hasSaved
+            ? t('common:noDossier.savedTitle')
+            : t('dashboard:welcomeDescription')
+        }
       />
 
       <EmptyState
-        icon={Compass}
-        title={t('dashboard:getStarted.title')}
-        description={t('dashboard:getStarted.description')}
+        icon={hasSaved ? FolderOpen : Compass}
+        title={
+          hasSaved
+            ? t('common:noDossier.savedDescription', { count: savedCount })
+            : t('dashboard:getStarted.title')
+        }
+        description={
+          hasSaved ? undefined : t('dashboard:getStarted.description')
+        }
         action={
-          <Button asChild>
-            <Link to="/welcome">
-              <Plus className="size-4" />
-              {t('common:noDossier.startAction')}
-            </Link>
-          </Button>
+          hasSaved ? (
+            <div className="flex flex-wrap items-center justify-center gap-2">
+              <Button asChild>
+                <Link to="/dossiers">{t('common:noDossier.openAction')}</Link>
+              </Button>
+              <Button asChild variant="outline">
+                <Link to="/welcome?step=create">
+                  <Plus className="size-4" />
+                  {t('common:noDossier.startAction')}
+                </Link>
+              </Button>
+            </div>
+          ) : (
+            <Button asChild>
+              <Link to="/welcome">
+                <Plus className="size-4" />
+                {t('common:noDossier.startAction')}
+              </Link>
+            </Button>
+          )
         }
       />
 

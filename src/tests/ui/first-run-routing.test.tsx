@@ -6,6 +6,7 @@ import i18n, { DEFAULT_LOCALE, LOCALE_STORAGE_KEY } from '@/i18n'
 import { LocaleProvider } from '@/app/providers/LocaleProvider'
 import { ThemeProvider } from '@/app/providers/ThemeProvider'
 import { DossierProvider, useDossier } from '@/app/providers/DossierProvider'
+import { WorkspaceProvider } from '@/app/providers/WorkspaceProvider'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import { FirstRunRedirect } from '@/app/router/routes'
 import { NoDossierState } from '@/components/NoDossierState'
@@ -40,17 +41,24 @@ function renderRoot(data: Dossier | null) {
     <LocaleProvider>
       <ThemeProvider>
         <DossierProvider>
-          <TooltipProvider>
-            <SeedGate data={data}>
-              <MemoryRouter initialEntries={['/']}>
-                <Routes>
-                  <Route index element={<FirstRunRedirect />} />
-                  <Route path="welcome" element={<div>WELCOME_STUB</div>} />
-                  <Route path="dashboard" element={<div>DASHBOARD_STUB</div>} />
-                </Routes>
-              </MemoryRouter>
-            </SeedGate>
-          </TooltipProvider>
+          {/* The index redirect now waits for the workspace and reads what is
+              saved, so the harness has to supply one (ADR-040). */}
+          <WorkspaceProvider untitledLabel="Untitled">
+            <TooltipProvider>
+              <SeedGate data={data}>
+                <MemoryRouter initialEntries={['/']}>
+                  <Routes>
+                    <Route index element={<FirstRunRedirect />} />
+                    <Route path="welcome" element={<div>WELCOME_STUB</div>} />
+                    <Route
+                      path="dashboard"
+                      element={<div>DASHBOARD_STUB</div>}
+                    />
+                  </Routes>
+                </MemoryRouter>
+              </SeedGate>
+            </TooltipProvider>
+          </WorkspaceProvider>
         </DossierProvider>
       </ThemeProvider>
     </LocaleProvider>

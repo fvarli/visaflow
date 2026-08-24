@@ -32,6 +32,8 @@ import {
 } from '@/features/workspace/workspace-channel'
 import {
   createSavedDossierId,
+  deriveDisplayTitle,
+  displayNameOf,
   hasMeaningfulContent,
   normalizeTitle,
   nextActiveAfterDelete,
@@ -96,6 +98,14 @@ interface WorkspaceContextValue {
   conflict: WorkspaceConflict | null
   /** Set when a switch is blocked pending a session-only decision. */
   pendingLeave: PendingLeave | null
+  /**
+   * What to call the dossier that is open, or `null` when none is.
+   *
+   * Resolved here so every surface names a dossier the same way — the switcher,
+   * the dossiers page, the dashboard heading and the browser tab all read this
+   * rather than each deriving a title of their own (ADR-040).
+   */
+  activeTitle: string | null
   summaries: SavedDossierSummary[]
   activeId: string | null
   status: PersistenceStatus
@@ -962,6 +972,33 @@ export function WorkspaceProvider({
     }
   }, [])
 
+  /**
+   * A saved dossier already carries a resolved title on its summary. A
+   * session-only one has no record at all, so it is titled from the live
+   * payload by the very same function rather than by a second rule.
+   */
+  const activeTitle = useMemo(() => {
+    if (!activeId) return null
+    const summary = summaries.find((entry) => entry.id === activeId)
+    if (summary) return summary.title
+    if (!sessionOnly) return null
+    // Read live state, not the ref the write path uses: a session-only title
+    // has to follow the name as it is typed, and a ref cannot re-render.
+    return deriveDisplayTitle(
+      {
+        title: null,
+        applicantName: displayNameOf({
+          applicant: state.applicant,
+          application: state.application,
+          documents: state.documents,
+          sponsors: state.sponsors,
+        }),
+        destinationCountry: state.application?.destinationCountry ?? null,
+      },
+      untitled
+    )
+  }, [activeId, summaries, sessionOnly, state, untitled])
+
   const value = useMemo<WorkspaceContextValue>(
     () => ({
       ready,
@@ -980,6 +1017,7 @@ export function WorkspaceProvider({
       saveAsNew,
       flush,
       pendingLeave,
+      activeTitle,
       exportDossier,
       exportRawRecord,
       promoteToDevice,
@@ -1006,6 +1044,7 @@ export function WorkspaceProvider({
       saveAsNew,
       flush,
       pendingLeave,
+      activeTitle,
       exportDossier,
       exportRawRecord,
       promoteToDevice,
@@ -1018,6 +1057,18 @@ export function WorkspaceProvider({
   )
 
   return <WorkspaceContext value={value}>{children}</WorkspaceContext>
+}
+
+/**
+ * The workspace if there is one, `null` if not.
+ *
+ * For shared components that render both inside the app and outside any
+ * workspace at all — the component gallery, a page test harness. "No provider"
+ * and "no saved dossiers" are the same answer to the only question such a
+ * component asks, so degrading is honest rather than defensive.
+ */
+export function useWorkspaceOptional(): WorkspaceContextValue | null {
+  return useContext(WorkspaceContext)
 }
 
 export function useWorkspace(): WorkspaceContextValue {

@@ -150,13 +150,19 @@ export interface ApplicationDashboardModel {
 }
 
 /**
- * Top-level model. Wraps a list of per-application models so a future phase can
- * hold several applications without reshaping any widget prop. The MVP always
- * has exactly one; `active` is the one the dashboard renders. No multi-app UI,
- * selection, or storage is built here — this is shape only.
+ * Top-level model — the **active dossier only**.
+ *
+ * This used to carry an `applications: [active]` array, shape-only scaffolding
+ * for a future multi-application phase. That phase arrived somewhere else: the
+ * workspace holds several *dossiers*, and the dashboard is the command center
+ * for whichever one is open. The array was always length one, was never read,
+ * and pointed at the wrong level, so it is gone.
+ *
+ * Nothing here may aggregate across dossiers — no combined readiness, no
+ * ranking, no comparison. The dashboard answers "how is this dossier doing",
+ * and `/dossiers` answers "what do I have" (ADR-040).
  */
 export interface DashboardModel {
-  applications: ApplicationDashboardModel[]
   active: ApplicationDashboardModel
 }
 
@@ -499,8 +505,7 @@ export function buildDashboardModel(
   input: DashboardInput,
   now: Date = new Date()
 ): DashboardModel {
-  const active = buildApplicationModel(input, now)
-  return { applications: [active], active }
+  return { active: buildApplicationModel(input, now) }
 }
 
 /** Component-facing hook: derives the model once per state change. */

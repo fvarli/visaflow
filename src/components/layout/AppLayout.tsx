@@ -6,6 +6,7 @@ import { Header } from './Header'
 import { Footer } from './Footer'
 import { MobileNav } from './MobileNav'
 import { SkipLink } from './SkipLink'
+import { useDocumentTitle } from './use-document-title'
 import { WorkspaceNotice } from './WorkspaceNotice'
 import { SessionLeaveDialog } from './SessionLeaveDialog'
 import { useDossier } from '@/app/providers/DossierProvider'
@@ -40,6 +41,7 @@ export function AppLayout() {
 
   const { state } = useDossier()
   const { adoptImported, noteExported } = useWorkspace()
+  useDocumentTitle()
 
   const handleExport = useCallback(() => {
     downloadDossier(
@@ -177,6 +179,11 @@ export function AppLayout() {
           containers and a sticky header that could not work. */}
       <main
         id="main"
+        // Programmatically focusable, never a tab stop. Without this the skip
+        // link moved the viewport but not focus, and any overlay naming `#main`
+        // as its focus fallback silently did nothing — `.focus()` on a element
+        // that cannot hold focus leaves it on <body> (ADR-035).
+        tabIndex={-1}
         onScroll={handleScroll}
         className="scrollbar-subtle flex flex-1 flex-col overflow-y-auto"
       >

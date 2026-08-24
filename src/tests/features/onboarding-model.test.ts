@@ -55,12 +55,32 @@ describe('onboarding-model — deriveOnboardingStepStatuses', () => {
 })
 
 describe('onboarding-model — firstRunTarget', () => {
-  it('sends a brand-new visitor to the welcome flow', () => {
-    expect(firstRunTarget(false)).toBe('/welcome')
+  it('sends a genuinely new visitor to the welcome flow', () => {
+    expect(firstRunTarget({ hasData: false, savedCount: 0 })).toBe('/welcome')
   })
 
-  it('sends a returning visitor with a dossier to the dashboard', () => {
-    expect(firstRunTarget(true)).toBe('/dashboard')
+  it('sends a visitor with a dossier open to the dashboard', () => {
+    expect(firstRunTarget({ hasData: true, savedCount: 1 })).toBe('/dashboard')
+  })
+
+  it('sends someone with saved work but nothing open to their dossiers', () => {
+    // The case that used to dump a returning user into onboarding: they have a
+    // workspace, they just are not inside any one dossier (ADR-040).
+    expect(firstRunTarget({ hasData: false, savedCount: 3 })).toBe('/dossiers')
+  })
+
+  it('never chooses the welcome flow for someone who has saved work', () => {
+    for (const savedCount of [1, 2, 10]) {
+      expect(firstRunTarget({ hasData: false, savedCount })).not.toBe(
+        '/welcome'
+      )
+    }
+  })
+
+  it('prefers the open dossier over the list, however many are saved', () => {
+    expect(firstRunTarget({ hasData: true, savedCount: 7 })).toBe('/dashboard')
+    // A session-only dossier has no saved record but is still open work.
+    expect(firstRunTarget({ hasData: true, savedCount: 0 })).toBe('/dashboard')
   })
 })
 

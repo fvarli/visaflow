@@ -405,3 +405,45 @@ leave dialog: no horizontal overflow, nothing past the viewport, buttons stackin
 truncating. The leave dialog's action order was changed after looking at the screenshot: the footer
 is `flex-col-reverse` on narrow screens, which had put the destructive "Discard and continue" at the
 top of the stack, under the user's thumb.
+
+---
+
+## Returning-user journey — real Chrome (v1.1, ADR-040)
+
+Three saved dossiers created through the real UI with distinguishable names and deliberately
+different backup states (never exported / backed up / changed since backup), then a full reload.
+
+| Check | Result |
+|---|---|
+| Reload `/` with three dossiers never lands in onboarding | PASS |
+| …it lands on the dashboard of the dossier that was open | PASS |
+| The heading names the dossier, not the person | PASS |
+| The browser tab names the dossier | PASS |
+| "Your dossiers" is a navigation entry | PASS |
+| …and sits above Dashboard | PASS |
+| The switcher marks the open dossier with `aria-checked`, not a hidden icon | PASS |
+| Switching changes the heading | PASS |
+| …and the tab title | PASS |
+| …and leaves exactly one `h1` | PASS |
+| Close the open dossier → reload → lands on `/dossiers` | PASS |
+| …all three dossiers still there | PASS |
+| …nothing auto-reopened (`activeDossierId` stays null) | PASS |
+| An empty active-dossier page keeps its `h1` | PASS |
+| …and offers "Open a saved dossier" | PASS |
+| No console errors | PASS |
+
+**The bug this closes.** Before: reload `/` → `/welcome`, headed *"Let's prepare your visa
+application"*, every time, because the index route decided from the in-memory editor before
+IndexedDB had answered. And Settings → "Close the open dossier" left a user with saved dossiers no
+route to them at all, while the confirmation promised "you can open it again from the Dossiers page".
+
+**Responsive.** 390 × 844 in TR and EN, light and dark, plus 1440 × 950 TR light and EN dark, over
+the landing surface and `/dossiers`: no horizontal overflow, exactly one `h1` everywhere. Exercised
+with a deliberately punishing 66-character Turkish title — *"Yunanistan Schengen kısa süreli turistik
+başvuru dosyası — Eylül 2026"* — which wraps to three lines as the dashboard `h1` without crushing
+the page or the header.
+
+**Harness note.** `\s` inside an untagged JS template literal collapses to `s`, so a probe doing
+`.replace(/\s+/g, ' ')` through `Runtime.evaluate` silently replaces every letter *s* with a space
+("Dashboard" → "Da hboard"). Cosmetic in logging, but it made one check look like a failure. Escape
+it as `\\s` in CDP-evaluated strings.

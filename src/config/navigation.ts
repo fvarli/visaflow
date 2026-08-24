@@ -1,4 +1,5 @@
 import {
+  Folders,
   LayoutDashboard,
   User,
   Plane,
@@ -16,6 +17,12 @@ import {
 
 export interface NavItem {
   to: string
+  /**
+   * `workspace` items are about the collection of dossiers; everything else is
+   * about the dossier that is open. Used to decide whether a surface should
+   * carry the active dossier's name (ADR-040).
+   */
+  scope?: 'workspace'
   /** Translation key. The route path is the stable identifier, not the label. */
   labelKey: string
   icon: React.ComponentType<{ className?: string }>
@@ -43,6 +50,17 @@ export interface NavGroup {
 export const navGroups: NavGroup[] = [
   {
     items: [
+      // Workspace level first, then the dossier you are inside — the two are
+      // different scopes and the order is what makes that legible. Deliberately
+      // NOT inside the "Dossier" group below: that group means the contents of
+      // one dossier, and using the same word for both levels is the confusion
+      // this is here to remove (ADR-040).
+      {
+        to: '/dossiers',
+        labelKey: 'navigation:items.dossiers',
+        icon: Folders,
+        scope: 'workspace',
+      },
       {
         to: '/dashboard',
         labelKey: 'navigation:items.dashboard',

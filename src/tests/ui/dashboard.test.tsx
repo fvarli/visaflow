@@ -10,6 +10,7 @@ import i18n, {
 import { LocaleProvider } from '@/app/providers/LocaleProvider'
 import { ThemeProvider } from '@/app/providers/ThemeProvider'
 import { DossierProvider, useDossier } from '@/app/providers/DossierProvider'
+import { WorkspaceProvider } from '@/app/providers/WorkspaceProvider'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import DashboardPage from '@/pages/DashboardPage'
 import { importDossier } from '@/features/import-export/services/import.service'
@@ -74,13 +75,18 @@ function renderDashboard(seed: Dossier | null) {
     <LocaleProvider>
       <ThemeProvider>
         <DossierProvider>
-          <TooltipProvider>
-            <MemoryRouter initialEntries={['/dashboard']}>
-              <Seed data={seed}>
-                <DashboardPage />
-              </Seed>
-            </MemoryRouter>
-          </TooltipProvider>
+          {/* The dashboard now names the dossier it is about, so it needs the
+              workspace for identity. No repository: these tests are about what
+              the page renders from the active dossier, not about storage. */}
+          <WorkspaceProvider untitledLabel="Untitled">
+            <TooltipProvider>
+              <MemoryRouter initialEntries={['/dashboard']}>
+                <Seed data={seed}>
+                  <DashboardPage />
+                </Seed>
+              </MemoryRouter>
+            </TooltipProvider>
+          </WorkspaceProvider>
         </DossierProvider>
       </ThemeProvider>
     </LocaleProvider>

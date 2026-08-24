@@ -194,6 +194,20 @@ never replaced without being asked ([ADR-039]). React components never call stor
 concepts the app's simple state doesn't need. `LocaleProvider` and `ThemeProvider` follow the
 same pattern for the two non-personal preferences.
 
+### Workspace level vs active-dossier level
+
+Two levels, one home each ([ADR-040]). `/dossiers` is the **workspace** — what you have, where
+dossiers are opened, renamed, backed up and deleted. `/dashboard` is the **active dossier** — how the
+one you are inside is doing. Every other content route is an active-dossier surface; Settings is
+workspace-level. Navigation shows the hierarchy: *Your dossiers* sits above *Dashboard*.
+
+The index route derives entry from the **workspace**, not from the in-memory editor: it waits for
+hydration, then sends you to `/dashboard` if a dossier is open, `/dossiers` if you have saved work
+but nothing open, and `/welcome` only if there is genuinely nothing. It never opens a dossier on your
+behalf. The dashboard reads the workspace for **identity only** — the name it puts in its heading and
+the browser tab — and still derives everything it displays from the active dossier alone. Nothing
+anywhere aggregates across dossiers.
+
 ## Data flow
 
 ```
@@ -252,3 +266,4 @@ same pattern for the two non-personal preferences.
 [ADR-037]: ./decisions.md
 [ADR-038]: ./decisions.md
 [ADR-039]: ./decisions.md
+[ADR-040]: ./decisions.md

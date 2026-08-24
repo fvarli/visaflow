@@ -7,6 +7,7 @@ import { useTranslation } from 'react-i18next'
 import { Skeleton } from '@/components/ui/skeleton'
 import { DashboardSkeleton } from '@/components/dashboard/DashboardSkeleton'
 import { useDossier } from '@/app/providers/DossierProvider'
+import { useWorkspace } from '@/app/providers/WorkspaceProvider'
 import { firstRunTarget } from '@/features/onboarding/onboarding-model'
 
 const WelcomePage = lazy(() => import('@/pages/WelcomePage'))
@@ -65,16 +66,30 @@ function LazyPage({
 }
 
 /**
- * The index decides where a visitor lands: a brand-new user with no dossier
- * starts in the first-run flow (`/welcome`); a returning user with a dossier
- * goes to the dashboard. The decision is derived purely from `hasData`
- * (`firstRunTarget`) — no persisted "onboarding done" flag, no new storage key
- * (ADR-031). This is the only redirect; every workspace route stays directly
- * reachable and shows its own empty state.
+ * The index decides where a visitor lands — but only once it can answer honestly.
+ *
+ * Restoring a dossier from IndexedDB is asynchronous, so deciding on the first
+ * commit means deciding before storage has spoken: a returning user with saved
+ * dossiers was sent to `/welcome` every time. Waiting for `ready` is the whole
+ * fix. Until then this renders the same calm loader every lazy route uses and
+ * chooses nothing — no flash of onboarding, and above all no dossier created
+ * (ADR-040, superseding ADR-031's `hasData`-only rule).
+ *
+ * Still the only redirect; every workspace route stays directly reachable and
+ * shows its own empty state.
  */
 export function FirstRunRedirect() {
   const { hasData } = useDossier()
-  return <Navigate to={firstRunTarget(hasData)} replace />
+  const { ready, summaries } = useWorkspace()
+
+  if (!ready) return <PageLoader />
+
+  return (
+    <Navigate
+      to={firstRunTarget({ hasData, savedCount: summaries.length })}
+      replace
+    />
+  )
 }
 
 export const router = createBrowserRouter([

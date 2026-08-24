@@ -158,14 +158,28 @@ export default function DossiersPage() {
 
   // Deleting a dossier destroys the row that opened the dialog, so name an
   // explicit destination rather than letting focus fall to <body> (ADR-035).
+  // The list itself can also disappear — deleting the last dossier swaps it for
+  // the empty state — so fall through to the page landmark.
   const listRef = useRef<HTMLDivElement | null>(null)
-  const focusAfterDelete = useCallback(() => listRef.current, [])
+  const focusAfterDelete = useCallback(
+    () => listRef.current ?? document.getElementById('main'),
+    []
+  )
 
-  const confirmDelete = async () => {
+  /**
+   * Closes only once the row is actually gone.
+   *
+   * Closing first looked equivalent and was not: at that moment the trash
+   * button still existed, so focus restoration picked it as a perfectly good
+   * opener and never consulted the fallback — then the card unmounted when the
+   * refresh landed and focus fell to <body>, which is exactly what ADR-035
+   * exists to prevent.
+   */
+  const confirmDelete = async (event: React.MouseEvent) => {
+    event.preventDefault()
     if (!pendingDelete) return
-    const id = pendingDelete.id
+    await deleteDossier(pendingDelete.id)
     setPendingDelete(null)
-    await deleteDossier(id)
   }
 
   return (
@@ -375,7 +389,7 @@ export default function DossiersPage() {
             </AlertDialogCancel>
             <AlertDialogAction
               variant="destructive"
-              onClick={() => void confirmDelete()}
+              onClick={(event) => void confirmDelete(event)}
             >
               {t('workspace:remove.confirm')}
             </AlertDialogAction>

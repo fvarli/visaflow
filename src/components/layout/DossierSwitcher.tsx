@@ -1,11 +1,13 @@
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
-import { Check, ChevronsUpDown, FolderOpen, Plus } from 'lucide-react'
+import { ChevronsUpDown, FolderOpen, Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
@@ -57,18 +59,24 @@ export function DossierSwitcher() {
       </DropdownMenuTrigger>
 
       <DropdownMenuContent align="start" className="w-64">
-        {openable.map((summary) => (
-          <DropdownMenuItem
-            key={summary.id}
-            className="gap-2"
-            onSelect={() => void openDossier(summary.id)}
-          >
-            <span className="min-w-0 flex-1 truncate">{summary.title}</span>
-            {summary.id === activeId && (
-              <Check aria-hidden className="size-4 shrink-0 opacity-70" />
-            )}
-          </DropdownMenuItem>
-        ))}
+        {/* A radio group, because that is what this is: one of these is open.
+            The check mark alone was `aria-hidden`, so a screen-reader user
+            could not tell which dossier they were already in — and could
+            "switch" to it, which does nothing. */}
+        <DropdownMenuRadioGroup
+          value={activeId ?? ''}
+          onValueChange={(id) => void openDossier(id)}
+        >
+          {openable.map((summary) => (
+            <DropdownMenuRadioItem
+              key={summary.id}
+              value={summary.id}
+              className="gap-2"
+            >
+              <span className="min-w-0 flex-1 truncate">{summary.title}</span>
+            </DropdownMenuRadioItem>
+          ))}
+        </DropdownMenuRadioGroup>
 
         {openable.length > 0 && <DropdownMenuSeparator />}
 

@@ -341,8 +341,28 @@ describe('buildDashboardModel', () => {
       },
       NOW
     )
-    expect(model.applications).toHaveLength(1)
-    expect(model.active).toBe(model.applications[0])
+    // The model describes the dossier that is open and nothing else. It used
+    // to also expose a fake `applications: [active]` array; the real
+    // multi-dossier axis lives in the workspace, not here (ADR-040).
+    expect(Object.keys(model)).toEqual(['active'])
+    expect(model.active.readiness).toBeDefined()
+  })
+
+  it('never aggregates across dossiers', () => {
+    // A guard, not a formality: a "portfolio readiness" number would be a
+    // comparison between applications, which VisaFlow does not make.
+    const model = buildDashboardModel(
+      {
+        applicant: applicant(),
+        application: app(),
+        documents: MIXED_DOCS,
+        sponsors: [],
+      },
+      NOW
+    )
+    const serialised = JSON.stringify(model)
+    expect(serialised).not.toMatch(/dossierCount|totalDossiers|acrossDossiers/)
+    expect(Object.keys(model)).toHaveLength(1)
   })
 
   it('runs validation only when applicant and application exist', () => {
