@@ -6,7 +6,8 @@ import { Header } from './Header'
 import { Footer } from './Footer'
 import { MobileNav } from './MobileNav'
 import { SkipLink } from './SkipLink'
-import { ConflictBanner } from './ConflictBanner'
+import { WorkspaceNotice } from './WorkspaceNotice'
+import { SessionLeaveDialog } from './SessionLeaveDialog'
 import { useDossier } from '@/app/providers/DossierProvider'
 import { useWorkspace } from '@/app/providers/WorkspaceProvider'
 import { buildDocumentReadiness } from '@/features/readiness/document-readiness'
@@ -37,8 +38,8 @@ export function AppLayout() {
   const [scrolled, setScrolled] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  const { state, markSaved } = useDossier()
-  const { adoptImported } = useWorkspace()
+  const { state } = useDossier()
+  const { adoptImported, noteExported } = useWorkspace()
 
   const handleExport = useCallback(() => {
     downloadDossier(
@@ -47,8 +48,10 @@ export function AppLayout() {
       state.documents,
       state.sponsors
     )
-    markSaved()
-  }, [state, markSaved])
+    // Record the export against the saved record, so "backed up" survives a
+    // reload instead of living in a reducer field that a refresh forgets.
+    void noteExported()
+  }, [state, noteExported])
 
   const handleImportClick = useCallback(() => {
     setImportErrors([])
@@ -185,9 +188,9 @@ export function AppLayout() {
 
         <div className="mx-auto flex w-full max-w-[1120px] flex-1 flex-col gap-10 px-5 py-8 md:px-8 md:py-10">
           <div className="flex-1">
-            {/* Above the page, not inside it: the conflict is about the whole
-                open dossier, so it must be visible from wherever you were. */}
-            <ConflictBanner />
+            {/* Above the page, not inside it: these are about the whole open
+                dossier, so they must be visible from wherever you were. */}
+            <WorkspaceNotice onExport={handleExport} />
             {/* Remount the page when the whole dossier is swapped — switching
                 dossiers, or reloading one after a cross-tab conflict. Forms
                 read their initial values at mount, so without this the fields
@@ -197,6 +200,8 @@ export function AppLayout() {
           <Footer />
         </div>
       </main>
+
+      <SessionLeaveDialog />
 
       {/* Import Dialog */}
       <Dialog open={importDialogOpen} onOpenChange={setImportDialogOpen}>

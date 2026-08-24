@@ -1,6 +1,6 @@
 # Current Implementation Status
 
-Last updated: 2026-08-23 — v1.1 development: dossier identity, rename & cross-tab safety
+Last updated: 2026-08-24 — v1.1 development: workspace recovery, backup & storage UX
 
 Application version **1.0.0** (Phase 1 — Foundation shipped). The dossier JSON `schemaVersion`
 remains **1.0.0** and is versioned independently; reaching application v1.0.0 did not change the
@@ -250,15 +250,24 @@ later phase in [roadmap.md](./roadmap.md):
    refresh; there is no cross-device sync and no encryption. Clearing browser data deletes them,
    so export remains the durable backup. A per-dossier "Session only" mode reproduces the v1.0
    in-memory behaviour for shared computers.
-3. **Two tabs are safe, but not collaborative** — each dossier carries a `revision` and every write
+3. **Saved is not backed up, and the app says which is which** — local persistence and portable
+   backup are separate, per-dossier facts. Backup freshness comes from the stored record
+   (`lastExportedAt` vs `updatedAt`), so it survives a reload and never follows the user from one
+   dossier to another. Any dossier can be exported from `/dossiers` without opening it, and doing so
+   moves neither its revision nor its `updatedAt` (ADR-038).
+4. **Session-only is reversible, and never silently discarded** — it can be promoted to a saved
+   dossier keeping the same identity, and switching away from unsaved session-only work asks first.
+   A refresh still discards it; that limit is stated on screen rather than engineered around
+   (ADR-039).
+5. **Two tabs are safe, but not collaborative** — each dossier carries a `revision` and every write
    is a compare-and-swap, so a stale tab is refused rather than allowed to overwrite. The tab is
    told and offered the saved version or a fork under a new id. There is deliberately **no
    field-level merging**: divergence is surfaced, never guessed at (ADR-037). Tabs may hold
    different dossiers; the stored "active" id is only a hint for a freshly opened tab.
-4. **Document references are text** — no file uploads yet.
-5. **One country pack** — Greece (Schengen short-stay tourism); more via the country-pack
+6. **Document references are text** — no file uploads yet.
+7. **One country pack** — Greece (Schengen short-stay tourism); more via the country-pack
    system (Country Ecosystem).
-6. **No offline PWA** — requires a browser session.
+8. **No offline PWA** — requires a browser session.
 
 ## Active Issues
 
@@ -307,6 +316,17 @@ These warnings don't affect functionality.
   two `WorkspaceProvider`s sharing one repository — including one suite with `BroadcastChannel`
   stubbed out, because safety must not depend on a message arriving, and a StrictMode test that
   fails if the channel is closed by a remount
+- Backup semantics: `markExported` writes only `lastExportedAt` — revision and `updatedAt` are
+  untouched, so exporting cannot hand a concurrent editor a false conflict — and refuses to
+  recreate a deleted record; the three freshness states; per-dossier independence across switches;
+  export history surviving a reload; and `hasMeaningfulContent`, which decides when leaving a
+  session-only dossier is worth interrupting for
+- Session-only lifecycle: nothing reaches storage before promotion, an untouched dossier leaves
+  without a prompt, a switch away from real work is blocked until answered, promotion persists
+  *before* the switch, a failed promotion discards nothing and keeps the dossier session-only, and
+  discard really discards
+- Storage failure: a failed write never renders "Saved", a browser refusing storage is reported as
+  unavailable rather than as a failed save, and no storage at all degrades honestly
 - Rename: an explicit title wins over the derived one, whitespace clears back to derived, an
   explicit title is never auto-overwritten, and the title never appears in exported JSON
   (asserted against the exact key set, with `schemaVersion` still `1.0.0`)

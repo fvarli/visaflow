@@ -835,3 +835,136 @@ already holds, which also stops a freshly hydrated tab from announcing a change 
 `renameDossier`, `reloadLatest`, `saveAsNew`), `src/components/layout/ConflictBanner.tsx`, and
 inline rename on `src/pages/DossiersPage.tsx`. No schema, import/export-format, readiness or
 validation change; `schemaVersion` remains `1.0.0`.
+
+---
+
+## ADR-038: Export Is the Backup Contract; Backup Freshness Is Derived, and Marking It Stays Outside Compare-and-Swap
+
+**Status:** Accepted · **Date:** 2026-08-24 · **Extends:** [ADR-036], [ADR-037]
+
+**Decision:** The exported JSON file is the user's backup; the copy in the browser is not one. The
+two are tracked as **separate dimensions** — local persistence (`saved` / `saving` / `error` /
+`sessionOnly` / `unavailable`) and backup freshness (`never` / `fresh` / `stale`) — and backup
+freshness is **derived from the stored record**, never from in-memory flags. Recording an export
+writes `lastExportedAt` through a dedicated repository method that deliberately does **not**
+participate in the compare-and-swap.
+
+**Context:** ADR-036 added `lastExportedAt` to `SavedDossierRecord`. It was stored, migrated,
+summarised and rendered — and **never once assigned**. `/dossiers` therefore reported "Never
+exported" for every dossier forever, including one exported five seconds earlier. Export was
+`downloadDossier()` followed by `markSaved()`, which set two fields inside `DossierProvider`'s
+reducer and touched no storage at all; a refresh erased any memory that an export had happened.
+
+Worse, those two fields were the *only* export signal, and they were cleared by `LOAD_DOSSIER` and
+`REPLACE_DOSSIER` — which fire on creating, importing, switching, hydrating and conflict-reloading.
+So creating a brand-new dossier made Settings claim **"No changes since your last export"** *and*
+**"Last exported today"**, while `/dossiers` said **"Never exported"**: three surfaces, three
+different export facts about the same dossier, none of them true.
+
+**Why freshness is derived rather than stored.** `updatedAt` already moves only on a content write —
+`openDossier` and `renameDossier` spread the record and leave it alone — so comparing it with
+`lastExportedAt` answers exactly the right question: *has the dossier changed since the user last
+took a copy?* No new stored field is needed, which is why **`STORAGE_FORMAT_VERSION` stays at 2**. A
+separate "dirty since export" flag would be a second source of truth to keep in sync, and the bug
+above is what happens when that drifts.
+
+**Why marking an export is not a compare-and-swap.** Every accepted `put` increments `revision`
+(ADR-037). If exporting went through that path, backing up a dossier would bump its revision — and a
+tab that happened to be editing that dossier would be handed a conflict banner for something the
+user did not do. Exporting is not a change to the dossier, so it must move neither `revision` nor
+`updatedAt`. `markExported` therefore reads and writes **inside a single transaction** but asserts no
+revision: it only ever sets one field that no content writer touches, so there is nothing to lose.
+
+**Rationale:**
+
+- **A browser copy is not a backup, and the words must not blur.** Export is never called "Save",
+  IndexedDB is never called "backup", and the app never implies the local copy survives clearing
+  site data. A user can be safely saved and months overdue for a backup; both facts are shown.
+- **Backup is per dossier, because dossiers are.** The old in-memory flags lived above the
+  workspace, so exporting dossier A and switching to B made B claim A's export time. Reading the
+  record keeps each history where it belongs.
+- **Backing up must not cost you your place.** `/dossiers` can export any dossier by reading that
+  record directly — no opening it, no switching, no last-opened change, no form remount, no
+  broadcast. Requiring a user to abandon the dossier they are working in to back up a different one
+  would be a strange price for a safety action.
+- **An unreadable record gets a raw copy, not a backup.** A record this build cannot decode cannot
+  honestly be exported as a dossier, so it offers a clearly-labelled raw download instead and is
+  never marked as backed up. This makes the "export it from a version that can read it" advice
+  actionable for the first time.
+- **`lastExportedAt` is workspace metadata.** Like `title` (ADR-037), it never enters `payload`,
+  never reaches the exported file, and does not touch `schemaVersion`.
+
+**Trade-off:** the repository port grew a method that is not compare-and-swap, which looks like an
+inconsistency until you notice that consistency here would mean *manufacturing conflicts*. The
+narrower contract — one field, one transaction, no revision — is what keeps exporting invisible to
+concurrent editors.
+
+**Consequences:** `isDirty`, `lastSaved`, `MARK_SAVED` and `markSaved()` are **deleted** rather than
+repaired; they had exactly one reader and it was rendering fiction. `SettingsInput`/`SettingsModel`
+now carry `persistence` and `backup` instead. The dead `workspace:export.*` keys were removed in
+favour of one shared `workspace:backup.*` vocabulary used by both `/dossiers` and Settings.
+
+**Implementation:** `DossierRepository.markExported` + both adapters, `backupStateOf` in
+`workspace-model.ts`, `BackupState` and `SavedDossierSummary.backup` in `saved-dossier.ts`,
+`noteExported`/`exportDossier`/`exportRawRecord` in `WorkspaceProvider`, `downloadJson` extracted in
+`export.service.ts`, and the card/Settings surfaces. No schema, import/export-format, readiness or
+validation change; `schemaVersion` remains `1.0.0` and `STORAGE_FORMAT_VERSION` remains `2`.
+
+---
+
+## ADR-039: Session-Only Is a Promotable State, and Is Never Discarded Without Being Asked
+
+**Status:** Accepted · **Date:** 2026-08-24 · **Extends:** [ADR-036]
+
+**Decision:** A session-only dossier can be **promoted** to a saved one at any time, keeping the
+identity it already has. Until it is, it stays entirely in its tab — nothing written, nothing
+broadcast. Replacing unsaved session-only work requires an explicit choice from the user: stay, save
+it on this device, or discard it.
+
+**Context:** ADR-036 introduced session-only as the shared-computer escape hatch and left it as a
+one-way door. `openDossier` had no session-only check at all, so a single click in the header
+switcher overwrote the reducer and the work was gone — no warning, no dirty check, nothing to undo.
+`/dossiers` never received `sessionOnly` either, so with one session-only dossier open the page
+rendered *"No saved dossiers yet — start a dossier and it will be saved here automatically"*,
+denying the existence of the dossier the user was editing.
+
+**Rationale:**
+
+- **"Do not save this yet" is not "throw this away without asking".** Choosing session-only says
+  something about *storage*, not about how much the work matters. The two are different questions
+  and the app was answering the second one on the user's behalf.
+- **Promotion needs no new identity.** The id is minted when the dossier is created, before the
+  decision about persistence is taken, so promoting is a first write under an id that already
+  exists. Nothing is duplicated and nothing is re-created.
+- **Promotion must commit before anything else happens.** If the user chooses "Save on this device"
+  on the way out and the write fails, the switch does **not** proceed — continuing would discard
+  exactly the work we just failed to save. The dossier stays session-only, the failure is surfaced,
+  and autosave does not quietly start writing.
+- **The order is record first, pointer second.** A record with no "last opened" pointer still
+  appears in the dossiers list; a pointer to a record that was never written restores nothing.
+- **Emptiness is asked of the payload, not of a dirty flag.** Creating a dossier writes a
+  destination country before the user types anything, so a flag would interrupt everyone who merely
+  changed their mind. `hasMeaningfulContent` asks whether there is something worth losing.
+- **No `beforeunload` theatre.** A browser cannot host an asynchronous save during unload, and a
+  dialog that pretends otherwise would promise a rescue it cannot perform. The honest answer to
+  refresh-and-close is prominence: the state is stated plainly, and both escape routes — save it,
+  or export it — are on screen the whole time, at every width.
+- **Tab-local until it is real.** Nothing about a session-only dossier is broadcast; there is no
+  record for another tab to coordinate over. Cross-tab coordination begins at promotion, with a
+  `created` event, exactly as if it had been saved from the start.
+
+**Trade-off:** a refresh still discards session-only work, and that limit is now stated rather than
+engineered around. Making refresh survivable would mean writing the dossier somewhere — which is the
+one thing session-only exists to avoid.
+
+**Consequences:** `openDossier`, `createDossier` and `adoptImported` route through a guard in the
+provider rather than each caller remembering to ask, so the header switcher, the dossiers page and
+the import flow are covered by one implementation and one dialog. Settings' "Reset all data" became
+**Close the open dossier** — it clears the editor *and* the last-opened pointer, leaves saved records
+untouched, and no longer claims a permanence it never had. Permanent deletion remains exactly one
+thing in exactly one place.
+
+**Implementation:** `hasMeaningfulContent` in `workspace-model.ts`; `PendingLeave`,
+`promoteToDevice`, `saveAndLeave`, `discardAndLeave`, `cancelLeave` and `closeDossier` in
+`WorkspaceProvider`; `SessionLeaveDialog` and `WorkspaceNotice` in `components/layout`. No schema or
+storage-format change.

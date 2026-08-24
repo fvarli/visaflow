@@ -58,35 +58,28 @@
     "documents_one": "{{count}} document",
     "documents_other": "{{count}} documents",
     "sponsors_one": "{{count}} sponsor",
-    "sponsors_other": "{{count}} sponsors",
-    "unsaved": "You have changes not yet exported",
-    "saved": "No changes since your last export",
-    "lastExport": "Last exported {{date}}",
-    "neverExported": "Not exported yet"
+    "sponsors_other": "{{count}} sponsors"
   },
   "reset": {
-    "action": "Reset all data",
-    "confirmTitle": "Reset all data?",
-    "confirmBody": "This clears the dossier currently open. Saved dossiers are managed from the Dossiers page. Anything you have not exported will be lost. This cannot be undone.",
-    "confirm": "Reset everything"
+    "action": "Close the open dossier",
+    "confirmTitle": "Close the open dossier?",
+    "confirmBody": "This clears the editor and stops this dossier from reopening automatically. If it is saved on this device it stays saved, and you can open it again from the Dossiers page. Anything not saved on this device will be gone.",
+    "confirm": "Close dossier"
   },
   "dangerZone": "Danger zone",
   "importExport": {
     "title": "Import & export",
     "description": "Move your dossier in and out of VisaFlow as a JSON file.",
     "exportTitle": "Export (back up)",
-    "exportBody": "Download your entire dossier as a JSON file. This is your backup — keep it somewhere safe.",
+    "exportBody": "Download this dossier as a JSON file. That file is your backup — the copy in this browser is not one, because clearing site data removes it.",
     "exportAction": "Export dossier",
     "nothingToExport": "There is nothing to export yet.",
     "importTitle": "Import (restore)",
-    "importBody": "Load a dossier from a JSON file you exported earlier. This replaces whatever is currently loaded.",
+    "importBody": "Load a dossier from a JSON file you exported earlier. It is added as a new dossier — nothing you already have is replaced.",
     "importAction": "Choose file",
     "exampleTitle": "Load example",
-    "exampleBody": "Load a fictional example dossier to explore VisaFlow. This replaces whatever is currently loaded.",
+    "exampleBody": "Load a fictional example dossier to explore VisaFlow. It is added as a new dossier — nothing you already have is replaced.",
     "exampleAction": "Load example data",
-    "replaceTitle": "Replace the current dossier?",
-    "replaceBody": "A dossier is loaded with changes you haven't exported. Continuing will replace it, and anything not exported will be lost.",
-    "replaceConfirm": "Replace",
     "importError": "Couldn't import that file. Check that it is a VisaFlow JSON export.",
     "importSuccess": "Dossier loaded.",
     "warningsTitle": "Loaded with notes"

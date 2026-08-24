@@ -46,10 +46,30 @@ function request<T>(req: IDBRequest<T>): Promise<T> {
   })
 }
 
+/**
+ * The browser refused to give us a database at all.
+ *
+ * Distinct from a failed write: nothing is wrong with VisaFlow or with the
+ * dossier, the store is simply not available — private browsing, a blocked
+ * upgrade, a locked-down profile. The user needs different words and a
+ * different action for it, so the difference is carried in the type rather than
+ * inferred from a message string.
+ */
+export class StorageUnavailableError extends Error {
+  constructor(message: string) {
+    super(message)
+    this.name = 'StorageUnavailableError'
+  }
+}
+
 export class IndexedDbDossierRepository implements DossierRepository {
   private db: Promise<IDBDatabase> | null = null
 
   private open(): Promise<IDBDatabase> {
+    // A *rejected* promise must not be cached. Keeping it would turn one
+    // transient refusal — a blocked upgrade from another tab, a browser that
+    // was busy — into a permanently dead adapter for the life of the tab, with
+    // no way back short of a reload.
     this.db ??= new Promise<IDBDatabase>((resolve, reject) => {
       const req = indexedDB.open(DATABASE_NAME, DATABASE_VERSION)
       req.onupgradeneeded = () => {
@@ -63,12 +83,23 @@ export class IndexedDbDossierRepository implements DossierRepository {
       }
       req.onsuccess = () => resolve(req.result)
       req.onerror = () =>
-        reject(req.error ?? new Error('Could not open the dossier database'))
+        reject(
+          new StorageUnavailableError(
+            req.error?.message ?? 'Could not open the dossier database'
+          )
+        )
       // Another tab holding an older version open would otherwise hang forever.
       req.onblocked = () =>
-        reject(new Error('The dossier database is blocked by another tab'))
+        reject(
+          new StorageUnavailableError(
+            'The dossier database is blocked by another tab'
+          )
+        )
     })
-    return this.db
+    return this.db.catch((error: unknown) => {
+      this.db = null
+      throw error
+    })
   }
 
   private async run<T>(
@@ -180,6 +211,23 @@ export class IndexedDbDossierRepository implements DossierRepository {
     })
 
     return result
+  }
+
+  async markExported(id: string, at: string): Promise<boolean> {
+    let marked = false
+    await this.run(DOSSIER_STORE, 'readwrite', async (store) => {
+      const stored = (await request(store.get(id) as IDBRequest<unknown>)) as
+        SavedDossierRecord | undefined
+      if (stored === undefined) return
+
+      // Read and write in the same transaction, but with no revision check:
+      // exporting is not a change to the dossier, so it neither asserts nor
+      // advances the concurrency counter (ADR-038). Writing the freshly read
+      // record back means a concurrent content write cannot be lost.
+      await request(store.put({ ...stored, lastExportedAt: at }))
+      marked = true
+    })
+    return marked
   }
 
   async delete(id: string): Promise<void> {

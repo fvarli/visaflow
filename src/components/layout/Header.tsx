@@ -82,6 +82,15 @@ export function Header({ onMenuClick, onSave, scrolled = false }: HeaderProps) {
             tone={SAVE_TONE[status]}
             dot
             size="md"
+            // Announced politely: this used to be a bare <span>, so a screen
+            // reader was never told the dossier had failed to save.
+            role="status"
+            aria-live="polite"
+            // Still hidden below `sm` — the action cluster has no room, and a
+            // bare coloured dot would carry meaning by colour alone. Nothing
+            // urgent is lost: every state worth acting on (save failure,
+            // storage unavailable, session-only) is rendered at every width by
+            // `WorkspaceNotice`, which is where the recovery action lives too.
             className="hidden sm:inline-flex"
           >
             {status === 'saved' && lastPersistedAt

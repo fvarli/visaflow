@@ -21,8 +21,8 @@ import {
  */
 export function ImportExportSection() {
   const { t } = useTranslation(['settings', 'common'])
-  const { state, markSaved, hasData } = useDossier()
-  const { adoptImported } = useWorkspace()
+  const { state, hasData } = useDossier()
+  const { adoptImported, noteExported } = useWorkspace()
   const fileRef = useRef<HTMLInputElement>(null)
   const [feedback, setFeedback] = useState<string | null>(null)
 
@@ -70,7 +70,7 @@ export function ImportExportSection() {
       state.documents,
       state.sponsors
     )
-    markSaved()
+    void noteExported()
     setFeedback(null)
   }
 

@@ -9,7 +9,7 @@ import {
 import userEvent from '@testing-library/user-event'
 import i18n, { LOCALE_STORAGE_KEY } from '@/i18n'
 import { LocaleProvider } from '@/app/providers/LocaleProvider'
-import { ConflictBanner } from '@/components/layout/ConflictBanner'
+import { WorkspaceNotice } from '@/components/layout/WorkspaceNotice'
 import { MemoryDossierRepository } from '@/features/workspace/adapters/memory-adapter'
 import { SCHEMA_VERSION } from '@/domain/schemas/dossier.schema'
 import type { DossierPayload } from '@/features/workspace/saved-dossier'
@@ -501,7 +501,7 @@ describe('the conflict banner', () => {
       <LocaleProvider>
         <DossierProvider>
           <WorkspaceProvider repository={repo} untitledLabel="Untitled">
-            <ConflictBanner />
+            <WorkspaceNotice onExport={() => {}} />
             {/* Stands in for whatever field the user was typing in. */}
             <input aria-label="somewhere else" />
             <Probe name="A" />

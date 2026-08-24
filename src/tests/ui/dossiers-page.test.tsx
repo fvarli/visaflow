@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest'
-import { render, screen, waitFor } from '@testing-library/react'
+import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import i18n, {
@@ -361,5 +361,138 @@ describe('renaming a dossier', () => {
     expect(
       screen.queryByRole('button', { name: /^Rename / })
     ).not.toBeInTheDocument()
+  })
+})
+
+/**
+ * Backup is shown per dossier, and acting on it must not disturb anything else.
+ *
+ * The bug behind these: `lastExportedAt` was rendered but never written, so
+ * this page told every user "Never exported" forever.
+ */
+describe('backup status and export', () => {
+  it('reports a never-exported dossier honestly', async () => {
+    await i18n.changeLanguage('en')
+    renderPage(await seeded())
+    const cards = await screen.findAllByRole('button', {
+      name: /^Export a backup of /,
+    })
+    expect(cards).toHaveLength(2)
+    expect(
+      screen.getAllByText(new RegExp(i18n.t('workspace:backup.never')))
+    ).not.toHaveLength(0)
+  })
+
+  it('records the export against that dossier, and only that dossier', async () => {
+    await i18n.changeLanguage('en')
+    const user = userEvent.setup()
+    const repo = await seeded()
+    renderPage(repo)
+
+    const buttons = await screen.findAllByRole('button', {
+      name: /^Export a backup of /,
+    })
+    const first = buttons[0]
+    if (!first) throw new Error('no export action rendered')
+    await user.click(first)
+
+    await waitFor(async () => {
+      const exported = (await repo.list()).filter(
+        (record) => record.lastExportedAt !== null
+      )
+      expect(exported).toHaveLength(1)
+    })
+  })
+
+  it('does not open, switch or modify the dossier it exports', async () => {
+    await i18n.changeLanguage('en')
+    const user = userEvent.setup()
+    const repo = await seeded()
+    renderPage(repo)
+
+    const before = await repo.list()
+    const buttons = await screen.findAllByRole('button', {
+      name: /^Export a backup of /,
+    })
+    const first = buttons[0]
+    if (!first) throw new Error('no export action rendered')
+    await user.click(first)
+
+    await waitFor(async () =>
+      expect((await repo.list()).some((r) => r.lastExportedAt !== null)).toBe(
+        true
+      )
+    )
+
+    // Exporting is neither an edit nor a switch: the concurrency counter, the
+    // content timestamp, the open-dossier pointer and the payload all hold.
+    const after = await repo.list()
+    for (const record of after) {
+      const original = before.find((r) => r.id === record.id)
+      expect(record.revision).toBe(original?.revision)
+      expect(record.updatedAt).toBe(original?.updatedAt)
+      expect(record.lastOpenedAt).toBe(original?.lastOpenedAt)
+      expect(record.payload).toEqual(original?.payload)
+    }
+    expect((await repo.readMeta()).activeDossierId).toBe('a')
+  })
+
+  it('offers a raw copy for a record it cannot read, never a backup', async () => {
+    await i18n.changeLanguage('en')
+    const repo = new MemoryDossierRepository()
+    repo.seedRaw('future', {
+      ...toRecord('future', payloadOf(partiallyPrepared), SCHEMA_VERSION, NOW),
+      storageVersion: 99,
+    })
+    renderPage(repo)
+
+    expect(
+      await screen.findByRole('button', { name: /^Download a raw copy of / })
+    ).toBeInTheDocument()
+    // Calling it a backup would claim we understood data we could not read.
+    expect(
+      screen.queryByRole('button', { name: /^Export a backup of / })
+    ).not.toBeInTheDocument()
+  })
+
+  it('warns specifically before deleting a record it cannot read', async () => {
+    await i18n.changeLanguage('en')
+    const user = userEvent.setup()
+    const repo = new MemoryDossierRepository()
+    repo.seedRaw('future', {
+      ...toRecord('future', payloadOf(partiallyPrepared), SCHEMA_VERSION, NOW),
+      storageVersion: 99,
+    })
+    renderPage(repo)
+
+    const remove = await screen.findByRole('button', { name: /^Delete / })
+    await user.click(remove)
+
+    // The generic dialog asked "Delete Untitled?" for the one dossier whose
+    // contents the user cannot check first.
+    expect(
+      await screen.findByText(i18n.t('workspace:remove.unreadableTitle'))
+    ).toBeInTheDocument()
+  })
+
+  it('says that deleting the open dossier will close it', async () => {
+    await i18n.changeLanguage('en')
+    const user = userEvent.setup()
+    renderPage(await seeded())
+
+    // Both fixtures derive the same display name and the list is sorted by
+    // recency, so the open one is found by its badge, not by name or position.
+    const badge = await screen.findByText(i18n.t('workspace:card.current'))
+    const card = badge.closest('[data-slot="card"]')
+    if (!card) throw new Error('no card around the open-dossier badge')
+    await user.click(
+      within(card as HTMLElement).getByRole('button', { name: /^Delete / })
+    )
+
+    expect(
+      await screen.findByText(
+        new RegExp(i18n.t('workspace:remove.activeNote').slice(0, 40))
+      )
+    ).toBeInTheDocument()
   })
 })

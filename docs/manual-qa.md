@@ -358,3 +358,50 @@ still held.
 **390px, both languages, both themes.** The rename editor and the conflict banner were measured at
 390 × 844 in TR and EN, light and dark: no horizontal overflow, no element extending past the
 viewport, buttons stacking rather than truncating.
+
+---
+
+## Backup, recovery & session-only — real Chrome (v1.1, ADR-038/ADR-039)
+
+Driven through CDP against real Chrome 149 and real IndexedDB, fictional data only. Scripted so it
+can be repeated: create → autosave → reload → export → edit → export a *different* dossier →
+session-only → promote.
+
+| Check | Result |
+|---|---|
+| Dossier autosaves and survives a reload | PASS |
+| A never-exported dossier says so | PASS |
+| Export is recorded against the record and shown as "Backed up" | PASS |
+| **Exporting does not bump `revision`** | **PASS** |
+| **Exporting does not touch `updatedAt`** | **PASS** |
+| Backup status survives a reload (it lives in the record, not in memory) | PASS |
+| Editing after a backup reports "Changed since your backup on …" | PASS |
+| Two dossiers keep independent backup history | PASS |
+| Exporting a dossier you are *not* in backs it up | PASS |
+| …and does not change which dossier is open | PASS |
+| …and moves no revision or `updatedAt` on either record | PASS |
+| A session-only dossier writes nothing to IndexedDB | PASS |
+| The tab states plainly that it is not saved, at every width | PASS |
+| Switching away asks first instead of discarding | PASS |
+| "Save on this device" promotes with the work intact | PASS |
+| Promotion creates exactly one record, under the id it already had | PASS |
+| A promoted dossier starts with no export history | PASS |
+| No console errors | PASS |
+
+**A limitation worth stating rather than hiding.** A *full page load* discards a session-only
+dossier and restores the previously persisted one. That is inherent — the whole point of
+session-only is that nothing is written — and it is why the on-screen notice, with both escape
+routes, matters more than any unload hook could. It also bit this harness: the first run drove
+routes with `Page.navigate` and silently measured the wrong dossier. Drive session-only scenarios
+**client-side** (`history.pushState` + `popstate`), exactly as the older note above says.
+
+**Storage-failure recovery** is proven at the adapter/provider seam (an injected failing repository,
+and a typed `StorageUnavailableError`), not in the browser: forcing a genuine quota or private-mode
+refusal in headless Chrome would have meant hacking production code to fake it, which proves
+nothing. Stated plainly rather than implied.
+
+**390px, both languages, both themes** — `/dossiers`, Settings, the session-only notice and the
+leave dialog: no horizontal overflow, nothing past the viewport, buttons stacking rather than
+truncating. The leave dialog's action order was changed after looking at the screenshot: the footer
+is `flex-col-reverse` on narrow screens, which had put the destructive "Discard and continue" at the
+top of the stack, under the user's thumb.

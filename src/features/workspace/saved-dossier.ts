@@ -75,6 +75,18 @@ export interface SavedDossierRecord {
 }
 
 /** What the switcher and `/dossiers` render. Never carries dossier contents. */
+/**
+ * How the dossier's portable copy compares to the dossier itself.
+ *
+ * A browser copy is not a backup: clearing site data removes it. Only the file
+ * the user exported is theirs to keep, so this is tracked as a **separate
+ * dimension** from local save state and never called "saved" (ADR-038).
+ *
+ * `stale` is the interesting one: it means a real export exists but the dossier
+ * has moved on since.
+ */
+export type BackupState = 'never' | 'fresh' | 'stale'
+
 export interface SavedDossierSummary {
   id: string
   title: string
@@ -88,6 +100,8 @@ export interface SavedDossierSummary {
   revision: number
   /** True when the user named this dossier, false when the title is derived. */
   named: boolean
+  /** How fresh the user's own portable copy is — see `BackupState`. */
+  backup: BackupState
   /** A record this build cannot read. Listed, never opened, never deleted. */
   unreadable: boolean
 }
@@ -139,6 +153,19 @@ export interface DossierRepository {
    * tab can slip between the two halves.
    */
   put(record: SavedDossierRecord, expectedRevision?: number): Promise<PutResult>
+  /**
+   * Record that the user exported this dossier, and nothing else.
+   *
+   * Deliberately **outside** the compare-and-swap path. Exporting is not a
+   * change to the dossier, so it must not move `revision` or `updatedAt`: a
+   * revision bump would hand a tab that is editing this dossier a conflict it
+   * did nothing to cause. The adapter still reads and writes inside a single
+   * transaction, so a concurrent content write cannot be lost.
+   *
+   * Returns `false` when the record is gone — a deleted dossier is never
+   * recreated just to remember that it was once exported (ADR-038).
+   */
+  markExported(id: string, at: string): Promise<boolean>
   delete(id: string): Promise<void>
   readMeta(): Promise<WorkspaceMeta>
   writeMeta(meta: WorkspaceMeta): Promise<void>

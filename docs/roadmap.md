@@ -76,7 +76,10 @@ data they've already entered.
   from `/dossiers` or the header switcher. Persistence is on by default with a per-dossier
   "Session only" escape hatch (ADR-036). Each dossier can be given a name of your own, and two
   open tabs are safe: every write is a compare-and-swap on a per-record revision, so a stale tab
-  is told rather than allowed to overwrite (ADR-037). *Done.*
+  is told rather than allowed to overwrite (ADR-037). Each dossier reports its own backup freshness
+  and can be exported without being opened, storage failures explain themselves and offer export as
+  the way out, and a session-only dossier can be promoted to a saved one instead of being discarded
+  (ADR-038, ADR-039). *Done.*
 - **Richer dossier & timeline** — deeper trip/finance/sponsor structure and a fuller timeline. *Next.*
 - **PDF / printable index** — generate a dossier index and a printable checklist for the
   appointment. The Final Review workspace already models what is printable: a closed set of

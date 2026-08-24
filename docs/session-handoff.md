@@ -2072,3 +2072,85 @@ Nothing here is half-built. Deliberately not done: field-level merging (ADR-037 
 any form of sync or collaboration, and encryption. The `generation` key remounts a whole page on a
 dossier swap — correct, but if a page ever needs to preserve local UI state across a swap it will
 need a finer-grained signal.
+
+---
+
+# Iteration 28 — v1.1: Workspace recovery, backup & storage UX
+
+Baseline `b0c4e22`, clean, CI green, 811/811. The storage *architecture* was in good shape after
+iterations 26–27. This iteration was about what the app **says**, and the audit found that much of
+it was not true.
+
+### What the audit found, in order of how much it mattered
+
+1. **`lastExportedAt` was never assigned.** Declared, stored, migrated, summarised, rendered — and
+   written by nothing, ever. `/dossiers` reported "Never exported" for every dossier permanently.
+   Export was `downloadDossier()` + `markSaved()`, which set two reducer fields and touched no
+   storage; a refresh forgot it entirely.
+2. **The one export signal lied.** `isDirty`/`lastSaved` were cleared by `LOAD_DOSSIER` and
+   `REPLACE_DOSSIER`, so creating a dossier made Settings claim *"No changes since your last
+   export"* **and** *"Last exported today"* while `/dossiers` said *"Never exported"*. Three
+   surfaces, three different facts. Both fields had exactly one reader.
+3. **Every recovery string existed and was orphaned.** `status.errorHint`,
+   `status.sessionOnlyHint`, `status.unavailableHint` — correct, translated, rendered nowhere. The
+   only signal was a caption-sized pill, `hidden sm:inline-flex`, with no `aria-live`.
+4. **Session-only could be destroyed by one click.** `openDossier` had no session-only check.
+   `/dossiers` never received `sessionOnly`, so it told a user editing one that there were "no saved
+   dossiers yet — start a dossier and it will be saved here automatically".
+5. Three concrete bugs: `App.tsx` mounted the provider with no `untitledLabel`, so Turkish users
+   read the English literal **"Untitled"**; unreadable records had an **enabled** Delete button
+   despite `saved-dossier.ts` declaring them "never deleted"; and a **rejected** IndexedDB `open()`
+   promise was cached forever, so one transient refusal poisoned the tab for its lifetime.
+
+### The load-bearing design choice
+
+Backup freshness is **derived**, not stored: `lastExportedAt` vs `updatedAt`, two fields already in
+storage format 2 — so **no `STORAGE_FORMAT_VERSION` bump**, and no second source of truth to drift.
+`updatedAt` moves only on a content write (`openDossier` and `renameDossier` spread the record), so
+the comparison means exactly "changed since you last took a copy".
+
+Recording an export deliberately sits **outside** the compare-and-swap. Every accepted `put`
+increments `revision`; had export gone through it, backing up a dossier would have handed a tab
+editing that dossier a conflict banner for something the user never did. `markExported` reads and
+writes in one transaction but asserts no revision — verified in real Chrome (`rev 2 -> 2`,
+`updatedAt` unchanged).
+
+### Deleted rather than repaired
+
+`isDirty`, `lastSaved`, `MARK_SAVED`, `markSaved()` and the matching `settings-model` fields are
+gone. They had one reader and it was rendering fiction; another badge on top would have been a third
+version of the same wrong answer.
+
+### Harness lessons worth keeping
+
+- `toHaveTextContent` is a **substring** match — again. `not.toHaveTextContent('a')` against a
+  generated id failed 2 runs in 5. Compare ids exactly. (This is the second sprint it has cost time;
+  it is now the first thing to suspect in a flaky id assertion.)
+- A "run once" ref guard on an effect is **not StrictMode-safe** — the cleanup does not reset it, so
+  the second mount bails and the work never happens. Remove the dependency churn instead; here that
+  meant keeping the untitled label out of `refreshSummaries`'s identity.
+- In CDP: `Page.navigate` is a *full page load*, which discards session-only work. The session-only
+  scenario silently measured the wrong dossier until it was driven client-side.
+- Reading the screenshot changed the design: `AlertDialogFooter` is `flex-col-reverse` on narrow
+  screens, so a three-action dialog put the **destructive** action at the top of the stack.
+
+### Gates
+
+`format:check` ✓ · `lint` **0 errors / 69 warnings** (68 baseline + 1, the accepted
+`react-refresh/only-export-components` category) · `typecheck` ✓ · `test` **845/845, 71 files**
+(811 + 34) · `build` ✓ · act guard **0** · `diff --check` clean.
+Bundle `index` 316.49 → **326.25 kB** (gzip 97.95 → 100.29, **+2.34 kB gzip**) — the notice banner,
+the leave dialog and the provider logic are all eager via `AppLayout`. `DossierProvider`
+449.70 → **451.19** (gzip +0.49) — that is where all locale strings land. `DossiersPage`
+4.89 → **5.54** (route-local).
+
+`schemaVersion` still `1.0.0`; `STORAGE_FORMAT_VERSION` still **2**; export contract unchanged;
+`localStorage` still exactly two non-personal keys.
+
+### Next
+
+Nothing here is half-built. Deliberately not done: `beforeunload` protection for session-only (a
+browser cannot host an async save during unload, and a dialog that implies otherwise promises a
+rescue it cannot perform), and any second permanent-delete path in Settings. The unreadable-record
+delete stays *possible* but now warns specifically and offers a raw recovery download first — the
+accidental path is closed without trapping data behind an undeletable card.

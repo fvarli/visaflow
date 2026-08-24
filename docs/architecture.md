@@ -183,8 +183,12 @@ which is open, its local name, and autosaving the open one through a `DossierRep
 ([ADR-036]). Every write is a **compare-and-swap on a per-record `revision`**, so a second tab can
 never silently overwrite the first; when a write is refused, autosave stops and the user chooses
 between the saved version and keeping theirs as a new dossier ([ADR-037]). A `BroadcastChannel`
-carries ids and revisions between tabs as a hint only — the app is fully safe without it. React
-components never call storage APIs directly — a flat shape (`applicant`, `application`, `documents`,
+carries ids and revisions between tabs as a hint only — the app is fully safe without it.
+**Local saving and portable backup are separate dimensions**: what the browser holds is reported
+from the workspace status, while backup freshness is derived per dossier by comparing the record's
+`lastExportedAt` with its `updatedAt`, and recording an export deliberately moves neither `revision`
+nor `updatedAt` ([ADR-038]). A session-only dossier is tab-local until the user promotes it, and is
+never replaced without being asked ([ADR-039]). React components never call storage APIs directly — a flat shape (`applicant`, `application`, `documents`,
 `sponsors`, plus dirty/saved flags), not a nested `Dossier`. Actions are explicit
 (`LOAD_DOSSIER`, `UPDATE_APPLICANT`, `ADD_DOCUMENT`, …). Redux/Zustand would add dependencies and
 concepts the app's simple state doesn't need. `LocaleProvider` and `ThemeProvider` follow the
@@ -246,3 +250,5 @@ same pattern for the two non-personal preferences.
 [ADR-033]: ./decisions.md
 [ADR-036]: ./decisions.md
 [ADR-037]: ./decisions.md
+[ADR-038]: ./decisions.md
+[ADR-039]: ./decisions.md

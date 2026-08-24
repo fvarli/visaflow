@@ -27,8 +27,8 @@ const input = (overrides: Partial<SettingsInput> = {}): SettingsInput => ({
   application: null,
   documents: [],
   sponsors: [],
-  isDirty: false,
-  lastSaved: null,
+  persistence: 'saved',
+  backup: 'never',
   ...overrides,
 })
 
@@ -89,12 +89,14 @@ describe('buildSettingsModel — local data & about', () => {
       input({
         application: application(),
         documents: [doc],
-        isDirty: true,
+        backup: 'stale',
       })
     )
     expect(model.localData.hasData).toBe(true)
     expect(model.localData.documentCount).toBe(1)
-    expect(model.localData.isDirty).toBe(true)
+    // Local save state and backup freshness are separate dimensions (ADR-038).
+    expect(model.localData.persistence).toBe('saved')
+    expect(model.localData.backup).toBe('stale')
     expect(model.localData.storageKeys).toEqual(STORAGE_KEYS)
     expect(model.localData.storageKeys).toEqual([
       'visaflow-theme',

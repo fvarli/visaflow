@@ -114,6 +114,14 @@ export class MemoryDossierRepository implements DossierRepository {
     return Promise.resolve({ ok: true, revision: next.revision })
   }
 
+  /** Same semantics as the IndexedDB adapter: only `lastExportedAt` moves. */
+  markExported(id: string, at: string): Promise<boolean> {
+    const stored = this.records.get(id) as SavedDossierRecord | undefined
+    if (stored === undefined) return Promise.resolve(false)
+    this.records.set(id, structuredClone({ ...stored, lastExportedAt: at }))
+    return Promise.resolve(true)
+  }
+
   delete(id: string): Promise<void> {
     try {
       this.takeFailure()

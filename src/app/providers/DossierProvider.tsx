@@ -39,8 +39,6 @@ interface DossierState {
   application: Application | null
   documents: Document[]
   sponsors: Sponsor[]
-  isDirty: boolean
-  lastSaved: Date | null
   /**
    * Bumped whenever the whole document is swapped rather than edited.
    *
@@ -75,7 +73,6 @@ type DossierAction =
       payload: { id: string; updates: Partial<Sponsor> }
     }
   | { type: 'REMOVE_SPONSOR'; payload: string }
-  | { type: 'MARK_SAVED' }
   | { type: 'RESET' }
 
 // Initial state
@@ -84,8 +81,6 @@ const initialState: DossierState = {
   application: null,
   documents: [],
   sponsors: [],
-  isDirty: false,
-  lastSaved: null,
   generation: 0,
 }
 
@@ -138,8 +133,6 @@ function dossierReducer(
         application: application ?? state.application,
         documents: documents ?? state.documents,
         sponsors: sponsors ?? state.sponsors,
-        isDirty: false,
-        lastSaved: new Date(),
         // Loading a file also swaps what a mounted form should be showing.
         generation: state.generation + 1,
       }
@@ -149,8 +142,6 @@ function dossierReducer(
       // Wholesale, including nulls — see `DossierSlices`.
       return {
         ...action.payload,
-        isDirty: false,
-        lastSaved: state.lastSaved,
         generation: state.generation + 1,
       }
     }
@@ -158,12 +149,11 @@ function dossierReducer(
     case 'UPDATE_APPLICANT': {
       if (!state.applicant) {
         const newApplicant = { ...createEmptyApplicant(), ...action.payload }
-        return { ...state, applicant: newApplicant, isDirty: true }
+        return { ...state, applicant: newApplicant }
       }
       return {
         ...state,
         applicant: { ...state.applicant, ...action.payload },
-        isDirty: true,
       }
     }
 
@@ -174,12 +164,11 @@ function dossierReducer(
           ...createEmptyApplication(applicantId),
           ...action.payload,
         }
-        return { ...state, application: newApp, isDirty: true }
+        return { ...state, application: newApp }
       }
       return {
         ...state,
         application: { ...state.application, ...action.payload },
-        isDirty: true,
       }
     }
 
@@ -193,7 +182,6 @@ function dossierReducer(
             ? { ...state.application.trip, ...action.payload }
             : (action.payload as Trip),
         },
-        isDirty: true,
       }
     }
 
@@ -207,7 +195,6 @@ function dossierReducer(
             ? { ...state.application.employment, ...action.payload }
             : (action.payload as Employment),
         },
-        isDirty: true,
       }
     }
 
@@ -221,7 +208,6 @@ function dossierReducer(
             ? { ...state.application.financing, ...action.payload }
             : (action.payload as Financing),
         },
-        isDirty: true,
       }
     }
 
@@ -235,7 +221,6 @@ function dossierReducer(
             ? { ...state.application.appointment, ...action.payload }
             : (action.payload as Appointment),
         },
-        isDirty: true,
       }
     }
 
@@ -243,7 +228,6 @@ function dossierReducer(
       return {
         ...state,
         documents: [...state.documents, action.payload],
-        isDirty: true,
       }
 
     case 'UPDATE_DOCUMENT': {
@@ -253,7 +237,6 @@ function dossierReducer(
         documents: state.documents.map((doc) =>
           doc.id === id ? { ...doc, ...updates } : doc
         ),
-        isDirty: true,
       }
     }
 
@@ -261,21 +244,18 @@ function dossierReducer(
       return {
         ...state,
         documents: state.documents.filter((doc) => doc.id !== action.payload),
-        isDirty: true,
       }
 
     case 'SET_DOCUMENTS':
       return {
         ...state,
         documents: action.payload,
-        isDirty: true,
       }
 
     case 'ADD_SPONSOR':
       return {
         ...state,
         sponsors: [...state.sponsors, action.payload],
-        isDirty: true,
       }
 
     case 'UPDATE_SPONSOR': {
@@ -285,7 +265,6 @@ function dossierReducer(
         sponsors: state.sponsors.map((sponsor) =>
           sponsor.id === id ? { ...sponsor, ...updates } : sponsor
         ),
-        isDirty: true,
       }
     }
 
@@ -293,14 +272,6 @@ function dossierReducer(
       return {
         ...state,
         sponsors: state.sponsors.filter((s) => s.id !== action.payload),
-        isDirty: true,
-      }
-
-    case 'MARK_SAVED':
-      return {
-        ...state,
-        isDirty: false,
-        lastSaved: new Date(),
       }
 
     case 'RESET':
@@ -337,7 +308,6 @@ interface DossierContextValue {
   updateSponsor: (id: string, updates: Partial<Sponsor>) => void
   removeSponsor: (id: string) => void
   // State management
-  markSaved: () => void
   reset: () => void
   // Computed
   hasData: boolean
@@ -422,10 +392,6 @@ export function DossierProvider({ children }: { children: ReactNode }) {
     dispatch({ type: 'REMOVE_SPONSOR', payload: id })
   }, [])
 
-  const markSaved = useCallback(() => {
-    dispatch({ type: 'MARK_SAVED' })
-  }, [])
-
   const reset = useCallback(() => {
     dispatch({ type: 'RESET' })
   }, [])
@@ -450,7 +416,6 @@ export function DossierProvider({ children }: { children: ReactNode }) {
     addSponsor,
     updateSponsor,
     removeSponsor,
-    markSaved,
     reset,
     hasData,
   }

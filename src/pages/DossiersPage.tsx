@@ -1,7 +1,15 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
-import { Check, FolderOpen, Pencil, Plus, Trash2, X } from 'lucide-react'
+import {
+  Check,
+  Download,
+  FolderOpen,
+  Pencil,
+  Plus,
+  Trash2,
+  X,
+} from 'lucide-react'
 import { PageHeader } from '@/components/ui/page-header'
 import { PageBody } from '@/components/ui/section'
 import { Button } from '@/components/ui/button'
@@ -114,8 +122,16 @@ export default function DossiersPage() {
   const { t } = useTranslation(['workspace', 'common'])
   const format = useFormatters()
   const navigate = useNavigate()
-  const { summaries, activeId, openDossier, deleteDossier, renameDossier } =
-    useWorkspace()
+  const {
+    summaries,
+    activeId,
+    openDossier,
+    deleteDossier,
+    renameDossier,
+    exportDossier,
+    exportRawRecord,
+    sessionOnly,
+  } = useWorkspace()
 
   const [pendingDelete, setPendingDelete] =
     useState<SavedDossierSummary | null>(null)
@@ -172,7 +188,14 @@ export default function DossiersPage() {
         <EmptyState
           icon={FolderOpen}
           title={t('workspace:empty.title')}
-          description={t('workspace:empty.description')}
+          // With a session-only dossier open this page used to say "no saved
+          // dossiers yet — start one and it will be saved here automatically",
+          // which denied the dossier the user was editing.
+          description={
+            sessionOnly
+              ? t('workspace:empty.sessionOnly')
+              : t('workspace:empty.description')
+          }
           action={
             <Button onClick={() => void navigate('/welcome')}>
               <Plus />
@@ -234,7 +257,8 @@ export default function DossiersPage() {
 
                 {summary.unreadable ? (
                   <GuidanceNote tone="neutral">
-                    {t('workspace:card.unreadableHint')}
+                    {t('workspace:card.unreadableHint')}{' '}
+                    {t('workspace:backup.recoveryHint')}
                   </GuidanceNote>
                 ) : (
                   <p className="text-caption text-muted-foreground">
@@ -246,11 +270,22 @@ export default function DossiersPage() {
                       date: format.dateShort(summary.updatedAt),
                     })}
                     {' · '}
-                    {summary.lastExportedAt
-                      ? t('workspace:card.lastExported', {
-                          date: format.dateShort(summary.lastExportedAt),
-                        })
-                      : t('workspace:card.neverExported')}
+                    {/* Backup freshness, derived from the record itself — this
+                        line used to read "Never exported" forever, because
+                        nothing ever wrote the timestamp behind it. */}
+                    {summary.backup === 'never'
+                      ? t('workspace:backup.never')
+                      : summary.backup === 'fresh'
+                        ? t('workspace:backup.freshAt', {
+                            date: format.dateShort(
+                              summary.lastExportedAt ?? ''
+                            ),
+                          })
+                        : t('workspace:backup.staleAt', {
+                            date: format.dateShort(
+                              summary.lastExportedAt ?? ''
+                            ),
+                          })}
                   </p>
                 )}
 
@@ -265,6 +300,31 @@ export default function DossiersPage() {
                     onClick={() => void openDossier(summary.id)}
                   >
                     {t('workspace:card.open')}
+                  </Button>
+                  {/* Backing up dossier B must not require opening it and
+                      abandoning dossier A, so this reads B's own record. */}
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    aria-label={
+                      summary.unreadable
+                        ? t('workspace:backup.recoveryAria', {
+                            name: summary.title,
+                          })
+                        : t('workspace:backup.actionAria', {
+                            name: summary.title,
+                          })
+                    }
+                    onClick={() =>
+                      void (summary.unreadable
+                        ? exportRawRecord(summary.id)
+                        : exportDossier(summary.id))
+                    }
+                  >
+                    <Download />
+                    {summary.unreadable
+                      ? t('workspace:backup.recovery')
+                      : t('workspace:backup.action')}
                   </Button>
                   <Button
                     variant="ghost"
@@ -292,12 +352,21 @@ export default function DossiersPage() {
         <AlertDialogContent restoreFocusFallback={focusAfterDelete}>
           <AlertDialogHeader>
             <AlertDialogTitle>
-              {t('workspace:remove.title', {
-                name: pendingDelete?.title ?? '',
-              })}
+              {pendingDelete?.unreadable
+                ? t('workspace:remove.unreadableTitle')
+                : t('workspace:remove.title', {
+                    name: pendingDelete?.title ?? '',
+                  })}
             </AlertDialogTitle>
             <AlertDialogDescription>
-              {t('workspace:remove.body')}
+              {/* A record this build cannot read cannot be inspected first, and
+                  its name is a placeholder — say so instead of asking "Delete
+                  Untitled?" and hoping the user knows what they are losing. */}
+              {pendingDelete?.unreadable
+                ? t('workspace:remove.unreadableBody')
+                : t('workspace:remove.body')}
+              {pendingDelete?.id === activeId &&
+                ` ${t('workspace:remove.activeNote')}`}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

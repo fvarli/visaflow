@@ -81,8 +81,6 @@
     "disclaimer": "VisaFlow bir organizasyon aracıdır. Hukuki danışmanlık vermez, hiçbir konsolosluğu veya vize merkezini temsil etmez ve vize sonucunu garanti etmez. Gereklilikleri her zaman güncel resmî kaynaklardan doğrulayın."
   },
   "privacy": {
-    "title": "Verileriniz bu tarayıcıdan çıkmaz",
-    "body": "Dosyanız bu tarayıcıda saklanır ve hiçbir sunucuya gönderilmez. Taşınabilir bir yedek için JSON dosyası olarak dışa aktarın.",
     "memoryOnly": "İçe aktarılan veriler bu tarayıcıda saklanır ve hiçbir yere yüklenmez. Yedek için bir JSON kopyası dışa aktarın."
   },
   "theme": {

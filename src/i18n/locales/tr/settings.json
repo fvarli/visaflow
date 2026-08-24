@@ -58,35 +58,28 @@
     "documents_one": "{{count}} belge",
     "documents_other": "{{count}} belge",
     "sponsors_one": "{{count}} sponsor",
-    "sponsors_other": "{{count}} sponsor",
-    "unsaved": "Henüz dışa aktarılmamış değişiklikleriniz var",
-    "saved": "Son dışa aktarımdan bu yana değişiklik yok",
-    "lastExport": "Son dışa aktarma: {{date}}",
-    "neverExported": "Henüz dışa aktarılmadı"
+    "sponsors_other": "{{count}} sponsor"
   },
   "reset": {
-    "action": "Tüm verileri sıfırla",
-    "confirmTitle": "Tüm veriler sıfırlansın mı?",
-    "confirmBody": "Bu işlem şu anda açık olan dosyayı temizler. Kayıtlı dosyalar Dosyalar sayfasından yönetilir. Dışa aktarmadığınız her şey kaybolur. Bu işlem geri alınamaz.",
-    "confirm": "Her şeyi sıfırla"
+    "action": "Açık dosyayı kapat",
+    "confirmTitle": "Açık dosya kapatılsın mı?",
+    "confirmBody": "Bu işlem düzenleyiciyi temizler ve dosyanın otomatik olarak yeniden açılmasını durdurur. Dosya bu cihazda kayıtlıysa kayıtlı kalır ve Dosyalar sayfasından yeniden açabilirsiniz. Bu cihazda kayıtlı olmayan her şey kaybolur.",
+    "confirm": "Dosyayı kapat"
   },
   "dangerZone": "Riskli işlemler",
   "importExport": {
     "title": "İçe & dışa aktarma",
     "description": "Dosyanızı bir JSON dosyası olarak VisaFlow'a alın veya dışa aktarın.",
     "exportTitle": "Dışa aktar (yedekle)",
-    "exportBody": "Tüm dosyanızı bir JSON dosyası olarak indirin. Bu sizin yedeğinizdir — güvenli bir yerde saklayın.",
+    "exportBody": "Bu dosyayı JSON olarak indirin. Asıl yedeğiniz o dosyadır — tarayıcıdaki kopya yedek sayılmaz, çünkü site verilerini temizlemek onu siler.",
     "exportAction": "Dosyayı dışa aktar",
     "nothingToExport": "Henüz dışa aktarılacak bir şey yok.",
     "importTitle": "İçe aktar (geri yükle)",
-    "importBody": "Daha önce dışa aktardığınız bir JSON dosyasından bir dosya yükleyin. Bu, yüklü olanı değiştirir.",
+    "importBody": "Daha önce dışa aktardığınız bir JSON dosyasını yükleyin. Yeni bir dosya olarak eklenir; mevcut dosyalarınızın yerine geçmez.",
     "importAction": "Dosya seç",
     "exampleTitle": "Örnek yükle",
-    "exampleBody": "VisaFlow'u keşfetmek için kurgusal bir örnek dosya yükleyin. Bu, yüklü olanı değiştirir.",
+    "exampleBody": "VisaFlow'u keşfetmek için kurgusal bir örnek dosya yükleyin. Yeni bir dosya olarak eklenir; mevcut dosyalarınızın yerine geçmez.",
     "exampleAction": "Örnek veriyi yükle",
-    "replaceTitle": "Mevcut dosya değiştirilsin mi?",
-    "replaceBody": "Dışa aktarmadığınız değişiklikler içeren bir dosya yüklü. Devam etmek onu değiştirir ve dışa aktarılmayan her şey kaybolur.",
-    "replaceConfirm": "Değiştir",
     "importError": "Bu dosya içe aktarılamadı. VisaFlow JSON dışa aktarımı olduğundan emin olun.",
     "importSuccess": "Dosya yüklendi.",
     "warningsTitle": "Notlarla yüklendi"

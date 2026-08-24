@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next'
-import { Trash2 } from 'lucide-react'
-import { useDossier } from '@/app/providers/DossierProvider'
+import { XCircle } from 'lucide-react'
+import { useWorkspace } from '@/app/providers/WorkspaceProvider'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 import {
@@ -14,20 +14,39 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog'
-import { useFormatters } from '@/lib/format'
 import { useSettingsModel } from '@/features/settings/settings-model'
 
 /**
- * Local data — a factual summary of what is currently loaded on this device
- * (dossier presence, counts, unexported-changes, last export), plus the isolated
- * destructive Reset behind an `AlertDialog`. No persistence is added.
+ * Local data — what is loaded, where it lives, and how fresh the user's own
+ * copy of it is.
+ *
+ * Those last two are deliberately separate lines. "Saved on this device" and
+ * "backed up" are different promises, and this panel used to blur them: it read
+ * an in-memory flag that was cleared by merely *opening* a dossier, so a
+ * never-exported dossier could claim both "no changes since your last export"
+ * and "last exported today" (ADR-038). Both lines now come from the stored
+ * record.
+ *
+ * The action below closes the open dossier. It does not delete anything —
+ * deletion lives on the Dossiers page, and having exactly one place that
+ * destroys data is worth more than the convenience of a second one.
  */
 export function DataSection() {
-  const { t } = useTranslation(['settings', 'common'])
-  const { reset } = useDossier()
-  const f = useFormatters()
+  const { t } = useTranslation(['settings', 'common', 'workspace'])
+  const { closeDossier } = useWorkspace()
   const model = useSettingsModel()
   const { localData } = model
+
+  // `null` means there is no saved record to ask — a session-only dossier keeps
+  // no export history, and inventing one would be the old bug in a new place.
+  const backupLine =
+    localData.backup === null
+      ? t('workspace:session.body')
+      : localData.backup === 'never'
+        ? t('workspace:backup.never')
+        : localData.backup === 'fresh'
+          ? t('workspace:backup.fresh')
+          : t('workspace:backup.stale')
 
   return (
     <div className="flex flex-col gap-6">
@@ -47,18 +66,10 @@ export function DataSection() {
               {' · '}
               {t('settings:data.sponsors', { count: localData.sponsorCount })}
             </span>
-            <span>
-              {localData.isDirty
-                ? t('settings:data.unsaved')
-                : t('settings:data.saved')}
-            </span>
-            <span>
-              {localData.lastSaved
-                ? t('settings:data.lastExport', {
-                    date: f.date(localData.lastSaved),
-                  })
-                : t('settings:data.neverExported')}
-            </span>
+            {/* Where it lives … */}
+            <span>{t(`workspace:status.${localData.persistence}`)}</span>
+            {/* … and how current the copy the user actually owns is. */}
+            <span>{backupLine}</span>
           </div>
         )}
       </div>
@@ -71,8 +82,8 @@ export function DataSection() {
         </h3>
         <AlertDialog>
           <AlertDialogTrigger asChild>
-            <Button variant="destructive" className="self-start">
-              <Trash2 />
+            <Button variant="outline" className="self-start">
+              <XCircle />
               {t('settings:reset.action')}
             </Button>
           </AlertDialogTrigger>
@@ -89,7 +100,7 @@ export function DataSection() {
               <AlertDialogCancel>
                 {t('common:actions.cancel')}
               </AlertDialogCancel>
-              <AlertDialogAction variant="destructive" onClick={() => reset()}>
+              <AlertDialogAction onClick={() => void closeDossier()}>
                 {t('settings:reset.confirm')}
               </AlertDialogAction>
             </AlertDialogFooter>

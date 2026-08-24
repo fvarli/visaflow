@@ -4,7 +4,8 @@
   "empty": {
     "title": "No saved dossiers yet",
     "description": "Start a dossier and it will be saved here automatically.",
-    "action": "Start your dossier"
+    "action": "Start your dossier",
+    "sessionOnly": "The dossier you have open is not saved on this device, so it is not listed here."
   },
   "switcher": {
     "label": "Switch dossier",
@@ -22,10 +23,34 @@
     "documents_one": "{{count}} document",
     "documents_other": "{{count}} documents",
     "updated": "Edited {{date}}",
-    "neverExported": "Never exported",
-    "lastExported": "Exported {{date}}",
     "unreadable": "Cannot be opened",
-    "unreadableHint": "This dossier was saved by a newer version of VisaFlow. It has not been deleted — update VisaFlow, or export it as a file from a version that can read it."
+    "unreadableHint": "This dossier was saved by a newer version of VisaFlow. It has not been deleted — update VisaFlow, or export it as a file from a version that can read it.",
+    "untitled": "Untitled dossier"
+  },
+  "backup": {
+    "never": "Never exported",
+    "fresh": "Backed up",
+    "stale": "Changes since your last export",
+    "freshAt": "Backed up {{date}}",
+    "staleAt": "Changed since your backup on {{date}}",
+    "action": "Export backup",
+    "actionAria": "Export a backup of {{name}}",
+    "recovery": "Download raw copy",
+    "recoveryAria": "Download a raw copy of {{name}}",
+    "recoveryHint": "This dossier cannot be opened by this version, so it cannot be exported as a normal backup. You can still download exactly what is stored and open it with a version that understands it."
+  },
+  "session": {
+    "title": "Not saved on this device",
+    "body": "This dossier lives only in this tab. Closing or refreshing it will discard your work.",
+    "promote": "Save on this device",
+    "promoteAria": "Save this dossier on this device"
+  },
+  "leave": {
+    "title": "Leave this session-only dossier?",
+    "body": "This dossier is not saved on this device. Opening another one will discard the work held in this tab.",
+    "stay": "Stay here",
+    "save": "Save on this device",
+    "discard": "Discard and continue"
   },
   "rename": {
     "action": "Rename",
@@ -41,7 +66,10 @@
     "title": "Delete {{name}}?",
     "body": "This permanently deletes this dossier from this browser. Any JSON file you already exported is unaffected. This cannot be undone.",
     "cancel": "Keep dossier",
-    "confirm": "Delete dossier"
+    "confirm": "Delete dossier",
+    "activeNote": "This dossier is open right now, so deleting it will close it — VisaFlow will open another saved dossier, or leave the editor empty.",
+    "unreadableTitle": "Delete this unreadable dossier?",
+    "unreadableBody": "VisaFlow cannot open this dossier, so you cannot check what is inside it first. Download a raw copy if you might want it back. This permanently deletes it from this browser and cannot be undone."
   },
   "status": {
     "idle": "Not saved yet",
@@ -61,11 +89,6 @@
     "saveHint": "Kept in this browser so it is here when you come back. Never sent to a server.",
     "session": "Session only",
     "sessionHint": "Nothing is written to this browser. Best on a shared or public computer."
-  },
-  "export": {
-    "never": "Never exported",
-    "at": "Last exported {{date}}",
-    "pending": "Changes since your last export"
   },
   "conflict": {
     "changedTitle": "This dossier was changed in another tab",

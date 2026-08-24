@@ -52,10 +52,17 @@ What this does and does not mean:
   dossiers, and so can a sufficiently privileged program on the machine. VisaFlow does not claim
   otherwise.
 - **Clearing site or browser data deletes your dossiers.** So can a browser cleanup tool or a
-  private-browsing session ending. **Export a JSON file to keep a real backup.**
+  private-browsing session ending. **Export a JSON file to keep a real backup.** VisaFlow tracks
+  this per dossier and tells you plainly whether each one has never been exported, is backed up, or
+  has changed since your last export — the browser copy is never described as a backup, because it
+  is not one (ADR-038).
 - **You can opt out per dossier.** Choosing **Session only** when creating a dossier keeps it in
   memory exactly as v1.0 did: nothing is written, and it is gone when you close or refresh the
-  tab. This is the right choice on a shared, library or family computer.
+  tab. This is the right choice on a shared, library or family computer. VisaFlow says so on screen
+  the whole time you are working, and offers both ways out — **Save on this device** or **Export
+  backup** — rather than waiting for the work to disappear. Switching to another dossier asks first;
+  refreshing or closing the tab still discards it, and no amount of interface can change that
+  (ADR-039).
 - **You can delete a saved dossier at any time** from the Dossiers page.
 
 ### 3. No External API Calls

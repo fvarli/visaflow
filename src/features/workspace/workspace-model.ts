@@ -1,6 +1,7 @@
 import { generateId } from '@/domain/types/common'
 import {
   STORAGE_FORMAT_VERSION,
+  type BackupState,
   type DossierPayload,
   type SavedDossierRecord,
   type SavedDossierSummary,
@@ -83,6 +84,57 @@ export function toRecord(
   }
 }
 
+/**
+ * How the exported file compares to the dossier.
+ *
+ * Both timestamps already exist in storage format 2, so this needs no new
+ * stored field. `updatedAt` moves only on a content write — `openDossier` and
+ * `renameDossier` deliberately spread the record and leave it alone — which is
+ * exactly what makes the comparison mean "changed since you last exported"
+ * rather than "touched somehow" (ADR-038).
+ */
+export function backupStateOf(
+  record: Pick<SavedDossierRecord, 'lastExportedAt' | 'updatedAt'>
+): BackupState {
+  if (!record.lastExportedAt) return 'never'
+  return record.lastExportedAt >= record.updatedAt ? 'fresh' : 'stale'
+}
+
+/**
+ * Is there anything here a user would mind losing?
+ *
+ * Used to decide whether leaving a session-only dossier needs a warning. It
+ * asks the payload directly rather than trusting a dirty flag: creating a
+ * dossier already writes a destination country, so "the user touched something"
+ * and "there is work worth keeping" are different questions, and only the
+ * second one should interrupt anybody (ADR-039).
+ */
+export function hasMeaningfulContent(payload: DossierPayload): boolean {
+  if (payload.documents.length > 0) return true
+  if (payload.sponsors.length > 0) return true
+
+  const applicant = payload.applicant
+  if (applicant) {
+    const named = Boolean(
+      applicant.firstName?.trim() ?? applicant.lastName?.trim()
+    )
+    if (named) return true
+    if (applicant.dateOfBirth || applicant.nationality) return true
+    if (applicant.passport?.number?.trim()) return true
+  }
+
+  const application = payload.application
+  if (application) {
+    // `destinationCountry` and `visaType` are chosen by the create flow itself,
+    // so they are not evidence of work. Everything else here was typed.
+    if (application.trip || application.employment) return true
+    if (application.financing || application.appointment) return true
+    if (application.notes.length > 0) return true
+  }
+
+  return false
+}
+
 export function toSummary(
   record: SavedDossierRecord,
   fallbackTitle: string
@@ -99,6 +151,7 @@ export function toSummary(
     documentCount: record.payload.documents.length,
     revision: record.revision,
     named: Boolean(record.title?.trim()),
+    backup: backupStateOf(record),
     unreadable: false,
   }
 }
@@ -129,6 +182,8 @@ export function unreadableSummary(
     documentCount: 0,
     revision: 0,
     named: false,
+    // A record this build cannot read has no trustworthy export history.
+    backup: 'never',
     unreadable: true,
   }
 }

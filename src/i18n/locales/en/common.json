@@ -81,8 +81,6 @@
     "disclaimer": "VisaFlow is an organizational tool. It does not provide legal advice, represent any embassy or visa center, or guarantee a visa decision. Always verify requirements using current official sources."
   },
   "privacy": {
-    "title": "Your data never leaves this browser",
-    "body": "Your dossier is stored in this browser and never sent to a server. Export a JSON file to keep a portable backup.",
     "memoryOnly": "Imported data is saved in this browser and never uploaded. Export a JSON copy to keep a backup."
   },
   "theme": {

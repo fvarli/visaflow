@@ -4,7 +4,8 @@
   "empty": {
     "title": "Henüz kayıtlı dosya yok",
     "description": "Bir dosya oluşturun; burada otomatik olarak saklanır.",
-    "action": "Dosyanı başlat"
+    "action": "Dosyanı başlat",
+    "sessionOnly": "Açık olan dosya bu cihaza kaydedilmediği için burada listelenmez."
   },
   "switcher": {
     "label": "Dosya değiştir",
@@ -22,10 +23,34 @@
     "documents_one": "{{count}} belge",
     "documents_other": "{{count}} belge",
     "updated": "{{date}} tarihinde düzenlendi",
-    "neverExported": "Hiç dışa aktarılmadı",
-    "lastExported": "{{date}} tarihinde dışa aktarıldı",
     "unreadable": "Açılamıyor",
-    "unreadableHint": "Bu dosya VisaFlow'un daha yeni bir sürümüyle kaydedilmiş. Silinmedi — VisaFlow'u güncelleyin veya okuyabilen bir sürümden dosya olarak dışa aktarın."
+    "unreadableHint": "Bu dosya VisaFlow'un daha yeni bir sürümüyle kaydedilmiş. Silinmedi — VisaFlow'u güncelleyin veya okuyabilen bir sürümden dosya olarak dışa aktarın.",
+    "untitled": "Adsız dosya"
+  },
+  "backup": {
+    "never": "Hiç dışa aktarılmadı",
+    "fresh": "Yedeklendi",
+    "stale": "Son dışa aktarmadan bu yana değişiklik var",
+    "freshAt": "{{date}} tarihinde yedeklendi",
+    "staleAt": "{{date}} tarihli yedeğinizden sonra değişti",
+    "action": "Yedeği dışa aktar",
+    "actionAria": "{{name}} dosyasının yedeğini dışa aktar",
+    "recovery": "Ham kopyayı indir",
+    "recoveryAria": "{{name}} dosyasının ham kopyasını indir",
+    "recoveryHint": "Bu dosya bu sürümle açılamadığı için normal bir yedek olarak dışa aktarılamaz. Yine de saklanan veriyi olduğu gibi indirip okuyabilen bir sürümle açabilirsiniz."
+  },
+  "session": {
+    "title": "Bu cihaza kaydedilmedi",
+    "body": "Bu dosya yalnızca bu sekmede duruyor. Sekmeyi kapatmak veya yenilemek çalışmanızı siler.",
+    "promote": "Bu cihazda sakla",
+    "promoteAria": "Bu dosyayı bu cihazda sakla"
+  },
+  "leave": {
+    "title": "Bu yalnızca oturumluk dosyadan çıkılsın mı?",
+    "body": "Bu dosya bu cihaza kaydedilmedi. Başka bir dosya açmak, bu sekmedeki çalışmayı siler.",
+    "stay": "Burada kal",
+    "save": "Bu cihazda sakla",
+    "discard": "Sil ve devam et"
   },
   "rename": {
     "action": "Yeniden adlandır",
@@ -41,13 +66,16 @@
     "title": "{{name}} silinsin mi?",
     "body": "Bu dosya bu tarayıcıdan kalıcı olarak silinir. Daha önce dışa aktardığınız JSON dosyası etkilenmez. Bu işlem geri alınamaz.",
     "cancel": "Dosyayı koru",
-    "confirm": "Dosyayı sil"
+    "confirm": "Dosyayı sil",
+    "activeNote": "Bu dosya şu anda açık; silmek onu kapatır — VisaFlow kayıtlı başka bir dosyayı açar veya düzenleyiciyi boş bırakır.",
+    "unreadableTitle": "Bu açılamayan dosya silinsin mi?",
+    "unreadableBody": "VisaFlow bu dosyayı açamıyor, bu yüzden içinde ne olduğunu önce kontrol edemezsiniz. Geri isteyebileceğinizi düşünüyorsanız ham kopyasını indirin. Bu işlem dosyayı bu tarayıcıdan kalıcı olarak siler ve geri alınamaz."
   },
   "status": {
     "idle": "Henüz kaydedilmedi",
     "saving": "Kaydediliyor…",
     "saved": "Kaydedildi",
-    "savedAt": "{{date}} tarihinde kaydedildi",
+    "savedAt": "Kaydedildi: {{date}}",
     "error": "Kaydedilemedi",
     "errorHint": "Dosyanız hâlâ açık ve hiçbir şey kaybolmadı, ancak bu tarayıcı veriyi saklamayı reddetti. Güvende olmak için bir JSON kopyası dışa aktarın.",
     "sessionOnly": "Yalnızca oturum",
@@ -61,11 +89,6 @@
     "saveHint": "Bu tarayıcıda tutulur; geri döndüğünüzde burada olur. Hiçbir sunucuya gönderilmez.",
     "session": "Yalnızca oturum",
     "sessionHint": "Bu tarayıcıya hiçbir şey yazılmaz. Ortak veya herkese açık bilgisayarlarda önerilir."
-  },
-  "export": {
-    "never": "Hiç dışa aktarılmadı",
-    "at": "Son dışa aktarma: {{date}}",
-    "pending": "Son dışa aktarmadan bu yana değişiklikler var"
   },
   "conflict": {
     "changedTitle": "Bu dosya başka bir sekmede değiştirildi",

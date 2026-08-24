@@ -80,13 +80,21 @@ export function downloadDossier(
     sponsors,
     options
   )
+  downloadJson(json, filename ?? generateFilename(applicant, application))
+}
+
+/**
+ * Hand a JSON string to the browser as a file.
+ *
+ * Extracted so the recovery download for an unreadable record can reuse the
+ * exact same mechanics without pretending to be a dossier export.
+ */
+export function downloadJson(json: string, filename: string): void {
   const blob = new Blob([json], { type: 'application/json' })
   const url = URL.createObjectURL(blob)
-
-  const defaultFilename = generateFilename(applicant, application)
   const link = document.createElement('a')
   link.href = url
-  link.download = filename ?? defaultFilename
+  link.download = filename
   document.body.appendChild(link)
   link.click()
   document.body.removeChild(link)

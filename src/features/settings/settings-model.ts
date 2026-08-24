@@ -8,6 +8,11 @@ import type { RequirementSource, ReviewStatus } from '@/config/types'
 import { getAllCountryConfigs } from '@/config/countries'
 import { SCHEMA_VERSION } from '@/domain/schemas/dossier.schema'
 import { useDossier } from '@/app/providers/DossierProvider'
+import {
+  useWorkspace,
+  type PersistenceStatus,
+} from '@/app/providers/WorkspaceProvider'
+import type { BackupState } from '@/features/workspace/saved-dossier'
 
 /**
  * The application version, shown in About.
@@ -83,8 +88,14 @@ export interface SettingsInput {
   application: Application | null
   documents: Document[]
   sponsors: Sponsor[]
-  isDirty: boolean
-  lastSaved: Date | null
+  /** What local saving is doing right now, straight from the workspace. */
+  persistence: PersistenceStatus
+  /**
+   * How fresh the user's exported file is, or `null` when there is no saved
+   * record to ask — a session-only dossier keeps no export history, and
+   * claiming one would be the invention this panel used to be full of.
+   */
+  backup: BackupState | null
 }
 
 export interface SettingsModel {
@@ -96,8 +107,8 @@ export interface SettingsModel {
   }
   localData: {
     hasData: boolean
-    isDirty: boolean
-    lastSaved: Date | null
+    persistence: PersistenceStatus
+    backup: BackupState | null
     documentCount: number
     sponsorCount: number
     storageKeys: readonly string[]
@@ -110,7 +121,7 @@ export interface SettingsModel {
 }
 
 export function buildSettingsModel(input: SettingsInput): SettingsModel {
-  const { applicant, application, documents, sponsors, isDirty, lastSaved } =
+  const { applicant, application, documents, sponsors, persistence, backup } =
     input
   const activeCountry = application?.destinationCountry ?? null
   const activeVisaType = application?.visaType ?? null
@@ -147,8 +158,8 @@ export function buildSettingsModel(input: SettingsInput): SettingsModel {
     },
     localData: {
       hasData: applicant !== null || application !== null,
-      isDirty,
-      lastSaved,
+      persistence,
+      backup,
       documentCount: documents.length,
       sponsorCount: sponsors.length,
       storageKeys: STORAGE_KEYS,
@@ -164,6 +175,13 @@ export function buildSettingsModel(input: SettingsInput): SettingsModel {
 /** Component-facing hook: derives the model once per state change. */
 export function useSettingsModel(): SettingsModel {
   const { state } = useDossier()
+  const { status, sessionOnly, summaries, activeId } = useWorkspace()
+  // Only a saved record has export history. Session-only has none by design.
+  const backup =
+    sessionOnly || !activeId
+      ? null
+      : (summaries.find((summary) => summary.id === activeId)?.backup ?? null)
+
   return useMemo(
     () =>
       buildSettingsModel({
@@ -171,9 +189,9 @@ export function useSettingsModel(): SettingsModel {
         application: state.application,
         documents: state.documents,
         sponsors: state.sponsors,
-        isDirty: state.isDirty,
-        lastSaved: state.lastSaved,
+        persistence: status,
+        backup,
       }),
-    [state]
+    [state, status, backup]
   )
 }
