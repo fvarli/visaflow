@@ -158,7 +158,10 @@ appointment-day readiness from the Timeline's exported `buildAppointmentDay`, an
 country pack. It adds only the submission-checklist grouping
 and the print-package split, which separates **pages VisaFlow can generate** from the applicant's **physical
 dossier** of external documents it never holds — a distinction enforced by the type shape, not just by wording
-([ADR-032]).
+([ADR-032]). Those generated sheets are printed from `/review/print`, the one route deliberately registered
+**outside** `AppLayout`: nothing of the app shell renders there, so no navigation, notice or button can reach
+the paper by construction rather than by a print stylesheet that might stop matching. The browser's own print
+dialog produces the PDF; VisaFlow bundles no renderer ([ADR-042]).
 **Dossier readiness has exactly one definition**, owned by `src/features/readiness/` and consumed by the
 Dashboard, Documents, Validation Center, Timeline and Final Review alike — it imports only domain types, so
 it is a graph sink no consumer can cycle through. Readiness measures document preparation only; consistency
@@ -282,3 +285,4 @@ The repository is the **only** thing that touches a storage API; no component re
 [ADR-039]: ./decisions.md
 [ADR-040]: ./decisions.md
 [ADR-041]: ./decisions.md
+[ADR-042]: ./decisions.md

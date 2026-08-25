@@ -535,3 +535,67 @@ above the remount. **Only the browser found this.**
 `/dossiers` at 390 × 844 in TR and EN, light and dark: no horizontal overflow, exactly one `h1`, no
 raw translation key on screen, in all four combinations. No console errors or uncaught exceptions in
 any scenario above.
+
+## Printable appointment package — real Chrome, production build, A4 (ADR-042)
+
+Driven over CDP against `vite preview` on a fresh profile. PDFs produced with `Page.printToPDF` at
+A4 with `preferCSSPageSize`, i.e. the same path as Chrome's Save as PDF; layout measured with
+`Emulation.setEmulatedMedia({ media: 'print' })`.
+
+### The document
+
+| Check | Result |
+|---|---|
+| Final Review offers a real Print action linking to `/review/print` | PASS |
+| All four generated sheets render, in the model's order | PASS |
+| No button, link or `<nav>` inside any printed sheet | PASS |
+| A4 PDF is produced, one page per sheet | PASS |
+| The tab title — the filename Chrome offers — names the dossier | PASS |
+| Nothing is clipped horizontally; the page never scrolls sideways | PASS |
+
+### Truthfulness
+
+| Check | Result |
+|---|---|
+| No trip and no appointment → those two sheets say they have nothing to print | PASS |
+| …and the checklist still prints the country pack's requirements to obtain | PASS |
+| …with unrecorded facts marked unrecorded, never blank | PASS |
+| Trip dates but no route → the itinerary admits it is partial | PASS |
+| A missing appointment prints nothing rather than a page of blanks | PASS |
+| Every sheet carries the "preparation material, not an official form" line | PASS |
+
+### Locale and theme
+
+| Check | Result |
+|---|---|
+| English and Turkish both render all four sheets | PASS |
+| Turkish sheet titles are Turkish, and diacritics render (`Güzergâh özeti`) | PASS |
+| The two locales produce genuinely different PDFs (111 200 vs 116 226 bytes) | PASS |
+| No raw translation key on the page | PASS |
+| Light theme prints black on white | PASS |
+| **Dark theme prints byte-for-byte identically to light** | PASS |
+
+That last row is the whole point of not printing through the app's tokens: the application theme
+provably cannot reach the paper.
+
+### Scale and identity
+
+| Check | Result |
+|---|---|
+| 40 documents + a 44-character Turkish surname: nothing clips | PASS |
+| …and the package paginates past four pages (6 pages, 49 checklist rows) | PASS |
+| Switching the active dossier changes the package | PASS |
+| …and the tab title follows it | PASS |
+
+**Two defects the browser found, which no unit test would have.** The first printout rendered the
+applicant's nationality as `PL`: the code resolved through the country-*pack* namespace, which
+contains only destinations VisaFlow ships a pack for, so every other country fell through to its raw
+code. It now uses `getCountryName` (`Intl.DisplayNames`), the same source the rest of the app uses —
+"Poland", "Polonya". The second: each sheet kept its on-screen card border and rounded corners on
+paper, framing every page in the app's own furniture. Both fixed and re-verified.
+
+**Harness note.** `Page.addScriptToEvaluateOnNewDocument` persists for the life of the tab, so an
+early "set locale to `en`" script silently re-pinned every later navigation — the Turkish run
+produced English titles and three byte-identical PDFs while reporting PASS. The locale is now set
+per-tab before any app code and **asserted** (`documentElement.lang`), and the run compares the two
+locales' PDFs to prove they differ. A verification that cannot fail is not a verification.

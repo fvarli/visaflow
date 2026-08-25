@@ -553,3 +553,268 @@
     animation: shimmer 1.4s ease-in-out infinite;
   }
 }
+
+/* ============================================================================
+ * PRINT — the appointment package (ADR-042)
+ *
+ * Scoped to `.print-surface`, which only `/review/print` renders. Two rules
+ * shape everything below:
+ *
+ * 1. **Paper is not a theme.** The app's tokens flip wholesale in dark mode, so
+ *    printing through them would put a near-black page through the printer, or
+ *    silently drop the ink when the browser declines to print backgrounds.
+ *    These sheets therefore use their own literal ink-on-white values rather
+ *    than `--foreground`/`--background`, which makes the light/dark question
+ *    disappear instead of being answered twice.
+ * 2. **A document, not a screenshot of an app.** No cards, no shadows, no
+ *    rounded surfaces, no accent colour — a printed page earns its structure
+ *    from type, rules and space.
+ * ========================================================================= */
+
+@media print {
+  @page {
+    size: A4;
+    /* The running head and footer are ours, inside the sheet, so the margin
+     * only has to clear the printer's own unprintable edge. */
+    margin: 14mm 14mm 16mm;
+  }
+
+  /* Nothing but the package. The toolbar already lives outside `.print-sheet`;
+   * this makes the guarantee explicit rather than structural-only. */
+  html,
+  body {
+    background: #fff !important;
+    margin: 0;
+    padding: 0;
+  }
+
+  .print-surface {
+    background: #fff !important;
+    color: #000 !important;
+    /* Serif for body copy: it is what documents look like, and it holds up
+     * better at the small sizes a dense checklist needs. */
+    font-family: Georgia, 'Times New Roman', serif;
+    font-size: 10.5pt;
+    line-height: 1.45;
+  }
+
+  .print-surface * {
+    /* Backgrounds are unreliable in print (browsers can be told not to render
+     * them), so nothing may depend on one to be legible. */
+    background: transparent !important;
+    box-shadow: none !important;
+    color: #000 !important;
+  }
+
+  /* On screen each sheet is a card so the preview reads as pages. On paper the
+   * page *is* the page — a rounded frame around it would be the app's furniture
+   * printed as if it were part of the document. */
+  .print-sheet {
+    break-after: page;
+    page-break-after: always;
+    margin: 0;
+    max-width: none;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+  }
+
+  /* No trailing blank sheet. */
+  .print-sheet:last-child {
+    break-after: auto;
+    page-break-after: auto;
+  }
+}
+
+@layer components {
+  /* Shared by screen preview and paper, so what you see is what prints. Only
+   * the values that must differ are overridden in the `@media print` block. */
+  .print-sheet {
+    margin: 0 auto 2rem;
+    max-width: 46rem;
+    padding: 2rem 2.25rem;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg, 0.75rem);
+  }
+
+  .print-sheet-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.5rem 1rem;
+    padding-bottom: 0.6rem;
+    border-bottom: 1.5px solid currentColor;
+  }
+
+  .print-sheet-title {
+    font-size: 1.15rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    text-wrap: pretty;
+  }
+
+  .print-sheet-meta {
+    font-size: 0.8rem;
+    opacity: 0.75;
+  }
+
+  .print-sheet-body {
+    padding-top: 1rem;
+    /* A sheet's content should not be split mid-thought when it does fit. */
+    break-inside: auto;
+  }
+
+  .print-sheet-foot {
+    margin-top: 1.25rem;
+    padding-top: 0.6rem;
+    border-top: 1px solid currentColor;
+    font-size: 0.7rem;
+    line-height: 1.35;
+    opacity: 0.75;
+    text-wrap: pretty;
+  }
+
+  /* Facts ------------------------------------------------------------------ */
+
+  .print-facts {
+    display: grid;
+    grid-template-columns: minmax(9rem, 14rem) 1fr;
+    gap: 0;
+  }
+
+  .print-fact {
+    display: contents;
+  }
+
+  .print-fact > dt,
+  .print-fact > dd {
+    padding: 0.4rem 0;
+    border-bottom: 1px dotted currentColor;
+    break-inside: avoid;
+    /* A long Turkish label or an unbroken passport number must wrap, not clip. */
+    overflow-wrap: anywhere;
+  }
+
+  .print-fact > dt {
+    padding-right: 1rem;
+    font-weight: 600;
+    opacity: 0.85;
+  }
+
+  /* Absence is stated, never left blank — a blank line reads as an omission. */
+  .print-fact-missing {
+    font-style: italic;
+    opacity: 0.6;
+  }
+
+  /* Checklist -------------------------------------------------------------- */
+
+  .print-group {
+    margin-top: 1.1rem;
+    break-inside: avoid-page;
+  }
+
+  .print-group-title {
+    font-size: 0.9rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    padding-bottom: 0.25rem;
+    border-bottom: 1px solid currentColor;
+  }
+
+  .print-checklist {
+    margin-top: 0.35rem;
+  }
+
+  .print-checklist > li {
+    display: flex;
+    align-items: baseline;
+    gap: 0.6rem;
+    padding: 0.3rem 0;
+    border-bottom: 1px dotted currentColor;
+    break-inside: avoid;
+  }
+
+  /* Drawn with a border rather than a glyph: a checkbox character is a font
+   * lottery, and this is the one thing on the page the applicant writes in. */
+  .print-tickbox {
+    flex: none;
+    width: 0.72rem;
+    height: 0.72rem;
+    border: 1.2px solid currentColor;
+    border-radius: 2px;
+    transform: translateY(0.05rem);
+  }
+
+  .print-checklist-label {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+
+  .print-checklist-state {
+    flex: none;
+    font-size: 0.75rem;
+    opacity: 0.7;
+    white-space: nowrap;
+  }
+
+  /* Itinerary -------------------------------------------------------------- */
+
+  .print-route {
+    margin-top: 1rem;
+    counter-reset: stop;
+  }
+
+  .print-route > li {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.35rem 0.9rem;
+    padding: 0.4rem 0 0.4rem 1.6rem;
+    border-bottom: 1px dotted currentColor;
+    break-inside: avoid;
+    position: relative;
+  }
+
+  .print-route > li::before {
+    counter-increment: stop;
+    content: counter(stop) '.';
+    position: absolute;
+    left: 0;
+    font-weight: 600;
+    opacity: 0.7;
+  }
+
+  .print-route-place {
+    flex: 1 1 12rem;
+    min-width: 0;
+    font-weight: 600;
+    overflow-wrap: anywhere;
+  }
+
+  .print-route-dates,
+  .print-route-nights {
+    font-size: 0.8rem;
+    opacity: 0.75;
+    white-space: nowrap;
+  }
+
+  /* Notes and honest gaps -------------------------------------------------- */
+
+  .print-note,
+  .print-empty-hint {
+    font-size: 0.82rem;
+    opacity: 0.75;
+    text-wrap: pretty;
+    margin-bottom: 0.6rem;
+  }
+
+  .print-empty {
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+  }
+}

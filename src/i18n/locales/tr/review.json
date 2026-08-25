@@ -133,7 +133,7 @@
   },
   "print": {
     "title": "Yazdırma paketi",
-    "description": "Bir sonraki adımın önizlemesi. Yazdırma henüz geliştirilmedi — burada neyin yazdırılabilir olacağını ve neyi kendiniz hazırlayacağınızı görürsünüz.",
+    "description": "Birbirine hiç karıştırılmayan iki ayrı şey: VisaFlow'un kaydettiklerinizden üretebildiği sayfalar ve yalnızca sizin toplayabileceğiniz kendi belge klasörünüz.",
     "generated": {
       "title": "VisaFlow'un üretebileceği sayfalar",
       "description": "Girdiğiniz dosya bilgilerinden oluşturulur. Buradakilerin hiçbiri bir dosya içermez — VisaFlow hiçbir zaman dosya tutmaz.",
@@ -167,7 +167,25 @@
       "missing": "Hazır değil",
       "notApplicable": "Gerekli değil"
     },
-    "notYet": "Yazdırma ve PDF dışa aktarma ileriki bir sürüm için planlanıyor."
+    "action": "Randevu dosyasını yazdır",
+    "actionHint": "Bu sekmede yazdırılabilir bir sürüm açar. Yazdırmak ya da PDF olarak kaydetmek için tarayıcınızın Yazdır penceresini kullanın.",
+    "surface": {
+      "heading": "Randevu dosyası",
+      "lead": "Kaydettiğiniz dosya bilgilerinden hazırlandı. Yazdırmadan önce gözden geçirin.",
+      "documentTitle": "Randevu dosyası — {{dossier}}",
+      "print": "Yazdır",
+      "back": "Son İncelemeye dön",
+      "preparedOn": "Hazırlanma: {{date}}",
+      "disclaimer": "Yalnızca hazırlık materyalidir. Bu resmî bir vize formu değildir ve hiçbir konsolosluk ya da vize merkezi bunu istemez. Gereklilikleri her zaman güncel resmî kaynaklardan doğrulayın.",
+      "unavailable": "Burada henüz yazdırılacak bir şey yok.",
+      "partial": "Bunun bir kısmı henüz kaydedilmedi; tahmin edilmek yerine boş bırakıldı.",
+      "sheetOf": "Sayfa {{index}} / {{total}}",
+      "empty": "Açık bir dosya olmadığı için yazdırılacak bir şey yok.",
+      "routeStop": "{{city}}, {{country}}",
+      "routeNights_one": "{{count}} gece",
+      "routeNights_other": "{{count}} gece",
+      "checklistNote": "Her belgeyi klasöre koydukça işaretleyin."
+    }
   },
   "looksGood": {
     "title": "Şimdiden iyi görünenler",

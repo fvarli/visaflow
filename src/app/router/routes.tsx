@@ -23,6 +23,7 @@ const ConsistencyChecksPage = lazy(
   () => import('@/pages/ConsistencyChecksPage')
 )
 const ReviewPage = lazy(() => import('@/pages/ReviewPage'))
+const ReviewPrintPage = lazy(() => import('@/pages/ReviewPrintPage'))
 const NotesPage = lazy(() => import('@/pages/NotesPage'))
 const DossiersPage = lazy(() => import('@/pages/DossiersPage'))
 const SettingsPage = lazy(() => import('@/pages/SettingsPage'))
@@ -222,5 +223,22 @@ export const router = createBrowserRouter([
         ),
       },
     ],
+  },
+  /**
+   * The printable appointment package sits **outside** `AppLayout` on purpose.
+   *
+   * Everything above renders inside the app shell — header, sidebar, footer,
+   * workspace notices. None of that belongs on paper, and hiding it with
+   * `@media print` would leave the guarantee one CSS mistake from failing.
+   * Rendering it nowhere cannot fail. The providers wrap the router (see
+   * `App.tsx`), so this page still reads the open dossier (ADR-042).
+   */
+  {
+    path: '/review/print',
+    element: (
+      <LazyPage>
+        <ReviewPrintPage />
+      </LazyPage>
+    ),
   },
 ])

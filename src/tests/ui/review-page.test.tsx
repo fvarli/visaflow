@@ -200,12 +200,18 @@ describe('Final Review page', () => {
     ).toBeInTheDocument()
   })
 
-  it('states honestly that printing does not exist yet', () => {
+  it('offers a real print action that goes to the print surface', () => {
     renderPage()
-    expect(screen.getByText(i18n.t('review:print.notYet'))).toBeInTheDocument()
+    // The inverse of what this test used to assert. Printing was honestly
+    // absent until it existed; the moment the action shipped, the "not yet"
+    // copy and the missing button both became the lie (ADR-042).
+    const action = screen.getByRole('link', {
+      name: i18n.t('review:print.action'),
+    })
+    expect(action).toHaveAttribute('href', '/review/print')
     expect(
-      screen.queryByRole('button', { name: /print|yazdır/i })
-    ).not.toBeInTheDocument()
+      screen.getByText(i18n.t('review:print.actionHint'))
+    ).toBeInTheDocument()
   })
 
   it('never invents an after-submission procedure', () => {

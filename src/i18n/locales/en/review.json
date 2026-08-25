@@ -133,7 +133,7 @@
   },
   "print": {
     "title": "Print package",
-    "description": "A preview of the next step. Printing is not built yet — this shows what would be printable and what you would assemble yourself.",
+    "description": "Two different things, never blended: the pages VisaFlow can generate from what you recorded, and the folder of your own documents that only you can assemble.",
     "generated": {
       "title": "Pages VisaFlow can generate",
       "description": "Built from the dossier data you entered. Nothing here contains a file — VisaFlow has never held one.",
@@ -167,7 +167,25 @@
       "missing": "Not ready",
       "notApplicable": "Not applicable"
     },
-    "notYet": "Printing and PDF export are planned for a future release."
+    "action": "Print appointment package",
+    "actionHint": "Opens a printable version in this tab. Use your browser's Print dialog to print it or save it as a PDF.",
+    "surface": {
+      "heading": "Appointment package",
+      "lead": "Prepared from the dossier information you recorded. Check it over before you print.",
+      "documentTitle": "Appointment package — {{dossier}}",
+      "print": "Print",
+      "back": "Back to Final Review",
+      "preparedOn": "Prepared {{date}}",
+      "disclaimer": "Preparation material only. This is not an official visa form, and no embassy or visa centre requires it. Always verify requirements using current official sources.",
+      "unavailable": "Nothing to print here yet.",
+      "partial": "Some of this is not recorded yet, and is left blank rather than guessed.",
+      "sheetOf": "Sheet {{index}} of {{total}}",
+      "empty": "There is no dossier open, so there is nothing to print.",
+      "routeStop": "{{city}}, {{country}}",
+      "routeNights_one": "{{count}} night",
+      "routeNights_other": "{{count}} nights",
+      "checklistNote": "Tick each item as you put it in the folder."
+    }
   },
   "looksGood": {
     "title": "What already looks good",

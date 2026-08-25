@@ -1174,3 +1174,67 @@ points in
 `src/components/{layout/AppLayout,settings/ImportExportSection,onboarding/OnboardingCreateStep}.tsx`.
 No schema, storage-format or export-format change: `schemaVersion` remains `1.0.0` and
 `STORAGE_FORMAT_VERSION` remains `2`.
+
+## ADR-042: The Printable Package Is a Route Outside the App Shell, Printed by the Browser, Carrying Only What the Print Model Already Decided
+
+**Status:** Accepted · **Date:** 2026-08-25 · **Extends:** [ADR-032], [ADR-034]
+
+**Decision:** VisaFlow generates its appointment package as a **separate route rendered outside
+`AppLayout`** (`/review/print`), styled for A4 with `@media print`, and printed by the **browser's
+own** print dialog. Three consequences follow deliberately:
+
+1. **No PDF library.** Chrome's Save as PDF already produces the file. Shipping a renderer to
+   duplicate it would add weight every visitor downloads to serve one page.
+2. **No new content model.** The four sheets, their order and their availability come from
+   `buildPrintPackage` unchanged ([ADR-032]); their *content* comes from `ApplicationSummary` and
+   `SubmissionChecklist`, which already existed. No dossier field exists solely for printing, and
+   `schemaVersion` stays `1.0.0`.
+3. **Paper is not a theme.** The print stylesheet uses literal ink-on-white values rather than the
+   app's semantic tokens.
+
+**Context:** [ADR-032] modelled what *would* be printable — a closed set of generated sheets, held
+apart from the applicant's own physical documents — and shipped a read-only preview that said so:
+*"There is no Print button, because printing does not exist yet and a button that does nothing is
+worse than none."* The model, its availability states and its boundary were decided and tested; only
+the output existed nowhere. A grep for `window.print`, `@media print` and any PDF dependency returned
+nothing at all.
+
+**Rationale:**
+
+- **Outside the shell, not hidden by CSS.** The requirement is that no navigation, sidebar, workspace
+  notice or button reaches the paper. `display: none` in a print stylesheet would satisfy that until
+  the first rule that stops matching; a route that never renders the shell cannot regress. The
+  providers wrap the router, so the open dossier is still in scope — the isolation costs nothing.
+- **The browser is the print engine.** A bundled PDF renderer would need its own fonts, its own
+  layout, and its own Turkish text shaping — a second rendering path to keep in sync with the first,
+  paid for by every page load. The browser already has all of it. If browser printing ever cannot
+  meet the requirement, that is a finding to report, not a dependency to add quietly.
+- **The theme must not reach the paper.** The app's tokens flip wholesale in dark mode, so printing
+  through them would send a near-black page to the printer — or, when the browser is told not to
+  print backgrounds, drop the ink and leave nothing. Literal values make the light/dark question
+  disappear instead of answering it twice.
+- **Absence is printed, not skipped.** A sheet the model calls `unavailable` prints one honest line
+  and its hint; a `partial` sheet says so and leaves the gaps empty. A blank line on paper reads as
+  an omission the applicant made, which is the opposite of the truth.
+- **The tab title is the filename.** Chrome offers `document.title` as the Save-as-PDF name, so the
+  page sets it from the dossier. A folder of files all called `VisaFlow.pdf` helps nobody. It is
+  restored on unmount so navigating back does not leave the tab lying.
+- **Preparation material, never a form.** Every sheet carries the disclaimer, not just the first —
+  a page separated from the others still has to say what it is. VisaFlow generates no official form
+  and claims no embassy requires this ([ADR-016] unaffected: nothing here predicts an outcome).
+
+**Trade-off:** page breaks, widow control and margins are the browser's, so output differs slightly
+between engines and cannot be pixel-guaranteed. That is the cost of not shipping a renderer, and it
+is the right side of the trade for a document the applicant prints once.
+
+**Consequences:** `PrintPackage.tsx` loses the comment that documented printing's absence and gains
+the action; `review.print.notYet` and the old `print.description` are deleted, and the test that
+asserted *"printing does not exist yet"* is inverted rather than removed — it now asserts the action
+is real. Verified in real Chrome against the production build via `Page.printToPDF` at A4, in both
+locales and both application themes.
+
+**Implementation:** `src/pages/ReviewPrintPage.tsx` (new), the `/review/print` entry in
+`src/app/router/routes.tsx` (deliberately a sibling of `AppLayout`, not a child), the print layer at
+the end of `src/index.css`, the action in `src/components/review/PrintPackage.tsx`, and
+`src/i18n/locales/{tr,en}/review.json`. `review-print.ts` is **unchanged**. No schema, storage-format
+or export-format change: `schemaVersion` remains `1.0.0` and `STORAGE_FORMAT_VERSION` remains `2`.

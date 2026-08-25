@@ -72,8 +72,8 @@ actually preparing — the ability to manage more than one application and to ge
 data they've already entered.
 
 **Status:** the phase's flagship — multiple saved dossiers — shipped as **v1.1.0** on 2026-08-25.
-The phase itself stays open: the richer dossier/timeline and the printable index below are still
-ahead.
+The printable appointment package followed in the same 1.x line. The phase stays open: the richer
+dossier/timeline below is still ahead.
 
 - **Multiple saved dossiers** — **shipped in v1.1.0.** Dossiers are saved in the browser's IndexedDB
   behind a repository port, survive refresh and restart, and can be created, switched and deleted
@@ -90,12 +90,13 @@ ahead.
   deletion is authoritative by design, and an import reports what it could not read (ADR-041).
   *Done.*
 - **Richer dossier & timeline** — deeper trip/finance/sponsor structure and a fuller timeline. *Next.*
-- **PDF / printable index** — generate a dossier index and a printable checklist for the
-  appointment. The Final Review workspace already models what is printable: a closed set of
-  VisaFlow-generated sheets (cover sheet, submission checklist, appointment summary, itinerary
-  summary) with a readiness derived from data presence, held deliberately separate from the
-  applicant's own physical documents, which VisaFlow never holds or prints ([ADR-032]). This
-  phase implements the generation against that existing shape. *Next.*
+- **PDF / printable index** — **shipped.** The four VisaFlow-generated sheets ([ADR-032]) print
+  from `/review/print`, a surface rendered outside the app shell so no navigation or button reaches
+  the paper. A4 print styling, real page breaks, ink on white in both themes; the browser's own
+  Print / Save as PDF produces the file, so no PDF dependency is bundled. Availability semantics are
+  the print model's unchanged — a sheet with nothing to say prints one honest line rather than a
+  page of blanks. The applicant's own physical documents are still never held or printed
+  ([ADR-042]). *Done.*
 
 ---
 
@@ -191,3 +192,4 @@ Implementation status of the current phase is tracked in [current-status.md](./c
 
 [ADR-016]: ./decisions.md
 [ADR-032]: ./decisions.md
+[ADR-042]: ./decisions.md

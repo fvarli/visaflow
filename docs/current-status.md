@@ -162,7 +162,17 @@ v1.0 export written by this build is still readable by v1.0.
       separates *pages VisaFlow can generate* from the applicant's *physical dossier*
       of external documents it never holds. Pure adapters in `src/features/review/*`;
       composition only — no new readiness, no new counts, no second document-status
-      store, no PDF yet, no fake Print button (ADR-032)
+      store, no fake Print button (ADR-032)
+- [x] **Printable appointment package** — the four generated sheets ADR-032 modelled
+      are now actually printable, from a `/review/print` route rendered **outside**
+      the app shell so no navigation, sidebar or button can reach the paper.
+      A4 `@media print` styling with real page breaks; the browser's own Print /
+      Save as PDF does the rendering, so VisaFlow ships no PDF dependency. The
+      sheets, their order and their availability come from `buildPrintPackage`
+      unchanged; an `unavailable` sheet prints one honest line rather than a page
+      of blanks and a `partial` one says so. Prints as ink on white in both
+      application themes, and the tab title — the filename Chrome offers — names
+      the dossier. The applicant's own documents are never rendered (ADR-042)
 - [x] **One canonical dossier readiness** — `src/features/readiness/` owns the single
       definition; Dashboard, Documents, Validation Center, Timeline and Final Review all
       consume it and render it under one shared label (`common:readiness.*`). Six divergent

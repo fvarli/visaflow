@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { ArrowUpRight, FolderClosed, Printer } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { StatusBadge } from '@/components/ui/status-badge'
 import { dynamicT } from '@/lib/i18n-dynamic'
@@ -25,8 +26,11 @@ interface PrintPackageProps {
  * have them, at bundle granularity, because the item-level detail already lives
  * in the checklist above.
  *
- * This is a read-only preview. There is no Print button, because printing does
- * not exist yet and a button that does nothing is worse than none.
+ * The action below opens `/review/print`, a surface rendered outside the app
+ * shell so that no navigation, sidebar or button can reach the paper. Printing
+ * itself is the browser's — VisaFlow adds no PDF engine, because Chrome's own
+ * Save as PDF already produces the file and shipping a renderer to duplicate it
+ * would be weight the user pays for on every page load (ADR-042).
  */
 export function PrintPackage({ print }: PrintPackageProps) {
   const { t } = useTranslation('review')
@@ -137,7 +141,17 @@ export function PrintPackage({ print }: PrintPackageProps) {
         </CardContent>
       </Card>
 
-      <p className="text-caption text-muted-foreground">{t('print.notYet')}</p>
+      <div className="flex flex-col gap-1.5">
+        <Button asChild variant="outline" className="self-start">
+          <Link to="/review/print">
+            <Printer />
+            {t('print.action')}
+          </Link>
+        </Button>
+        <p className="text-caption text-muted-foreground text-pretty">
+          {t('print.actionHint')}
+        </p>
+      </div>
     </div>
   )
 }
