@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 import { describe, it, expect, beforeEach } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import i18n, {
@@ -177,8 +177,14 @@ describe('Applicant wizard — interaction', () => {
     )
 
     // The step opens on the Yes/No disclosure; reveal the editor first.
+    // Scoped to its own radiogroup — the step also carries a refusals
+    // disclosure now, and both offer a control labelled "Yes".
     await user.click(
-      await screen.findByRole('radio', {
+      within(
+        await screen.findByRole('radiogroup', {
+          name: i18n.t('applicant:disclosure.previousVisasQuestion'),
+        })
+      ).getByRole('radio', {
         name: i18n.t('applicant:disclosure.yes'),
       })
     )
@@ -253,7 +259,11 @@ describe('Applicant wizard — progressive disclosure & guidance', () => {
 
     // Choosing "Yes" reveals the editor.
     await user.click(
-      screen.getByRole('radio', { name: i18n.t('applicant:disclosure.yes') })
+      within(
+        screen.getByRole('radiogroup', {
+          name: i18n.t('applicant:disclosure.previousVisasQuestion'),
+        })
+      ).getByRole('radio', { name: i18n.t('applicant:disclosure.yes') })
     )
     expect(
       await screen.findByRole('button', {

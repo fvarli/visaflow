@@ -286,3 +286,4 @@ The repository is the **only** thing that touches a storage API; no component re
 [ADR-040]: ./decisions.md
 [ADR-041]: ./decisions.md
 [ADR-042]: ./decisions.md
+[ADR-043]: ./decisions.md

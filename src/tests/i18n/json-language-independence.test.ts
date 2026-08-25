@@ -6,6 +6,7 @@ import { resolveVisaTemplate } from '@/config/countries'
 import { isRequirementApplicable } from '@/config/types'
 import { DocumentSchema } from '@/domain/schemas/document.schema'
 import type { Document } from '@/domain/schemas/document.schema'
+import { SCHEMA_VERSION } from '@/domain/schemas/dossier.schema'
 
 /**
  * The central compatibility guarantee of this iteration: what you export must
@@ -79,7 +80,7 @@ describe('exported JSON is language-independent', () => {
     delete en.exportedAt
 
     expect(tr).toEqual(en)
-    expect(tr.schemaVersion).toBe('1.0.0')
+    expect(tr.schemaVersion).toBe(SCHEMA_VERSION)
   })
 })
 
@@ -123,7 +124,7 @@ describe('backward compatibility with existing exports', () => {
 
   it('round-trips a full legacy dossier through the import service', () => {
     const legacyDossier = JSON.stringify({
-      schemaVersion: '1.0.0',
+      schemaVersion: SCHEMA_VERSION,
       exportedAt: new Date('2026-01-01T00:00:00.000Z').toISOString(),
       applicant: {
         id: 'a1',

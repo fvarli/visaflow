@@ -22,6 +22,7 @@ const emptyApplicant: Applicant = {
   },
   previousPassports: [],
   previousVisas: [],
+  previousRefusals: [],
   travelHistory: [],
 }
 

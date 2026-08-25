@@ -89,7 +89,14 @@ dossier/timeline below is still ahead.
   Leaving an editor whose work is not in storage is one guarded decision with a way out per reason,
   deletion is authoritative by design, and an import reports what it could not read (ADR-041).
   *Done.*
-- **Richer dossier & timeline** — deeper trip/finance/sponsor structure and a fuller timeline. *Next.*
+- **Richer dossier & timeline** — **partly done, and deliberately narrower than planned.** The audit
+  that opened this item found the canonical dossier *over*-specified rather than under-specified: ten
+  fields had no consumer at all, and two collected identity numbers nothing used. So the dossier grew
+  by exactly one thing that was genuinely missing — visa refusal history — while the identity-number
+  inputs were removed and the unused fields deprecated in place ([ADR-043]). The timeline stopped
+  omitting dates the dossier has not answered and now names them. Deeper trip/finance/sponsor
+  structure remains open, and should be justified the same way: a field needs a named consumer.
+  *In progress.*
 - **PDF / printable index** — **shipped.** The four VisaFlow-generated sheets ([ADR-032]) print
   from `/review/print`, a surface rendered outside the app shell so no navigation or button reaches
   the paper. A4 print styling, real page breaks, ink on white in both themes; the browser's own
@@ -193,3 +200,4 @@ Implementation status of the current phase is tracked in [current-status.md](./c
 [ADR-016]: ./decisions.md
 [ADR-032]: ./decisions.md
 [ADR-042]: ./decisions.md
+[ADR-043]: ./decisions.md

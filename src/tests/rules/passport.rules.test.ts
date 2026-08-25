@@ -21,6 +21,7 @@ function createTestDossier(passportExpiry: string, tripExit: string): Dossier {
       },
       previousPassports: [],
       previousVisas: [],
+      previousRefusals: [],
       travelHistory: [],
     },
     application: {
@@ -96,6 +97,7 @@ describe('passportValidAfterTrip', () => {
         },
         previousPassports: [],
         previousVisas: [],
+        previousRefusals: [],
         travelHistory: [],
       },
       application: {

@@ -4,15 +4,23 @@ This document describes the JSON format used by VisaFlow for importing and expor
 
 ## Schema Version
 
-Current version: `1.0.0`
+Current version: `1.1.0`. VisaFlow **reads** `1.0.0` and `1.1.0`, and **writes** `1.1.0`.
 
-The schema version is included in every exported file to enable future migrations.
+The schema version is included in every exported file. It is not the application version and not the
+local `STORAGE_FORMAT_VERSION` — see the note at the top of [CHANGELOG.md](../CHANGELOG.md).
+
+**A `1.0.0` file needs no migration.** 1.1.0 only *added* an optional list
+(`applicant.previousRefusals`); no field changed meaning and none was removed, so every 1.0.0
+document is already a valid 1.1.0 document and imports with no warning at all. The version moved
+anyway, because the reverse direction is not safe: an **older** VisaFlow strips the new list
+silently, so someone who imported a 1.1.0 file there and re-exported it would lose their refusals
+with nothing said. The version mismatch is what warns them first (ADR-043).
 
 ## Root Structure
 
 ```json
 {
-  "schemaVersion": "1.0.0",
+  "schemaVersion": "1.1.0",
   "exportedAt": "2025-01-15T10:30:00.000Z",
   "applicant": { ... },
   "application": { ... },
@@ -339,7 +347,27 @@ exports that still contain `name` import unchanged; the value is used only as
 a display fallback for codes with no translation. `schemaVersion` stays
 `1.0.0`. See ADR-012.
 
-### Version 1.0.0 (Current)
+### Version 1.1.0 (Current) — 2026-08-25
+
+Adds `applicant.previousRefusals`, a list of refused visa applications:
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| country | string (ISO 3166-1 alpha-2) | Yes | The country that refused the application |
+| refusedOn | string (ISO date) | No | When it was refused, if the applicant recalls |
+| visaType | string | No | The type applied for, as the applicant knew it |
+| notes | string | No | Free text |
+
+A refusal is **not** a `previousVisas` entry with a failed status: nothing was issued, so a visa's
+issue date, expiry date and entry count are all meaningless for it. Modelling it that way would also
+have been unsafe — `previousVisas` is nested inside the applicant, which import parses as one unit, so
+a status an older build did not recognise would have made it drop the applicant's name, passport and
+travel history along with the refusal (ADR-043).
+
+VisaFlow records refusals so the applicant can declare them accurately. It **never** scores, counts,
+compares or predicts anything from them (ADR-016).
+
+### Version 1.0.0
 - Initial schema version
 - All fields and structures as documented above
 - **Unchanged by application v1.1.0.** The saved-dossier workspace added local storage around the

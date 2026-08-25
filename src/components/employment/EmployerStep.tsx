@@ -52,9 +52,7 @@ export function EmployerStep() {
   const hasAdditional = Boolean(
     employment?.department ||
     employment?.employerAddress ||
-    employment?.employerPhone ||
-    employment?.socialSecurityNumber ||
-    employment?.taxId
+    employment?.employerPhone
   )
 
   return (
@@ -159,24 +157,6 @@ export function EmployerStep() {
                     updateEmployment({
                       employerAddress: e.target.value || undefined,
                     })
-                  }
-                />
-              </Field>
-              <Field label={t('fields.socialSecurityNumber')}>
-                <Input
-                  value={employment?.socialSecurityNumber ?? ''}
-                  onChange={(e) =>
-                    updateEmployment({
-                      socialSecurityNumber: e.target.value || undefined,
-                    })
-                  }
-                />
-              </Field>
-              <Field label={t('fields.taxId')}>
-                <Input
-                  value={employment?.taxId ?? ''}
-                  onChange={(e) =>
-                    updateEmployment({ taxId: e.target.value || undefined })
                   }
                 />
               </Field>

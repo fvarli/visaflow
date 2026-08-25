@@ -71,6 +71,7 @@ function applicant(): Applicant {
     },
     previousPassports: [],
     previousVisas: [],
+    previousRefusals: [],
     travelHistory: [],
   }
 }

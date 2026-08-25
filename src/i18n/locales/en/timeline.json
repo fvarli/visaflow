@@ -80,12 +80,19 @@
       "tripEntry": "Trip begins",
       "tripExit": "Trip ends",
       "routeStop": "Stop in {{city}}",
-      "transport": "Transport",
+      "transport": "Departure from {{city}}",
       "accommodation": "Stay in {{city}}",
       "insurance": "Insurance coverage",
       "passportExpiry": "Passport expires",
-      "documentExpiry": "{{document}} valid until"
-    }
+      "documentExpiry": "{{document}} valid until",
+      "transportNoCity": "Departure",
+      "transportArrival": "Arrival in {{city}}",
+      "transportArrivalNoCity": "Arrival"
+    },
+    "missingGroup": "Dates you have not set yet",
+    "missingGroupHint": "These are dates a short-stay application normally has. VisaFlow leaves them blank rather than guessing.",
+    "notRecorded": "Not recorded yet",
+    "add": "Add"
   },
   "freshness": {
     "title": "Document freshness",

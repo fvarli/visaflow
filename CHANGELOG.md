@@ -7,8 +7,9 @@ Notable changes to VisaFlow are documented here. The format is inspired by
 > **Four independent versions.** This file tracks the **application** version. The dossier JSON
 > format carries its own `schemaVersion`, documented in [docs/json-schema.md](docs/json-schema.md);
 > country packs carry a `templateVersion`; and the local storage format carries a
-> `STORAGE_FORMAT_VERSION` that never appears in an exported file. They move independently —
-> neither v1.0.0 nor v1.1.0 changed the dossier schema, which remains `1.0.0`.
+> `STORAGE_FORMAT_VERSION` that never appears in an exported file. They move independently: as of
+> application v1.1.0 the dossier schema is `1.1.0` and the storage format is `2`, and no two of the
+> four have ever moved together.
 
 ## [1.1.0] - 2026-08-25
 

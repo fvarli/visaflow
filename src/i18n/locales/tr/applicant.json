@@ -46,14 +46,16 @@
     "previousVisasQuestion": "Daha önce Schengen vizesi aldınız mı?",
     "travelHistoryQuestion": "Son zamanlarda yurt dışına seyahat ettiniz mi?",
     "yes": "Evet",
-    "no": "Hayır"
+    "no": "Hayır",
+    "refusalsQuestion": "Daha önce bir vize başvurunuz reddedildi mi?"
   },
   "guidance": {
     "dismiss": "Kapat",
     "passportExpiringSoon": "Pasaportunuzun geçerliliği yaklaşık altı ay içinde doluyor. Konsolosluklar genellikle seyahat tarihlerinizin ötesinde geçerlilik bekler; bu nedenle bitiş tarihini erkenden kontrol etmekte fayda var.",
     "passportOld": "Bu pasaport bir süre önce verilmiş. Hâlâ boş sayfalarının olduğunu ve fiziksel durumunun iyi olduğunu kontrol etmek için iyi bir zaman.",
     "noPreviousVisas": "Daha önce Schengen vizesi almamış olmak son derece normaldir — ilk kez başvuranlar yaygındır. Karar yalnızca önceki vizelere değil, başvurunun tamamına dayanır.",
-    "longTravelHistory": "Sağlam bir seyahat geçmişi faydalıdır — önceki uluslararası seyahatler seyahat deneyiminizi göstermeye yardımcı olabilir."
+    "longTravelHistory": "Sağlam bir seyahat geçmişi faydalıdır — önceki uluslararası seyahatler seyahat deneyiminizi göstermeye yardımcı olabilir.",
+    "noRefusals": "Eklenecek bir şey yok. İleride bir vize reddedilirse, doğru beyan edebilmek için buraya kaydedin."
   },
   "nav": {
     "back": "Geri",
@@ -103,7 +105,9 @@
     "entryDate": "Giriş tarihi",
     "exitDate": "Çıkış tarihi",
     "purpose": "Seyahat amacı",
-    "visaRequired": "Bu seyahat için vize gerekiyordu"
+    "visaRequired": "Bu seyahat için vize gerekiyordu",
+    "refusalCountry": "Reddeden ülke",
+    "refusedOn": "Ret tarihi"
   },
   "hints": {
     "countryCode": "İki harfli ülke kodu",
@@ -170,5 +174,15 @@
     "countryRequired": "Ülke zorunludur",
     "visaTypeRequired": "Vize türü zorunludur",
     "entryDateRequired": "Giriş tarihi zorunludur"
+  },
+  "refusals": {
+    "add": "Ret ekle",
+    "addTitle": "Ret ekle",
+    "editTitle": "Reddi düzenle",
+    "untitled": "Ret",
+    "empty": {
+      "title": "Kayıtlı ret yok",
+      "description": "Başvuru formları bunu doğrudan sorar. Buraya kaydetmek beyanınızın tutarlı kalmasını sağlar — VisaFlow bunu yargılamaz ve bundan bir tahmin üretmez."
+    }
   }
 }

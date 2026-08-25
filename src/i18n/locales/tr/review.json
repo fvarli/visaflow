@@ -52,7 +52,8 @@
     "openTrip": "Seyahati aç",
     "openFinance": "Finansmanı aç",
     "openEmployment": "Çalışma durumunu aç",
-    "openSponsors": "Sponsorları aç"
+    "openSponsors": "Sponsorları aç",
+    "refusals": "Önceki retler"
   },
   "checklist": {
     "title": "Teslim kontrol listesi",

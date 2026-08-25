@@ -37,6 +37,20 @@ export interface AppointmentFacts {
   to: string
 }
 
+/**
+ * A refusal the applicant recorded, reduced to what a cover sheet shows.
+ *
+ * Present so Final Review and the printed package can restate a declaration the
+ * form asks for directly. It is **information, never a signal**: nothing here
+ * feeds readiness, and no count of refusals means anything (ADR-016, ADR-043).
+ */
+export interface RefusalFact {
+  country: string
+  /** ISO, or null — an applicant may not remember the date. */
+  refusedOn: string | null
+  visaType: string | null
+}
+
 export interface ApplicationSummary {
   /** Full legal name as recorded, or null. Presentation decides how to show it. */
   applicantName: string | null
@@ -55,6 +69,9 @@ export interface ApplicationSummary {
   /** Surfaced only when the funding actually involves sponsors. */
   sponsorCount: SummaryFact<number> | null
   applicantTo: string
+  /** Empty when none are recorded — the absence is never itself displayed. */
+  refusals: RefusalFact[]
+  refusalsTo: string
 }
 
 function nonEmpty(value: string | undefined | null): string | null {
@@ -119,5 +136,11 @@ export function buildApplicationSummary(
       ? { value: sponsors.length, to: '/sponsors' }
       : null,
     applicantTo: '/applicant',
+    refusals: (applicant?.previousRefusals ?? []).map((refusal) => ({
+      country: refusal.country,
+      refusedOn: refusal.refusedOn ?? null,
+      visaType: nonEmpty(refusal.visaType),
+    })),
+    refusalsTo: '/applicant?step=previousVisas',
   }
 }

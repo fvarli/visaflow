@@ -1763,6 +1763,7 @@ const DEMO_APPLICANT: Applicant = {
   },
   previousPassports: [],
   previousVisas: [],
+  previousRefusals: [],
   travelHistory: [],
 }
 

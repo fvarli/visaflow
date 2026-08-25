@@ -21,7 +21,9 @@ describe('timeline-links — task routes', () => {
 
 describe('timeline-links — event routes', () => {
   it('routes each fixed-event type to its editor', () => {
-    expect(eventLink('appointment')).toBe('/trip')
+    // The appointment lives in the trip wizard's dates step; this used to
+    // name the page only, so the link opened on whichever step resumed.
+    expect(eventLink('appointment')).toBe('/trip?step=dates')
     expect(eventLink('leave')).toBe('/employment?step=leave')
     expect(eventLink('tripEntry')).toBe('/trip?step=dates')
     expect(eventLink('accommodation')).toBe('/trip?step=accommodation')

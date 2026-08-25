@@ -9,6 +9,15 @@ import type { Document } from '@/domain/schemas/document.schema'
  * over appointment, approved leave, trip, itinerary, reservations, insurance,
  * passport, and document validity. Pure: stored values stay ISO; formatting and
  * labels are resolved at the UI boundary.
+ *
+ * **An absent date is a result, not a gap in the list.** This originally pushed
+ * an event only when a date existed, so a dossier with no trip and no
+ * appointment simply rendered a shorter timeline — indistinguishable from one
+ * where those things genuinely do not apply. The anchors a short-stay
+ * application always has are now emitted with `date: null` when the dossier
+ * does not record them yet, so the view can say *"not recorded"* and link to
+ * the editor rather than quietly leaving them out (ADR-043). Nothing here ever
+ * invents a date.
  */
 
 export type KeyDateType =
@@ -18,6 +27,7 @@ export type KeyDateType =
   | 'tripExit'
   | 'routeStop'
   | 'transport'
+  | 'transportArrival'
   | 'accommodation'
   | 'insurance'
   | 'passportExpiry'
@@ -26,16 +36,32 @@ export type KeyDateType =
 export interface KeyDateEvent {
   id: string
   type: KeyDateType
-  /** ISO start date. */
-  date: string
+  /** ISO start date, or `null` when the dossier does not record it yet. */
+  date: string | null
   /** ISO end date, for ranges (leave, accommodation, insurance, route stops). */
   endDate?: string
-  status: 'past' | 'today' | 'upcoming'
+  /** `missing` is its own outcome — never sorted or rendered as if it had a date. */
+  status: 'past' | 'today' | 'upcoming' | 'missing'
   /** City, for itinerary/accommodation events. */
   city?: string
   /** Document code, for document-expiry events (label resolved in the UI). */
   documentCode?: string
 }
+
+/**
+ * The anchors a short-stay application always has, whether or not they are
+ * filled in. Deliberately short: these are the dates every applicant will end
+ * up with, so their absence is information. Optional things a particular trip
+ * may genuinely not involve — a route, extra transport legs, more accommodation
+ * — are *not* here, because "no second hotel" is not a gap.
+ */
+const EXPECTED_ANCHORS: readonly KeyDateType[] = [
+  'appointment',
+  'tripEntry',
+  'tripExit',
+  'insurance',
+  'passportExpiry',
+]
 
 export interface KeyDatesInput {
   applicant: Applicant | null
@@ -50,7 +76,11 @@ function dayStatus(iso: string, now: Date): KeyDateEvent['status'] {
   return 'upcoming'
 }
 
-/** All fixed dossier events, sorted ascending by date. Ranges collapse into one event. */
+/**
+ * All fixed dossier events: recorded ones sorted ascending by date, followed by
+ * the expected anchors that are not recorded yet. Ranges collapse into one
+ * event.
+ */
 export function buildKeyDates(input: KeyDatesInput, now: Date): KeyDateEvent[] {
   const { applicant, application, documents } = input
   const events: KeyDateEvent[] = []
@@ -97,7 +127,23 @@ export function buildKeyDates(input: KeyDatesInput, now: Date): KeyDateEvent[] {
 
   trip?.transportReservations?.forEach((t, i) => {
     if (t.departureDate) {
-      push({ id: `transport-${i}`, type: 'transport', date: t.departureDate })
+      push({
+        id: `transport-${i}`,
+        type: 'transport',
+        date: t.departureDate,
+        city: t.departureCity || undefined,
+      })
+    }
+    // The return leg is a date the applicant is just as likely to be checking,
+    // and it was already stored and shown in the trip workspace — it simply
+    // never reached the timeline.
+    if (t.arrivalDate && t.arrivalDate !== t.departureDate) {
+      push({
+        id: `transport-${i}-arrival`,
+        type: 'transportArrival',
+        date: t.arrivalDate,
+        city: t.arrivalCity || undefined,
+      })
     }
   })
 
@@ -142,5 +188,21 @@ export function buildKeyDates(input: KeyDatesInput, now: Date): KeyDateEvent[] {
     }
   }
 
-  return events.sort((a, b) => a.date.localeCompare(b.date))
+  const recorded = events.sort((a, b) =>
+    (a.date ?? '').localeCompare(b.date ?? '')
+  )
+
+  // Anchors the dossier has not answered yet, appended rather than interleaved:
+  // they have no place in a chronology.
+  const present = new Set(recorded.map((event) => event.type))
+  const missing: KeyDateEvent[] = EXPECTED_ANCHORS.filter(
+    (type) => !present.has(type)
+  ).map((type) => ({
+    id: `missing-${type}`,
+    type,
+    date: null,
+    status: 'missing' as const,
+  }))
+
+  return [...recorded, ...missing]
 }

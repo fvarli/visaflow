@@ -28,6 +28,7 @@ function createTestDossier(overrides: Partial<Dossier> = {}): Dossier {
       },
       previousPassports: [],
       previousVisas: [],
+      previousRefusals: [],
       travelHistory: [],
     },
     application: {

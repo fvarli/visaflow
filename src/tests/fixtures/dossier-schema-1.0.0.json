@@ -1,5 +1,5 @@
 {
-  "schemaVersion": "1.1.0",
+  "schemaVersion": "1.0.0",
   "exportedAt": "2025-01-15T10:00:00.000Z",
   "applicant": {
     "id": "applicant-001",
@@ -35,7 +35,6 @@
         "status": "used"
       }
     ],
-    "previousRefusals": [],
     "travelHistory": [
       {
         "country": "DE",

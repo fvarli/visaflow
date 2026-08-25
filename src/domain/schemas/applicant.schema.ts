@@ -6,6 +6,7 @@ import {
 } from '../types/common'
 import {
   PassportSchema,
+  PreviousRefusalSchema,
   PreviousVisaSchema,
   TravelHistoryEntrySchema,
 } from './passport.schema'
@@ -32,6 +33,12 @@ export const ApplicantSchema = z.object({
   passport: PassportSchema,
   previousPassports: z.array(PassportSchema).default([]),
   previousVisas: z.array(PreviousVisaSchema).default([]),
+  /**
+   * Refusals are their own fact, not a visa with a bad outcome — see
+   * `PreviousRefusalSchema`. Added in dossier schema 1.1.0; a 1.0.0 file gains
+   * an empty array by default, which changes nothing it recorded.
+   */
+  previousRefusals: z.array(PreviousRefusalSchema).default([]),
   travelHistory: z.array(TravelHistoryEntrySchema).default([]),
 })
 

@@ -1238,3 +1238,92 @@ locales and both application themes.
 the end of `src/index.css`, the action in `src/components/review/PrintPackage.tsx`, and
 `src/i18n/locales/{tr,en}/review.json`. `review-print.ts` is **unchanged**. No schema, storage-format
 or export-format change: `schemaVersion` remains `1.0.0` and `STORAGE_FORMAT_VERSION` remains `2`.
+
+## ADR-043: A Canonical Dossier Field Must Have a Named Consumer; a Refusal Is Its Own Fact, Not a Visa Status; Absence Is a Timeline Outcome
+
+**Status:** Accepted · **Date:** 2026-08-25 · **Extends:** [ADR-012], [ADR-015], [ADR-016],
+[ADR-024], [ADR-029]
+
+**Decision:** Four rules, from one audit.
+
+1. **A field may not exist in the canonical dossier without a named consumer** — editing, validation,
+   readiness, review, timeline, print, or a country-pack requirement. Speculative fields are debt with
+   a privacy cost.
+2. **A visa refusal is modelled as its own list** (`applicant.previousRefusals`), never as a `status`
+   on `PreviousVisa`.
+3. **The dossier `schemaVersion` moves to 1.1.0** — because an *older* build cannot round-trip the new
+   representation without silent loss, not because the parser objects.
+4. **An unrecorded date is a timeline result**, rendered as itself, not an entry left out of the list.
+
+**Context:** This sprint was opened to make the dossier *richer*. The audit found the opposite
+problem. Ten fields were declared and referenced by no production code; `EmployerDetails` had never
+been written by any build and appears in no export VisaFlow has ever produced; `application.status`
+carries a seven-value lifecycle no interface writes. Most sharply, `employment.socialSecurityNumber`
+and `employment.taxId` were **collected in the employment wizard, stored, and exported** — and never
+displayed, validated, reviewed, printed, or required by any country pack. A privacy-first product was
+asking for a national identity number it had no use for.
+
+Meanwhile the country packs read exactly two dossier paths (`employment.employmentStatus`,
+`financing.source`), and the timeline — the other half of the sprint's title — silently omitted every
+date the dossier had not answered, so an empty dossier and a not-applicable one looked identical.
+
+**Rationale:**
+
+- **The audit is the deliverable.** Adding fields to a schema already wider than the product would
+  have produced exactly the debt this decision now forbids. "A visa form somewhere contains it" is not
+  a product use.
+- **Refusal is genuinely missing, and genuinely bounded.** `previousVisas` exists to help with the
+  form's previous-travel section, and the answer to *"have you ever been refused?"* could not be
+  recorded at all. Modelling it as `status: 'refused'` was the obvious move and is the wrong one on
+  two counts. Semantically nothing was issued, so `issueDate`, `expiryDate` and `entryCount` are all
+  inapplicable. Mechanically, `previousVisas` is nested inside `ApplicantSchema`, which
+  `importPartial` parses as a single unit — a value outside a `z.enum` fails the whole applicant, so
+  an older build reading a newer file would lose the applicant's **name, passport and travel
+  history**, not just the refusal. An unknown *key* is stripped harmlessly; an unknown *enum value* is
+  fatal. Both behaviours are pinned by test.
+- **The bump is about meaning, not parsing.** Unknown keys are stripped and a version mismatch only
+  warns — which is precisely what makes the loss invisible: import a 1.1.0 file into an older build,
+  re-export, and the refusals are gone with nothing said. The version is the signal that fires first.
+  It buys announcement, not protection; no bump can make an old build understand a new field.
+  `SUPPORTED_SCHEMA_VERSIONS` keeps 1.0.0 a first-class readable version, so the bump costs existing
+  users no warning and no migration — a 1.0.0 document *is* a 1.1.0 document with an empty list.
+- **Deprecate, do not delete.** Removing `EmployerDetails`, `applicationName` or the identity numbers
+  would silently drop whatever a hand-authored or previously-saved file carries. The fields stay,
+  marked `@deprecated`, so existing documents round-trip byte-for-byte — the linter now flags anyone
+  who reaches for them. **Collection** stops; **data** is never destroyed on the user's behalf.
+- **Refusal never becomes a signal.** It does not reach readiness, is not counted, is not compared,
+  and produces no finding ([ADR-016]). Final Review and the printed cover sheet show it only when
+  recorded — an empty "Previous refusals" line on a sheet handed across a counter reads as an
+  accusation, and having none is both the default and nobody's business.
+- **No Greece requirement was invented.** A refusal letter is a plausible thing to bring, and the
+  Greece tourism pack carries `reviewStatus: 'unverified'` with **no source citation at all**.
+  [ADR-015] forbids implying a requirement is official merely because it appears in the app, so the
+  conditional was not added. The evidence, not the plausibility, decided it.
+- **A blank line in a timeline should look like a question.** `buildKeyDates` now emits the anchors a
+  short-stay application always has — appointment, trip entry and exit, insurance window, passport
+  expiry — with `date: null` when the dossier has not answered them, appended after the chronology
+  rather than interleaved, because a dateless event has no place in one. Optional things a trip may
+  genuinely not involve are deliberately excluded: "no second hotel" is not a gap.
+
+**Trade-off:** the bump means a *future* build reading these files sees 1.1.0 where it might have
+seen 1.0.0, and the two identity-number fields remain in the schema as dead weight rather than being
+cleaned away. Both are the cost of never destroying a user's data to tidy our own model.
+
+**Consequences:** `SCHEMA_VERSION` is `1.1.0`, `SUPPORTED_SCHEMA_VERSIONS` is new, and
+`DossierSchema.schemaVersion` accepts any supported version rather than `z.literal`. The import
+warning is keyed on *readable*, not on *identical*, so an existing 1.0.0 export imports with no
+warning at all. `STORAGE_FORMAT_VERSION` remains `2` — the IndexedDB record wraps the payload opaquely
+and gained nothing ([ADR-036]); a test asserts it. `KeyDateEvent.date` is now nullable and its status
+gains `missing`. A frozen copy of the v1.1.0 example dossier lives at
+`src/tests/fixtures/dossier-schema-1.0.0.json` as a real legacy artifact rather than a trimmed
+imitation.
+
+**Implementation:** `src/domain/schemas/{passport,applicant,dossier,employment}.schema.ts`,
+`src/features/import-export/services/import.service.ts`,
+`src/features/timeline/{timeline-dates,timeline-links}.ts`,
+`src/components/timeline/KeyDatesTimeline.tsx`,
+`src/components/applicant/PreviousVisasStep.tsx`,
+`src/components/employment/EmployerStep.tsx`, `src/features/review/review-summary.ts`,
+`src/components/review/ApplicationSummary.tsx`, `src/pages/ReviewPrintPage.tsx`, and
+`src/i18n/locales/{tr,en}/*`. No storage-format change; no validation rule added or changed; no
+readiness input added.

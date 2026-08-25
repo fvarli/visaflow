@@ -1,6 +1,9 @@
 import { useState, useCallback, useRef, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
-import { SCHEMA_VERSION } from '@/domain/schemas/dossier.schema'
+import {
+  SCHEMA_VERSION,
+  isSupportedSchemaVersion,
+} from '@/domain/schemas/dossier.schema'
 import { Outlet } from 'react-router-dom'
 import { Sidebar } from './Sidebar'
 import { Header } from './Header'
@@ -86,8 +89,12 @@ export function AppLayout() {
 
         // Translated from the versions themselves rather than from the English
         // sentence the service composes — that string is a diagnostic, not copy.
+        //
+        // Keyed on *readable*, not on *identical*: this build reads 1.0.0 and
+        // 1.1.0 alike, so telling someone their older export is a version
+        // mismatch would be false alarm (ADR-043).
         const found = result.data?.schemaVersion
-        if (found && found !== SCHEMA_VERSION) {
+        if (found && !isSupportedSchemaVersion(found)) {
           setImportWarnings([
             t('import.versionNote', { found, expected: SCHEMA_VERSION }),
           ])

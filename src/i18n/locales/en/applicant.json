@@ -46,14 +46,16 @@
     "previousVisasQuestion": "Have you held a Schengen visa before?",
     "travelHistoryQuestion": "Have you traveled internationally recently?",
     "yes": "Yes",
-    "no": "No"
+    "no": "No",
+    "refusalsQuestion": "Has a visa application of yours ever been refused?"
   },
   "guidance": {
     "dismiss": "Dismiss",
     "passportExpiringSoon": "Your passport expires within about six months. Consulates usually expect validity well beyond your travel dates, so it's worth checking the expiry early.",
     "passportOld": "This passport was issued a while ago. It's a good moment to check it still has blank pages and is in good physical condition.",
     "noPreviousVisas": "No previous Schengen visa is completely normal — first-time applicants are common. A decision rests on the whole application, not on prior visas alone.",
-    "longTravelHistory": "A solid travel history is helpful — previous international trips can help demonstrate your travel experience."
+    "longTravelHistory": "A solid travel history is helpful — previous international trips can help demonstrate your travel experience.",
+    "noRefusals": "Nothing to add. If a visa is ever refused, record it here so you can declare it accurately."
   },
   "nav": {
     "back": "Back",
@@ -103,7 +105,9 @@
     "entryDate": "Entry date",
     "exitDate": "Exit date",
     "purpose": "Purpose of travel",
-    "visaRequired": "A visa was required for this trip"
+    "visaRequired": "A visa was required for this trip",
+    "refusalCountry": "Country that refused",
+    "refusedOn": "Date of refusal"
   },
   "hints": {
     "countryCode": "Two-letter country code",
@@ -170,5 +174,15 @@
     "countryRequired": "Country is required",
     "visaTypeRequired": "Visa type is required",
     "entryDateRequired": "Entry date is required"
+  },
+  "refusals": {
+    "add": "Add a refusal",
+    "addTitle": "Add a refusal",
+    "editTitle": "Edit refusal",
+    "untitled": "Refusal",
+    "empty": {
+      "title": "No refusals recorded",
+      "description": "Application forms ask about this directly. Recording it here keeps your answer consistent — VisaFlow never judges it or predicts anything from it."
+    }
   }
 }

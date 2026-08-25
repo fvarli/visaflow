@@ -4,7 +4,8 @@ import { ArrowUpRight } from 'lucide-react'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { DataList, DataListItem } from '@/components/ui/data-list'
 import { useFormatters } from '@/lib/format'
-import { useCountryName } from '@/lib/countries'
+import { getCountryName, useCountryName } from '@/lib/countries'
+import { useLocale } from '@/app/providers/LocaleProvider'
 import { dynamicT } from '@/lib/i18n-dynamic'
 import type { ApplicationSummary as ApplicationSummaryModel } from '@/features/review/review-summary'
 
@@ -26,6 +27,10 @@ export function ApplicationSummary({ summary }: ApplicationSummaryProps) {
   const td = dynamicT(t)
   const format = useFormatters()
   const destinationName = useCountryName(summary.destinationCountry.value)
+  // A list needs a plain function, not a hook — same resolution as everywhere
+  // else, applied per row.
+  const { locale } = useLocale()
+  const country = (code: string) => getCountryName(code, locale)
 
   const missing = t('review:summary.notRecorded')
 
@@ -156,6 +161,31 @@ export function ApplicationSummary({ summary }: ApplicationSummaryProps) {
                   {t('review:summary.sponsorCount', {
                     count: summary.sponsorCount.value ?? 0,
                   })}
+                </SummaryLink>
+              }
+            />
+          )}
+          {/* Shown only when recorded. "No refusals" is the overwhelming
+              default and printing it would turn a neutral fact into something
+              the applicant feels examined about — and VisaFlow judges none of
+              it either way (ADR-016, ADR-043). */}
+          {summary.refusals.length > 0 && (
+            <DataListItem
+              label={t('review:summary.refusals')}
+              value={
+                <SummaryLink to={summary.refusalsTo}>
+                  {summary.refusals
+                    .map((refusal) =>
+                      [
+                        country(refusal.country),
+                        refusal.refusedOn
+                          ? format.date(refusal.refusedOn)
+                          : null,
+                      ]
+                        .filter(Boolean)
+                        .join(' · ')
+                    )
+                    .join(' / ')}
                 </SummaryLink>
               }
             />

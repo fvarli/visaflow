@@ -1,12 +1,12 @@
 # Current Implementation Status
 
-Last updated: 2026-08-25 — v1.1.0 release preparation
+Last updated: 2026-08-25 — post-v1.1.0 development
 
 Application version **1.1.0** (Phase 1 — Foundation shipped; Phase 2 — the saved-dossier workspace
-— shipped in this release). Four version numbers move independently and only the first of them
-changed here: the dossier JSON `schemaVersion` remains **1.0.0**, the local `STORAGE_FORMAT_VERSION`
-remains **2**, and country-pack `templateVersion`s are untouched. A v1.0 export still imports, and a
-v1.0 export written by this build is still readable by v1.0.
+— shipped in v1.1.0). Four version numbers move independently. Since the release the dossier JSON
+`schemaVersion` has moved to **1.1.0** (it adds `applicant.previousRefusals` and nothing else); the
+local `STORAGE_FORMAT_VERSION` remains **2** and country-pack `templateVersion`s are untouched. This
+build reads dossier schema 1.0.0 and 1.1.0 alike, so every existing export imports with no warning.
 
 ## Completed Features
 
@@ -311,6 +311,9 @@ every bump is applied by hand. `SECURITY.md` is the canonical statement of this.
 ### Lint Warnings (Acceptable)
 - `react-refresh/only-export-components` in route/provider files
 - `react-hooks/incompatible-library` for React Hook Form watch
+- `@typescript-eslint/no-deprecated` on `EmployerDetailsSchema` and the two identity-number fields.
+  These are the deprecation markers working: the fields are kept so existing dossiers still import,
+  and the warning is what stops anything new depending on them (ADR-043)
 - `@typescript-eslint/no-deprecated` where the UI reads the deprecated
   `Document.name` as a legacy fallback (intentional), plus a pre-existing
   Zod `z.email()` deprecation

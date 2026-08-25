@@ -52,7 +52,8 @@
     "openTrip": "Open trip",
     "openFinance": "Open finance",
     "openEmployment": "Open employment",
-    "openSponsors": "Open sponsors"
+    "openSponsors": "Open sponsors",
+    "refusals": "Previous refusals"
   },
   "checklist": {
     "title": "Submission checklist",

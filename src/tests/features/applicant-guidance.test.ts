@@ -37,6 +37,7 @@ function applicant(over: {
     },
     previousPassports: [],
     previousVisas: over.previousVisas ?? [{ country: 'DE', visaType: 'C' }],
+    previousRefusals: [],
     travelHistory: over.travelHistory ?? [],
   }
 }

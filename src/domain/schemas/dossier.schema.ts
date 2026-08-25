@@ -4,11 +4,41 @@ import { ApplicationSchema } from './application.schema'
 import { DocumentSchema } from './document.schema'
 import { SponsorSchema } from './sponsor.schema'
 
-export const SCHEMA_VERSION = '1.0.0' as const
+/**
+ * The version this build **writes**. Independent of the application version and
+ * of `STORAGE_FORMAT_VERSION` — see the note at the top of `CHANGELOG.md`.
+ *
+ * 1.1.0 adds `applicant.previousRefusals`. No field changed meaning and none
+ * was removed, so every 1.0.0 document is already a valid 1.1.0 document; the
+ * bump exists so the loss is *announced* rather than silent. An older build
+ * strips the unknown key without complaint, and a user who imported a 1.1.0
+ * file there and re-exported it would lose their refusals with nothing said.
+ * The version mismatch is what warns them first (ADR-043).
+ */
+export const SCHEMA_VERSION = '1.1.0' as const
+
+/**
+ * Every version this build can **read**. Import accepts all of them unchanged;
+ * only a version outside this list is worth warning about.
+ */
+export const SUPPORTED_SCHEMA_VERSIONS = ['1.0.0', '1.1.0'] as const
+
+export type SupportedSchemaVersion = (typeof SUPPORTED_SCHEMA_VERSIONS)[number]
+
+export function isSupportedSchemaVersion(
+  value: string
+): value is SupportedSchemaVersion {
+  return (SUPPORTED_SCHEMA_VERSIONS as readonly string[]).includes(value)
+}
+
+/** Accepts any version this build reads, rather than only the one it writes. */
+const SchemaVersionSchema = z.enum(SUPPORTED_SCHEMA_VERSIONS)
 
 export const DossierMetadataSchema = z.object({
-  schemaVersion: z.literal(SCHEMA_VERSION),
+  schemaVersion: SchemaVersionSchema,
   exportedAt: z.string().datetime(),
+  /** @deprecated Never written or read by any build. Kept so a hand-authored
+   * file carrying it still imports; do not add consumers (ADR-043). */
   applicationName: z.string().optional(),
   notes: z.string().optional(),
 })
@@ -16,7 +46,7 @@ export const DossierMetadataSchema = z.object({
 export type DossierMetadata = z.infer<typeof DossierMetadataSchema>
 
 export const DossierSchema = z.object({
-  schemaVersion: z.literal(SCHEMA_VERSION),
+  schemaVersion: SchemaVersionSchema,
   exportedAt: z.string().datetime(),
   applicant: ApplicantSchema,
   application: ApplicationSchema,

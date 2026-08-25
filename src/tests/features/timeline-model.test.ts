@@ -25,6 +25,7 @@ const APPLICANT: Applicant = {
   },
   previousPassports: [],
   previousVisas: [],
+  previousRefusals: [],
   travelHistory: [],
 }
 

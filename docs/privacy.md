@@ -185,6 +185,20 @@ nobody notices is not a meaningful choice. If VisaFlow ever adds storage that le
 3. Local-only options will always remain the default
 4. Privacy documentation will be updated first
 
+## What VisaFlow deliberately does not ask for
+
+A dossier field has to earn its place: it must be edited, validated, reviewed, printed, put on the
+timeline, or required by a country pack (ADR-043). Anything else is personal data held for no reason.
+
+VisaFlow previously collected a **national identity / social-security number** and a **tax ID** in the
+employment wizard. Neither was ever displayed, validated, reviewed, printed, or required by any
+country pack — they were stored and exported and used for nothing. Both inputs have been removed.
+
+The two fields remain in the dossier schema, deprecated and optional, for one reason only: a dossier
+that already holds them must still import and export unchanged. Deleting them from the format would
+silently destroy data a user had given us, which is the opposite of the point. Nothing writes them any
+more.
+
 ## Where this is surfaced in the app
 
 The **Settings → Privacy** section restates this model to users in plain language: dossiers are saved in

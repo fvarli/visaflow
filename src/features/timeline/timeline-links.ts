@@ -37,7 +37,10 @@ export function taskLink(domain: TaskDomain): string {
 export function eventLink(type: KeyDateType): string {
   switch (type) {
     case 'appointment':
-      return '/trip'
+      // The appointment is edited in the trip wizard's dates step, which is
+      // what `review-summary` already links to. This pointed at the page but
+      // not the step, so the link opened on whatever step the wizard resumed.
+      return '/trip?step=dates'
     case 'leave':
       return '/employment?step=leave'
     case 'tripEntry':
@@ -46,6 +49,7 @@ export function eventLink(type: KeyDateType): string {
     case 'routeStop':
       return '/trip?step=route'
     case 'transport':
+    case 'transportArrival':
       return '/trip?step=transportation'
     case 'accommodation':
       return '/trip?step=accommodation'

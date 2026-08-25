@@ -295,6 +295,27 @@ function CoverSheet({ summary }: { summary: ApplicationSummary }) {
               )
             : null,
         ],
+        // Only when recorded. Unlike every other row this one is omitted rather
+        // than printed as "not recorded" — an empty refusals line on a sheet
+        // handed across a counter reads as an accusation, and having none is
+        // both the default and nobody's business (ADR-043).
+        ...(summary.refusals.length > 0
+          ? ([
+              [
+                t('review:summary.refusals'),
+                summary.refusals
+                  .map((refusal) =>
+                    [
+                      country(refusal.country),
+                      refusal.refusedOn ? format.date(refusal.refusedOn) : null,
+                    ]
+                      .filter(Boolean)
+                      .join(' · ')
+                  )
+                  .join(' / '),
+              ],
+            ] as [string, string | null][])
+          : []),
       ]}
     />
   )

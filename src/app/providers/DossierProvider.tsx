@@ -101,6 +101,7 @@ function createEmptyApplicant(): Applicant {
     },
     previousPassports: [],
     previousVisas: [],
+    previousRefusals: [],
     travelHistory: [],
   }
 }

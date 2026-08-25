@@ -1,5 +1,10 @@
 import { z } from 'zod'
-import { DossierSchema, SCHEMA_VERSION } from '@/domain/schemas/dossier.schema'
+import {
+  DossierSchema,
+  SCHEMA_VERSION,
+  SUPPORTED_SCHEMA_VERSIONS,
+  isSupportedSchemaVersion,
+} from '@/domain/schemas/dossier.schema'
 import { ApplicantSchema } from '@/domain/schemas/applicant.schema'
 import { ApplicationSchema } from '@/domain/schemas/application.schema'
 import { DocumentSchema } from '@/domain/schemas/document.schema'
@@ -113,12 +118,19 @@ export function importPartial(
   // Counted separately from `errors` — see `ImportResult.omitted`.
   let omitted = 0
 
-  // Check schema version
+  // Check schema version.
+  //
+  // Warn on versions this build cannot read, not merely on versions it does not
+  // *write*. A 1.0.0 export is read exactly as it always was, so warning about
+  // it would be noise; a version from a newer build is worth saying out loud,
+  // because whatever it added is being dropped here (ADR-043).
   if ('schemaVersion' in data && typeof data.schemaVersion === 'string') {
     result.schemaVersion = data.schemaVersion
-    if (data.schemaVersion !== SCHEMA_VERSION) {
+    if (!isSupportedSchemaVersion(data.schemaVersion)) {
       warnings.push(
-        `Schema version mismatch: expected ${SCHEMA_VERSION}, got ${data.schemaVersion}`
+        `Schema version mismatch: this build reads ${SUPPORTED_SCHEMA_VERSIONS.join(
+          ' / '
+        )} and writes ${SCHEMA_VERSION}, but the file says ${data.schemaVersion}`
       )
     }
   }

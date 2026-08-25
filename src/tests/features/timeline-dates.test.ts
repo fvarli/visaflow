@@ -19,10 +19,11 @@ const APPLICANT: Applicant = {
   },
   previousPassports: [],
   previousVisas: [],
+  previousRefusals: [],
   travelHistory: [],
 }
 
-const application = (): Application => ({
+const application = (over: Partial<Application> = {}): Application => ({
   applicationId: 'app1',
   applicantId: 'a1',
   destinationCountry: 'GR',
@@ -69,6 +70,7 @@ const application = (): Application => ({
     },
     budgetCurrency: 'EUR',
   },
+  ...over,
 })
 
 const expiringDoc: Document = {
@@ -86,7 +88,7 @@ const expiringDoc: Document = {
 describe('buildKeyDates — fixed events', () => {
   const now = new Date('2027-03-01')
 
-  it('returns events sorted ascending by date', () => {
+  it('returns recorded events sorted ascending by date', () => {
     const events = buildKeyDates(
       {
         applicant: APPLICANT,
@@ -95,8 +97,22 @@ describe('buildKeyDates — fixed events', () => {
       },
       now
     )
-    const dates = events.map((e) => e.date)
+    // Anchors with no date are appended, not interleaved — they have no place
+    // in a chronology, so only the recorded ones are asserted as sorted.
+    const dates = events
+      .filter((e) => e.date !== null)
+      .map((e) => e.date as string)
     expect([...dates]).toEqual([...dates].sort((a, b) => a.localeCompare(b)))
+    expect(events.filter((e) => e.date === null).length).toBe(
+      events.length - dates.length
+    )
+    // …and every dateless event sits after every dated one.
+    const firstMissing = events.findIndex((e) => e.date === null)
+    if (firstMissing !== -1) {
+      expect(events.slice(firstMissing).every((e) => e.date === null)).toBe(
+        true
+      )
+    }
   })
 
   it('includes the appointment, trip, and document expiry', () => {
@@ -133,5 +149,92 @@ describe('buildKeyDates — fixed events', () => {
     )
     expect(events.find((e) => e.type === 'appointment')?.status).toBe('past')
     expect(events.find((e) => e.type === 'tripExit')?.status).toBe('upcoming')
+  })
+})
+
+describe('buildKeyDates — absence is an outcome, not a gap', () => {
+  const now = new Date('2027-03-01')
+
+  it('names the anchors a bare dossier has not answered yet', () => {
+    const events = buildKeyDates(
+      { applicant: null, application: null, documents: [] },
+      now
+    )
+
+    // Silence used to be the entire behaviour here: no dates, no list, nothing
+    // to say which dates were even expected (ADR-043).
+    const missing = events.filter((e) => e.status === 'missing')
+    expect(missing.map((e) => e.type).sort()).toEqual(
+      [
+        'appointment',
+        'insurance',
+        'passportExpiry',
+        'tripEntry',
+        'tripExit',
+      ].sort()
+    )
+    expect(missing.every((e) => e.date === null)).toBe(true)
+  })
+
+  it('invents no date for anything it could not find', () => {
+    const events = buildKeyDates(
+      { applicant: null, application: null, documents: [] },
+      now
+    )
+    expect(events.every((e) => e.date === null)).toBe(true)
+  })
+
+  it('stops naming an anchor once the dossier records it', () => {
+    const events = buildKeyDates(
+      {
+        applicant: APPLICANT,
+        application: application(),
+        documents: [],
+      },
+      now
+    )
+    const missingTypes = events
+      .filter((e) => e.status === 'missing')
+      .map((e) => e.type)
+
+    // The fixture has an appointment, trip dates and a passport expiry.
+    expect(missingTypes).not.toContain('appointment')
+    expect(missingTypes).not.toContain('tripEntry')
+    expect(missingTypes).not.toContain('passportExpiry')
+  })
+
+  it('reports a return leg as its own arrival event', () => {
+    const events = buildKeyDates(
+      {
+        applicant: APPLICANT,
+        application: application({
+          trip: {
+            entryDate: '2027-04-01',
+            exitDate: '2027-04-10',
+            firstEntryCountry: 'GR',
+            mainDestinationCountry: 'GR',
+            route: [],
+            accommodationReservations: [],
+            transportReservations: [
+              {
+                type: 'flight',
+                departureDate: '2027-04-01',
+                departureCity: 'Istanbul',
+                arrivalDate: '2027-04-10',
+                arrivalCity: 'Athens',
+                status: 'confirmed',
+              },
+            ],
+            budgetCurrency: 'EUR',
+          },
+        }),
+        documents: [],
+      },
+      now
+    )
+
+    const arrival = events.find((e) => e.type === 'transportArrival')
+    expect(arrival?.date).toBe('2027-04-10')
+    expect(arrival?.city).toBe('Athens')
   })
 })

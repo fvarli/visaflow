@@ -80,12 +80,19 @@
       "tripEntry": "Seyahat başlıyor",
       "tripExit": "Seyahat bitiyor",
       "routeStop": "{{city}} durağı",
-      "transport": "Ulaşım",
+      "transport": "{{city}} şehrinden kalkış",
       "accommodation": "{{city}} konaklaması",
       "insurance": "Sigorta kapsamı",
       "passportExpiry": "Pasaport geçerliliği doluyor",
-      "documentExpiry": "{{document}} son geçerlilik"
-    }
+      "documentExpiry": "{{document}} son geçerlilik",
+      "transportNoCity": "Kalkış",
+      "transportArrival": "{{city}} şehrine varış",
+      "transportArrivalNoCity": "Varış"
+    },
+    "missingGroup": "Henüz belirlemediğiniz tarihler",
+    "missingGroupHint": "Bunlar kısa süreli bir başvuruda genellikle bulunan tarihler. VisaFlow tahmin etmek yerine boş bırakır.",
+    "notRecorded": "Henüz kaydedilmedi",
+    "add": "Ekle"
   },
   "freshness": {
     "title": "Belgelerin güncelliği",

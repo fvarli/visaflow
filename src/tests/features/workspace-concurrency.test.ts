@@ -163,7 +163,9 @@ describe('rename', () => {
         'sponsors',
       ].sort()
     )
-    expect(parsed.schemaVersion).toBe('1.0.0')
+    // Read from the constant: this asserts the export carries *the* schema
+    // version, not one particular value that a later bump invalidates.
+    expect(parsed.schemaVersion).toBe(SCHEMA_VERSION)
   })
 
   it("reports whether a title is the user's or derived", () => {

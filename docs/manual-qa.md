@@ -599,3 +599,56 @@ early "set locale to `en`" script silently re-pinned every later navigation — 
 produced English titles and three byte-identical PDFs while reporting PASS. The locale is now set
 per-tab before any app code and **asserted** (`documentElement.lang`), and the run compares the two
 locales' PDFs to prove they differ. A verification that cannot fail is not a verification.
+
+## Richer dossier & timeline — real Chrome, production build (ADR-043)
+
+Driven over CDP against `vite preview` on a fresh profile, in **both locales**, with dossiers seeded
+straight into IndexedDB so the app hydrates them exactly as it would a real one.
+
+### The timeline says what is not recorded
+
+Seeded with the example dossier minus its trip and appointment.
+
+| Check | EN | TR |
+|---|---|---|
+| A "dates you have not set yet" group appears | PASS | PASS |
+| …listing each unrecorded anchor individually (4 rows) | PASS | PASS |
+| …with **no date-looking text anywhere in the group** | PASS | PASS |
+| …each linking to the editor step that owns it | PASS | PASS |
+| `/timeline` — one `h1`, no overflow, no raw translation key | PASS | PASS |
+| `/timeline` at 390 px — one `h1`, no overflow | PASS | PASS |
+| A complete dossier shows no such group at all | PASS | PASS |
+
+The appointment, trip-begins and trip-ends rows link to `/trip?step=dates` and insurance to
+`/trip?step=insurance`. Before this sprint `eventLink('appointment')` returned `/trip` — the page but
+not the step, so the link opened on whichever step the wizard happened to resume.
+
+### A dossier schema 1.0.0 file still works
+
+Seeded from `src/tests/fixtures/dossier-schema-1.0.0.json` — the example dossier exactly as
+application v1.1.0 shipped it, frozen rather than hand-trimmed.
+
+| Check | EN | TR |
+|---|---|---|
+| Opens on the previous-visas step | PASS | PASS |
+| Offers both the visa **and** refusal disclosures | PASS | PASS |
+| `/applicant` — one `h1`, no overflow, no raw translation key | PASS | PASS |
+
+### Refusals are shown, never advertised
+
+| Check | EN | TR |
+|---|---|---|
+| A recorded refusal appears in Final Review, with its date | PASS | PASS |
+| …and on the printed cover sheet | PASS | PASS |
+| A dossier with **no** refusal says nothing about refusals at all | PASS | PASS |
+
+That last row is deliberate. Having none is the overwhelming default, and printing an empty
+"Previous refusals" line on a sheet handed across a counter reads as an accusation.
+
+### Privacy
+
+| Check | EN | TR |
+|---|---|---|
+| The employment step no longer asks for a social-security number or tax ID | PASS | PASS |
+
+No console exception in any scenario, in either locale.

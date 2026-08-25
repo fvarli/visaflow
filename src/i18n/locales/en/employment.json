@@ -62,8 +62,6 @@
     "department": "Department",
     "employerPhone": "Employer phone",
     "employerAddress": "Employer address",
-    "socialSecurityNumber": "Social-security number",
-    "taxId": "Tax ID",
     "monthlyNetIncome": "Monthly net income",
     "currency": "Currency",
     "salaryBank": "Salary bank",

@@ -62,8 +62,6 @@
     "department": "Departman",
     "employerPhone": "İşveren telefonu",
     "employerAddress": "İşveren adresi",
-    "socialSecurityNumber": "Sosyal güvenlik numarası",
-    "taxId": "Vergi numarası",
     "monthlyNetIncome": "Aylık net gelir",
     "currency": "Para birimi",
     "salaryBank": "Maaş bankası",

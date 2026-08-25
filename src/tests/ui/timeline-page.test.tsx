@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 import { describe, it, expect, beforeEach } from 'vitest'
-import { render, screen, fireEvent } from '@testing-library/react'
+import { render, screen, fireEvent, within } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import i18n, {
   DEFAULT_LOCALE,
@@ -156,4 +156,72 @@ describe('Timeline — appointment day is an inventory, not a ratio', () => {
       ).toBeInTheDocument()
     }
   )
+})
+
+describe('Timeline — key dates say what is not recorded', () => {
+  /** The example with its appointment and trip taken away. */
+  const sparse = (): Dossier => {
+    const copy = structuredClone(SEED)
+    delete copy.application.appointment
+    delete copy.application.trip
+    return copy
+  }
+
+  /** The "not set yet" section — these labels also appear elsewhere on the page. */
+  const missingSection = async (): Promise<HTMLElement> => {
+    const heading = await screen.findByText(
+      i18n.t('timeline:keyDates.missingGroup')
+    )
+    const section = heading.closest('section')
+    if (!section) throw new Error('missing group has no section')
+    return section
+  }
+
+  it.each(SUPPORTED_LOCALES)(
+    'lists unrecorded anchors in their own group in "%s"',
+    async (locale) => {
+      await i18n.changeLanguage(locale)
+      renderPage(sparse(), '/timeline?mode=dates')
+      const section = await missingSection()
+
+      // The anchors are named, not merely counted.
+      expect(
+        within(section).getByText(i18n.t('timeline:keyDates.type.appointment'))
+      ).toBeInTheDocument()
+      expect(
+        within(section).getByText(i18n.t('timeline:keyDates.type.tripEntry'))
+      ).toBeInTheDocument()
+      // …each saying so, rather than showing a blank or a guessed date.
+      expect(
+        within(section).getAllByText(i18n.t('timeline:keyDates.notRecorded'))
+          .length
+      ).toBeGreaterThan(0)
+      // And nothing in this group carries a date-looking value.
+      expect(section.textContent).not.toMatch(/\d{4}/)
+    }
+  )
+
+  it('offers a way to add each thing it says is missing', async () => {
+    await i18n.changeLanguage(DEFAULT_LOCALE)
+    renderPage(sparse(), '/timeline?mode=dates')
+    const section = await missingSection()
+
+    const add = within(section).getAllByRole('link')
+    expect(add.length).toBeGreaterThan(0)
+    // The appointment is edited in the trip wizard's dates step — this used to
+    // point at the page and land on whichever step the wizard resumed.
+    const appointment = within(section).getByRole('link', {
+      name: `${i18n.t('timeline:keyDates.add')} — ${i18n.t('timeline:keyDates.type.appointment')}`,
+    })
+    expect(appointment).toHaveAttribute('href', '/trip?step=dates')
+  })
+
+  it('says nothing about absence once the dossier is complete', async () => {
+    await i18n.changeLanguage(DEFAULT_LOCALE)
+    renderPage(SEED, '/timeline?mode=dates')
+    await screen.findByText(i18n.t('timeline:keyDates.upcomingGroup'))
+    expect(
+      screen.queryByText(i18n.t('timeline:keyDates.missingGroup'))
+    ).not.toBeInTheDocument()
+  })
 })
