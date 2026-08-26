@@ -652,3 +652,63 @@ That last row is deliberate. Having none is the overwhelming default, and printi
 | The employment step no longer asks for a social-security number or tax ID | PASS | PASS |
 
 No console exception in any scenario, in either locale.
+
+## Deeper trip, finance & sponsor structure — real Chrome, production build (ADR-044)
+
+Driven over CDP against `vite preview` on a fresh profile, in **both locales**, with dossiers seeded
+into IndexedDB. The populated case is the example dossier plus mixed funding (€2 000 budget, €1 200
+self, €800 sponsored) and one sponsor covering accommodation and food.
+
+### Final Review
+
+| Check | EN | TR |
+|---|---|---|
+| Shows the transport legs | PASS | PASS |
+| Shows the stays | PASS | PASS |
+| Shows the trip purpose | PASS | PASS |
+| Shows the trip budget | PASS | PASS |
+| Shows the funding split | PASS | PASS |
+| **Names the sponsor rather than counting sponsors** | PASS | PASS |
+| …and what that sponsor covers | PASS | PASS |
+| One `h1`, no overflow, no raw translation key | PASS | PASS |
+| At 390 px: one `h1`, no overflow | PASS | PASS |
+
+### Printed package
+
+| Check | EN | TR |
+|---|---|---|
+| Cover sheet carries the trip budget | PASS | PASS |
+| Cover sheet names the sponsor and what they cover | PASS | PASS |
+| Itinerary sheet carries both legs | PASS | PASS |
+| …labelled outbound / return | PASS | PASS |
+| Itinerary sheet carries both stays | PASS | PASS |
+| Itinerary sheet carries the purpose | PASS | PASS |
+
+Before this sprint the itinerary sheet printed two rows — travel dates and duration. The rendered
+A4 output now reads: purpose, `Warsaw → Athens · Outbound · 1 Apr 2027 · Ref. ABC123`,
+`Athens → Warsaw · Return · 10 Apr 2027 · Ref. ABC456`, both hotels with their dates and nights, and
+the route.
+
+### Finance editors
+
+| Check | EN | TR |
+|---|---|---|
+| The personal-finances step now edits budget + both amounts (4 numeric inputs) | PASS | PASS |
+| The consistency step states the split against the budget | PASS | PASS |
+| …with no unrendered `{{placeholder}}` | PASS | PASS |
+
+That last row matters: `params` had been on `ConsistencyObservation` since the module was written and
+no observation had ever used one, so the first to try would have printed its placeholders raw.
+
+### Nothing is invented
+
+Seeded with the trip, financing and sponsors removed.
+
+| Check | EN | TR |
+|---|---|---|
+| No Journey card renders at all | PASS | PASS |
+| No amount appears anywhere | PASS | PASS |
+| No sponsor appears | PASS | PASS |
+| One `h1`, no overflow, no raw translation key | PASS | PASS |
+
+No console exception in any scenario, in either locale.

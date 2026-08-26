@@ -37,6 +37,7 @@ import {
   type ApplicationSummary,
 } from './review-summary'
 import { buildPrintPackage, type PrintPackage } from './review-print'
+import { buildItinerary, type Itinerary } from './review-itinerary'
 
 /**
  * The Final Review workspace model — the last look before the appointment.
@@ -92,6 +93,8 @@ export interface FinalReviewModel {
   /** The Dashboard's `nextActions[0]` — the same single priority everywhere. */
   primaryAction: ActionDescriptor | null
   summary: ApplicationSummary
+  /** The trip as a readable journey — legs, stays and route (ADR-044). */
+  itinerary: Itinerary
   checklist: SubmissionChecklist
   attention: ReviewAttention
   /** Areas that are on file and raise no findings — the Validation Center's. */
@@ -136,6 +139,7 @@ export function buildFinalReviewModel(
     appointmentDate
   )
   const summary = buildApplicationSummary(applicant, application, sponsors)
+  const itinerary = buildItinerary(application?.trip)
   const print = buildPrintPackage(
     summary,
     checklist,
@@ -167,6 +171,7 @@ export function buildFinalReviewModel(
       deriveNextActions(readiness, validation.validation, application)[0] ??
       null,
     summary,
+    itinerary,
     checklist,
     attention: {
       items: actionable.filter((item) => item.finding.severity !== 'info'),

@@ -245,6 +245,20 @@ build reads dossier schema 1.0.0 and 1.1.0 alike, so every existing export impor
 - [x] Add custom documents / re-add template requirements / additive template
       sync (never deletes applicant data); custom docs use a stable `CUSTOM-` code
 
+- [x] **The journey, readable end to end** — the trip was always modelled (route,
+      transport and accommodation have been arrays with real editors since v1.0)
+      and barely surfaced: Final Review and the printed package showed two dates
+      and a night count. Both now carry the transport legs — grouped
+      outbound / during the trip / return, derived from the dates rather than
+      stored — the stays with their nights, the route, and the purpose of travel.
+      Budget, the self/sponsor funding split, and each sponsor by name with the
+      expenses they cover are shown where they were previously a bare count or
+      nothing at all. `trip.estimatedBudget` gained the editor it never had
+      despite being rendered on the dashboard. The split is proof-read against
+      the budget as a calm observation — never against the account balance,
+      never a sufficiency verdict (ADR-044). No schema change: `schemaVersion`
+      stays `1.1.0`
+
 ### Technical
 - [x] TypeScript strict mode
 - [x] Zod schemas for all domain types

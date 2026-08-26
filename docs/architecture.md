@@ -150,6 +150,11 @@ route derives entry from the workspace rather than from `hasData` alone (`firstR
 — no persisted "completed" flag, no new storage key — and the shared `NoDossierState` is the one
 canonical empty-workspace surface routing every empty page into the journey ([ADR-031], superseded in
 part by [ADR-040]).
+`buildItinerary` (`src/features/review/review-itinerary.ts`) is the trip's read model: legs grouped
+outbound/internal/return by comparing their dates against the trip's own, stays and route stops with
+nights derived from their date pairs. It stores nothing and adds no schema — the direction is derived
+precisely so it cannot disagree with the dates ([ADR-044]).
+
 The Final Review workspace (`/review`) is a thin composition over `src/features/review/*` — the last look
 before the appointment, answering a different question from the Validation Center ("what do I have, what am I
 missing, what do I bring?" rather than "what is inconsistent?"). It introduces **no new authority**: readiness
@@ -287,3 +292,4 @@ The repository is the **only** thing that touches a storage API; no component re
 [ADR-041]: ./decisions.md
 [ADR-042]: ./decisions.md
 [ADR-043]: ./decisions.md
+[ADR-044]: ./decisions.md

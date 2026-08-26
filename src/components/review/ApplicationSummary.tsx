@@ -153,17 +153,94 @@ export function ApplicationSummary({ summary }: ApplicationSummaryProps) {
               )
             }
           />
-          {summary.sponsorCount && (
+          {/* The trip's own cost, and how the applicant says it is covered.
+              Declared amounts only: never compared against the balance, never
+              called sufficient (ADR-016). */}
+          {summary.fundingDetail.estimatedBudget !== null && (
             <DataListItem
-              label={t('review:summary.sponsors')}
+              label={t('review:journey.budget')}
               value={
-                <SummaryLink to={summary.sponsorCount.to}>
-                  {t('review:summary.sponsorCount', {
-                    count: summary.sponsorCount.value ?? 0,
-                  })}
+                <SummaryLink to={summary.tripTo}>
+                  {format.currency(
+                    summary.fundingDetail.estimatedBudget,
+                    summary.fundingDetail.budgetCurrency ??
+                      summary.fundingDetail.currency
+                  )}
                 </SummaryLink>
               }
             />
+          )}
+          {summary.fundingDetail.selfFundedAmount !== null && (
+            <DataListItem
+              label={t('review:journey.selfFunded')}
+              value={
+                <SummaryLink to={summary.fundingDetail.to}>
+                  {format.currency(
+                    summary.fundingDetail.selfFundedAmount,
+                    summary.fundingDetail.currency
+                  )}
+                </SummaryLink>
+              }
+            />
+          )}
+          {summary.fundingDetail.sponsoredAmount !== null && (
+            <DataListItem
+              label={t('review:journey.sponsored')}
+              value={
+                <SummaryLink to={summary.fundingDetail.to}>
+                  {format.currency(
+                    summary.fundingDetail.sponsoredAmount,
+                    summary.fundingDetail.currency
+                  )}
+                </SummaryLink>
+              }
+            />
+          )}
+          {/* Sponsors by name and what each covers — the review used to show a
+              bare count, which is not an answer to "who is paying for what". */}
+          {summary.sponsors.length > 0 ? (
+            <DataListItem
+              label={t('review:summary.sponsors')}
+              value={
+                <span className="flex flex-col gap-0.5">
+                  {summary.sponsors.map((sponsor) => (
+                    <SummaryLink key={sponsor.id} to={sponsor.to}>
+                      {[
+                        sponsor.name,
+                        td(
+                          `visa-domain:sponsorRelationship.${sponsor.relationship}`
+                        ),
+                      ]
+                        .filter(Boolean)
+                        .join(' · ')}
+                      {' — '}
+                      {sponsor.covers.length > 0
+                        ? t('review:journey.covers', {
+                            list: sponsor.covers
+                              .map((expense) =>
+                                td(`visa-domain:expenseType.${expense}`)
+                              )
+                              .join(', '),
+                          })
+                        : t('review:journey.coversNothingRecorded')}
+                    </SummaryLink>
+                  ))}
+                </span>
+              }
+            />
+          ) : (
+            summary.sponsorCount && (
+              <DataListItem
+                label={t('review:summary.sponsors')}
+                value={
+                  <SummaryLink to={summary.sponsorCount.to}>
+                    {t('review:summary.sponsorCount', {
+                      count: summary.sponsorCount.value ?? 0,
+                    })}
+                  </SummaryLink>
+                }
+              />
+            )
           )}
           {/* Shown only when recorded. "No refusals" is the overwhelming
               default and printing it would turn a neutral fact into something

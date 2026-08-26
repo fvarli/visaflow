@@ -1327,3 +1327,79 @@ imitation.
 `src/components/review/ApplicationSummary.tsx`, `src/pages/ReviewPrintPage.tsx`, and
 `src/i18n/locales/{tr,en}/*`. No storage-format change; no validation rule added or changed; no
 readiness input added.
+
+## ADR-044: The Trip Was Already Modelled; What Was Missing Was Reading It Back
+
+**Status:** Accepted · **Date:** 2026-08-26 · **Extends:** [ADR-016], [ADR-024], [ADR-032],
+[ADR-043]
+
+**Decision:** Phase 2's "deeper trip, finance and sponsor structure" adds **no dossier field**. It
+adds one pure read model (`buildItinerary`), three editors for fields that already existed, and the
+surfaces that were missing. Four rules follow:
+
+1. **Journey direction is derived, never stored.** A leg is outbound, internal, return or
+   `unscheduled` by comparing its departure date to the trip's own dates.
+2. **A declared amount is a statement, not a score.** The funding split is added up against the trip
+   budget as a proof-read; it is never compared against the account balance and never called
+   sufficient.
+3. **Sponsors are named, with what they cover.** A count is not an answer to "who is paying for what".
+4. **A field that is displayed must be editable.** The reverse is the defect this ADR closes.
+
+**Context:** The audit expected to find the trip under-modelled. It found the opposite. `route`,
+`transportReservations` and `accommodationReservations` are genuine arrays edited through genuine
+`CollectionEditor`s; the example dossier has carried two route stops, two flights and two hotels since
+v1.0. Main-destination reasoning already exists as a rule against the longest stay; a day trip is
+already `nights === 0`; reservation references already exist on both sides.
+
+None of it reached Final Review or the printed package, which showed the trip as two dates and a night
+count. `sponsor.coveredExpenses` — the literal answer to "who pays for what" — reached neither.
+`trip.tripPurpose` was collected and displayed nowhere. And `trip.estimatedBudget` was **rendered on
+the dashboard** (`TripSummary.tsx`) while having no editor anywhere: a Budget row that could only ever
+be filled by importing a file, permanently empty for every user who typed their dossier in.
+`selfFundedAmount` and `sponsoredAmount` were carried into the dashboard model and rendered by
+nothing, while the finance flow printed a `mixedWhoCovers` prompt asking a question the model could
+not answer.
+
+**Rationale:**
+
+- **Integration beats addition, and the audit is what proves which is which.** ADR-043 established
+  that a field needs a named consumer. The corollary discovered here is the mirror image: a field
+  that *has* a consumer but no editor is just as broken, and far easier to miss — the dashboard row
+  looked like a feature.
+- **Direction from dates, not from a flag.** A stored `direction` would be a second source of truth
+  that disagrees with the dates the moment either is edited. The dates already answer it, so
+  `classifyLeg` reads them. A leg with no date, or a trip with no dates to compare against, is
+  `unscheduled` — its own answer, kept and shown last, because filing it under "outbound" and being
+  wrong is worse than admitting the journey is incomplete.
+- **The one piece of arithmetic is bounded deliberately.** `selfFundedAmount + sponsoredAmount`
+  against `estimatedBudget` compares two numbers the applicant typed *against each other*. It refuses
+  to run across mismatched currencies rather than inventing a rate, stays silent when either side is
+  absent, and never reads `accountBalance` — a test asserts the balance never appears in the output.
+  "Your parts add up to €1 700 of a €2 000 budget" is proof-reading; "you do not have enough money"
+  is a prediction, and VisaFlow does not make those ([ADR-016]). Tone caps at `attention`; nothing
+  reaches readiness.
+- **No schema, therefore no version move.** Applying [ADR-043]'s semantic test: an older build
+  importing and re-exporting a file written here sees exactly what it saw before, because the format
+  is untouched. Bumping would warn users about a change that cannot affect them. A test asserts the
+  exported top-level key set and that no journey/itinerary key leaked into `trip`.
+- **`exitCountry` was not added.** It is the obvious symmetry to `firstEntryCountry` and has no
+  consumer — no rule reads it, no surface shows it. Adding it would break the rule this sprint is
+  built on.
+
+**Trade-off:** the printed itinerary can show the same city twice — once as a hotel booking, once as
+a route stop. They are genuinely different facts the applicant recorded separately, and collapsing
+them would mean guessing that a stay and a stop are the same thing.
+
+**Consequences:** `FinalReviewModel` gains `itinerary`; `ApplicationSummary` gains `sponsors` and
+`fundingDetail`. `ConsistencyStep` now passes `observation.params` through to `t()` — the field had
+been on the interface since the module was written and no observation had ever used it, so the first
+one to try would have rendered its placeholders raw. Amounts arrive as numbers plus a currency code
+and are formatted at the UI boundary, never in the domain.
+
+**Implementation:** `src/features/review/review-itinerary.ts` (new, pure),
+`src/features/review/{review-model,review-summary}.ts`,
+`src/components/review/{JourneySummary,ApplicationSummary}.tsx`, `src/pages/{ReviewPage,ReviewPrintPage}.tsx`,
+`src/features/finance/finance-consistency.ts`,
+`src/components/finance/{PersonalFinancesStep,ConsistencyStep}.tsx`, and
+`src/i18n/locales/{tr,en}/{review,finance}.json`. No schema, storage-format or export-format change:
+`schemaVersion` remains `1.1.0` and `STORAGE_FORMAT_VERSION` remains `2`.

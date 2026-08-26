@@ -174,3 +174,48 @@ describe('why the refusal is a separate list and not a visa status', () => {
     expect(result.omitted).toBeUndefined()
   })
 })
+
+describe('this sprint changed no format at all (ADR-044)', () => {
+  it('still writes 1.1.0 — integration is not a schema change', () => {
+    // Deeper Trip/Finance/Sponsor added editors and read surfaces over fields
+    // that already existed. An older build reading a file written here sees
+    // exactly what it saw before, so bumping would warn about nothing.
+    expect(SCHEMA_VERSION).toBe('1.1.0')
+    expect(STORAGE_FORMAT_VERSION).toBe(2)
+  })
+
+  it('exports a document with the same shape as before the sprint', () => {
+    const imported = importPartial(JSON.stringify(V1_0))
+    const data = imported.data
+    if (!data) throw new Error('expected the legacy fixture to import')
+
+    const exported = JSON.parse(
+      exportDossier(
+        data.applicant ?? null,
+        data.application ?? null,
+        data.documents ?? [],
+        data.sponsors ?? []
+      )
+    ) as Record<string, unknown>
+
+    // The exact top-level key set the format has always had.
+    expect(Object.keys(exported).sort()).toEqual(
+      [
+        'applicant',
+        'application',
+        'documents',
+        'exportedAt',
+        'schemaVersion',
+        'sponsors',
+      ].sort()
+    )
+    // And no new key appeared inside the trip or the financing.
+    const application = exported.application as Record<string, unknown>
+    const trip = application.trip as Record<string, unknown> | undefined
+    if (trip) {
+      expect(Object.keys(trip)).not.toContain('legs')
+      expect(Object.keys(trip)).not.toContain('journey')
+      expect(Object.keys(trip)).not.toContain('itinerary')
+    }
+  })
+})

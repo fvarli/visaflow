@@ -59,7 +59,13 @@
     "statementDate": "Statement date",
     "accountBalance": "Account balance",
     "currency": "Currency",
-    "balanceHint": "This figure is only recorded for your own reference. It is never judged as sufficient or insufficient."
+    "balanceHint": "This figure is only recorded for your own reference. It is never judged as sufficient or insufficient.",
+    "estimatedBudget": "Estimated trip cost",
+    "estimatedBudgetHint": "Roughly what the whole trip will cost. An estimate is fine — VisaFlow records it, it does not judge it.",
+    "selfFundedAmount": "Amount you are covering",
+    "selfFundedAmountHint": "How much of that cost you are paying yourself.",
+    "sponsoredAmount": "Amount a sponsor is covering",
+    "sponsoredAmountHint": "How much someone else is paying. Add the sponsor in the next step so it is clear who."
   },
   "income": {
     "title": "Income overview",
@@ -131,7 +137,9 @@
     "noEmploymentIncomeOnRecord": "No employment income is recorded in the Employment section. If you're employed, adding it helps your funding line up.",
     "bankStatementPending": "Your self-funding relies on a bank statement, which isn't ready yet.",
     "mixedWhoCovers": "For mixed funding, note clearly which costs you cover and which your sponsor covers.",
-    "employerCovers": "This trip is recorded as employer-funded. Prepare your employer's confirmation that it covers the costs."
+    "employerCovers": "This trip is recorded as employer-funded. Prepare your employer's confirmation that it covers the costs.",
+    "fundingSplitMatchesBudget": "Your funding adds up: {{declared}} declared against a {{budget}} trip budget.",
+    "fundingSplitDiffersFromBudget": "Your declared funding comes to {{declared}}, while the trip budget is {{budget}}. Neither number is wrong — check they say what you mean."
   },
   "why": {
     "title": "Why do we ask this?",

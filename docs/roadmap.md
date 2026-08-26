@@ -89,6 +89,14 @@ dossier/timeline below is still ahead.
   Leaving an editor whose work is not in storage is one guarded decision with a way out per reason,
   deletion is authoritative by design, and an import reports what it could not read (ADR-041).
   *Done.*
+- **Deeper trip, finance & sponsor structure** — **done, and it added no schema.** The audit found
+  the trip fully modelled and barely surfaced: `route`, `transportReservations` and
+  `accommodationReservations` were already arrays with real editors, yet Final Review and the printed
+  package showed the trip as two dates. Transport (labelled outbound/return, derived from the dates),
+  stays, route, trip purpose, the budget, the funding split and named sponsors with what they cover
+  now all reach both surfaces. `trip.estimatedBudget` gained the editor it never had despite being
+  rendered on the dashboard, and the funding split is proof-read against it — guidance only, never a
+  sufficiency verdict ([ADR-044]). *Done.*
 - **Richer dossier & timeline** — **partly done, and deliberately narrower than planned.** The audit
   that opened this item found the canonical dossier *over*-specified rather than under-specified: ten
   fields had no consumer at all, and two collected identity numbers nothing used. So the dossier grew
@@ -201,3 +209,4 @@ Implementation status of the current phase is tracked in [current-status.md](./c
 [ADR-032]: ./decisions.md
 [ADR-042]: ./decisions.md
 [ADR-043]: ./decisions.md
+[ADR-044]: ./decisions.md

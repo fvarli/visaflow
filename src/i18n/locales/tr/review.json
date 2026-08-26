@@ -210,5 +210,32 @@
     "attentionUnconfirmed_other": "{{count}} belge elinizde ama hazır olarak onaylanmadı",
     "attentionNone": "Dikkatinizi bekleyen bir konu yok",
     "footer": "Bunu randevuya çıkmadan önce son dosya kontrolünüz olarak kullanın."
+  },
+  "journey": {
+    "title": "Yolculuk",
+    "description": "Nasıl gidiyorsunuz, nerede kalıyorsunuz ve neden gidiyorsunuz — tam olarak kaydettiğiniz gibi.",
+    "purpose": "Seyahat amacı",
+    "legs": "Ulaşım",
+    "stays": "Konaklama",
+    "stops": "Güzergâh",
+    "direction": {
+      "outbound": "Gidiş",
+      "internal": "Seyahat sırasında",
+      "return": "Dönüş",
+      "unscheduled": "Tarih kaydedilmedi"
+    },
+    "leg": "{{from}} → {{to}}",
+    "legFrom": "{{from}} şehrinden",
+    "legTo": "{{to}} şehrine",
+    "nights_one": "{{count}} gece",
+    "nights_other": "{{count}} gece",
+    "dayTrip": "Günübirlik",
+    "reference": "Ref. {{value}}",
+    "empty": "Henüz seyahat ayrıntısı kaydedilmedi.",
+    "budget": "Seyahat bütçesi",
+    "selfFunded": "Sizin karşıladığınız",
+    "sponsored": "Sponsorun karşıladığı",
+    "covers": "Karşıladıkları: {{list}}",
+    "coversNothingRecorded": "Karşılanan giderler kaydedilmedi"
   }
 }

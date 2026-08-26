@@ -7,6 +7,7 @@ import { ReadinessSummary } from '@/components/validation/ReadinessSummary'
 import { useFinalReviewModel } from '@/features/review/review-model'
 import { ReviewHero } from '@/components/review/ReviewHero'
 import { ApplicationSummary } from '@/components/review/ApplicationSummary'
+import { JourneySummary } from '@/components/review/JourneySummary'
 import { SubmissionChecklist } from '@/components/review/SubmissionChecklist'
 import { AttentionSection } from '@/components/review/AttentionSection'
 import { AppointmentPrep } from '@/components/review/AppointmentPrep'
@@ -73,6 +74,13 @@ export default function ReviewPage() {
         <>
           <Section>
             <ApplicationSummary summary={model.summary} />
+          </Section>
+
+          {/* Directly after the cover sheet: the summary says *what* the
+              application is, this says how the trip actually runs. Renders
+              nothing at all when no trip detail is recorded. */}
+          <Section>
+            <JourneySummary itinerary={model.itinerary} />
           </Section>
 
           <Section>

@@ -29,11 +29,12 @@ const CURRENCIES = CurrencySchema.options
  * Non-personal funding sources see a calm not-applicable state.
  */
 export function PersonalFinancesStep() {
-  const { state, updateFinancing } = useDossier()
+  const { state, updateFinancing, updateTrip } = useDossier()
   const { t } = useTranslation('finance')
   const td = dynamicT(t)
   const model = useFinanceModel()
   const financing = state.application?.financing
+  const trip = state.application?.trip
   const hints = guidanceForStep(model.guidance, 'personal')
 
   if (!model.personal.applicable) {
@@ -125,10 +126,84 @@ export function PersonalFinancesStep() {
           />
         </Field>
 
+        {/* The trip's own cost and how it is split. All three fields have been
+            in the schema since v1.0 — `estimatedBudget` was even rendered on the
+            dashboard — with no editor anywhere, so the dashboard's Budget row
+            could never be filled by anyone who typed their dossier in (ADR-044).
+
+            Declared amounts only: VisaFlow states them, adds them up against
+            the budget as a proof-read, and never judges whether they suffice
+            (ADR-016). */}
+        <Field
+          label={t('personal.estimatedBudget')}
+          description={t('personal.estimatedBudgetHint')}
+        >
+          <Input
+            type="number"
+            min={0}
+            inputMode="decimal"
+            value={trip?.estimatedBudget ?? ''}
+            placeholder="0"
+            onChange={(e) =>
+              updateTrip({
+                estimatedBudget: e.target.value
+                  ? Number(e.target.value)
+                  : undefined,
+              })
+            }
+          />
+        </Field>
+
+        <Field
+          label={t('personal.selfFundedAmount')}
+          description={t('personal.selfFundedAmountHint')}
+        >
+          <Input
+            type="number"
+            min={0}
+            inputMode="decimal"
+            value={financing?.selfFundedAmount ?? ''}
+            placeholder="0"
+            onChange={(e) =>
+              updateFinancing({
+                selfFundedAmount: e.target.value
+                  ? Number(e.target.value)
+                  : undefined,
+              })
+            }
+          />
+        </Field>
+
+        <Field
+          label={t('personal.sponsoredAmount')}
+          description={t('personal.sponsoredAmountHint')}
+        >
+          <Input
+            type="number"
+            min={0}
+            inputMode="decimal"
+            value={financing?.sponsoredAmount ?? ''}
+            placeholder="0"
+            onChange={(e) =>
+              updateFinancing({
+                sponsoredAmount: e.target.value
+                  ? Number(e.target.value)
+                  : undefined,
+              })
+            }
+          />
+        </Field>
+
         <Field label={t('personal.currency')} htmlFor="finance-currency">
           <Select
             value={financing?.currency ?? 'EUR'}
-            onValueChange={(v) => updateFinancing({ currency: v as Currency })}
+            onValueChange={(v) => {
+              // Keep the budget in the same currency as the split, so the
+              // consistency check can compare them at all — VisaFlow holds no
+              // exchange rates and will not invent one.
+              updateFinancing({ currency: v as Currency })
+              updateTrip({ budgetCurrency: v as Currency })
+            }}
           >
             <SelectTrigger id="finance-currency" className="w-full">
               <SelectValue />

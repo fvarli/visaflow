@@ -210,5 +210,32 @@
     "attentionUnconfirmed_other": "{{count}} documents are in hand but not confirmed ready",
     "attentionNone": "Nothing is waiting for your attention",
     "footer": "Use this as your final folder check."
+  },
+  "journey": {
+    "title": "Journey",
+    "description": "How you get there, where you stay, and why you are going — exactly as you recorded it.",
+    "purpose": "Purpose of travel",
+    "legs": "Travel",
+    "stays": "Where you stay",
+    "stops": "Route",
+    "direction": {
+      "outbound": "Outbound",
+      "internal": "During the trip",
+      "return": "Return",
+      "unscheduled": "No date recorded"
+    },
+    "leg": "{{from}} → {{to}}",
+    "legFrom": "From {{from}}",
+    "legTo": "To {{to}}",
+    "nights_one": "{{count}} night",
+    "nights_other": "{{count}} nights",
+    "dayTrip": "Day trip",
+    "reference": "Ref. {{value}}",
+    "empty": "No trip details recorded yet.",
+    "budget": "Trip budget",
+    "selfFunded": "You are paying",
+    "sponsored": "A sponsor is paying",
+    "covers": "Covers: {{list}}",
+    "coversNothingRecorded": "Covered expenses not recorded"
   }
 }

@@ -59,7 +59,13 @@
     "statementDate": "Döküm tarihi",
     "accountBalance": "Hesap bakiyesi",
     "currency": "Para birimi",
-    "balanceHint": "Bu tutar yalnızca kendi kaydınız için tutulur. Asla yeterli veya yetersiz olarak değerlendirilmez."
+    "balanceHint": "Bu tutar yalnızca kendi kaydınız için tutulur. Asla yeterli veya yetersiz olarak değerlendirilmez.",
+    "estimatedBudget": "Tahmini seyahat maliyeti",
+    "estimatedBudgetHint": "Seyahatin tamamının yaklaşık maliyeti. Tahmin yeterli — VisaFlow bunu kaydeder, yargılamaz.",
+    "selfFundedAmount": "Sizin karşıladığınız tutar",
+    "selfFundedAmountHint": "Bu maliyetin ne kadarını kendiniz ödüyorsunuz.",
+    "sponsoredAmount": "Sponsorun karşıladığı tutar",
+    "sponsoredAmountHint": "Başkasının ödediği tutar. Kim olduğunun anlaşılması için sonraki adımda sponsoru ekleyin."
   },
   "income": {
     "title": "Gelir özeti",
@@ -131,7 +137,9 @@
     "noEmploymentIncomeOnRecord": "İstihdam bölümünde kayıtlı bir gelir yok. Çalışıyorsanız bunu eklemek finansmanınızın örtüşmesine yardımcı olur.",
     "bankStatementPending": "Kendi imkânlarıyla finansmanınız bir banka hesap dökümüne dayanıyor ve bu henüz hazır değil.",
     "mixedWhoCovers": "Karma finansmanda, hangi masrafları sizin, hangilerini sponsorunuzun karşıladığını açıkça belirtin.",
-    "employerCovers": "Bu seyahat işveren finansmanlı olarak kayıtlı. İşvereninizin masrafları karşıladığını gösteren yazıyı hazırlayın."
+    "employerCovers": "Bu seyahat işveren finansmanlı olarak kayıtlı. İşvereninizin masrafları karşıladığını gösteren yazıyı hazırlayın.",
+    "fundingSplitMatchesBudget": "Finansmanınız tutuyor: {{budget}} seyahat bütçesine karşılık {{declared}} beyan edildi.",
+    "fundingSplitDiffersFromBudget": "Beyan ettiğiniz finansman {{declared}}, seyahat bütçesi ise {{budget}}. İkisi de yanlış değil — anlatmak istediğinizi söylediklerinden emin olun."
   },
   "why": {
     "title": "Bunu neden soruyoruz?",

@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { ArrowLeft, Printer } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { useDossier } from '@/app/providers/DossierProvider'
 import { useWorkspace } from '@/app/providers/WorkspaceProvider'
 import { useFinalReviewModel } from '@/features/review/review-model'
 import {
@@ -13,7 +12,7 @@ import {
 } from '@/features/review/review-print'
 import type { SubmissionChecklist } from '@/features/review/review-checklist'
 import type { ApplicationSummary } from '@/features/review/review-summary'
-import type { RouteStop } from '@/domain/schemas/trip.schema'
+import type { Itinerary } from '@/features/review/review-itinerary'
 import { getCountryName } from '@/lib/countries'
 import { documentLabel } from '@/lib/document-label'
 import { useLocale } from '@/app/providers/LocaleProvider'
@@ -44,7 +43,6 @@ export default function ReviewPrintPage() {
   const { t } = useTranslation(['review', 'visa-domain', 'common'])
   const format = useFormatters()
   const model = useFinalReviewModel()
-  const { state } = useDossier()
   const { activeTitle } = useWorkspace()
 
   const dossierName = activeTitle ?? model.summary.applicantName ?? ''
@@ -86,8 +84,7 @@ export default function ReviewPrintPage() {
     )
   }
 
-  const { summary, checklist, print } = model
-  const route = state.application?.trip?.route ?? []
+  const { summary, checklist, print, itinerary } = model
   const states = new Map(print.generatedSheets.map((s) => [s.id, s.state]))
   const preparedOn = format.date(new Date())
 
@@ -131,7 +128,7 @@ export default function ReviewPrintPage() {
             state={states.get(id) ?? 'unavailable'}
             summary={summary}
             checklist={checklist}
-            route={route}
+            itinerary={itinerary}
           />
         ))}
       </div>
@@ -148,7 +145,7 @@ interface SheetProps {
   state: PrintableState
   summary: ApplicationSummary
   checklist: SubmissionChecklist
-  route: RouteStop[]
+  itinerary: Itinerary
 }
 
 /** One physical page: a running head, the content, and a footer. */
@@ -161,7 +158,7 @@ function PrintSheet({
   state,
   summary,
   checklist,
-  route,
+  itinerary,
 }: SheetProps) {
   const { t } = useTranslation(['review', 'visa-domain'])
   const td = dynamicT(t)
@@ -201,7 +198,7 @@ function PrintSheet({
               <AppointmentSheet summary={summary} />
             )}
             {id === 'itinerarySummary' && (
-              <ItinerarySheet summary={summary} route={route} />
+              <ItinerarySheet summary={summary} itinerary={itinerary} />
             )}
           </>
         )}
@@ -295,6 +292,47 @@ function CoverSheet({ summary }: { summary: ApplicationSummary }) {
               )
             : null,
         ],
+        // The money, as declared. Amounts print only when recorded; a blank
+        // "Trip budget" line on a counter sheet invites a question the
+        // applicant never meant to raise.
+        ...(summary.fundingDetail.estimatedBudget !== null
+          ? ([
+              [
+                t('review:journey.budget'),
+                format.currency(
+                  summary.fundingDetail.estimatedBudget,
+                  summary.fundingDetail.budgetCurrency ??
+                    summary.fundingDetail.currency
+                ),
+              ],
+            ] as [string, string | null][])
+          : []),
+        ...(summary.sponsors.length > 0
+          ? ([
+              [
+                t('review:summary.sponsors'),
+                summary.sponsors
+                  .map((sponsor) =>
+                    [
+                      sponsor.name,
+                      td(
+                        `visa-domain:sponsorRelationship.${sponsor.relationship}`
+                      ),
+                      sponsor.covers.length > 0
+                        ? sponsor.covers
+                            .map((expense) =>
+                              td(`visa-domain:expenseType.${expense}`)
+                            )
+                            .join(', ')
+                        : null,
+                    ]
+                      .filter(Boolean)
+                      .join(' · ')
+                  )
+                  .join(' / '),
+              ],
+            ] as [string, string | null][])
+          : []),
         // Only when recorded. Unlike every other row this one is omitted rather
         // than printed as "not recorded" — an empty refusals line on a sheet
         // handed across a counter reads as an accusation, and having none is
@@ -346,56 +384,135 @@ function AppointmentSheet({ summary }: { summary: ApplicationSummary }) {
 
 function ItinerarySheet({
   summary,
-  route,
+  itinerary,
 }: {
   summary: ApplicationSummary
-  route: RouteStop[]
+  itinerary: Itinerary
 }) {
-  const { t } = useTranslation('review')
+  const { t } = useTranslation(['review', 'visa-domain'])
+  const td = dynamicT(t)
   const format = useFormatters()
   const country = useCountryName()
+
+  const legLabel = (leg: Itinerary['legs'][number]): string => {
+    if (leg.departureCity && leg.arrivalCity)
+      return t('review:journey.leg', {
+        from: leg.departureCity,
+        to: leg.arrivalCity,
+      })
+    if (leg.departureCity)
+      return t('review:journey.legFrom', { from: leg.departureCity })
+    if (leg.arrivalCity)
+      return t('review:journey.legTo', { to: leg.arrivalCity })
+    return td(`visa-domain:transportType.${leg.type}`, {
+      defaultValue: leg.type,
+    })
+  }
 
   return (
     <>
       <Facts
         rows={[
           [
-            t('summary.travelDates'),
+            t('review:summary.travelDates'),
             summary.entryDate && summary.exitDate
-              ? t('summary.dateRange', {
+              ? t('review:summary.dateRange', {
                   start: format.date(summary.entryDate),
                   end: format.date(summary.exitDate),
                 })
               : null,
           ],
           [
-            t('summary.duration'),
+            t('review:summary.duration'),
             summary.nights !== null
-              ? t('summary.nights', { count: summary.nights })
+              ? t('review:summary.nights', { count: summary.nights })
               : null,
           ],
+          [t('review:journey.purpose'), itinerary.purpose],
         ]}
       />
-      {route.length > 0 && (
-        <ol className="print-route">
-          {route.map((stop, index) => (
-            <li key={`${stop.city}-${stop.arrivalDate}-${index}`}>
-              <span className="print-route-place">
-                {t('print.surface.routeStop', {
-                  city: stop.city,
-                  country: country(stop.country) ?? stop.country,
-                })}
-              </span>
-              <span className="print-route-dates">
-                {format.dateShort(stop.arrivalDate)} –{' '}
-                {format.dateShort(stop.departureDate)}
-              </span>
-              <span className="print-route-nights">
-                {t('print.surface.routeNights', { count: stop.nights })}
-              </span>
-            </li>
-          ))}
-        </ol>
+
+      {/* Travel, grouped the way the journey runs rather than the way it was
+          typed. Direction is derived from the dates, never stored (ADR-044). */}
+      {itinerary.legs.length > 0 && (
+        <>
+          <h3 className="print-group-title">{t('review:journey.legs')}</h3>
+          <ol className="print-route">
+            {itinerary.legs.map((leg) => (
+              <li key={leg.id}>
+                <span className="print-route-place">{legLabel(leg)}</span>
+                <span className="print-route-dates">
+                  {td(`review:journey.direction.${leg.direction}`)}
+                  {leg.departureDate
+                    ? ` · ${format.dateShort(leg.departureDate)}`
+                    : ''}
+                </span>
+                <span className="print-route-nights">
+                  {leg.reservationNumber
+                    ? t('review:journey.reference', {
+                        value: leg.reservationNumber,
+                      })
+                    : ''}
+                </span>
+              </li>
+            ))}
+          </ol>
+        </>
+      )}
+
+      {itinerary.stays.length > 0 && (
+        <>
+          <h3 className="print-group-title">{t('review:journey.stays')}</h3>
+          <ol className="print-route">
+            {itinerary.stays.map((stay) => (
+              <li key={stay.id}>
+                <span className="print-route-place">
+                  {[stay.name, stay.city ?? country(stay.country)]
+                    .filter(Boolean)
+                    .join(' · ')}
+                </span>
+                <span className="print-route-dates">
+                  {stay.checkInDate && stay.checkOutDate
+                    ? `${format.dateShort(stay.checkInDate)} – ${format.dateShort(stay.checkOutDate)}`
+                    : ''}
+                </span>
+                <span className="print-route-nights">
+                  {stay.nights > 0
+                    ? t('review:journey.nights', { count: stay.nights })
+                    : t('review:journey.dayTrip')}
+                </span>
+              </li>
+            ))}
+          </ol>
+        </>
+      )}
+
+      {itinerary.stops.length > 0 && (
+        <>
+          <h3 className="print-group-title">{t('review:journey.stops')}</h3>
+          <ol className="print-route">
+            {itinerary.stops.map((stop) => (
+              <li key={stop.id}>
+                <span className="print-route-place">
+                  {t('review:print.surface.routeStop', {
+                    city: stop.city ?? '',
+                    country: country(stop.country) ?? stop.country ?? '',
+                  })}
+                </span>
+                <span className="print-route-dates">
+                  {stop.arrivalDate && stop.departureDate
+                    ? `${format.dateShort(stop.arrivalDate)} – ${format.dateShort(stop.departureDate)}`
+                    : ''}
+                </span>
+                <span className="print-route-nights">
+                  {stop.nights > 0
+                    ? t('review:journey.nights', { count: stop.nights })
+                    : t('review:journey.dayTrip')}
+                </span>
+              </li>
+            ))}
+          </ol>
+        </>
       )}
     </>
   )

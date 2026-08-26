@@ -3,7 +3,9 @@ import type { Application } from '@/domain/schemas/application.schema'
 import type { Sponsor } from '@/domain/schemas/sponsor.schema'
 import type {
   EmploymentStatus,
+  ExpenseType,
   FinancingSource,
+  SponsorRelationship,
   VisaType,
 } from '@/domain/types/common'
 import { tripNights } from '@/features/trip/route-dates'
@@ -44,6 +46,39 @@ export interface AppointmentFacts {
  * form asks for directly. It is **information, never a signal**: nothing here
  * feeds readiness, and no count of refusals means anything (ADR-016, ADR-043).
  */
+/**
+ * A sponsor, as the cover sheet needs them: who they are and what they cover.
+ *
+ * The review has always shown sponsors as a bare *count*, while the dossier
+ * recorded the relationship and the expense categories all along. "Two
+ * sponsors" is not an answer to "who is paying for what" (ADR-044).
+ */
+export interface SponsorFact {
+  id: string
+  name: string | null
+  relationship: SponsorRelationship
+  /** Expense categories this sponsor covers. Empty when none were chosen. */
+  covers: ExpenseType[]
+  to: string
+}
+
+/**
+ * The money, declared. Amounts are the applicant's own statement of intent —
+ * never compared against a balance, never scored, never called sufficient
+ * (ADR-016).
+ */
+export interface FundingFacts {
+  source: FinancingSource | null
+  currency: string | null
+  /** What the trip is expected to cost, as recorded on the trip. */
+  estimatedBudget: number | null
+  budgetCurrency: string | null
+  selfFundedAmount: number | null
+  sponsoredAmount: number | null
+  accountBalance: number | null
+  to: string
+}
+
 export interface RefusalFact {
   country: string
   /** ISO, or null — an applicant may not remember the date. */
@@ -68,6 +103,9 @@ export interface ApplicationSummary {
   employmentStatus: SummaryFact<EmploymentStatus>
   /** Surfaced only when the funding actually involves sponsors. */
   sponsorCount: SummaryFact<number> | null
+  /** Named sponsors and what each covers. Empty when none are recorded. */
+  sponsors: SponsorFact[]
+  fundingDetail: FundingFacts
   applicantTo: string
   /** Empty when none are recorded — the absence is never itself displayed. */
   refusals: RefusalFact[]
@@ -135,6 +173,26 @@ export function buildApplicationSummary(
     sponsorCount: sponsorsRelevant(fundingSource, sponsors.length)
       ? { value: sponsors.length, to: '/sponsors' }
       : null,
+    sponsors: sponsors.map((sponsor) => ({
+      id: sponsor.id,
+      name:
+        [nonEmpty(sponsor.firstName), nonEmpty(sponsor.lastName)]
+          .filter(Boolean)
+          .join(' ') || null,
+      relationship: sponsor.relationship,
+      covers: sponsor.coveredExpenses ?? [],
+      to: '/sponsors',
+    })),
+    fundingDetail: {
+      source: fundingSource,
+      currency: nonEmpty(application?.financing?.currency),
+      estimatedBudget: application?.trip?.estimatedBudget ?? null,
+      budgetCurrency: nonEmpty(application?.trip?.budgetCurrency),
+      selfFundedAmount: application?.financing?.selfFundedAmount ?? null,
+      sponsoredAmount: application?.financing?.sponsoredAmount ?? null,
+      accountBalance: application?.financing?.accountBalance ?? null,
+      to: '/finance?step=personal',
+    },
     applicantTo: '/applicant',
     refusals: (applicant?.previousRefusals ?? []).map((refusal) => ({
       country: refusal.country,
