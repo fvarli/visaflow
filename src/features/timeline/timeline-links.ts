@@ -1,5 +1,5 @@
 import type { TaskDomain } from './timeline-policy'
-import type { KeyDateType } from './timeline-dates'
+import type { KeyDateEvent } from './timeline-dates'
 import type { FreshnessRow } from './document-freshness'
 
 /**
@@ -34,8 +34,8 @@ export function taskLink(domain: TaskDomain): string {
 }
 
 /** Where a fixed key-date event is edited. */
-export function eventLink(type: KeyDateType): string {
-  switch (type) {
+export function eventLink(event: KeyDateEvent): string {
+  switch (event.type) {
     case 'appointment':
       // The appointment is edited in the trip wizard's dates step, which is
       // what `review-summary` already links to. This pointed at the page but
@@ -58,7 +58,14 @@ export function eventLink(type: KeyDateType): string {
     case 'passportExpiry':
       return '/applicant?step=passport'
     case 'documentExpiry':
-      return '/documents'
+      // The exact document, with its panel open — the same contract
+      // `freshnessLink` has always used. This used to hand you the whole
+      // documents page and leave you to find which of twenty expires
+      // (ADR-045). Falls back to the list when the id is somehow absent, so
+      // there is still no dead end.
+      return event.documentId
+        ? `/documents?doc=${event.documentId}`
+        : '/documents'
   }
 }
 

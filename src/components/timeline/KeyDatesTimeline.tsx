@@ -4,7 +4,11 @@ import { ArrowRight, Plus } from 'lucide-react'
 import { useFormatters } from '@/lib/format'
 import { documentLabel } from '@/lib/document-label'
 import { dynamicT } from '@/lib/i18n-dynamic'
-import type { KeyDateEvent } from '@/features/timeline/timeline-dates'
+import {
+  groupKeyDatesByDay,
+  type KeyDateDayGroup,
+  type KeyDateEvent,
+} from '@/features/timeline/timeline-dates'
 import { eventLink } from '@/features/timeline/timeline-links'
 
 interface KeyDatesTimelineProps {
@@ -17,11 +21,18 @@ interface KeyDatesTimelineProps {
  * compact. Date ranges (leave, stays, insurance) are shown collapsed. Locale-
  * aware formatting; stored values stay ISO.
  *
- * The third group is the point: anchors the dossier has not answered yet appear
- * as themselves, below the chronology, reading "not recorded yet" with a link to
- * where they are entered. They carry no date and are never sorted among the
- * real ones — an empty line in a timeline should look like a question, not like
- * a fact that happens to be blank (ADR-043).
+ * Anchors the dossier has not answered yet appear as themselves, below the
+ * chronology, reading "not recorded yet" with a link to where they are entered.
+ * They carry no date and are never sorted among the real ones — an empty line in
+ * a timeline should look like a question, not like a fact that happens to be
+ * blank (ADR-043).
+ *
+ * Dated events are grouped **by day**, because a trip that begins on 1 April
+ * also starts the leave, the first stop, the outbound flight, the first stay and
+ * the insurance: six rows each repeating the same date read like a checklist
+ * rather than a day. Today gets its own group — the status was always computed
+ * and always thrown away, so the most actionable date on the page looked exactly
+ * like one three months out (ADR-045).
  */
 export function KeyDatesTimeline({ events }: KeyDatesTimelineProps) {
   const { t } = useTranslation(['timeline', 'visa-domain'])
@@ -34,10 +45,10 @@ export function KeyDatesTimeline({ events }: KeyDatesTimelineProps) {
   }
 
   const td = dynamicT(t)
-  const upcoming = events.filter(
-    (e) => e.status === 'upcoming' || e.status === 'today'
-  )
-  const past = events.filter((e) => e.status === 'past')
+  const days = groupKeyDatesByDay(events)
+  const today = days.filter((d) => d.status === 'today')
+  const upcoming = days.filter((d) => d.status === 'upcoming')
+  const past = days.filter((d) => d.status === 'past')
   const missing = events.filter((e) => e.status === 'missing')
 
   const label = (event: KeyDateEvent): string => {
@@ -59,14 +70,17 @@ export function KeyDatesTimeline({ events }: KeyDatesTimelineProps) {
     return td(`keyDates.type.${event.type}`)
   }
 
-  const when = (event: KeyDateEvent): string => {
+  /**
+   * What the row adds *beyond* the day heading above it.
+   *
+   * A single-date event adds nothing — repeating the date the heading just gave
+   * is the noise this grouping removes. A range still has to say where it ends,
+   * and an unrecorded anchor still has to say it is unrecorded.
+   */
+  const when = (event: KeyDateEvent): string | null => {
     if (!event.date) return t('keyDates.notRecorded')
-    return event.endDate
-      ? t('keyDates.range', {
-          start: f.dateShort(event.date),
-          end: f.dateShort(event.endDate),
-        })
-      : f.dateShort(event.date)
+    if (!event.endDate) return null
+    return t('keyDates.until', { end: f.dateShort(event.endDate) })
   }
 
   const row = (event: KeyDateEvent, dim: boolean) => {
@@ -78,15 +92,17 @@ export function KeyDatesTimeline({ events }: KeyDatesTimelineProps) {
       >
         <span className="flex min-w-0 flex-col">
           <span className="text-body text-foreground">{label(event)}</span>
-          <span
-            className={`text-caption text-muted-foreground${absent ? ' italic' : ''}`}
-            data-numeric={absent ? undefined : true}
-          >
-            {when(event)}
-          </span>
+          {when(event) && (
+            <span
+              className={`text-caption text-muted-foreground${absent ? ' italic' : ''}`}
+              data-numeric={absent ? undefined : true}
+            >
+              {when(event)}
+            </span>
+          )}
         </span>
         <Link
-          to={eventLink(event.type)}
+          to={eventLink(event)}
           className="text-primary -my-1 inline-flex shrink-0 items-center gap-1 rounded-sm py-1 text-sm hover:underline"
           aria-label={`${absent ? t('keyDates.add') : t('keyDates.open')} — ${label(event)}`}
         >
@@ -101,28 +117,43 @@ export function KeyDatesTimeline({ events }: KeyDatesTimelineProps) {
     )
   }
 
+  /** One day: its date once, then everything that happens on it. */
+  const dayGroup = (group: KeyDateDayGroup, dim: boolean) => (
+    <li key={group.date} className="flex flex-col gap-0.5">
+      <p
+        className={`text-caption font-medium ${dim ? 'text-muted-foreground' : 'text-foreground'}`}
+        data-numeric
+      >
+        {f.date(group.date)}
+      </p>
+      <ul className="divide-border divide-y">
+        {group.events.map((event) => row(event, dim))}
+      </ul>
+    </li>
+  )
+
+  const section = (
+    key: string,
+    heading: string,
+    groups: KeyDateDayGroup[],
+    dim: boolean
+  ) =>
+    groups.length > 0 && (
+      <section key={key} className="flex flex-col gap-1">
+        <h3 className="text-eyebrow text-muted-foreground uppercase">
+          {heading}
+        </h3>
+        <ul className="flex flex-col gap-3">
+          {groups.map((group) => dayGroup(group, dim))}
+        </ul>
+      </section>
+    )
+
   return (
     <div className="flex flex-col gap-6">
-      {upcoming.length > 0 && (
-        <section className="flex flex-col gap-1">
-          <h3 className="text-eyebrow text-muted-foreground uppercase">
-            {t('keyDates.upcomingGroup')}
-          </h3>
-          <ul className="divide-border divide-y">
-            {upcoming.map((e) => row(e, false))}
-          </ul>
-        </section>
-      )}
-      {past.length > 0 && (
-        <section className="flex flex-col gap-1">
-          <h3 className="text-eyebrow text-muted-foreground uppercase">
-            {t('keyDates.pastGroup')}
-          </h3>
-          <ul className="divide-border divide-y">
-            {past.map((e) => row(e, true))}
-          </ul>
-        </section>
-      )}
+      {section('today', t('keyDates.todayGroup'), today, false)}
+      {section('upcoming', t('keyDates.upcomingGroup'), upcoming, false)}
+      {section('past', t('keyDates.pastGroup'), past, true)}
       {missing.length > 0 && (
         <section className="flex flex-col gap-1">
           <h3 className="text-eyebrow text-muted-foreground uppercase">

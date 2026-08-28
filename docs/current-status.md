@@ -259,6 +259,17 @@ build reads dossier schema 1.0.0 and 1.1.0 alike, so every existing export impor
       never a sufficiency verdict (ADR-044). No schema change: `schemaVersion`
       stays `1.1.0`
 
+- [x] **Key dates read as days** — the timeline's fixed-date view groups events by
+      the day they fall on instead of repeating the date once per event (the
+      example dossier puts six on 1 April). `today` is a visible group rather
+      than a status that was computed and discarded, so the most actionable date
+      stops looking like one three months out. The current passport's document
+      validity is suppressed when it equals the passport's own expiry — one fact,
+      one row — and kept when the two disagree, because that divergence is worth
+      seeing. A validity date opens its own document via the same `?doc=`
+      contract the freshness view already used. Grouping is a pure read model
+      beside the derivation; nothing is persisted (ADR-045)
+
 ### Technical
 - [x] TypeScript strict mode
 - [x] Zod schemas for all domain types

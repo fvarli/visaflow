@@ -5,6 +5,7 @@ import {
   freshnessLink,
 } from '@/features/timeline/timeline-links'
 import type { FreshnessRow } from '@/features/timeline/document-freshness'
+import type { KeyDateEvent } from '@/features/timeline/timeline-dates'
 
 describe('timeline-links — task routes', () => {
   it('routes each task domain to the place it is completed', () => {
@@ -20,16 +21,48 @@ describe('timeline-links — task routes', () => {
 })
 
 describe('timeline-links — event routes', () => {
+  const event = (over: Partial<KeyDateEvent>): KeyDateEvent => ({
+    id: 'e',
+    type: 'appointment',
+    date: '2027-04-01',
+    status: 'upcoming',
+    ...over,
+  })
+
   it('routes each fixed-event type to its editor', () => {
     // The appointment lives in the trip wizard's dates step; this used to
     // name the page only, so the link opened on whichever step resumed.
-    expect(eventLink('appointment')).toBe('/trip?step=dates')
-    expect(eventLink('leave')).toBe('/employment?step=leave')
-    expect(eventLink('tripEntry')).toBe('/trip?step=dates')
-    expect(eventLink('accommodation')).toBe('/trip?step=accommodation')
-    expect(eventLink('insurance')).toBe('/trip?step=insurance')
-    expect(eventLink('passportExpiry')).toBe('/applicant?step=passport')
-    expect(eventLink('documentExpiry')).toBe('/documents')
+    expect(eventLink(event({ type: 'appointment' }))).toBe('/trip?step=dates')
+    expect(eventLink(event({ type: 'leave' }))).toBe('/employment?step=leave')
+    expect(eventLink(event({ type: 'tripEntry' }))).toBe('/trip?step=dates')
+    expect(eventLink(event({ type: 'accommodation' }))).toBe(
+      '/trip?step=accommodation'
+    )
+    expect(eventLink(event({ type: 'insurance' }))).toBe('/trip?step=insurance')
+    expect(eventLink(event({ type: 'passportExpiry' }))).toBe(
+      '/applicant?step=passport'
+    )
+    expect(eventLink(event({ type: 'transportArrival' }))).toBe(
+      '/trip?step=transportation'
+    )
+  })
+
+  it('opens the exact document a validity date belongs to', () => {
+    // It used to hand you the whole documents page and leave you to work out
+    // which of twenty expires on that date (ADR-045).
+    expect(
+      eventLink(
+        event({
+          type: 'documentExpiry',
+          documentId: 'doc-7',
+          documentCode: 'X',
+        })
+      )
+    ).toBe('/documents?doc=doc-7')
+  })
+
+  it('still has somewhere to go when the id is missing', () => {
+    expect(eventLink(event({ type: 'documentExpiry' }))).toBe('/documents')
   })
 })
 

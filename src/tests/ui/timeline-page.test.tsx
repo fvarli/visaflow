@@ -225,3 +225,55 @@ describe('Timeline — key dates say what is not recorded', () => {
     ).not.toBeInTheDocument()
   })
 })
+
+describe('Timeline — key dates read as days, not as a list of repeats', () => {
+  it('prints each day once, however many events fall on it', async () => {
+    await i18n.changeLanguage(DEFAULT_LOCALE)
+    const { container } = renderPage(SEED, '/timeline?mode=dates')
+    await screen.findByText(i18n.t('timeline:keyDates.upcomingGroup'))
+
+    // The example dossier puts six events on the day the trip begins. Before
+    // this they were six rows each repeating "1 Apr 2027" (ADR-045).
+    const dayHeadings = [...container.querySelectorAll('li > p[data-numeric]')]
+      .map((el) => el.textContent)
+      .filter(Boolean)
+    expect(dayHeadings.length).toBeGreaterThan(0)
+    expect(new Set(dayHeadings).size).toBe(dayHeadings.length)
+  })
+
+  it('shows the passport expiry once, not once per source', () => {
+    // The current-passport document's validity is the same fact as the
+    // applicant's passport expiry.
+    renderPage(SEED, '/timeline?mode=dates')
+    const label = i18n.t('timeline:keyDates.type.passportExpiry')
+    expect(screen.getAllByText(label)).toHaveLength(1)
+  })
+
+  it('opens the exact document a validity date belongs to', async () => {
+    renderPage(SEED, '/timeline?mode=dates')
+    const upcoming = await screen.findByText(
+      i18n.t('timeline:keyDates.upcomingGroup')
+    )
+    // Scoped to the key-dates sections — the hero above them carries its own
+    // next-action link, which is a different thing entirely.
+    const list = upcoming.closest('div')
+    if (!list) throw new Error('key dates not rendered')
+
+    const links = [...list.querySelectorAll('a[href^="/documents"]')]
+    expect(links.length).toBeGreaterThan(0)
+    // Every document link names a document, rather than dumping the user on
+    // the list to work out which of twenty expires that day.
+    expect(links.every((a) => a.getAttribute('href')?.includes('doc='))).toBe(
+      true
+    )
+  })
+
+  it('says nothing about today when nothing is due today', async () => {
+    renderPage(SEED, '/timeline?mode=dates')
+    await screen.findByText(i18n.t('timeline:keyDates.upcomingGroup'))
+    // The seeded dossier's dates are all in 2027 and 2030.
+    expect(
+      screen.queryByText(i18n.t('timeline:keyDates.todayGroup'))
+    ).not.toBeInTheDocument()
+  })
+})

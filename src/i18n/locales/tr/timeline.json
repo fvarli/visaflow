@@ -71,6 +71,7 @@
     "description": "Dosyanızdaki sabit tarihler.",
     "empty": "Henüz kayıtlı sabit tarih yok.",
     "pastGroup": "Geçmiş",
+    "todayGroup": "Bugün",
     "upcomingGroup": "Yaklaşan",
     "range": "{{start}} – {{end}}",
     "open": "Aç",
@@ -84,7 +85,7 @@
       "accommodation": "{{city}} konaklaması",
       "insurance": "Sigorta kapsamı",
       "passportExpiry": "Pasaport geçerliliği doluyor",
-      "documentExpiry": "{{document}} son geçerlilik",
+      "documentExpiry": "{{document}} geçerliliği doluyor",
       "transportNoCity": "Kalkış",
       "transportArrival": "{{city}} şehrine varış",
       "transportArrivalNoCity": "Varış"
@@ -92,7 +93,8 @@
     "missingGroup": "Henüz belirlemediğiniz tarihler",
     "missingGroupHint": "Bunlar kısa süreli bir başvuruda genellikle bulunan tarihler. VisaFlow tahmin etmek yerine boş bırakır.",
     "notRecorded": "Henüz kaydedilmedi",
-    "add": "Ekle"
+    "add": "Ekle",
+    "until": "{{end}} tarihine kadar"
   },
   "freshness": {
     "title": "Belgelerin güncelliği",

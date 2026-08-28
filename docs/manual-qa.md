@@ -712,3 +712,57 @@ Seeded with the trip, financing and sponsors removed.
 | One `h1`, no overflow, no raw translation key | PASS | PASS |
 
 No console exception in any scenario, in either locale.
+
+## Timeline key dates — real Chrome, production build (ADR-045)
+
+Driven over CDP against `vite preview` on a fresh profile, in **both locales**, with dossiers seeded
+into IndexedDB.
+
+### Density and de-duplication
+
+| Check | EN | TR |
+|---|---|---|
+| Each day prints once (5 headings, 5 unique) | PASS | PASS |
+| Fourteen events render under five day headings, not fourteen dated rows | PASS | PASS |
+| **The passport expiry appears exactly once** | PASS | PASS |
+| Every document-expiry link names its document (`/documents?doc=doc-004`) | PASS | PASS |
+
+The six events that share 1 April 2027 — trip begins, approved leave, stop in Athens, departure from
+Warsaw, stay in Athens, insurance coverage — now sit under one heading, each row adding only what the
+heading does not already say (`until 10 Apr 2027` for ranges, nothing for single dates).
+
+### Today, past and future
+
+| Check | EN | TR |
+|---|---|---|
+| No Today group when nothing is due today | PASS | PASS |
+| A dossier with the appointment set to today gets its own **Today** group, first | PASS | PASS |
+| Cross-year dates render and stay in order (Dec 2027 → Jan 2028 → Mar 2030) | PASS | PASS |
+
+### Navigation
+
+| Check | EN | TR |
+|---|---|---|
+| **All 8 timeline actions land on a real editor** — one `h1`, never the empty state | PASS | PASS |
+
+Every distinct link in the key-dates sections was followed and the landing page asserted, rather than
+the hrefs merely being inspected.
+
+### Empty, partial, responsive
+
+| Check | EN | TR |
+|---|---|---|
+| A dossier with no trip/appointment still names what is not set | PASS | PASS |
+| One `h1`, no overflow, no raw translation key — populated and bare | PASS | PASS |
+| 390 px: one `h1`, no overflow | PASS | PASS |
+
+No console exception in any scenario, in either locale.
+
+**A defect the screenshot caught that the assertions did not.** With the date moved into the day
+heading, the `documentExpiry` label — *"Travel Medical Insurance valid until"* — trailed off into
+nothing, because it had been written assuming a date followed it. Now *"Travel Medical Insurance
+expires"*, parallel to *"Passport expires"* directly above it. Both locales.
+
+**Harness note.** The first TR run reported the passport row missing because the check hardcoded a
+guess at the Turkish wording. It now reads the label from `timeline.json`, so the assertion cannot
+drift from the translation it is checking.

@@ -1403,3 +1403,69 @@ and are formatted at the UI boundary, never in the domain.
 `src/components/finance/{PersonalFinancesStep,ConsistencyStep}.tsx`, and
 `src/i18n/locales/{tr,en}/{review,finance}.json`. No schema, storage-format or export-format change:
 `schemaVersion` remains `1.1.0` and `STORAGE_FORMAT_VERSION` remains `2`.
+
+## ADR-045: Key Dates Are Read as Days; One Fact Is One Row; a Validity Date Opens Its Own Document
+
+**Status:** Accepted · **Date:** 2026-08-28 · **Extends:** [ADR-012], [ADR-029], [ADR-043]
+
+**Decision:** Three changes to how the timeline is *read*, none to what it derives.
+
+1. **Dated key-date events are grouped by day** at the read-model layer. `buildKeyDates` keeps its
+   signature and still returns a flat list; a separate pure `groupKeyDatesByDay()` groups it.
+2. **`today` becomes a visible group.** `dayStatus()` has always returned it; the view discarded it.
+3. **The current passport's document validity is not emitted** when it equals
+   `applicant.passport.expiryDate` — and **is** emitted when it does not. A `documentExpiry` event
+   carries the document's id so it opens *that* document.
+
+**Context:** An audit of every date-bearing field in the dossier and the country pack found almost
+nothing silently missing — [ADR-043] had already closed that — and no wrong step links except one.
+What it found instead was density and a duplicate.
+
+The example dossier produces fourteen key-date events, and **six of them fall on 1 April 2027**:
+the trip begins, the approved leave starts, the first route stop begins, the outbound flight departs,
+the first stay checks in, and the insurance takes effect. Each rendered as its own row repeating
+"1 Apr 2027". On 9 March 2030 the passport expiry appeared **twice** — once from
+`applicant.passport.expiryDate`, once from the `PASSPORT_CURRENT` document's `validUntil`. And a
+`documentExpiry` row linked to `/documents`, while the freshness view *on the same page, one tab
+across* has always linked to `/documents?category=…&doc=<id>`.
+
+**Rationale:**
+
+- **A day is the unit a person reads a chronology in.** Six rows repeating one date is a checklist
+  wearing a timeline's clothes. Grouping removes the repetition and nothing else: every event
+  survives, in its own group, and the caller still receives the flat list if it wants one.
+- **Grouping is presentation, so it lives outside the derivation.** `buildKeyDates` is unchanged.
+  `groupKeyDatesByDay` mirrors the existing `groupTasksByBand` precedent — a pure function beside
+  the model, not a new source of truth, and nothing about it is persisted.
+- **Intra-day order is a decision, not an accident.** Several events share a date, so a fixed type
+  precedence orders them outward from the trip itself to the paperwork around it, with the event id
+  as a total-order tiebreak. JavaScript's sort is stable, so *without* this the order would silently
+  inherit whatever sequence `buildKeyDates` happened to push in — deterministic-looking and
+  arbitrary. A test pins the actual reading order, because a test that only asserts "two runs match"
+  passes against that bug.
+- **De-duplication is structural, never heuristic.** The suppression is keyed on the stable
+  requirement code `PASSPORT_CURRENT` ([ADR-012]), not on a label, a category, or dates looking
+  close. It applies only when the two values genuinely agree. **When they disagree, both rows stay** —
+  a divergence between two separately-edited fields is a real inconsistency the applicant should see,
+  and hiding it would be the worse bug. No other document is ever suppressed: an insurance policy or
+  a bank statement with a real validity date remains its own event.
+- **Freshness and key dates keep different jobs.** Key dates answer *when does this happen*;
+  document freshness answers *how old is this relative to the appointment*. The suppressed row is the
+  only overlap, and it is removed from key dates alone — the freshness view is untouched and still
+  lists the passport.
+- **Nothing new is invented.** No urgency score, no "recommended submission date", no embassy
+  procedure, no deadline that is not already the country pack's own recommendation ([ADR-029]).
+  Preparation tasks remain entirely derived — no completion state is persisted anywhere, and this
+  ADR adds none.
+
+**Trade-off:** a range now shows only its end date on the row ("until 10 Apr"), because the day
+heading above it already gave the start. That is one fewer place the start date appears, which is
+the point, but it does mean a range read in isolation is less self-contained.
+
+**Consequences:** `KeyDateEvent` gains `documentId`; `eventLink` takes the event rather than the bare
+type, so it can use the id. `KeyDateDayGroup` and `groupKeyDatesByDay` are new exports. No schema,
+storage-format or export change: `schemaVersion` remains `1.1.0` and `STORAGE_FORMAT_VERSION`
+remains `2`.
+
+**Implementation:** `src/features/timeline/{timeline-dates,timeline-links}.ts`,
+`src/components/timeline/KeyDatesTimeline.tsx`, `src/i18n/locales/{tr,en}/timeline.json`.

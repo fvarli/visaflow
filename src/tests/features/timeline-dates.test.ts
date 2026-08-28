@@ -1,5 +1,8 @@
 import { describe, it, expect } from 'vitest'
-import { buildKeyDates } from '@/features/timeline/timeline-dates'
+import {
+  buildKeyDates,
+  groupKeyDatesByDay,
+} from '@/features/timeline/timeline-dates'
 import type { Applicant } from '@/domain/schemas/applicant.schema'
 import type { Application } from '@/domain/schemas/application.schema'
 import type { Document } from '@/domain/schemas/document.schema'
@@ -236,5 +239,243 @@ describe('buildKeyDates — absence is an outcome, not a gap', () => {
     const arrival = events.find((e) => e.type === 'transportArrival')
     expect(arrival?.date).toBe('2027-04-10')
     expect(arrival?.city).toBe('Athens')
+  })
+})
+
+describe('buildKeyDates — one fact, one row', () => {
+  const now = new Date('2027-03-01')
+
+  const passportDoc = (validUntil: string) => ({
+    id: 'p-doc',
+    code: 'PASSPORT_CURRENT',
+    category: 'passport' as const,
+    ownerType: 'applicant' as const,
+    ownerId: 'a1',
+    required: true,
+    status: 'ready' as const,
+    verified: true,
+    validUntil,
+  })
+
+  it('does not print the passport expiry twice', () => {
+    // `applicant.passport.expiryDate` and the current passport document's
+    // `validUntil` are the same fact in two editable places (ADR-045).
+    const events = buildKeyDates(
+      {
+        applicant: APPLICANT,
+        application: application(),
+        documents: [passportDoc(APPLICANT.passport.expiryDate)],
+      },
+      now
+    )
+    const onThatDay = events.filter(
+      (e) => e.date === APPLICANT.passport.expiryDate
+    )
+    expect(onThatDay).toHaveLength(1)
+    expect(onThatDay[0]?.type).toBe('passportExpiry')
+  })
+
+  it('keeps both when the two dates actually disagree', () => {
+    // Divergence between two separately-edited fields is a real problem the
+    // applicant should see — suppressing it would be the worse bug.
+    const events = buildKeyDates(
+      {
+        applicant: APPLICANT,
+        application: application(),
+        documents: [passportDoc('2029-01-01')],
+      },
+      now
+    )
+    expect(events.filter((e) => e.type === 'passportExpiry')).toHaveLength(1)
+    expect(events.filter((e) => e.type === 'documentExpiry')).toHaveLength(1)
+  })
+
+  it('never suppresses any other document’s validity', () => {
+    const events = buildKeyDates(
+      {
+        applicant: APPLICANT,
+        application: application(),
+        documents: [
+          { ...passportDoc('2028-05-05'), id: 'ins', code: 'TRAVEL_INSURANCE' },
+        ],
+      },
+      now
+    )
+    expect(events.some((e) => e.type === 'documentExpiry')).toBe(true)
+  })
+
+  it('carries the document id so the row can open that document', () => {
+    const events = buildKeyDates(
+      {
+        applicant: APPLICANT,
+        application: application(),
+        documents: [
+          { ...passportDoc('2028-05-05'), id: 'ins', code: 'TRAVEL_INSURANCE' },
+        ],
+      },
+      now
+    )
+    expect(events.find((e) => e.type === 'documentExpiry')?.documentId).toBe(
+      'ins'
+    )
+  })
+})
+
+describe('groupKeyDatesByDay', () => {
+  const now = new Date('2027-03-01')
+
+  it('gives a busy day one heading instead of one per event', () => {
+    const events = buildKeyDates(
+      { applicant: APPLICANT, application: application(), documents: [] },
+      now
+    )
+    const groups = groupKeyDatesByDay(events)
+    // Each day appears exactly once.
+    expect(new Set(groups.map((g) => g.date)).size).toBe(groups.length)
+    // …and every dated event is still present, none dropped.
+    const dated = events.filter((e) => e.date !== null)
+    expect(groups.reduce((n, g) => n + g.events.length, 0)).toBe(dated.length)
+  })
+
+  it('reads outward from the trip, not in dossier-construction order', () => {
+    // Six things land on the day a trip begins. Their order must be a decision,
+    // not whatever order `buildKeyDates` happened to push them in — a stable
+    // sort would otherwise preserve emission order and look deterministic
+    // while being arbitrary (ADR-045).
+    const day = '2027-04-01'
+    const events = buildKeyDates(
+      {
+        applicant: APPLICANT,
+        application: application({
+          appointment: undefined,
+          employment: {
+            employmentStatus: 'employed',
+            currency: 'EUR',
+            approvedLeaveStart: day,
+            approvedLeaveEnd: '2027-04-10',
+          },
+          trip: {
+            entryDate: day,
+            exitDate: '2027-04-10',
+            firstEntryCountry: 'GR',
+            mainDestinationCountry: 'GR',
+            budgetCurrency: 'EUR',
+            route: [
+              {
+                city: 'Athens',
+                country: 'GR',
+                arrivalDate: day,
+                departureDate: '2027-04-10',
+                nights: 9,
+              },
+            ],
+            transportReservations: [
+              {
+                type: 'flight',
+                departureDate: day,
+                departureCity: 'Warsaw',
+                arrivalCity: 'Athens',
+                status: 'confirmed',
+              },
+            ],
+            accommodationReservations: [
+              {
+                type: 'hotel',
+                name: 'Hotel',
+                city: 'Athens',
+                checkInDate: day,
+                checkOutDate: '2027-04-10',
+                status: 'confirmed',
+              },
+            ],
+            insurance: {
+              provider: 'X',
+              coverageStartDate: day,
+              coverageEndDate: '2027-04-10',
+              currency: 'EUR',
+              medicalCoverage: true,
+              repatriationCoverage: false,
+            },
+          },
+        }),
+        documents: [],
+      },
+      now
+    )
+    const onDay = events.filter((e) => e.date === day).map((e) => e.type)
+    expect(onDay).toEqual([
+      'tripEntry',
+      'leave',
+      'routeStop',
+      'transport',
+      'accommodation',
+      'insurance',
+    ])
+  })
+
+  it('is deterministic — the same dossier renders identically', () => {
+    const input = {
+      applicant: APPLICANT,
+      application: application(),
+      documents: [],
+    }
+    const a = groupKeyDatesByDay(buildKeyDates(input, now))
+    const b = groupKeyDatesByDay(buildKeyDates(input, now))
+    expect(JSON.stringify(a)).toEqual(JSON.stringify(b))
+  })
+
+  it('orders days ascending, including across a year boundary', () => {
+    const events = buildKeyDates(
+      {
+        applicant: APPLICANT,
+        application: application({
+          appointment: { date: '2027-12-28' },
+          trip: {
+            entryDate: '2028-01-03',
+            exitDate: '2028-01-10',
+            firstEntryCountry: 'GR',
+            mainDestinationCountry: 'GR',
+            route: [],
+            transportReservations: [],
+            accommodationReservations: [],
+            budgetCurrency: 'EUR',
+          },
+        }),
+        documents: [],
+      },
+      now
+    )
+    const days = groupKeyDatesByDay(events).map((g) => g.date)
+    expect(days).toEqual([...days].sort((a, b) => a.localeCompare(b)))
+    expect(days).toContain('2027-12-28')
+    expect(days).toContain('2028-01-03')
+    expect(days.indexOf('2027-12-28')).toBeLessThan(days.indexOf('2028-01-03'))
+  })
+
+  it('leaves dateless anchors out — they belong to no day', () => {
+    const groups = groupKeyDatesByDay(
+      buildKeyDates({ applicant: null, application: null, documents: [] }, now)
+    )
+    expect(groups).toEqual([])
+  })
+
+  it('carries the day’s status, so today can be told apart', () => {
+    const groups = groupKeyDatesByDay(
+      buildKeyDates(
+        {
+          applicant: APPLICANT,
+          application: application({ appointment: { date: '2027-03-01' } }),
+          documents: [],
+        },
+        now
+      )
+    )
+    const today = groups.find((g) => g.date === '2027-03-01')
+    expect(today?.status).toBe('today')
+    expect(
+      groups
+        .filter((g) => g.status === 'past')
+        .every((g) => g.date < '2027-03-01')
+    ).toBe(true)
   })
 })

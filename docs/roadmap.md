@@ -97,6 +97,13 @@ dossier/timeline below is still ahead.
   now all reach both surfaces. `trip.estimatedBudget` gained the editor it never had despite being
   rendered on the dashboard, and the funding split is proof-read against it — guidance only, never a
   sufficiency verdict ([ADR-044]). *Done.*
+- **Timeline completion & density** — **done.** An audit of every date-bearing field found nothing
+  silently missing (ADR-043 had closed that) and one imprecise link. What it found instead was
+  density and a duplicate: fourteen key-date events with six of them on a single day, each repeating
+  the date, and the passport expiry printed twice — once from the passport, once from the current-
+  passport document. Dated events now group by day, `today` is a visible group instead of a computed
+  value that was discarded, the duplicate is suppressed structurally (and kept when the two dates
+  disagree), and a validity date opens its own document ([ADR-045]). *Done.*
 - **Richer dossier & timeline** — **partly done, and deliberately narrower than planned.** The audit
   that opened this item found the canonical dossier *over*-specified rather than under-specified: ten
   fields had no consumer at all, and two collected identity numbers nothing used. So the dossier grew
@@ -210,3 +217,4 @@ Implementation status of the current phase is tracked in [current-status.md](./c
 [ADR-042]: ./decisions.md
 [ADR-043]: ./decisions.md
 [ADR-044]: ./decisions.md
+[ADR-045]: ./decisions.md
