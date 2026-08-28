@@ -6,6 +6,10 @@ import type { Sponsor } from '@/domain/schemas/sponsor.schema'
 import type { VisaType } from '@/domain/types/common'
 import type { RequirementSource, ReviewStatus } from '@/config/types'
 import { getAllCountryConfigs } from '@/config/countries'
+import {
+  computeVerificationCoverage,
+  type VerificationCoverage,
+} from '@/config/countries/verification-coverage'
 import { SCHEMA_VERSION } from '@/domain/schemas/dossier.schema'
 import { useDossier } from '@/app/providers/DossierProvider'
 import {
@@ -81,6 +85,11 @@ export interface CountryPackView {
   schengenMember: boolean
   templates: CountryPackTemplateView[]
   sources: RequirementSource[]
+  /**
+   * Requirement-level evidence coverage for the pack's primary template.
+   * Derived on every read, never stored (ADR-047).
+   */
+  coverage: VerificationCoverage | null
   /** Whether this pack is the current application's destination. */
   isActive: boolean
 }
@@ -141,6 +150,11 @@ export function buildSettingsModel(input: SettingsInput): SettingsModel {
       templateVersion: template.templateVersion,
     })),
     sources: config.sources ?? [],
+    // Computed here so Settings and the Dashboard cannot disagree about how
+    // much of a pack is evidenced (ADR-047).
+    coverage: config.visaTypes[0]
+      ? computeVerificationCoverage(config, config.visaTypes[0])
+      : null,
     isActive: config.countryCode === activeCountry,
   }))
 

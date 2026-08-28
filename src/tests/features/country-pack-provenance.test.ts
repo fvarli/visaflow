@@ -1,11 +1,17 @@
 import { describe, it, expect } from 'vitest'
 import i18n from '@/i18n'
-import { getAllCountryConfigs } from '@/config/countries'
+import {
+  getAllCountryConfigs,
+  commonSchengenDocuments,
+} from '@/config/countries'
+import {
+  computeVerificationCoverage,
+  isReviewStatusSupported,
+} from '@/config/countries/verification-coverage'
 import type {
   CountryConfig,
   DocumentRequirement,
   RequirementSource,
-  ReviewStatus,
   VisaTypeTemplate,
 } from '@/config/types'
 import { dynamicT } from '@/lib/i18n-dynamic'
@@ -21,9 +27,13 @@ import { dynamicT } from '@/lib/i18n-dynamic'
  * dating a review in the future.
  *
  * What these deliberately do **not** assert is that any particular pack *is*
- * verified. The test this replaces pinned Greece to `unverified`, which would
- * have failed on the day someone honestly verified it — a guard that punishes
- * the outcome it exists to encourage. A truthful pack passes at any status.
+ * verified. An earlier test pinned Greece to `unverified`, which would have
+ * failed on the day someone honestly verified it — a guard that punishes the
+ * outcome it exists to encourage. A truthful pack passes at any status.
+ *
+ * ADR-047 then made the status itself checkable: a declared `reviewStatus` is
+ * compared against coverage computed from each requirement's own sources,
+ * through the same helper the UI uses, so the two cannot drift apart.
  */
 
 const PACKS = getAllCountryConfigs()
@@ -34,9 +44,6 @@ const TEMPLATES: [CountryConfig, VisaTypeTemplate][] = PACKS.flatMap((pack) =>
     (template) => [pack, template] as [CountryConfig, VisaTypeTemplate]
   )
 )
-
-/** Statuses that assert a human checked this against a published source. */
-const CLAIMS_VERIFICATION: ReviewStatus[] = ['verified', 'partially_verified']
 
 /** Source types that name an institution, and so should be reachable. */
 const OFFICIAL_TYPES = [
@@ -66,31 +73,123 @@ describe('country packs — the registry is not empty', () => {
 })
 
 describe('country packs — a claim of verification must be evidenced', () => {
+  /**
+   * The contract this replaces was far weaker than it looked (ADR-047).
+   *
+   * It read `template.sourceIds` — *template*-level — asked `.some()` whether
+   * any resolved source carried a date, and treated `verified` and
+   * `partially_verified` as the same claim. A pack could therefore be marked
+   * `verified` with all 27 requirements unsourced and one dated ministry link,
+   * and pass the build. It never consulted `requirement.sourceRefs` at all.
+   *
+   * The status now has to match the evidence, counted the same way the UI
+   * counts it, through the one shared helper.
+   */
   it.each(TEMPLATES)(
-    '$countryCode: only claims review it can support',
+    '$countryCode: declares the status its requirements can support',
     (pack, template) => {
-      if (!CLAIMS_VERIFICATION.includes(template.reviewStatus)) return
-
-      // Saying "verified" means a person checked this against something, on a
-      // date. Without a resolvable source carrying that date there is nothing
-      // behind the claim.
-      const cited = (template.sourceIds ?? [])
-        .map((id) => sourcesOf(pack).find((s) => s.id === id))
-        .filter((s): s is RequirementSource => s !== undefined)
+      const coverage = computeVerificationCoverage(pack, template)
 
       expect({
         pack: pack.countryCode,
-        template: template.id,
-        status: template.reviewStatus,
-        hasVerifiedSource: cited.some((s) => Boolean(s.lastVerifiedAt)),
+        declared: template.reviewStatus,
+        supported: isReviewStatusSupported(template.reviewStatus, coverage),
+        coverage: `${coverage.verified}/${coverage.total}`,
       }).toEqual({
         pack: pack.countryCode,
-        template: template.id,
-        status: template.reviewStatus,
-        hasVerifiedSource: true,
+        declared: template.reviewStatus,
+        supported: true,
+        coverage: `${coverage.verified}/${coverage.total}`,
       })
     }
   )
+
+  it.each(TEMPLATES)(
+    '$countryCode: a verified template leaves no requirement unsourced',
+    (pack, template) => {
+      if (template.reviewStatus !== 'verified') return
+
+      const unsourced = requirementsOf(template)
+        .filter(
+          (requirement) =>
+            !(requirement.sourceRefs ?? []).some((id) =>
+              sourcesOf(pack).some(
+                (source) => source.id === id && source.lastVerifiedAt
+              )
+            )
+        )
+        .map((requirement) => requirement.code)
+
+      expect(unsourced).toEqual([])
+    }
+  )
+
+  it.each(TEMPLATES)(
+    '$countryCode: a partially verified template is genuinely partial',
+    (pack, template) => {
+      if (template.reviewStatus !== 'partially_verified') return
+
+      // Both halves matter. Without the first the status is a decoration over
+      // nothing; without the second it understates a pack that is complete.
+      const coverage = computeVerificationCoverage(pack, template)
+      expect({
+        hasEvidence: coverage.verified > 0,
+        isIncomplete: !coverage.isComplete,
+      }).toEqual({ hasEvidence: true, isIncomplete: true })
+    }
+  )
+
+  it('lets an honest pack stay unverified at any coverage', () => {
+    // Understating is never the dishonesty this guards against, so a pack that
+    // holds evidence but declines to advertise itself must still pass.
+    const coverage = { total: 27, verified: 4, isComplete: false }
+    expect(isReviewStatusSupported('unverified', coverage)).toBe(true)
+    expect(isReviewStatusSupported('verified', coverage)).toBe(false)
+  })
+
+  it('never counts a template-level source as requirement evidence', () => {
+    // A general ministry landing page cited at template level must not make 27
+    // requirements it does not mention look evidenced.
+    const pack: CountryConfig = {
+      countryCode: 'ZZ',
+      nameKey: 'x',
+      schengenMember: false,
+      sources: [
+        {
+          id: 'general',
+          authority: 'Ministry',
+          titleKey: 'x',
+          sourceType: 'government',
+          lastVerifiedAt: '2026-01-01',
+        },
+      ],
+      visaTypes: [],
+    }
+    const template = {
+      id: 't',
+      visaType: 'short_stay_tourism',
+      nameKey: 'x',
+      documentRequirements: [
+        {
+          code: 'A',
+          nameKey: 'x',
+          category: 'supporting',
+          ownerType: 'applicant',
+          required: true,
+        },
+      ],
+      preparationMilestones: [],
+      templateVersion: '1.0.0',
+      reviewStatus: 'unverified',
+      sourceIds: ['general'],
+    } as unknown as VisaTypeTemplate
+
+    expect(computeVerificationCoverage(pack, template)).toEqual({
+      total: 1,
+      verified: 0,
+      isComplete: false,
+    })
+  })
 })
 
 describe('country packs — every source reference resolves', () => {
@@ -207,22 +306,96 @@ describe('country packs — source copy exists in both languages', () => {
 })
 
 describe('country packs — unsourced normative values stay inert', () => {
+  /**
+   * The tripwire, re-expressed (ADR-047).
+   *
+   * It used to assert that no requirement carrying `validityPeriodDays` had
+   * `sourceRefs` — a coupling with no semantic basis. A requirement can
+   * perfectly well cite Article 12 *and* still carry an inert legacy number,
+   * which is exactly what `PASSPORT_CURRENT` does now; the old shape would
+   * have blocked the sprint's strongest citation to protect an invariant it
+   * was not actually expressing.
+   *
+   * Worse, it would have missed the real risk: someone wiring the field into a
+   * readiness rule against an *unsourced* requirement passed it silently. What
+   * ADR-046 meant is that nothing reads the field, so that is what is checked.
+   *
+   * Reading goes through Vite rather than `fs`: the same resolution the app is
+   * built with, so the scan cannot drift from what actually ships.
+   */
+  const SOURCES: Record<string, string> = import.meta.glob(
+    '/src/**/*.{ts,tsx}',
+    { query: '?raw', import: 'default', eager: true }
+  )
+
+  /** Declaring the number is allowed; consuming it is not. */
+  const isDeclarationSite = (path: string) =>
+    path === '/src/config/types.ts' || // the type itself, carrying @deprecated
+    path.startsWith('/src/config/countries/') // pack configuration data
+
+  // Tests may read the field freely — including this one.
+  const isTest = (path: string) => path.startsWith('/src/tests/')
+
+  it('scans a realistic number of production files', () => {
+    // Without this, a glob that silently matched nothing would make the
+    // tripwire below pass forever.
+    const scanned = Object.keys(SOURCES).filter((p) => !isTest(p))
+    expect(scanned.length).toBeGreaterThan(50)
+  })
+
   it('no production code consumes validityPeriodDays', () => {
-    // Ten unsourced document-age numbers (90, 180, 30×8) live in the packs and
-    // nothing reads them. That is the only reason they are harmless: the moment
-    // a consumer appears, VisaFlow starts asserting "payslips are valid 30
-    // days" with no source behind it — an invented deadline (ADR-015, ADR-046).
-    //
-    // This test is the tripwire. If a real consumer is added, bring a verified
-    // source with it and update this test deliberately.
+    const offenders = Object.entries(SOURCES)
+      .filter(([path]) => !isTest(path) && !isDeclarationSite(path))
+      .filter(([, contents]) => contents.includes('validityPeriodDays'))
+      .map(([path]) => path)
+
+    // A named list makes the failure actionable: it says which feature started
+    // asserting a document-age rule that nobody published.
+    expect(offenders).toEqual([])
+  })
+
+  it('still finds the quarantined numbers in the packs', () => {
+    // Guards the scan above from passing because the field vanished entirely.
     const withValidity = TEMPLATES.flatMap(([, template]) =>
       requirementsOf(template).filter((r) => r.validityPeriodDays !== undefined)
     )
     expect(withValidity.length).toBeGreaterThan(0)
+  })
+})
+
+describe('country packs — Greece composition and citations', () => {
+  const greece = PACKS.find((p) => p.countryCode === 'GR')
+  const tourism = greece?.visaTypes[0]
+
+  it('composes 19 shared Schengen requirements and 8 Greece-specific ones', () => {
+    // Pins the composition the coverage denominator depends on. If the shared
+    // array grows, coverage silently drops and this says so first.
+    const codes = requirementsOf(tourism!).map((r) => r.code)
+    const shared = commonSchengenDocuments.map((r) => r.code)
+    expect(codes.length).toBe(27)
+    expect(codes.slice(0, shared.length)).toEqual(shared)
+  })
+
+  it('resolves every requirement citation it declares', () => {
+    const known = new Set(sourcesOf(greece!).map((s) => s.id))
+    const refs = requirementsOf(tourism!).flatMap((r) => r.sourceRefs ?? [])
+    expect(refs.length).toBeGreaterThan(0)
+    expect(refs.filter((id) => !known.has(id))).toEqual([])
+  })
+
+  it('is partially verified on exactly the evidence recorded', () => {
+    // 4 of 27, from Visa Code Articles 12 and 15 and Annex II. The Hellenic
+    // Republic's own publication could not be reached, so every
+    // Greece-specific requirement stays unverified and `gr-mfa-general`
+    // carries no verification date.
+    expect(computeVerificationCoverage(greece!, tourism!)).toEqual({
+      total: 27,
+      verified: 4,
+      isComplete: false,
+    })
+    expect(tourism!.reviewStatus).toBe('partially_verified')
     expect(
-      withValidity.every(
-        (r) => r.sourceRefs === undefined || r.sourceRefs.length === 0
-      )
-    ).toBe(true)
+      sourcesOf(greece!).find((s) => s.id === 'gr-mfa-general')?.lastVerifiedAt
+    ).toBeUndefined()
   })
 })

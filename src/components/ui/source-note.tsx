@@ -1,6 +1,7 @@
 import { ExternalLink, ShieldAlert, ShieldCheck } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import type { RequirementSource, ReviewStatus } from '@/config/types'
+import type { VerificationCoverage } from '@/config/countries/verification-coverage'
 import { useFormatters } from '@/lib/format'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { DataList, DataListItem } from '@/components/ui/data-list'
@@ -34,6 +35,12 @@ interface SourceNoteProps {
   reviewStatus?: ReviewStatus
   /** ISO date the template was last reviewed by a maintainer. */
   lastReviewedAt?: string
+  /**
+   * How much of the template carries its own evidence. Pack-level surfaces
+   * pass this; a single requirement's panel does not, because a count across
+   * 27 requirements says nothing about the one being read.
+   */
+  coverage?: VerificationCoverage
   className?: string
 }
 
@@ -48,6 +55,7 @@ export function SourceNote({
   sources,
   reviewStatus = 'unverified',
   lastReviewedAt,
+  coverage,
   className,
 }: SourceNoteProps) {
   const { t } = useTranslation('common')
@@ -84,12 +92,42 @@ export function SourceNote({
     )
   }
 
+  /**
+   * The success tone belongs to `verified` alone.
+   *
+   * A green check beside "Partially verified" reads as a completed state even
+   * when most requirements carry no evidence at all — the badge's wording
+   * carries the nuance and the icon overrides it. Below `verified` the same
+   * icon stays, muted, so the row still reads as source information rather
+   * than as an endorsement (ADR-047).
+   */
+  const isFullyVerified = reviewStatus === 'verified'
+
   return (
     <div className={cn('space-y-3', className)}>
       <div className="flex items-center gap-2">
-        <ShieldCheck aria-hidden className="text-success size-4" />
+        <ShieldCheck
+          aria-hidden
+          className={cn(
+            'size-4',
+            isFullyVerified ? 'text-success' : 'text-muted-foreground'
+          )}
+        />
         <ReviewStatusBadge status={reviewStatus} />
       </div>
+      {/*
+       * Shown only where it adds something. At `verified` the count is
+       * necessarily complete, and at `unverified` a "0 of 27" reads like a
+       * progress bar for work nobody promised to do.
+       */}
+      {coverage && reviewStatus === 'partially_verified' && (
+        <p className="text-caption text-muted-foreground" data-numeric>
+          {t('sources.coverage', {
+            verified: coverage.verified,
+            total: coverage.total,
+          })}
+        </p>
+      )}
       <SourceList sources={sources} lastReviewedAt={lastReviewedAt} />
       <p className="text-caption text-muted-foreground">
         {t('sources.notLegalGuarantee')}

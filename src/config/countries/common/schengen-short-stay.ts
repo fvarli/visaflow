@@ -34,6 +34,11 @@ export const commonSchengenDocuments: DocumentRequirement[] = [
     ownerType: 'applicant',
     required: true,
     validityPeriodDays: 90, // After trip end
+    // Visa Code Article 12 states all three claims this requirement makes:
+    // (a) validity extending at least three months past the intended
+    // departure, (b) at least two blank pages, (c) issued within the previous
+    // 10 years — the last of which the notes now carry (ADR-047).
+    sourceRefs: ['eu-visa-code-art12'],
   },
   {
     code: 'PASSPORT_PREVIOUS',
@@ -71,6 +76,10 @@ export const commonSchengenDocuments: DocumentRequirement[] = [
     category: 'insurance',
     ownerType: 'applicant',
     required: true,
+    // Article 15(3) sets the EUR 30 000 minimum verbatim, and 15(1) lists the
+    // cover this requirement names — repatriation, urgent medical attention,
+    // emergency hospital treatment.
+    sourceRefs: ['eu-visa-code-art15'],
   },
   {
     code: 'TRANSPORT_RESERVATION',
@@ -81,6 +90,11 @@ export const commonSchengenDocuments: DocumentRequirement[] = [
     category: 'travel',
     ownerType: 'applicant',
     required: true,
+    // Annex II B.1 lists "reservation of or return or round ticket". The note
+    // used to add that paid tickets are *not* required, which the Code does
+    // not say — Article 14(3) makes Annex II non-exhaustive and leaves the
+    // consulate free to ask. The note was corrected before citing (ADR-047).
+    sourceRefs: ['eu-visa-code-annex2'],
   },
   {
     code: 'ACCOMMODATION',

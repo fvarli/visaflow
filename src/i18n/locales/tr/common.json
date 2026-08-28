@@ -159,7 +159,8 @@
     "unverifiedNotice": "Bu gereklilik henüz güncel bir resmî kaynakla doğrulanmamıştır. Başvurudan önce yetkili kurumun güncel belge listesini kontrol edin.",
     "notLegalGuarantee": "Doğrulama durumu, bu şablonun bir sorumlu tarafından en son ne zaman kontrol edildiğini belirtir. Hukuki bir garanti değildir; VisaFlow bir büyükelçilik veya yetkili vize merkezi değildir.",
     "type": "Kaynak türü",
-    "notes": "Notlar"
+    "notes": "Notlar",
+    "coverage": "{{total}} gereklilikten {{verified}} tanesi doğrulanmış bir kaynağa sahip"
   },
   "countryCombobox": {
     "placeholder": "Ülke seçin",

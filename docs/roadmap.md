@@ -130,9 +130,17 @@ requirement comes from, distinguish source authority, and record review without 
 future, to that contract, and a requirement can no longer display a verification its own sources do
 not carry ([ADR-046]).
 
-**The recommended next step is verifying Greece, not adding a country.** All 27 of its requirements
-are unsourced today; exercising the provenance path on real evidence should come before a second
-author depends on it.
+**Greece source verification ran first, and it changed the contract.** The entry-gate invariant
+turned out to be weaker than ADR-046 described — it read *template*-level sources existentially and
+treated `verified` and `partially_verified` alike, so a pack could claim `verified` with every
+requirement unsourced. `reviewStatus` is now checked against coverage computed from each
+requirement's own sources ([ADR-047]).
+
+**Greece is `partially_verified`: 4 of 27 requirements.** The evidence is EU primary law — Visa Code
+Articles 12 and 15 and Annex II. It is not more because **every Greek-jurisdiction source is
+unreachable**: mfa.gr and gov.gr refuse this network at the CDN edge, the appointed visa centre
+returns 403, and Global Visa Center World serves an invalid TLS certificate. Requirements specific
+to Greece therefore stay unverified, and a Greece-specific verification pass is still outstanding.
 
 **Theme:** grow from "a Greece pack" to a maintained ecosystem of country packs.
 **Why here:** country packs are already data, not code — so scaling coverage is a content and
@@ -140,7 +148,11 @@ process problem, best tackled once the workspace is worth filling with more coun
 
 - **More countries & visa types** authored as packs. *Next.*
 - **Source verification workflow** — a repeatable, honest process to move packs from
-  `unverified` toward `verified` with recorded evidence. *Future.*
+  `unverified` toward `verified` with recorded evidence. The mechanism now exists and has been used
+  once end to end: evidence attaches per requirement, coverage is computed rather than declared, and
+  a citation must support everything the requirement says — which is why three requirements Annex II
+  names almost verbatim still do not count ([ADR-047]). What remains is reaching the national
+  sources. *In progress.*
 - **Community-authored packs** — contributors add countries without touching the engine;
   identifiers stay stable and requirements stay keys-not-prose (which is why the config layer was
   built this way). Packs never contain personal data. *Future.*
@@ -229,3 +241,4 @@ Implementation status of the current phase is tracked in [current-status.md](./c
 [ADR-044]: ./decisions.md
 [ADR-045]: ./decisions.md
 [ADR-046]: ./decisions.md
+[ADR-047]: ./decisions.md

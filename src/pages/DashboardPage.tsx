@@ -133,7 +133,11 @@ export default function DashboardPage() {
           title={t('dashboard:sourceStatus.title')}
           description={t('dashboard:sourceStatus.description')}
         />
-        <SourceNote sources={app.sources} reviewStatus={app.reviewStatus} />
+        <SourceNote
+          sources={app.sources}
+          reviewStatus={app.reviewStatus}
+          coverage={app.coverage ?? undefined}
+        />
       </Section>
     </PageBody>
   )

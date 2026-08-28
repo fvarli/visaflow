@@ -159,7 +159,8 @@
     "unverifiedNotice": "This requirement has not yet been verified against a current official source. Check the authorized institution's current document list before applying.",
     "notLegalGuarantee": "Review status describes how recently this template was checked by a maintainer. It is not a legal guarantee and VisaFlow is not an embassy or authorized visa centre.",
     "type": "Source type",
-    "notes": "Notes"
+    "notes": "Notes",
+    "coverage": "{{verified}} of {{total}} requirements have a verified source"
   },
   "countryCombobox": {
     "placeholder": "Select a country",

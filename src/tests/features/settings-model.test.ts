@@ -6,6 +6,7 @@ import {
   STORAGE_KEYS,
   type SettingsInput,
 } from '@/features/settings/settings-model'
+import { greeceTourismTemplate } from '@/config/countries/greece'
 import { SCHEMA_VERSION } from '@/domain/schemas/dossier.schema'
 import type { Application } from '@/domain/schemas/application.schema'
 import type { Document } from '@/domain/schemas/document.schema'
@@ -64,8 +65,12 @@ describe('buildSettingsModel — packs', () => {
     expect(model.packs.length).toBeGreaterThan(0)
     const greece = model.packs.find((p) => p.countryCode === 'GR')
     expect(greece).toBeTruthy()
-    // Greece is honestly unverified — never implied as endorsed.
-    expect(greece?.templates[0]?.reviewStatus).toBe('unverified')
+    // Read the status from the pack rather than pinning a literal: the point
+    // is that the model reports what the pack declares, and a later
+    // verification sprint must not have to edit this test (ADR-047).
+    expect(greece?.templates[0]?.reviewStatus).toBe(
+      greeceTourismTemplate.reviewStatus
+    )
     expect(greece?.templates.length).toBeGreaterThan(0)
   })
 
@@ -73,7 +78,7 @@ describe('buildSettingsModel — packs', () => {
     const model = buildSettingsModel(input({ application: application('GR') }))
     expect(model.packs.find((p) => p.countryCode === 'GR')?.isActive).toBe(true)
     expect(model.active.countryCode).toBe('GR')
-    expect(model.active.reviewStatus).toBe('unverified')
+    expect(model.active.reviewStatus).toBe(greeceTourismTemplate.reviewStatus)
   })
 
   it('marks no pack active without a destination', () => {

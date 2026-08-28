@@ -67,6 +67,10 @@ const greeceSpecificDocuments: DocumentRequirement[] = [
     category: 'supporting',
     ownerType: 'applicant',
     required: false,
+    // Annex II B.4 is "proof of real estate property", and it sits under
+    // documentation for assessing the intention to leave — which is exactly
+    // what this requirement's note claims it does.
+    sourceRefs: ['eu-visa-code-annex2'],
   },
 
   // Self-employed
@@ -159,16 +163,22 @@ export const greeceTourismTemplate: VisaTypeTemplate = {
 
   templateVersion: '1.0.0',
   /**
-   * Carried over from the previous configuration's `lastUpdated` field. This
-   * is the date the template content was last touched in this repository —
-   * NOT a date on which it was verified against an official publication.
+   * The date this template was last reviewed by a maintainer. Still not a
+   * verification date — `lastVerifiedAt` on each source is that, and only four
+   * requirements have one.
    */
-  lastReviewedAt: '2025-01-15',
+  lastReviewedAt: '2026-08-28',
   /**
-   * Honest status: no requirement in this template has been confirmed against
-   * a current official document list within this repository, so it is
-   * unverified. Do not raise this without recording real evidence.
+   * Derived from evidence, not chosen: 4 of the 27 requirements carry their
+   * own resolvable, dated source (Visa Code Articles 12 and 15 and Annex II),
+   * and 23 do not. That is exactly `partially_verified`, and a test recomputes
+   * it rather than trusting this line (ADR-047).
+   *
+   * It is not higher because the Hellenic Republic's own publication could not
+   * be reached: mfa.gr and gov.gr both refuse this network at the CDN edge.
+   * Every Greece-specific requirement therefore remains unverified, and
+   * `gr-mfa-general` still carries no `lastVerifiedAt`.
    */
-  reviewStatus: 'unverified',
+  reviewStatus: 'partially_verified',
   sourceIds: ['gr-mfa-general'],
 }

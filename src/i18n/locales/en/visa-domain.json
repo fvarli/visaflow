@@ -131,7 +131,7 @@
     "PASSPORT_CURRENT": {
       "name": "Current Passport",
       "description": "Valid passport with at least 3 months validity beyond return date",
-      "notes": "Must have at least 2 blank pages"
+      "notes": "Must have at least 2 blank pages and have been issued within the previous 10 years"
     },
     "PASSPORT_PREVIOUS": {
       "name": "Previous Passports",
@@ -154,7 +154,7 @@
     "TRANSPORT_RESERVATION": {
       "name": "Round-trip Transport Reservation",
       "description": "Flight or other transport booking showing entry and exit",
-      "notes": "Reservation is sufficient; paid tickets are not required at application"
+      "notes": "A booking confirmation is normally accepted; the consulate may still ask for more"
     },
     "ACCOMMODATION": {
       "name": "Accommodation Reservation",
@@ -278,6 +278,18 @@
     "gr-mfa-general": {
       "title": "Ministry of Foreign Affairs — visa information",
       "notes": "General ministry entry point carried over from an earlier version of this template. It has not been checked against a current document list."
+    },
+    "eu-visa-code-art12": {
+      "title": "Visa Code, Article 12 — Travel document",
+      "notes": "Sets the passport conditions: validity extending at least three months past the intended departure, at least two blank pages, and issue within the previous 10 years."
+    },
+    "eu-visa-code-art15": {
+      "title": "Visa Code, Article 15 — Travel medical insurance",
+      "notes": "Sets the EUR 30,000 minimum cover and what it must include: repatriation for medical reasons, urgent medical attention and emergency hospital treatment."
+    },
+    "eu-visa-code-annex2": {
+      "title": "Visa Code, Annex II — Non-exhaustive list of supporting documents",
+      "notes": "Lists documents a consulate may request. It is explicitly non-exhaustive, so it shows what is accepted, never what is sufficient."
     }
   },
   "templateNotes": {

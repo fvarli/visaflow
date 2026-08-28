@@ -281,8 +281,26 @@ build reads dossier schema 1.0.0 and 1.1.0 alike, so every existing export impor
       sources must carry a URL, and every source string must exist in both
       locales. They generalise to any future pack automatically. `SourceNote`
       no longer lets a template's `verified` status put a green check over a
-      source that carries no verification date. Greece stays honestly
-      `unverified` — 27 requirements, 0 recorded sources (ADR-046)
+      source that carries no verification date (ADR-046)
+
+- [x] **`reviewStatus` is checked against evidence, and Greece is partially
+      verified** — the entry-gate invariant turned out weaker than described: it
+      read *template*-level sources existentially and treated `verified` and
+      `partially_verified` alike, so a pack could claim `verified` with all 27
+      requirements unsourced. Coverage is now computed from each requirement's
+      own sources through one shared helper that the tests and both pack
+      surfaces use, so a declared status cannot drift from the evidence.
+      **Greece is `partially_verified`, 4 of 27**, cited to Visa Code Articles
+      12 and 15 and Annex II; the count is shown beside the status and the
+      success tone is reserved for `verified`. It is not higher because every
+      Greek-jurisdiction source is unreachable from this environment (mfa.gr
+      and gov.gr refuse at the CDN edge; the visa centre 403s; GVCW serves an
+      invalid certificate), and because a citation must support everything a
+      requirement says — which excludes three that Annex II names almost
+      verbatim. Two source-driven wording fixes: the passport's 10-year issue
+      rule added, the "paid tickets not required" claim removed. The
+      `validityPeriodDays` tripwire is now a production-consumer scan rather
+      than a `sourceRefs` coupling (ADR-047)
 
 ### Technical
 - [x] TypeScript strict mode

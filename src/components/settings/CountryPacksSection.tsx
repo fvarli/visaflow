@@ -108,6 +108,7 @@ export function CountryPacksSection() {
                     sources={pack.sources}
                     reviewStatus={primary.reviewStatus}
                     lastReviewedAt={primary.lastReviewedAt}
+                    coverage={pack.coverage ?? undefined}
                   />
                 )}
               </li>

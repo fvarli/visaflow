@@ -1550,3 +1550,99 @@ a contract that is now enforced, before a second author depends on it.
 
 **Implementation:** `src/components/ui/source-note.tsx`, `src/config/types.ts`,
 `src/tests/features/country-pack-provenance.test.ts` (new), `src/tests/i18n/i18n.test.tsx`.
+
+---
+
+## ADR-047: Greece Is Partially Verified, and `reviewStatus` Must Match Its Evidence
+
+**Status:** Accepted · 2026-08-28 · extends [ADR-015](#adr-015), [ADR-046](#adr-046)
+
+**Decision:**
+
+1. **`reviewStatus` is checked against coverage, not asserted.** `verified` requires *every*
+   effective requirement to carry its own resolvable source with a `lastVerifiedAt`;
+   `partially_verified` requires at least one that does and at least one that does not;
+   `unverified` and `needs_review` remain legal at any coverage. One shared helper,
+   `computeVerificationCoverage`, defines this for the tests and both UI surfaces.
+2. **Greece is `partially_verified` — 4 of 27.** Derived from the evidence, not chosen.
+3. **Pack-level surfaces state their coverage**, and the success tone is reserved for `verified`.
+4. **`validityPeriodDays` stays deprecated and inert**, with its tripwire re-expressed as a real
+   consumer scan.
+
+**Context:**
+
+ADR-046 claimed provenance was now enforced. It was not, quite. The invariant it introduced read
+`template.sourceIds` — *template*-level — asked `.some()` whether any resolved source carried a
+date, and put `verified` and `partially_verified` in one list. **A pack could be marked `verified`
+with all 27 requirements unsourced and a single dated ministry link, and pass the build.** It never
+consulted `requirement.sourceRefs` at all. The audit that opened this sprint was checking a claim
+made in the previous one and found it overstated.
+
+The research then ran into a harder wall. Of the source priorities this project set for itself,
+**every Greek-jurisdiction source was unreachable**: `mfa.gr` and `gov.gr` both refuse this network
+at the Akamai edge — plain HTTP *and* real Chrome — the appointed visa centre returns `403201`, and
+Global Visa Center World presents an invalid TLS certificate, which disqualifies it as provenance
+whatever it says. What remained reachable was EU primary law, which is legitimate evidence exactly
+where a rule is genuinely Schengen-wide, and worthless for anything specific to Greece.
+
+**Rationale:**
+
+- **Coverage describes the pack, not the applicant.** Every requirement counts, including optional
+  and conditional ones: a requirement that appears only for the self-employed is still a claim the
+  pack makes. Deriving coverage from the open dossier would also make the same pack report
+  different honesty to different people.
+- **A citation vouches for everything the requirement says.** `sourceRefs` attaches to a
+  requirement, but a requirement asserts a name, a description *and* notes. So a source that
+  supports the main idea and not the notes does not earn the citation. This is why only 4 of 27
+  count: Annex II names bank statements, accommodation and itineraries almost verbatim, yet
+  `BANK_STATEMENTS` adds "last 3-6 months", `ACCOMMODATION` adds "for entire stay" and `ITINERARY`
+  adds "day-by-day" — none of which the Visa Code states. The practical guidance is useful and
+  stays; the citation does not.
+- **Two wording corrections, both source-driven.** `PASSPORT_CURRENT` gained Article 12(c) — the
+  passport must have been issued within the previous 10 years — which VisaFlow simply omitted and
+  applicants can fail on. `TRANSPORT_RESERVATION` lost the claim that paid tickets are *not*
+  required, which no source supports and Article 14(3) undercuts by making Annex II non-exhaustive.
+- **Two conflicts recorded, neither resolved.** Article 14(4) contemplates proof of sponsorship on
+  *a form drawn up by the Member State*, not VisaFlow's free-form sponsor letter; and Annex II C.2
+  is about family ties with the *host or inviting person*, while `RELATIONSHIP_PROOF` is keyed to
+  the financial *sponsor*. Both stay unsourced. Answering either needs the Greek ministry.
+- **The green check was overclaiming.** Below `verified` the badge wording carries the nuance and a
+  success-toned icon overrides it, so the tone is now muted and the count says what the status
+  means. `unverified` shows no `0 of 27`, which would read as a progress bar for work nobody
+  promised.
+- **Two pack-level surfaces must answer identically.** Browser QA caught the Dashboard reporting the
+  pack as unevidenced while Settings, looking at the same pack, showed 4 of 27: the Dashboard fed
+  only `template.sourceIds` — a single undated ministry link — into `SourceNote`, so it fell to the
+  unverified branch and the coverage it had computed was never rendered. Both now read the pack's
+  sources and the one shared helper. A count that two screens can disagree about is worse than no
+  count at all.
+- **The old tripwire guarded the wrong thing.** Coupling `validityPeriodDays` to `sourceRefs` has no
+  semantic basis — a requirement can cite Article 12 *and* carry an inert legacy number, which
+  `PASSPORT_CURRENT` now does — and it would have missed a real consumer wired to an unsourced
+  requirement. The scan asserts what ADR-046 meant: nothing in production reads the field.
+- **The numbers are not the rule they resemble.** `90` on `PASSPORT_CURRENT` encodes "three months
+  past departure" and `180` on `PHOTOS` encodes "taken within six months" — a validity *margin* and
+  a *recency* window. Neither is the 90/180 stay rule they look exactly like, and one field cannot
+  represent three different kinds of rule. It stays deprecated even though the requirement it sits
+  on is now cited.
+
+**Trade-off:** 4 of 27 is a thin result, and a reader may take the number as a judgement on the pack
+rather than on the evidence available for it. The alternative was a higher number bought with
+citations that vouch for wording the sources never contain, which is the failure this whole line of
+work exists to prevent. Understating is recoverable; overstating is not.
+
+**Consequences:** No dossier schema, storage or export change — `schemaVersion` stays `1.1.0`,
+`STORAGE_FORMAT_VERSION` stays `2`. `gr-mfa-general` deliberately still carries no `lastVerifiedAt`,
+because nobody could open it. The EU records live in a shared `eu.sources.ts` beside the shared
+Schengen requirements they support, so the next Schengen pack inherits the evidence with them — and
+must carry those records or its citations dangle, which the invariants catch.
+
+**Next:** Greece-specific verification, from a network that can reach `mfa.gr` or by a maintainer
+entering the ministry's published list by hand. Every requirement above marked partial or
+conflicting is waiting on precisely that.
+
+**Implementation:** `src/config/sources/eu.sources.ts`,
+`src/config/countries/verification-coverage.ts`, `src/config/countries/common/schengen-short-stay.ts`,
+`src/config/countries/greece/`, `src/components/ui/source-note.tsx`, the settings and dashboard
+models, `src/tests/features/country-pack-provenance.test.ts`,
+`src/tests/features/verification-coverage.test.ts` (new).

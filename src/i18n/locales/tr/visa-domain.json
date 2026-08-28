@@ -131,7 +131,7 @@
     "PASSPORT_CURRENT": {
       "name": "Güncel Pasaport",
       "description": "Dönüş tarihinden sonra en az 3 ay geçerliliği olan pasaport",
-      "notes": "En az 2 boş sayfa bulunmalıdır"
+      "notes": "En az 2 boş sayfa bulunmalı ve pasaport son 10 yıl içinde düzenlenmiş olmalıdır"
     },
     "PASSPORT_PREVIOUS": {
       "name": "Eski Pasaportlar",
@@ -154,7 +154,7 @@
     "TRANSPORT_RESERVATION": {
       "name": "Gidiş Dönüş Ulaşım Rezervasyonu",
       "description": "Giriş ve çıkışı gösteren uçak veya diğer ulaşım rezervasyonu",
-      "notes": "Rezervasyon yeterlidir; başvuru sırasında ödenmiş bilet istenmez"
+      "notes": "Rezervasyon belgesi genellikle kabul edilir; konsolosluk yine de ek belge isteyebilir"
     },
     "ACCOMMODATION": {
       "name": "Konaklama Rezervasyonu",
@@ -278,6 +278,18 @@
     "gr-mfa-general": {
       "title": "Dışişleri Bakanlığı — vize bilgileri",
       "notes": "Bu şablonun önceki sürümünden devralınan genel bakanlık bağlantısı. Güncel bir belge listesiyle karşılaştırılmamıştır."
+    },
+    "eu-visa-code-art12": {
+      "title": "Vize Kanunu, Madde 12 — Seyahat belgesi",
+      "notes": "Pasaport koşullarını belirler: planlanan çıkış tarihinden sonra en az üç ay geçerlilik, en az iki boş sayfa ve son 10 yıl içinde düzenlenmiş olma."
+    },
+    "eu-visa-code-art15": {
+      "title": "Vize Kanunu, Madde 15 — Seyahat sağlık sigortası",
+      "notes": "30.000 EUR asgari teminatı ve kapsamını belirler: tıbbi nedenlerle ülkeye geri gönderim, acil tıbbi müdahale ve acil hastane tedavisi."
+    },
+    "eu-visa-code-annex2": {
+      "title": "Vize Kanunu, Ek II — Destekleyici belgelerin sınırlayıcı olmayan listesi",
+      "notes": "Konsolosluğun isteyebileceği belgeleri listeler. Açıkça sınırlayıcı değildir; neyin kabul edildiğini gösterir, neyin yeterli olduğunu değil."
     }
   },
   "templateNotes": {

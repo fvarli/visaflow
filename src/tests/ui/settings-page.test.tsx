@@ -13,6 +13,8 @@ import i18n, {
   LOCALE_STORAGE_KEY,
   SUPPORTED_LOCALES,
 } from '@/i18n'
+import { greeceConfig, greeceTourismTemplate } from '@/config/countries/greece'
+import { computeVerificationCoverage } from '@/config/countries/verification-coverage'
 import { LocaleProvider } from '@/app/providers/LocaleProvider'
 import { ThemeProvider } from '@/app/providers/ThemeProvider'
 import { DossierProvider, useDossier } from '@/app/providers/DossierProvider'
@@ -147,9 +149,36 @@ describe('Settings — section routing', () => {
 
 describe('Settings — country packs & data', () => {
   it('lists a pack with its honest review status', async () => {
+    // Whatever the pack declares, the page must show that and not a literal
+    // this test happens to remember. Greece moved from `unverified` to
+    // `partially_verified` the day it gained real evidence (ADR-047).
+    renderPage('/settings?section=countryPacks')
+    // Deliberately findAll: once the pack carries evidence the status appears
+    // both in the supported-types list and on the source note, and asserting
+    // uniqueness would be pinning layout rather than behaviour.
+    const badges = await screen.findAllByText(
+      i18n.t(
+        `common:sources.reviewStatus.${greeceTourismTemplate.reviewStatus}`
+      )
+    )
+    expect(badges.length).toBeGreaterThan(0)
+  })
+
+  it('states how much of the active pack is actually evidenced', async () => {
+    // "Partially verified" on its own reads far stronger than the evidence
+    // behind it; the count is what makes the status mean something (ADR-047).
+    const coverage = computeVerificationCoverage(
+      greeceConfig,
+      greeceTourismTemplate
+    )
     renderPage('/settings?section=countryPacks')
     expect(
-      await screen.findByText(i18n.t('common:sources.reviewStatus.unverified'))
+      await screen.findByText(
+        i18n.t('common:sources.coverage', {
+          verified: coverage.verified,
+          total: coverage.total,
+        })
+      )
     ).toBeInTheDocument()
   })
 

@@ -8,7 +8,11 @@ import type { Dossier } from '@/domain/schemas/dossier.schema'
 import type { FinancingSource, VisaType } from '@/domain/types/common'
 import { runValidation } from '@/domain/rules/runner'
 import type { ValidationFinding, ValidationResult } from '@/domain/rules/types'
-import { resolveVisaTemplate, getSourcesForRefs } from '@/config/countries'
+import { resolveVisaTemplate, getCountryConfig } from '@/config/countries'
+import {
+  computeVerificationCoverage,
+  type VerificationCoverage,
+} from '@/config/countries/verification-coverage'
 import type { RequirementSource, ReviewStatus } from '@/config/types'
 import type { StatusTone } from '@/components/ui/status-badge'
 // Readiness and priority are app-wide concepts owned by the readiness feature,
@@ -147,6 +151,8 @@ export interface ApplicationDashboardModel {
   financing: FinancingSummaryModel | null
   reviewStatus?: ReviewStatus
   sources: RequirementSource[]
+  /** Same helper the Settings pack list uses; never persisted. */
+  coverage: VerificationCoverage | null
 }
 
 /**
@@ -452,9 +458,24 @@ function buildApplicationModel(
   const upcomingTimeline = timeline
     .filter((item) => item.status !== 'past')
     .slice(0, MAX_UPCOMING)
-  const sources = template?.sourceIds
-    ? getSourcesForRefs(application?.destinationCountry, template.sourceIds)
-    : []
+  const packConfig = application?.destinationCountry
+    ? getCountryConfig(application.destinationCountry)
+    : undefined
+  /**
+   * The pack's sources, not just the template-level ones.
+   *
+   * This section is a pack-level statement, the same one Settings makes, so it
+   * shows the same records. Reading only `template.sourceIds` meant the
+   * dashboard saw a single undated ministry link, fell to the unverified
+   * branch and reported a pack as unevidenced while Settings — looking at the
+   * same pack — showed 4 of 27 verified. Two surfaces, one pack, two answers
+   * (ADR-047).
+   */
+  const sources = packConfig?.sources ?? []
+  const coverage =
+    packConfig && template
+      ? computeVerificationCoverage(packConfig, template)
+      : null
 
   const financing: FinancingSummaryModel | null = application?.financing
     ? {
@@ -492,6 +513,7 @@ function buildApplicationModel(
     financing,
     reviewStatus: template?.reviewStatus,
     sources,
+    coverage,
   }
 }
 

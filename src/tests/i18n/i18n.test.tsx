@@ -395,6 +395,71 @@ describe('source metadata', () => {
       screen.getByText(i18n.t('sources.unverifiedNotice'))
     ).toBeInTheDocument()
   })
+
+  const partial = { total: 27, verified: 4, isComplete: false }
+
+  it('states how much of a partially verified pack is evidenced', () => {
+    // "Partially verified" alone reads far stronger than 4 of 27 (ADR-047).
+    renderInApp(
+      <SourceNote
+        sources={verified}
+        reviewStatus="partially_verified"
+        coverage={partial}
+      />
+    )
+    expect(
+      screen.getByText(i18n.t('sources.coverage', { verified: 4, total: 27 }))
+    ).toBeInTheDocument()
+  })
+
+  it('reserves the success tone for a fully verified pack', () => {
+    // The green check is the strongest claim on the surface; below `verified`
+    // it overrides the very nuance the badge wording carries.
+    const { container, unmount } = renderInApp(
+      <SourceNote
+        sources={verified}
+        reviewStatus="partially_verified"
+        coverage={partial}
+      />
+    )
+    expect(container.querySelector('.text-success')).toBeNull()
+    unmount()
+
+    const full = renderInApp(
+      <SourceNote sources={verified} reviewStatus="verified" />
+    )
+    expect(full.container.querySelector('.text-success')).not.toBeNull()
+  })
+
+  it('omits the coverage line where it would mislead', () => {
+    // At `verified` the count is necessarily complete; at `unverified` a
+    // "0 of 27" reads like a progress bar for work nobody promised.
+    const complete = { total: 27, verified: 27, isComplete: true }
+    const { unmount } = renderInApp(
+      <SourceNote
+        sources={verified}
+        reviewStatus="verified"
+        coverage={complete}
+      />
+    )
+    expect(
+      screen.queryByText(
+        i18n.t('sources.coverage', { verified: 27, total: 27 })
+      )
+    ).toBeNull()
+    unmount()
+
+    renderInApp(
+      <SourceNote
+        sources={[]}
+        reviewStatus="unverified"
+        coverage={{ total: 27, verified: 0, isComplete: false }}
+      />
+    )
+    expect(
+      screen.queryByText(i18n.t('sources.coverage', { verified: 0, total: 27 }))
+    ).toBeNull()
+  })
 })
 
 describe('playground renders in both locales', () => {
