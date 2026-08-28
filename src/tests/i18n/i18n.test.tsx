@@ -369,12 +369,31 @@ describe('source metadata', () => {
     ).toBeInTheDocument()
   })
 
-  it('keeps the Greece template honestly marked unverified', () => {
-    // Guard against someone marking the template verified without evidence.
-    expect(greeceTourismTemplate.reviewStatus).toBe('unverified')
-    for (const source of greeceTourismTemplate.sourceIds ?? []) {
-      expect(typeof source).toBe('string')
-    }
+  it('does not let a verified template vouch for an unverified source', () => {
+    // The leak this closes (ADR-046): `reviewStatus` belongs to the template,
+    // the sources belong to the requirement. A pack marked `verified` used to
+    // put a green check over a source carrying no verification date at all —
+    // the exact thing the comment above that branch promised would not happen.
+    const undated: RequirementSource[] = [
+      {
+        id: 'no-date',
+        authority: 'Example Ministry',
+        titleKey: 'playground:i18n.demoSourceTitle',
+        sourceType: 'government',
+      },
+    ]
+    renderInApp(<SourceNote sources={undated} reviewStatus="verified" />)
+    expect(
+      screen.getByText(i18n.t('sources.unverifiedNotice'))
+    ).toBeInTheDocument()
+  })
+
+  it('still says nothing is verified when the requirement has no source', () => {
+    // A pack-level claim must not leak onto a requirement that cites nothing.
+    renderInApp(<SourceNote sources={[]} reviewStatus="verified" />)
+    expect(
+      screen.getByText(i18n.t('sources.unverifiedNotice'))
+    ).toBeInTheDocument()
   })
 })
 

@@ -52,12 +52,25 @@ export function SourceNote({
 }: SourceNoteProps) {
   const { t } = useTranslation('common')
 
-  const isVerified = reviewStatus === 'verified'
+  /**
+   * Verification is earned by *this* requirement's own evidence.
+   *
+   * `reviewStatus` is a property of the template; these sources are the
+   * requirement's. The check used to be `!sources.length || (!isVerified &&
+   * !hasVerifiedSource)`, which let a pack marked `verified` put a green check
+   * over a source that carried no verification date at all — the exact thing
+   * the comment beneath it promised would not happen. Unreachable while no pack
+   * is verified, and precisely the trap laid for the next one (ADR-046).
+   *
+   * The pack status still supplies the *label* once evidence exists, so a
+   * `partially_verified` template can hold both sourced and unsourced
+   * requirements and say so on each.
+   */
   const hasVerifiedSource = sources.some((s) => s.lastVerifiedAt)
 
   // "Unverified" is the honest default. A source record with no verification
-  // date does not upgrade the status.
-  if (!sources.length || (!isVerified && !hasVerifiedSource)) {
+  // date does not upgrade the status — whatever the template claims.
+  if (!sources.length || !hasVerifiedSource) {
     return (
       <div className={cn('space-y-3', className)}>
         <Alert variant="warning">

@@ -270,6 +270,20 @@ build reads dossier schema 1.0.0 and 1.1.0 alike, so every existing export impor
       contract the freshness view already used. Grouping is a pure read model
       beside the derivation; nothing is persisted (ADR-045)
 
+- [x] **Country-pack provenance is enforced, not just expressible** — an audit for
+      the Phase 3 entry gate found the model already able to say where a
+      requirement came from, distinguish source authority, and record review
+      without implying endorsement, but nothing holding a pack to it. Registry-
+      wide invariants now walk every pack: a claim of `verified` needs a
+      resolvable source with a verification date, every `sourceRefs`/`sourceIds`
+      entry must resolve (the resolver drops unknown ids silently), no date may
+      be in the future, ids and requirement codes must be unique, official
+      sources must carry a URL, and every source string must exist in both
+      locales. They generalise to any future pack automatically. `SourceNote`
+      no longer lets a template's `verified` status put a green check over a
+      source that carries no verification date. Greece stays honestly
+      `unverified` — 27 requirements, 0 recorded sources (ADR-046)
+
 ### Technical
 - [x] TypeScript strict mode
 - [x] Zod schemas for all domain types
@@ -336,7 +350,8 @@ every bump is applied by hand. `SECURITY.md` is the canonical statement of this.
 ### Lint Warnings (Acceptable)
 - `react-refresh/only-export-components` in route/provider files
 - `react-hooks/incompatible-library` for React Hook Form watch
-- `@typescript-eslint/no-deprecated` on `EmployerDetailsSchema` and the two identity-number fields.
+- `@typescript-eslint/no-deprecated` on `EmployerDetailsSchema`, the two identity-number fields, and
+  `validityPeriodDays` — the last of these is read only by the test that pins it as unconsumed.
   These are the deprecation markers working: the fields are kept so existing dossiers still import,
   and the warning is what stops anything new depending on them (ADR-043)
 - `@typescript-eslint/no-deprecated` where the UI reads the deprecated

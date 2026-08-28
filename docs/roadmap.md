@@ -64,16 +64,18 @@ bundled into a maintenance sprint. *Tech debt.*
 
 ---
 
-## Phase 2 — Core Workspace  ·  *In progress*
+## Phase 2 — Core Workspace  ·  *Shipped*
 
 **Theme:** make it a workspace, not a single form.
 **Why now:** with the foundation solid, the highest-value step is depth for the applicant who is
 actually preparing — the ability to manage more than one application and to get more out of the
 data they've already entered.
 
-**Status:** the phase's flagship — multiple saved dossiers — shipped as **v1.1.0** on 2026-08-25.
-The printable appointment package followed in the same 1.x line. The phase stays open: the richer
-dossier/timeline below is still ahead.
+**Status:** complete. The flagship — multiple saved dossiers — shipped as **v1.1.0** on 2026-08-25;
+the printable appointment package, the deeper trip/finance/sponsor surfacing and the timeline work
+followed in the same 1.x line. A completion audit on 2026-08-28 confirmed every item below against
+production code, tests, ADRs and browser-visible behaviour, and found the phase had been finished for
+some time while this section still described it as open ([ADR-046]).
 
 - **Multiple saved dossiers** — **shipped in v1.1.0.** Dossiers are saved in the browser's IndexedDB
   behind a repository port, survive refresh and restart, and can be created, switched and deleted
@@ -104,14 +106,12 @@ dossier/timeline below is still ahead.
   passport document. Dated events now group by day, `today` is a visible group instead of a computed
   value that was discarded, the duplicate is suppressed structurally (and kept when the two dates
   disagree), and a validity date opens its own document ([ADR-045]). *Done.*
-- **Richer dossier & timeline** — **partly done, and deliberately narrower than planned.** The audit
-  that opened this item found the canonical dossier *over*-specified rather than under-specified: ten
-  fields had no consumer at all, and two collected identity numbers nothing used. So the dossier grew
-  by exactly one thing that was genuinely missing — visa refusal history — while the identity-number
-  inputs were removed and the unused fields deprecated in place ([ADR-043]). The timeline stopped
-  omitting dates the dossier has not answered and now names them. Deeper trip/finance/sponsor
-  structure remains open, and should be justified the same way: a field needs a named consumer.
-  *In progress.*
+- **Richer dossier & timeline** — **superseded, not open.** This item was completed by the two
+  bullets above it: the dossier audit that removed unused fields and added refusal history
+  ([ADR-043]), the trip/finance/sponsor surfacing ([ADR-044]) and the timeline work ([ADR-043],
+  [ADR-045]). It survived here as stale wording claiming "deeper trip/finance/sponsor structure
+  remains open" while the entry two above already reported that work done — a leftover from
+  appending items without reconciling the older one. *Done.*
 - **PDF / printable index** — **shipped.** The four VisaFlow-generated sheets ([ADR-032]) print
   from `/review/print`, a surface rendered outside the app shell so no navigation or button reaches
   the paper. A4 print styling, real page breaks, ink on white in both themes; the browser's own
@@ -122,7 +122,17 @@ dossier/timeline below is still ahead.
 
 ---
 
-## Phase 3 — Country Ecosystem  ·  *Next → Future*
+## Phase 3 — Country Ecosystem  ·  *Next*
+
+**Entry gate cleared 2026-08-28.** A provenance audit found the model already able to answer where a
+requirement comes from, distinguish source authority, and record review without implying endorsement
+— but nothing enforcing it. Registry-wide honesty invariants now hold every pack, present and
+future, to that contract, and a requirement can no longer display a verification its own sources do
+not carry ([ADR-046]).
+
+**The recommended next step is verifying Greece, not adding a country.** All 27 of its requirements
+are unsourced today; exercising the provenance path on real evidence should come before a second
+author depends on it.
 
 **Theme:** grow from "a Greece pack" to a maintained ecosystem of country packs.
 **Why here:** country packs are already data, not code — so scaling coverage is a content and
@@ -218,3 +228,4 @@ Implementation status of the current phase is tracked in [current-status.md](./c
 [ADR-043]: ./decisions.md
 [ADR-044]: ./decisions.md
 [ADR-045]: ./decisions.md
+[ADR-046]: ./decisions.md

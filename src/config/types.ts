@@ -77,6 +77,21 @@ export interface DocumentRequirement {
   ownerType: OwnerType
   required: boolean
   conditionalOn?: ConditionalRequirement
+  /**
+   * @deprecated Non-authoritative. Do not read this in production code.
+   *
+   * Ten of these numbers exist across the packs (90, 180, 30×8) and **nothing
+   * consumes them**. That is the only reason they are harmless: they are
+   * document-age rules with no recorded source, so the moment a consumer
+   * appears VisaFlow begins asserting "payslips are valid 30 days" on nobody's
+   * authority — an invented deadline of exactly the kind ADR-015 forbids.
+   *
+   * Kept rather than deleted because removing it is a change to the shared
+   * pack contract with no offsetting benefit while it is inert. A normative
+   * validity or freshness value must carry a verified `sourceRefs` entry
+   * **before** any readiness, freshness, timeline, warning or UI consumer may
+   * read it (ADR-046). A test pins the absence of consumers.
+   */
   validityPeriodDays?: number
   /** Zero or more RequirementSource ids. Empty means unverified. */
   sourceRefs?: string[]

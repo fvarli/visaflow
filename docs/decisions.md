@@ -1469,3 +1469,84 @@ remains `2`.
 
 **Implementation:** `src/features/timeline/{timeline-dates,timeline-links}.ts`,
 `src/components/timeline/KeyDatesTimeline.tsx`, `src/i18n/locales/{tr,en}/timeline.json`.
+
+## ADR-046: Provenance Is Enforced, Not Just Expressible; Verification Is Earned Per Requirement
+
+**Status:** Accepted · **Date:** 2026-08-28 · **Extends:** [ADR-012], [ADR-015]
+
+**Decision:** The country-pack provenance model is **kept as it is** — no new fields, pack-level or
+requirement-level. What is added is enforcement, plus one behavioural correction:
+
+1. **A requirement claims verification only on its own evidence.** `SourceNote` shows a verified
+   status only when the requirement's own sources carry a `lastVerifiedAt`. The template's
+   `reviewStatus` supplies the *label*, never the *claim*.
+2. **Registry-wide honesty invariants** run against every pack in `countryRegistry`, so a second
+   pack inherits them the day it is registered.
+3. **Unsourced normative values stay inert.** `validityPeriodDays` is deprecated in place: a
+   validity or freshness number must carry a verified source *before* any consumer reads it.
+
+**Context:** Two questions opened this audit — is Phase 2 finished, and can the provenance model
+carry a second country pack.
+
+Phase 2 is finished; the roadmap simply had not caught up, listing "richer dossier & timeline" as
+*in progress* two bullets below the item that completed it.
+
+The provenance model turned out to be better than expected. `RequirementSource` already carries
+authority, `sourceType` (embassy / consulate / authorized visa centre / government / regulation /
+other), title, url, jurisdiction, language, `lastVerifiedAt`, `retrievedAt` and notes; `sourceRefs`
+is per requirement; `getSourcesForRefs` is shared, so no pack carries its own provenance logic; and
+the UI is already progressively disclosed — a status badge in Settings, full citations in the
+document detail panel. Every question this audit was asked to answer was already answerable.
+
+What was missing was anything preventing a pack from lying. Nothing stopped `reviewStatus: 'verified'`
+with no source, a `sourceRefs` entry pointing at an id that does not exist (silently dropped by the
+resolver's `.filter`), or a verification dated in the future. And one condition was actively wrong:
+
+```ts
+if (!sources.length || (!isVerified && !hasVerifiedSource))
+```
+
+A requirement whose source carried **no** `lastVerifiedAt`, inside a template marked `verified`, took
+the `isVerified` branch and rendered a green check — over a source nobody had verified. The comment
+directly beneath that line read *"A source record with no verification date does not upgrade the
+status."* The code contradicted its own comment. Unreachable today, because no pack is verified and
+no requirement cites a source — and exactly the trap laid for the pack that changes either.
+
+**Rationale:**
+
+- **`reviewStatus` is template-scoped; a displayed claim is requirement-scoped.** These are different
+  questions — *how well maintained is this template* versus *what backs this particular requirement* —
+  and conflating them is how a general ministry URL ends up appearing to substantiate a payslip rule.
+  Separating them lets a template be `partially_verified` with some requirements still unsourced, and
+  each one says so honestly. No per-requirement `reviewStatus` field is needed: the evidence is the
+  status.
+- **Invariants beat instructions.** A `CONTRIBUTING` note asking pack authors to be honest is a note.
+  A test that walks the registry is a gate. It also generalises for free: pack #2 is held to the
+  contract without anyone remembering to write its tests.
+- **The replaced guard was backwards.** The old test asserted Greece *is* `unverified` — it would have
+  failed the day someone honestly verified it, punishing the outcome it existed to encourage. The
+  invariants pass for any truthful pack at any status and fail only for an unsupportable claim.
+- **Greece stays unverified, deliberately.** Twenty-seven requirements, zero recorded per-requirement
+  sources. The repository holds no evidence to verify any of them, and general knowledge is not
+  evidence ([ADR-015]). The single source record is a ministry entry point with `lastVerifiedAt`
+  deliberately absent, referenced at template level and correctly **not** shown per requirement.
+- **An inert unsourced rule is debt, not safety.** `validityPeriodDays` holds ten document-age
+  numbers no code reads. Harmless only while unread; the moment a consumer appears VisaFlow asserts
+  a deadline on nobody's authority. Deprecating in place quarantines it without touching the shared
+  pack contract, and a test pins the absence of consumers so wiring one up is a deliberate act.
+
+**Trade-off:** the invariants make a dishonest pack fail the build, which means an author who wants
+to record a partially-checked source must either supply a date or accept `unverified`. That friction
+is the point, but it is friction.
+
+**Consequences:** `SourceNote` no longer reads `reviewStatus` when deciding *whether* anything is
+verified, only when labelling it. No schema, storage or export change: dossier `schemaVersion`
+remains `1.1.0` and `STORAGE_FORMAT_VERSION` remains `2`; country-pack `templateVersion` stays
+independent of both, and provenance remains pack metadata that never enters an applicant's dossier.
+
+**Phase 3 entry:** VisaFlow is ready for a second production pack. The recommended next step is not
+that pack but **verifying Greece** — exercising the whole provenance path on real evidence, against
+a contract that is now enforced, before a second author depends on it.
+
+**Implementation:** `src/components/ui/source-note.tsx`, `src/config/types.ts`,
+`src/tests/features/country-pack-provenance.test.ts` (new), `src/tests/i18n/i18n.test.tsx`.
