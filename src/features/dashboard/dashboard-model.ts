@@ -225,7 +225,20 @@ export function dashboardFindingLink(
  */
 export function buildDossierSnapshot(input: DashboardInput): SnapshotItem[] {
   const { applicant, application, documents, sponsors } = input
-  const readiness = buildDocumentReadiness({ documents })
+  /**
+   * Template-aware, because these items say "N documents ready" two grid cells
+   * from the canonical ring. A template-free count let a withdrawn, unknown or
+   * no-longer-applicable record inflate that sentence while the ring beside it
+   * excluded the same record (ADR-051).
+   */
+  const readiness = buildDocumentReadiness({
+    documents,
+    template: resolveVisaTemplate(
+      application?.destinationCountry,
+      application?.visaType
+    ),
+    application,
+  })
   const items: SnapshotItem[] = []
 
   if (applicant) {
@@ -453,7 +466,9 @@ function buildApplicationModel(
     readiness,
     documents,
     validation.errorCount,
-    Boolean(application?.appointment)
+    Boolean(application?.appointment),
+    template,
+    application
   )
 
   const timeline = buildTimeline(application, documents, now)

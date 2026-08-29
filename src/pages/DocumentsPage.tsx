@@ -42,7 +42,10 @@ import {
   isCustomCode,
   planTemplateSync,
 } from '@/features/documents/template-sync'
-import { countsTowardReadiness } from '@/features/documents/document-semantics'
+import {
+  completionStanding,
+  countsTowardReadiness,
+} from '@/features/documents/document-semantics'
 import { DocumentsHero } from '@/components/documents/DocumentsHero'
 import {
   DocumentFilters,
@@ -285,9 +288,24 @@ export default function DocumentsPage() {
     }
   }
 
+  /**
+   * "N/M ready" for one category, counted the way the hero above it counts
+   * (ADR-051).
+   *
+   * This used to be a raw status filter over every row, so a withdrawn,
+   * unrecognised, optional or no-longer-applicable record landed in both the
+   * numerator and the denominator — a caption disagreeing with the percentage
+   * a few pixels above it.
+   */
   const groupCount = (docs: Document[]) => {
-    const ready = docs.filter((d) => d.status === 'ready').length
-    return t('documents:group.count', { ready, total: docs.length })
+    const counted = docs.filter((d) => requiredOf(d))
+    // A claim against an older, laxer definition is not ready today, and the
+    // hero above has already stopped counting it (ADR-051).
+    const ready = counted.filter(
+      (d) =>
+        d.status === 'ready' && completionStanding(d, template) !== 'superseded'
+    ).length
+    return t('documents:group.count', { ready, total: counted.length })
   }
 
   const emptyState = (

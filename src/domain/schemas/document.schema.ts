@@ -33,6 +33,19 @@ export const DocumentSchema = z.object({
   fileReference: z.string().optional(),
   notes: z.string().optional(),
   verified: z.boolean().default(false),
+  /**
+   * The requirement revision this document is **currently** claimed to satisfy.
+   *
+   * Written when the user marks it `ready` — the moment they assert the
+   * requirement is met — and cleared when it leaves `ready`, so the field never
+   * contradicts the status beside it. It is a claim about *now*, not a history
+   * of past claims.
+   *
+   * Absent means the claim predates this field, or none is being made. Absence
+   * is never evidence of staleness: treating it that way would demote every
+   * user whose completion we simply cannot assess (ADR-051).
+   */
+  satisfiedRevision: z.number().int().positive().optional(),
 })
 
 export type Document = z.infer<typeof DocumentSchema>

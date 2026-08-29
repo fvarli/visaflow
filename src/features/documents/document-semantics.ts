@@ -146,3 +146,82 @@ export function countsTowardReadiness(
     semantics.required
   )
 }
+
+/**
+ * The acceptance-contract revision a requirement currently asks for.
+ *
+ * Only an active requirement has one. A retired, custom or unrecognised code
+ * has no current contract to satisfy, so there is nothing to stamp.
+ */
+export function requirementRevision(
+  code: string,
+  template: VisaTypeTemplate | undefined
+): number | undefined {
+  const requirement = template?.documentRequirements.find(
+    (r) => r.code === code
+  )
+  return requirement ? (requirement.revision ?? 1) : undefined
+}
+
+/**
+ * Apply a document edit, keeping the completion stamp honest.
+ *
+ * The stamp records which requirement definition the user is claiming to
+ * satisfy — so it is written when they assert `ready`, and removed when they
+ * assert anything else. Seeding is deliberately not the seam: a freshly seeded
+ * record is `not_started`, which claims nothing, and stamping it there is what
+ * would leave a user who later complies looking permanently stale (ADR-049).
+ *
+ * The trigger is an update that *speaks about status*, not one that changes it.
+ * Re-asserting `ready` on an already-`ready` record is the whole point: it is
+ * how somebody whose claim was superseded says "I have the new evidence too",
+ * and a change-detecting guard would silently drop exactly that assertion. An
+ * update that says nothing about status — a note, a date, a file reference —
+ * is not a claim and leaves the stamp alone.
+ *
+ * Pure. Every other field passes through untouched.
+ */
+export function applyDocumentUpdate(
+  document: Document,
+  updates: Partial<Document>,
+  template: VisaTypeTemplate | undefined
+): Document {
+  const next = { ...document, ...updates }
+  if (updates.status === undefined) return next
+
+  if (next.status === 'ready') {
+    const revision = requirementRevision(next.code, template)
+    return revision === undefined
+      ? next
+      : { ...next, satisfiedRevision: revision }
+  }
+
+  // The claim no longer stands, so neither does its provenance. Leaving it
+  // would make the field a record of the past contradicting the status beside
+  // it — a different concept, and not this one.
+  const { satisfiedRevision: _released, ...withoutClaim } = next
+  return withoutClaim
+}
+
+/**
+ * How a completion claim stands against the requirement as it is now.
+ *
+ * - `none` — no claim is being made.
+ * - `current` — claimed against the definition in force.
+ * - `superseded` — the bar rose after the claim was made.
+ * - `unrecorded` — a claim from before provenance existed. **Not** superseded:
+ *   absence of a stamp is not evidence about the evidence.
+ */
+export type CompletionStanding =
+  'none' | 'current' | 'superseded' | 'unrecorded'
+
+export function completionStanding(
+  document: Document,
+  template: VisaTypeTemplate | undefined
+): CompletionStanding {
+  if (document.status !== 'ready') return 'none'
+  const revision = requirementRevision(document.code, template)
+  if (revision === undefined) return 'current'
+  if (document.satisfiedRevision === undefined) return 'unrecorded'
+  return document.satisfiedRevision < revision ? 'superseded' : 'current'
+}

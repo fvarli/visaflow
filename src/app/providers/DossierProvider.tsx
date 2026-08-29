@@ -8,6 +8,8 @@ import {
 import type { Applicant } from '@/domain/schemas/applicant.schema'
 import type { Application } from '@/domain/schemas/application.schema'
 import type { Document } from '@/domain/schemas/document.schema'
+import { resolveVisaTemplate } from '@/config/countries'
+import { applyDocumentUpdate } from '@/features/documents/document-semantics'
 import type { Sponsor } from '@/domain/schemas/sponsor.schema'
 import type { Dossier } from '@/domain/schemas/dossier.schema'
 import type { Trip } from '@/domain/schemas/trip.schema'
@@ -233,10 +235,18 @@ function dossierReducer(
 
     case 'UPDATE_DOCUMENT': {
       const { id, updates } = action.payload
+      // The single funnel for every status transition in the app, and therefore
+      // the only place a completion claim can be stamped against the definition
+      // it was made under (ADR-051). The template is resolved from state the
+      // reducer already holds, so this stays pure.
+      const template = resolveVisaTemplate(
+        state.application?.destinationCountry,
+        state.application?.visaType
+      )
       return {
         ...state,
         documents: state.documents.map((doc) =>
-          doc.id === id ? { ...doc, ...updates } : doc
+          doc.id === id ? applyDocumentUpdate(doc, updates, template) : doc
         ),
       }
     }

@@ -75,6 +75,8 @@ const greeceSpecificDocuments: DocumentRequirement[] = [
       value: 'self_employed',
     },
     sourceRefs: ['gr-tr-harmonised-list'],
+    // Added the chamber-of-commerce registration — see REQUIREMENT_REVISIONS.
+    revision: 2,
   },
   {
     code: 'EMPLOYER_SIGNATURE_CIRCULAR',
@@ -232,7 +234,7 @@ export const greeceTourismTemplate: VisaTypeTemplate = {
    * rules and added a requirement. The pack version is its own axis — the app,
    * the dossier schema and the storage format are all untouched.
    */
-  templateVersion: '1.2.0',
+  templateVersion: '1.3.0',
   /**
    * The date this template was last reviewed by a maintainer. Still not a
    * verification date — `lastVerifiedAt` on each source is that.

@@ -6,6 +6,8 @@ import type { Sponsor } from '@/domain/schemas/sponsor.schema'
 import type { DocumentCategory, DocumentStatus } from '@/domain/types/common'
 import { resolveVisaTemplate } from '@/config/countries'
 import { requiredRequirementCodes } from '@/features/readiness/requirement-readiness'
+import { buildDocumentReadiness } from '@/features/readiness/document-readiness'
+import type { DocumentReadiness } from '@/features/readiness/readiness-types'
 
 /**
  * Shared dossier fixtures for the readiness invariants.
@@ -268,6 +270,68 @@ export const withRetiredHistory: DossierFixture = {
   sponsors: [],
 }
 
+/**
+ * `allApplicableReady`, plus one record of every kind that is **not** current
+ * work — a withdrawn requirement, a code this build does not recognise, a
+ * document the applicant added themselves, and a requirement left behind by an
+ * applicability change.
+ *
+ * Like `withRetiredHistory`, its whole purpose is to read **identically** to
+ * the dossier it copies. `withRetiredHistory` proves that for the one case the
+ * registry can decide without a template; this one covers the three that need
+ * the template, and therefore only holds on surfaces that actually resolve it
+ * (ADR-051). Five such surfaces did not, and each was reporting a number the
+ * canonical percentage beside it contradicted.
+ *
+ * `SOCIAL_SECURITY` is the applicability leftover: it is conditional on being
+ * employed, and this application states no employment, so the record is a
+ * genuine remnant rather than an invented one.
+ */
+export const withNonCurrentRecords: DossierFixture = {
+  applicant: APPLICANT,
+  application: READY_APPLICATION,
+  documents: [
+    ...allApplicableReady.documents,
+    doc({ code: 'TAX_RETURNS', status: 'ready', category: 'financial' }, 920),
+    doc({ code: 'NOT_A_REAL_CODE', status: 'ready' }, 921),
+    doc({ code: 'CUSTOM-notarised-letter', status: 'ready' }, 922),
+    doc(
+      {
+        code: 'SOCIAL_SECURITY',
+        status: 'not_started',
+        category: 'employment',
+      },
+      923
+    ),
+  ],
+  sponsors: [],
+}
+
+/**
+ * Readiness composed the way every canonical surface composes it.
+ *
+ * Deliberately an independent statement rather than a call into a page model —
+ * its job is to disagree when a surface drifts. It lives here because two test
+ * files had each grown their own copy and both had drifted the same way,
+ * omitting the template and so agreeing with the surfaces only for fixtures
+ * that contained nothing the template could disqualify (ADR-051).
+ */
+export function canonicalReadiness(fixture: DossierFixture): DocumentReadiness {
+  const template = resolveVisaTemplate(
+    fixture.application?.destinationCountry,
+    fixture.application?.visaType
+  )
+  return buildDocumentReadiness({
+    documents: fixture.documents,
+    requiredRequirementCodes: requiredRequirementCodes(
+      template,
+      fixture.application
+    ),
+    template,
+    application: fixture.application,
+  })
+}
+
 /** Named entries for `it.each` — the name shows up in test output. */
 export const ALL_FIXTURE_ENTRIES: [string, DossierFixture][] = [
   ['emptyDossier', emptyDossier],
@@ -277,6 +341,7 @@ export const ALL_FIXTURE_ENTRIES: [string, DossierFixture][] = [
   ['allApplicableReady', allApplicableReady],
   ['readyButWithFindings', readyButWithFindings],
   ['withRetiredHistory', withRetiredHistory],
+  ['withNonCurrentRecords', withNonCurrentRecords],
 ]
 
 export const READINESS_FIXTURES: Record<string, DossierFixture> = {

@@ -112,7 +112,11 @@
     "markNotApplicable": "Mark not applicable",
     "removeCustomConfirm": "Remove this document from your workspace?",
     "removeTemplateWarning": "This is a required document from the country template. Removing it takes it out of your workspace — you can re-add it later. Consider “Mark not applicable” instead.",
-    "retiredNote": "VisaFlow used to track this requirement. It is not part of the current checklist, and your record is kept exactly as you left it."
+    "retiredNote": "VisaFlow used to track this requirement. It is not part of the current checklist, and your record is kept exactly as you left it.",
+    "superseded": {
+      "body": "This requirement now asks for more than it did when you marked this ready. Your document is still on file; it just no longer counts as complete on its own. Check what is being asked above, then re-confirm.",
+      "action": "Re-confirm as ready"
+    }
   },
   "add": {
     "trigger": "Add document",

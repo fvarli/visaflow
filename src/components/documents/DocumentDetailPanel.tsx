@@ -37,7 +37,9 @@ import {
 } from '@/components/ui/select'
 import { StatusBadge } from '@/components/ui/status-badge'
 import { SourceNote } from '@/components/ui/source-note'
+import { GuidanceNote } from '@/components/ui/guidance-note'
 import { getSourcesForRefs } from '@/config/countries'
+import { completionStanding } from '@/features/documents/document-semantics'
 import { documentLabel } from '@/lib/document-label'
 import { useFindingText } from '@/lib/finding-text'
 import { dynamicT } from '@/lib/i18n-dynamic'
@@ -115,6 +117,15 @@ export function DocumentDetailPanel({
     ? template?.documentRequirements.find((r) => r.code === document.code)
     : undefined
   const kind = document ? classifyDoc(document, template) : 'custom'
+  /**
+   * The requirement's acceptance contract moved after this document was marked
+   * ready (ADR-051). Nothing is wrong with the document the applicant filed —
+   * the requirement is asking for more than it asked for then — so this reads
+   * as a neutral note and the stored status is left exactly as they set it.
+   */
+  const superseded = document
+    ? completionStanding(document, template) === 'superseded'
+    : false
   const isCustom = document ? isCustomCode(document.code) : false
   const sources = getSourcesForRefs(countryCode, requirement?.sourceRefs)
 
@@ -190,6 +201,21 @@ export function DocumentDetailPanel({
                 <h3 className="text-heading text-foreground">
                   {t('documents:panel.yourDocument')}
                 </h3>
+
+                {superseded && (
+                  <GuidanceNote tone="neutral">
+                    <p>{t('documents:panel.superseded.body')}</p>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="mt-2"
+                      onClick={() => patch({ status: 'ready' })}
+                    >
+                      {t('documents:panel.superseded.action')}
+                    </Button>
+                  </GuidanceNote>
+                )}
 
                 <Field
                   label={t('documents:panel.status')}

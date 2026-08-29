@@ -4,23 +4,27 @@ This document describes the JSON format used by VisaFlow for importing and expor
 
 ## Schema Version
 
-Current version: `1.1.0`. VisaFlow **reads** `1.0.0` and `1.1.0`, and **writes** `1.1.0`.
+Current version: `1.2.0`. VisaFlow **reads** `1.0.0`, `1.1.0` and `1.2.0`, and **writes** `1.2.0`.
+No version this project has ever written is dropped: a file already on your disk stays openable.
 
 The schema version is included in every exported file. It is not the application version and not the
 local `STORAGE_FORMAT_VERSION` — see the note at the top of [CHANGELOG.md](../CHANGELOG.md).
 
-**A `1.0.0` file needs no migration.** 1.1.0 only *added* an optional list
-(`applicant.previousRefusals`); no field changed meaning and none was removed, so every 1.0.0
-document is already a valid 1.1.0 document and imports with no warning at all. The version moved
-anyway, because the reverse direction is not safe: an **older** VisaFlow strips the new list
-silently, so someone who imported a 1.1.0 file there and re-exported it would lose their refusals
-with nothing said. The version mismatch is what warns them first (ADR-043).
+**No older file needs migration.** Every bump so far has only *added* an optional field —
+`applicant.previousRefusals` in 1.1.0, `document.satisfiedRevision` in 1.2.0. Nothing changed meaning
+and nothing was removed, so every 1.0.0 and 1.1.0 document is already a valid 1.2.0 document and
+imports with no warning at all.
+
+**So why bump at all?** Because the *reverse* direction is not safe. An **older** VisaFlow strips a
+field it does not know silently, so someone who imported a newer file there and re-exported it would
+lose that data with nothing said. The version mismatch is what warns them first (ADR-043). The rule
+is about meaning, not parsing.
 
 ## Root Structure
 
 ```json
 {
-  "schemaVersion": "1.1.0",
+  "schemaVersion": "1.2.0",
   "exportedAt": "2025-01-15T10:30:00.000Z",
   "applicant": { ... },
   "application": { ... },
@@ -233,7 +237,8 @@ with nothing said. The version mismatch is what warns them first (ADR-043).
   "validUntil": "2030-01-14",
   "fileReference": "passport_scan.pdf",
   "notes": "Original passport",
-  "verified": true
+  "verified": true,
+  "satisfiedRevision": 2
 }
 ```
 
@@ -254,6 +259,7 @@ with nothing said. The version mismatch is what warns them first (ADR-043).
 | fileReference | string | No | Local file reference |
 | notes | string | No | Additional notes |
 | verified | boolean | Yes | Has been verified |
+| satisfiedRevision | integer > 0 | No | Which revision of the requirement this document is currently claimed to satisfy (1.2.0+) |
 
 ### Document Status Values
 
@@ -347,7 +353,7 @@ exports that still contain `name` import unchanged; the value is used only as
 a display fallback for codes with no translation. `schemaVersion` stays
 `1.0.0`. See ADR-012.
 
-### Retired requirement codes (template 1.2.0, still `schemaVersion` 1.1.0)
+### Retired requirement codes (template 1.2.0, `schemaVersion` was 1.1.0)
 
 `TAX_RETURNS`, `BUSINESS_LICENSE` and `PENSION_STATEMENT` were retired from the Greece/Türkiye pack
 and replaced by `TAX_PAYMENT_STATEMENT`, `COMPANY_ACTIVITY_CERTIFICATE` and `PENSIONER_BOOKLET`.
@@ -361,10 +367,35 @@ status, notes and dates, and still resolves to its **original** label — the re
 restored for exactly that reason. A retired code is never mapped to its replacement: the replacement
 is a separate requirement that starts unsatisfied.
 
-`schemaVersion` stays `1.1.0` and `STORAGE_FORMAT_VERSION` stays `2`; only the country pack's
-`templateVersion` moves.
+That change moved neither `schemaVersion` nor `STORAGE_FORMAT_VERSION`; only the country pack's
+`templateVersion` did.
 
-### Version 1.1.0 (Current) — 2026-08-25
+### Version 1.2.0 (Current) — 2026-08-30
+
+Adds `document.satisfiedRevision`, an optional positive integer.
+
+**What it means.** Country-pack requirements carry a `revision` — an *acceptance contract* version,
+not a content version. It moves only when a requirement keeps its identity but starts asking for
+**stricter** evidence; wording fixes, translations, added citations and clarifications never move it.
+`satisfiedRevision` records which revision a document is **currently claimed** to satisfy.
+
+**When it is written.** When you mark a document ready. It is removed when you set any other status —
+the field says what you are claiming now, never what you claimed once. Marking a document ready again
+re-stamps it against today's requirement, which is how you tell VisaFlow you have obtained the newer
+evidence too.
+
+**What VisaFlow does with it.** If the requirement has since tightened, the document is shown as
+needing an update and stops counting toward readiness — but **your status is never changed**. The
+file still says `"status": "ready"`, because that is what you asserted, and it is yours to change.
+
+**A file without it is not stale.** Documents exported before 1.2.0 carry no claim, and absence of a
+claim is not evidence about your documents. They keep counting as ready, and stamp themselves the
+next time you confirm one.
+
+`revision` itself is **never** exported. It belongs to the country pack, not to your dossier, and
+writing it into your file would freeze a copy of something that is meant to move.
+
+### Version 1.1.0 — 2026-08-25
 
 Adds `applicant.previousRefusals`, a list of refused visa applications:
 

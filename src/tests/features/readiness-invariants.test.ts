@@ -19,6 +19,7 @@ import { CHECKLIST_STATE_TONE } from '@/components/review/state-meta'
 import {
   ALL_FIXTURE_ENTRIES,
   allApplicableReady,
+  canonicalReadiness,
   withRetiredHistory,
   manyNotApplicable,
   partiallyPrepared,
@@ -30,19 +31,7 @@ import {
 
 const NOW = new Date('2099-01-15T00:00:00.000Z')
 
-/** The canonical figure, composed exactly as every surface composes it. */
-function canonical(fixture: DossierFixture) {
-  return buildDocumentReadiness({
-    documents: fixture.documents,
-    requiredRequirementCodes: requiredRequirementCodes(
-      resolveVisaTemplate(
-        fixture.application?.destinationCountry,
-        fixture.application?.visaType
-      ),
-      fixture.application
-    ),
-  })
-}
+const canonical = canonicalReadiness
 
 describe('INVARIANT 0 — withdrawn requirements are not current work', () => {
   /**
@@ -367,7 +356,10 @@ describe('INVARIANT 6 — every readiness consumer uses the same denominator', (
     'the sidebar badge equals the canonical outstanding count (%s)',
     (_name, fixture) => {
       // The nav badge used to omit `requiredRequirementCodes`, so it showed 3
-      // while every page body showed 4 (ADR-034).
+      // while every page body showed 4 (ADR-034). This replica must be kept
+      // identical to `AppLayout`'s `navCounts` — it is a copy of production
+      // arithmetic, and it had already drifted once by not passing the
+      // template.
       const template = resolveVisaTemplate(
         fixture.application?.destinationCountry,
         fixture.application?.visaType
@@ -378,6 +370,8 @@ describe('INVARIANT 6 — every readiness consumer uses the same denominator', (
           template,
           fixture.application
         ),
+        template,
+        application: fixture.application,
       })
       expect(badge.outstanding).toBe(canonical(fixture).outstanding)
     }

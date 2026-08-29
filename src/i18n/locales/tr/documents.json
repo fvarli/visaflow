@@ -112,7 +112,11 @@
     "markNotApplicable": "Uygulanamaz olarak işaretle",
     "removeCustomConfirm": "Bu belge çalışma alanınızdan kaldırılsın mı?",
     "removeTemplateWarning": "Bu, ülke şablonundaki zorunlu bir belgedir. Kaldırmak onu çalışma alanınızdan çıkarır — daha sonra tekrar ekleyebilirsiniz. Bunun yerine “Uygulanamaz olarak işaretle”yi düşünün.",
-    "retiredNote": "VisaFlow bu gerekliliği eskiden takip ediyordu. Güncel kontrol listesinin parçası değil; kaydınız bıraktığınız gibi korunuyor."
+    "retiredNote": "VisaFlow bu gerekliliği eskiden takip ediyordu. Güncel kontrol listesinin parçası değil; kaydınız bıraktığınız gibi korunuyor.",
+    "superseded": {
+      "body": "Bu gereklilik, siz belgeyi hazır olarak işaretlediğinizden bu yana daha fazlasını istiyor. Belgeniz dosyanızda duruyor; yalnızca tek başına tamamlanmış sayılmıyor. Yukarıda ne istendiğine bakın, sonra yeniden onaylayın.",
+      "action": "Yeniden hazır olarak onayla"
+    }
   },
   "add": {
     "trigger": "Belge ekle",

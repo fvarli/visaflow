@@ -3,19 +3,16 @@ import {
   deriveNextDocument,
   buildDocumentsModel,
 } from '@/features/documents/documents-model'
-import { buildDocumentReadiness } from '@/features/readiness/document-readiness'
-import { requiredRequirementCodes } from '@/features/readiness/requirement-readiness'
-import { resolveVisaTemplate } from '@/config/countries'
 import type { Document } from '@/domain/schemas/document.schema'
 import type { DocumentStatus } from '@/domain/types/common'
 import {
   ALL_FIXTURE_ENTRIES,
   allApplicableReady,
+  canonicalReadiness,
   emptyDossier,
   manyNotApplicable,
   partiallyPrepared,
   receivedHeavy,
-  type DossierFixture,
 } from '@/tests/fixtures/dossiers'
 
 const NOW = new Date('2099-01-15T00:00:00.000Z')
@@ -37,19 +34,7 @@ function doc(
   }
 }
 
-/** Readiness composed exactly as every surface composes it. */
-function canonical(fixture: DossierFixture) {
-  return buildDocumentReadiness({
-    documents: fixture.documents,
-    requiredRequirementCodes: requiredRequirementCodes(
-      resolveVisaTemplate(
-        fixture.application?.destinationCountry,
-        fixture.application?.visaType
-      ),
-      fixture.application
-    ),
-  })
-}
+const canonical = canonicalReadiness
 
 describe('deriveNextDocument — every status maps to a coherent action', () => {
   it('recommends obtaining a not-started document', () => {

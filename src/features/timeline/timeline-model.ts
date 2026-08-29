@@ -201,7 +201,9 @@ export function buildTimelineModel(
       readiness,
       documents,
       validation.errorCount,
-      appointmentDate !== null
+      appointmentDate !== null,
+      template,
+      application
     ),
     outstandingDocuments: readiness.outstanding,
     primaryAction: actions[0] ?? null,

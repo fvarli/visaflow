@@ -1,5 +1,10 @@
 import type { Application } from '@/domain/schemas/application.schema'
 import type { Document } from '@/domain/schemas/document.schema'
+import type { VisaTypeTemplate } from '@/config/types'
+import {
+  countsTowardReadiness,
+  resolveDocumentSemantics,
+} from '@/features/documents/document-semantics'
 import type { DocumentCategory } from '@/domain/types/common'
 import type { ValidationResult } from '@/domain/rules/types'
 import type { StatusTone } from '@/components/ui/status-badge'
@@ -63,7 +68,18 @@ export function deriveReadinessState(
   readiness: DocumentReadiness,
   documents: Document[],
   errorCount: number,
-  hasAppointment: boolean
+  hasAppointment: boolean,
+  /**
+   * The resolved pack, so the caption is derived from the same requirement set
+   * as the percentage beside it (ADR-051).
+   *
+   * Without it this filtered on the persisted `required` flag, so a withdrawn
+   * or unrecognised record could make a dossier read "documents remaining"
+   * under a ring that had already excluded it. Optional so non-canonical
+   * callers keep the older behaviour deliberately rather than by omission.
+   */
+  template?: VisaTypeTemplate,
+  application?: Application | null
 ): ReadinessState {
   // No applicable work at all — either nothing is on file, or every requirement
   // has been disclaimed. Neither is a prepared dossier, so this must never read
@@ -77,12 +93,17 @@ export function deriveReadinessState(
 
   // Documents not yet in hand at all. A `received` document is in hand, so it
   // never makes the dossier read as "waiting" for something.
-  const notInHand = documents.filter(
-    (d) => d.required && !isObtained(d.status) && d.status !== 'needs_update'
-  )
+  const notInHand = documents.filter((d) => {
+    const isRequired = template
+      ? countsTowardReadiness(d, template, application)
+      : d.required
+    return isRequired && !isObtained(d.status) && d.status !== 'needs_update'
+  })
   if (notInHand.length > 0) {
     const allReservations = notInHand.every((d) =>
-      RESERVATION_CATEGORIES.includes(d.category)
+      RESERVATION_CATEGORIES.includes(
+        resolveDocumentSemantics(d, template, application).category
+      )
     )
     return allReservations ? 'waiting_reservations' : 'documents_remaining'
   }

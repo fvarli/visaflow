@@ -1,12 +1,16 @@
 # Current Implementation Status
 
-Last updated: 2026-08-25 — post-v1.1.0 development
+Last updated: 2026-08-30 — post-v1.1.0 development
 
 Application version **1.1.0** (Phase 1 — Foundation shipped; Phase 2 — the saved-dossier workspace
-— shipped in v1.1.0). Four version numbers move independently. Since the release the dossier JSON
-`schemaVersion` has moved to **1.1.0** (it adds `applicant.previousRefusals` and nothing else); the
-local `STORAGE_FORMAT_VERSION` remains **2** and country-pack `templateVersion`s are untouched. This
-build reads dossier schema 1.0.0 and 1.1.0 alike, so every existing export imports with no warning.
+— shipped in v1.1.0). **Five** version numbers now move independently. Since the release the dossier
+JSON `schemaVersion` has moved to **1.2.0** (`applicant.previousRefusals` in 1.1.0,
+`document.satisfiedRevision` in 1.2.0 — both optional additions); the Greece pack's `templateVersion`
+is **1.3.0**; the local `STORAGE_FORMAT_VERSION` remains **2**, because the record wrapping a dossier
+never changed shape. The fifth axis is new: a country-pack requirement carries a `revision`, the
+version of what it *accepts as evidence*, which is deliberately not tied to any of the other four.
+This build reads dossier schema 1.0.0, 1.1.0 and 1.2.0 alike, so every existing export imports with
+no warning.
 
 ## Completed Features
 
@@ -363,6 +367,36 @@ build reads dossier schema 1.0.0 and 1.1.0 alike, so every existing export impor
       because `DocumentSchema.required` defaults to `true` and an import that
       omits the field would otherwise invent a requirement. A retired document
       also stops being labelled "Custom supporting document" (ADR-050)
+
+- [x] **A completion claim is dated against the requirement it claimed** —
+      two findings. First, five surfaces still computed readiness without
+      resolving the country pack, so a withdrawn, unrecognised, applicant-added
+      or no-longer-applicable record moved a number printed beside a canonical
+      percentage that excluded it: the Documents group caption, the Dashboard
+      snapshot sentence, the readiness caption shared by three heroes, the
+      Timeline "final review" task — stuck with no reachable way to finish it —
+      and the Final Review checklist and its printout, where an unobtained
+      withdrawn requirement still read `missing`. The shared invariant suite had
+      not caught any of it because its own canonical helper omitted the template
+      too; it is now defined once, and a fixture carrying one record of each
+      non-current kind holds every surface to it. Second, ADR-049's own proposal
+      — stamp the pack version a document was *seeded* under — was wrong in both
+      directions: it never moves when someone obtains the newer evidence and
+      re-confirms the same record, so it would flag the compliant applicant
+      forever, while a pack version at claim time would invalidate every claim in
+      the dossier over a translation fix. Provenance is therefore recorded per
+      requirement and at claim time: requirements carry a `revision` (bumped only
+      for stricter same-identity evidence, every bump written into a ledger a
+      test pins in both directions, because acceptance criteria live only in
+      translated prose and nothing can infer a tightening from them), and a
+      document records the revision it is *currently* claimed to satisfy. A
+      superseded claim stops counting as ready and is shown as needing an update,
+      with an explicit re-confirm control — a select cannot re-emit the value it
+      already holds — while the stored status stays exactly as the applicant set
+      it. A claim from before provenance existed counts as ready and is never
+      called stale: absence of a stamp is not evidence. Nothing is fixed
+      retroactively; the mechanism makes the *next* tightening discriminable
+      (ADR-051)
 
 ### Technical
 - [x] TypeScript strict mode

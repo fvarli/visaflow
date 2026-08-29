@@ -95,6 +95,19 @@ export interface DocumentRequirement {
   validityPeriodDays?: number
   /** Zero or more RequirementSource ids. Empty means unverified. */
   sourceRefs?: string[]
+  /**
+   * The **acceptance contract** version — what a person must produce, not what
+   * this object says.
+   *
+   * Bumped only when a claim that was previously sufficient might no longer be:
+   * stricter evidence for the same document. Wording, translations and
+   * citations move freely without it, because invalidating somebody's completed
+   * work over a copy edit would be worse than the staleness it detects.
+   *
+   * Absent means 1. Every bump is recorded in `REQUIREMENT_REVISIONS` with its
+   * reason, and a test holds the two in agreement (ADR-051).
+   */
+  revision?: number
 }
 
 export interface PreparationMilestone {

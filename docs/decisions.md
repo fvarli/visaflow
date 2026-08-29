@@ -1952,3 +1952,129 @@ statement", now names the pensioner booklet.
 `src/components/documents/DocumentDetailPanel.tsx`,
 `src/i18n/locales/{tr,en}/{documents,employment}.json`, `src/features/finance/finance-documents.ts`,
 `src/tests/features/document-semantics.test.ts`.
+
+---
+
+## ADR-051: A Completion Claim Is Dated Against the Requirement It Claimed
+
+**Status:** Accepted · 2026-08-30 · completes [ADR-049](#adr-049), extends [ADR-050](#adr-050)
+
+**Decision:**
+
+1. **`DocumentRequirement.revision: number`** — the *acceptance contract* version. Config only, never
+   persisted. Absent means 1. It moves only when a same-identity requirement asks for **stricter**
+   evidence, and every move is recorded in `REQUIREMENT_REVISIONS` with its reason.
+2. **`Document.satisfiedRevision?: number`** — persisted, optional. *The revision this document is
+   currently claimed to satisfy.* Written when the applicant asserts `ready`; removed when they
+   assert anything else.
+3. **Derived `CompletionStanding`** — `none` / `current` / `superseded` / `unrecorded`. A superseded
+   claim is excluded from `ready` and counted in `needsUpdate`. **An unrecorded claim counts as
+   ready.**
+4. **Canonical readiness requires the template.** Any surface reporting how prepared a dossier is
+   resolves the pack and gates through `countsTowardReadiness`. Surfaces reporting what records exist
+   may count everything, and say so.
+5. **`schemaVersion` → `1.2.0`.** `1.0.0` and `1.1.0` stay readable and need no migration.
+
+**Context — the boundary was still leaking.**
+
+ADR-050 established that only an active requirement is current work, and fixed every surface that
+already resolved a template. Five did not, and each was printing a number the canonical percentage
+beside it contradicted:
+
+| Surface | What it showed |
+|---|---|
+| Documents group caption | "{{ready}}/{{total}} ready" per category, counting every row — withdrawn, unrecognised, optional, inapplicable — beneath a hero reading "{{percent}}% ready" |
+| Dashboard snapshot | "{{count}} documents ready", two grid cells from the canonical ring |
+| `deriveReadinessState` | the readiness caption on the Dashboard, Review **and** Timeline heroes — it received the readiness object *and* the raw documents, so a correct ring could sit above a caption derived from the persisted flag |
+| Timeline "final review" task | stuck on `inProgress` with no reachable way to finish it |
+| Final Review checklist and print | a withdrawn requirement the applicant never obtained rendered as **`missing`** — on paper |
+
+None of these were caught, because the shared invariant suite's own `canonical()` helper also omitted
+the template. It agreed with the surfaces only because no fixture contained a record the template
+could disqualify. `withNonCurrentRecords` is that fixture, and the helper is now defined once, in the
+fixtures module, after two test files had each grown a copy and both had drifted the same way.
+
+**Context — the provenance model this project recommended was wrong.**
+
+ADR-049 proposed stamping the pack version a document was **seeded** under. Both halves of that fail,
+on the same requirement:
+
+| t | Event | seeded pack version | revision at claim |
+|---|---|---|---|
+| t0 | dossier created under pack 1.1; `SOCIAL_SECURITY` seeded | `1.1` | — |
+| t1 | applicant obtains one SGK record, marks it ready | `1.1` | claim @ **rev 1** |
+| t2 | pack 1.2 tightens to two SGK documents with QR codes (**rev 2**) | `1.1` | 1 < 2 → **superseded** ✓ |
+| t3 | applicant obtains both, re-marks the **same record** ready | `1.1` — **unchanged** | claim @ **rev 2** → current ✓ |
+| t4 | pack 1.3, translation fix only (**rev stays 2**) | `1.1` | rev 2 → current ✓ |
+
+Seeded-only is wrong at **t3**: the stamp never moves, so the person who actually complied stays
+flagged forever — the exact failure ADR-049 refused to ship. Pack-version-at-claim is wrong at **t4**:
+a copy-only bump invalidates every claim in the dossier. Both axes are necessary — **per requirement**
+and **at claim time**.
+
+**Rationale:**
+
+- **A ledger, because nothing can be computed.** Acceptance criteria in this project live *only* in
+  translated prose — "two SGK documents, both with a readable QR code" is a `notesKey`, not a
+  structured field. There is no evidence-criteria object to hash, so no mechanism can tell a
+  tightened contract from a copy edit. The revision integer is the only machine-readable statement of
+  the contract, and `REQUIREMENT_REVISIONS` is the record of every time a human decided it moved. A
+  test pins each requirement's `revision` against the ledger in both directions, so a bump cannot
+  appear or vanish silently. Same shape, and the same reasoning, as `RETIRED_REQUIREMENTS`.
+- **The claim, not the record, is stamped.** Seeding produces `not_started`, which asserts nothing.
+  The seam is the update that *speaks about status* — not one that changes it. Re-asserting `ready`
+  on an already-`ready` record is the entire point of t3, and a change-detecting guard silently drops
+  exactly that assertion. Since a select cannot re-emit the value it already holds, the detail panel
+  carries an explicit re-confirm control; without it the claim could never be brought up to date.
+- **Unrecorded is not superseded.** Absence of a stamp is not evidence about the evidence. Demoting
+  every claim written before this sprint would punish users for a fact they could not have recorded —
+  the ADR-049 principle verbatim. They resolve on their own: the next re-confirmation stamps them.
+- **User state is never rewritten.** A superseded claim keeps `status: 'ready'` in storage and in the
+  export. That is what the applicant asserted, and it is theirs to change. Only the derived reading
+  moved. `needsUpdate` already means "obtained, needing correction", which is precisely the case.
+- **The schema bump is about meaning, not parsing.** An older build strips `satisfiedRevision`
+  silently, so someone who imports a 1.2.0 file there and re-exports loses the provenance with
+  nothing said. The version is what lets that build warn first — the `previousRefusals` case
+  (ADR-043) exactly. An optional *key* is the safe shape: unknown keys are dropped per-field, whereas
+  an unknown enum value would take the whole document with it.
+
+**The same rule reaches every surface that shows a completion.** A superseded claim is excluded from
+the Documents category caption and shown as `needsAttention` in the Final Review checklist — never
+`missing`, which would send someone to fetch a document already in their folder. Leaving either as
+"done" would have reproduced this ADR's own defect at smaller scale: a green row beside a ring that
+had already stopped counting the same document.
+
+**The four initial revisions are retrospective and change no behaviour.** `PASSPORT_CURRENT`,
+`TRAVEL_INSURANCE`, `SOCIAL_SECURITY` and `EMPLOYER_TRADE_REGISTRY` demonstrably tightened in
+ADR-047/048, before provenance existed. No dossier written before this sprint carries a stamp, so
+there is nothing for these numbers to be compared against. They are recorded so the ledger is
+truthful from its first commit rather than pretending the pack's history began today.
+`EMPLOYER_TRADE_REGISTRY` is bumped for the added chamber-of-commerce registration, **not** for its
+employed → self-employed correction: applicability changes who is asked, not what satisfies the ask.
+`PAYSLIPS` and `BANK_STATEMENTS` are **not** bumped — their "3–6 months" range was VisaFlow's own
+invention, so narrowing it to three did not raise any authority's bar.
+
+**Trade-off:** a fifth version axis, and a hand-maintained ledger that a careless bump can desync.
+The alternative was inferring intent from prose, which cannot be done correctly and would fail
+silently in the direction that tells a prepared applicant their finished document no longer counts.
+A guard that forces an acknowledgement is worth more than one that guesses.
+
+**Stated plainly: this fixes nothing retroactively.** Every dossier that exists today has unrecorded
+provenance and will keep counting as ready, including the `SOCIAL_SECURITY` records ADR-049 flagged.
+The mechanism only makes the *next* tightening discriminable.
+
+**Consequences.** `schemaVersion` `1.1.0` → **`1.2.0`**; `templateVersion` `1.2.0` → **`1.3.0`**;
+`STORAGE_FORMAT_VERSION` stays **`2`** — the envelope did not change shape — and the app version does
+not move. Greece coverage is unchanged at 18 of 28. `historical` still has no production reader; it
+is a named gap, not an oversight.
+
+**Implementation:** `src/config/countries/requirement-revisions.ts` (new),
+`src/config/types.ts`, `src/config/countries/{common/schengen-short-stay,greece/tourism}.ts`,
+`src/domain/schemas/{document,dossier}.schema.ts`,
+`src/features/documents/document-semantics.ts`, `src/app/providers/DossierProvider.tsx`,
+`src/features/readiness/{document-readiness,readiness-model}.ts`,
+`src/features/dashboard/dashboard-model.ts`, `src/features/timeline/timeline-tasks.ts`,
+`src/features/review/review-checklist.ts` (row emission + `checklistState`), `src/pages/DocumentsPage.tsx`,
+`src/components/documents/DocumentDetailPanel.tsx`, `src/i18n/locales/{tr,en}/documents.json`,
+`src/tests/fixtures/dossiers.ts`,
+`src/tests/features/{completion-provenance,readiness-boundary,schema-compat}.test.ts`.

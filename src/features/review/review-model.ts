@@ -131,7 +131,9 @@ export function buildFinalReviewModel(
     readiness,
     documents,
     validation.validation.errorCount,
-    appointmentDate !== null
+    appointmentDate !== null,
+    template,
+    application
   )
 
   const checklist = buildSubmissionChecklist(

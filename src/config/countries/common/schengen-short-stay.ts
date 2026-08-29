@@ -44,6 +44,8 @@ export const commonSchengenDocuments: DocumentRequirement[] = [
     // departure, (b) at least two blank pages, (c) issued within the previous
     // 10 years — the last of which the notes now carry (ADR-047).
     sourceRefs: ['eu-visa-code-art12', 'gr-mfa-tr-visa-page'],
+    // Gained Article 12(c) — see REQUIREMENT_REVISIONS.
+    revision: 2,
   },
   {
     code: 'PASSPORT_PREVIOUS',
@@ -85,6 +87,8 @@ export const commonSchengenDocuments: DocumentRequirement[] = [
     // cover this requirement names — repatriation, urgent medical attention,
     // emergency hospital treatment.
     sourceRefs: ['eu-visa-code-art15', 'gr-mfa-tr-visa-page'],
+    // Gained Article 15(3) territorial validity and duration.
+    revision: 2,
   },
   {
     code: 'TRANSPORT_RESERVATION',
@@ -198,6 +202,8 @@ export const commonSchengenDocuments: DocumentRequirement[] = [
     // both with a readable QR code. Entirely Türkiye-scoped; see the
     // jurisdiction quarantine in the provenance tests.
     sourceRefs: ['gr-tr-harmonised-list'],
+    // One SGK record no longer suffices — see REQUIREMENT_REVISIONS.
+    revision: 2,
   },
 
   // Financial

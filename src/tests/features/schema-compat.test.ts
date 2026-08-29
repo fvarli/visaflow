@@ -17,10 +17,16 @@ import legacyDossier from '@/tests/fixtures/dossier-schema-1.0.0.json'
 /**
  * The dossier format's compatibility contract (ADR-043).
  *
- * Dossier schema 1.1.0 adds `applicant.previousRefusals`. Nothing changed
- * meaning and nothing was removed, so a 1.0.0 document is already a valid 1.1.0
- * document — but "the parser accepts it" is not the same promise as "no meaning
- * is lost", and these tests are about the second one.
+ * Dossier schema 1.1.0 adds `applicant.previousRefusals`; 1.2.0 adds
+ * `document.satisfiedRevision`. Nothing changed meaning and nothing was
+ * removed, so a 1.0.0 document is already a valid 1.2.0 document — but "the
+ * parser accepts it" is not the same promise as "no meaning is lost", and these
+ * tests are about the second one.
+ *
+ * Each bump follows the same rule, which is about meaning rather than parsing:
+ * an older build strips the unknown key silently, so someone who imports the
+ * newer file there and re-exports loses the field with nothing said. The
+ * version is what lets that build warn first.
  */
 
 /**
@@ -35,11 +41,20 @@ const V1_0 = JSON.parse(JSON.stringify(legacyDossier)) as Record<
 >
 
 describe('the version contract', () => {
-  it('writes 1.1.0 and reads every version it claims to', () => {
-    expect(SCHEMA_VERSION).toBe('1.1.0')
+  it('writes 1.2.0 and reads every version it claims to', () => {
+    expect(SCHEMA_VERSION).toBe('1.2.0')
     expect(SUPPORTED_SCHEMA_VERSIONS).toContain('1.0.0')
+    expect(SUPPORTED_SCHEMA_VERSIONS).toContain('1.1.0')
     expect(SUPPORTED_SCHEMA_VERSIONS).toContain(SCHEMA_VERSION)
     expect(isSupportedSchemaVersion('0.9.0')).toBe(false)
+  })
+
+  it('never drops a version it once wrote', () => {
+    // Every version this project has shipped stays readable. Removing one
+    // would turn a file already on somebody's disk into an unopenable file.
+    for (const version of ['1.0.0', '1.1.0', '1.2.0']) {
+      expect(isSupportedSchemaVersion(version)).toBe(true)
+    }
   })
 
   it('is independent of the workspace storage format', () => {
@@ -133,7 +148,9 @@ describe('a 1.1.0 dossier carrying refusals', () => {
         imported.data?.sponsors ?? []
       )
     ) as { schemaVersion: string; applicant: { previousRefusals: unknown } }
-    expect(exported.schemaVersion).toBe('1.1.0')
+    // Re-exported at the current version — the refusals survive the bump
+    // untouched, which is the whole claim.
+    expect(exported.schemaVersion).toBe(SCHEMA_VERSION)
     expect(exported.applicant.previousRefusals).toEqual([
       { country: 'FR', refusedOn: '2024-03-12', visaType: 'Schengen Type C' },
     ])
@@ -146,6 +163,65 @@ describe('a 1.1.0 dossier carrying refusals', () => {
     ]
     const parsed = ApplicantSchema.safeParse(file.applicant)
     expect(parsed.success).toBe(true)
+  })
+})
+
+describe('reading a 1.1.0 dossier under the 1.2.0 build', () => {
+  const v1_1 = () => {
+    const file = JSON.parse(JSON.stringify(V1_0)) as typeof V1_0
+    file.schemaVersion = '1.1.0'
+    return file
+  }
+
+  it('imports with no warning — 1.1.0 is still a version this build reads', () => {
+    const result = importPartial(JSON.stringify(v1_1()))
+    expect(result.success).toBe(true)
+    expect(result.warnings).toBeUndefined()
+    expect(result.omitted).toBeUndefined()
+  })
+
+  it('needs no migration — its claims are simply unrecorded', () => {
+    // A 1.1.0 file is a 1.2.0 file whose documents make no statement about
+    // which requirement definition they satisfied. Absence of the field is not
+    // a defect to repair, and inventing a value for it would be a claim the
+    // user never made (ADR-051).
+    const result = importPartial(JSON.stringify(v1_1()))
+    const documents = result.data?.documents ?? []
+    expect(documents.length).toBeGreaterThan(0)
+    expect(documents.every((d) => d.satisfiedRevision === undefined)).toBe(true)
+  })
+
+  it('carries a stamped document through export and back unchanged', () => {
+    const file = v1_1()
+    const documents = file.documents as Record<string, unknown>[]
+    documents[0]!.satisfiedRevision = 2
+
+    const imported = importPartial(JSON.stringify(file))
+    expect(imported.data?.documents?.[0]?.satisfiedRevision).toBe(2)
+
+    const round = importPartial(
+      exportDossier(
+        imported.data?.applicant ?? null,
+        imported.data?.application ?? null,
+        imported.data?.documents ?? [],
+        imported.data?.sponsors ?? []
+      )
+    )
+    expect(round.data?.documents).toEqual(imported.data?.documents)
+  })
+
+  it('rejects a stamp that is not a revision number', () => {
+    // The field is an integer above zero or it is absent. A malformed value
+    // must not be coerced into a claim.
+    for (const bad of [0, -1, 1.5, '2', null]) {
+      const file = v1_1()
+      ;(file.documents as Record<string, unknown>[])[0]!.satisfiedRevision = bad
+      const result = importPartial(JSON.stringify(file))
+      expect({ bad, kept: result.data?.documents?.length ?? 0 }).toEqual({
+        bad,
+        kept: (file.documents as unknown[]).length - 1,
+      })
+    }
   })
 })
 
@@ -175,12 +251,13 @@ describe('why the refusal is a separate list and not a visa status', () => {
   })
 })
 
-describe('this sprint changed no format at all (ADR-044)', () => {
-  it('still writes 1.1.0 — integration is not a schema change', () => {
+describe('the format only moves when meaning moves (ADR-044)', () => {
+  it('leaves the storage envelope alone across dossier-format bumps', () => {
     // Deeper Trip/Finance/Sponsor added editors and read surfaces over fields
-    // that already existed. An older build reading a file written here sees
-    // exactly what it saw before, so bumping would warn about nothing.
-    expect(SCHEMA_VERSION).toBe('1.1.0')
+    // that already existed, and did not bump anything. `satisfiedRevision`
+    // added a field to the dossier, so 1.2.0 was earned — but the IndexedDB
+    // record wrapping the dossier still did not change shape, and this axis
+    // must stay still (ADR-036/043).
     expect(STORAGE_FORMAT_VERSION).toBe(2)
   })
 

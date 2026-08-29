@@ -7,7 +7,10 @@ import type {
   OwnerType,
 } from '@/domain/types/common'
 import { applicableRequirements } from '@/features/documents/template-sync'
-import { resolveDocumentSemantics } from '@/features/documents/document-semantics'
+import {
+  completionStanding,
+  resolveDocumentSemantics,
+} from '@/features/documents/document-semantics'
 import { classifyFreshness } from '@/features/timeline/document-freshness'
 
 /**
@@ -94,10 +97,16 @@ export function groupForCategory(
 
 export function checklistState(
   status: ChecklistStatus,
-  required: boolean
+  required: boolean,
+  /**
+   * The requirement tightened after this claim was made (ADR-051). The document
+   * is in the package — it is not missing — but presenting it as done would put
+   * a green row beside a ring that has already stopped counting it.
+   */
+  superseded = false
 ): ChecklistState {
   if (status === 'not_applicable') return 'notApplicable'
-  if (status === 'ready') return 'ready'
+  if (status === 'ready') return superseded ? 'needsAttention' : 'ready'
   // In hand, awaiting the applicant's own confirmation. Not a defect.
   if (status === 'received') return 'obtained'
   // In hand but needing correction or renewal.
@@ -196,9 +205,24 @@ export function buildSubmissionChecklist(
   template: VisaTypeTemplate | undefined,
   appointmentDate: string | null
 ): SubmissionChecklist {
-  const byCode = new Map(documents.map((doc) => [doc.code, doc]))
+  /**
+   * A retired requirement the applicant actually holds still belongs in the
+   * appointment package. One they never obtained is not "missing" — printing it
+   * tells them to fetch a document nobody asks for any more (ADR-051).
+   */
+  const inPackage = documents.filter((doc) => {
+    const { membership } = resolveDocumentSemantics(doc, template, application)
+    // Only a *withdrawn* requirement is dropped, and only when the applicant
+    // never obtained it. Their own records — custom, or written by a build this
+    // one does not recognise — stay: hiding a document someone filed would lose
+    // more than it protects.
+    if (membership !== 'retired') return true
+    return doc.status === 'ready' || doc.status === 'received'
+  })
 
-  const rows: ChecklistRow[] = documents.map((doc) => {
+  const byCode = new Map(inPackage.map((doc) => [doc.code, doc]))
+
+  const rows: ChecklistRow[] = inPackage.map((doc) => {
     // Requiredness from the pack as it stands, not the copy frozen into the
     // record when it was seeded (ADR-049).
     const effective = resolveDocumentSemantics(doc, template, application)
@@ -212,7 +236,11 @@ export function buildSubmissionChecklist(
       ownerType: effective.ownerType,
       required: effective.required,
       status: doc.status,
-      state: checklistState(doc.status, effective.required),
+      state: checklistState(
+        doc.status,
+        effective.required,
+        completionStanding(doc, template) === 'superseded'
+      ),
       docId: doc.id,
       legacyName: doc.name,
       validUntil: doc.validUntil ?? null,

@@ -1,7 +1,10 @@
 import type { Document } from '@/domain/schemas/document.schema'
 import type { Application } from '@/domain/schemas/application.schema'
 import type { VisaTypeTemplate } from '@/config/types'
-import { resolveDocumentSemantics } from '@/features/documents/document-semantics'
+import {
+  resolveDocumentSemantics,
+  completionStanding,
+} from '@/features/documents/document-semantics'
 import type { DocumentStatus } from '@/domain/types/common'
 import {
   READINESS_CLASS,
@@ -170,6 +173,21 @@ export function buildDocumentReadiness(
       optional += 1
       continue
     }
+
+    /**
+     * A claim made against an older, laxer definition is not a satisfied
+     * requirement today (ADR-051).
+     *
+     * The persisted `status` is untouched — it is what the user asserted, and
+     * theirs to change. What moves is the derived answer: the claim lands in
+     * `needsUpdate`, which already means "obtained, but needing correction".
+     * An unrecorded claim is left alone: no stamp is not evidence of staleness.
+     */
+    if (template && completionStanding(doc, template) === 'superseded') {
+      counts.needsUpdate += 1
+      continue
+    }
+
     counts[classifyStatus(doc.status)] += 1
   }
 
