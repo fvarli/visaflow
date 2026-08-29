@@ -385,14 +385,16 @@ describe('buildDashboardModel', () => {
       NOW
     )
     expect(populated.active.validation.totalRules).toBeGreaterThan(0)
-    expect(populated.active.documents.percent).toBe(40)
+    // 4 ready of 11 applicable. Was 4 of 10 → 40% before ADR-048 added the
+    // civil registry extract, which every applicant owes.
+    expect(populated.active.documents.percent).toBe(36)
 
     // Given-name greeting only; null (→ neutral) when there is no applicant.
     expect(populated.active.greetingName).toBe('Demo')
     expect(empty.active.greetingName).toBeNull()
 
     // One canonical figure backs both the ring and the documents breakdown.
-    expect(populated.active.documents.applicable).toBe(10)
+    expect(populated.active.documents.applicable).toBe(11)
     expect(populated.active.documents.ready).toBe(4)
     expect(populated.active.documents.needsUpdate).toBe(1)
     expect(populated.active.documents.inProgress).toBe(1)

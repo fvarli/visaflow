@@ -37,6 +37,18 @@ const EU = 'EU'
 
 export const euSources: RequirementSource[] = [
   {
+    id: 'eu-visa-code-art11',
+    authority: AUTHORITY,
+    titleKey: 'visa-domain:sources.eu-visa-code-art11.title',
+    url: VISA_CODE_URL,
+    sourceType: 'regulation',
+    jurisdiction: EU,
+    language: 'en',
+    lastVerifiedAt: '2026-08-29',
+    retrievedAt: '2026-08-29',
+    notesKey: 'visa-domain:sources.eu-visa-code-art11.notes',
+  },
+  {
     id: 'eu-visa-code-art12',
     authority: AUTHORITY,
     titleKey: 'visa-domain:sources.eu-visa-code-art12.title',

@@ -1673,3 +1673,98 @@ conflicting is waiting on precisely that.
 `src/config/countries/greece/`, `src/components/ui/source-note.tsx`, the settings and dashboard
 models, `src/tests/features/country-pack-provenance.test.ts`,
 `src/tests/features/verification-coverage.test.ts` (new).
+
+---
+
+## ADR-048: The Greece Pack Is Greece-from-Türkiye, and the Shared Array Is Quarantined
+
+**Status:** Accepted · 2026-08-29 · extends [ADR-046](#adr-046), [ADR-047](#adr-047)
+
+**Decision:**
+
+1. **The Türkiye harmonised list is the pack's primary evidence.** Coverage rises from 4 of 27 to
+   **18 of 28**, derived from it and layered with the Visa Code where the EU rule is the stronger
+   authority.
+2. **Two applicability rules are corrected**, because a condition is part of what a requirement
+   asserts.
+3. **One missing requirement is added** — the civil registry extract.
+4. **`commonSchengenDocuments` is quarantined by an executable invariant** rather than refactored.
+
+**Context:**
+
+The previous pass concluded that no Greek-jurisdiction source was reachable. That was true of the
+paths tried and false as a conclusion: the Ankara mission publishes *"ANNEX III — List of supporting
+documents to be submitted by applicants for short stay visas in Turkey"*, the harmonised list adopted
+under local Schengen cooperation. It names actual Turkish document types and the periods they must
+cover, which is exactly the evidence the pack was missing.
+
+**Provenance.** `mfa.gr` still returns HTTP 403 to this environment — WebFetch, curl with a browser
+user-agent and referer, and real Chrome alike. Both documents were read in full through a
+text-extraction proxy against the official origin URL. Two independent fetches of each are
+byte-identical, and the origin URL, page count and publication timestamp are consistent. The stored
+`url` is always the mfa.gr origin, never the proxy, and each record's notes state the 403 and the
+proxied inspection so a later maintainer can judge it.
+
+**Rationale:**
+
+- **The list corrected four requirements to different documents than they described.**
+  `TAX_RETURNS` was tax returns; the source asks company owners for a *statement of taxes payment*.
+  `PENSION_STATEMENT` was payment statements; the source asks for a *pensioner booklet*.
+  `EMPLOYMENT_LETTER` demanded salary, which the source's six-item content list does not mention.
+  And `EMPLOYER_TRADE_REGISTRY` was asked of *employees* when the source files it under **company
+  owners** — VisaFlow was telling employed applicants to obtain their employer's registration.
+  Only an authoritative list could surface errors of this shape; no amount of internal review finds
+  a requirement that is confidently describing the wrong document.
+- **"3-6 months" was invented.** The source says "the last three months" for both the bank statement
+  and the salary slips. A range nobody published was being shown as a requirement. It is now the
+  source's period, pinned per locale and pinned negatively, so a translation cannot quietly restore
+  it.
+- **Ten requirements stay uncited, three of them next to a source that nearly fits.** The photo
+  dimensions (Article 13(4) delegates to ICAO 9303 and the Commission's own link to it is a dead
+  404), the employer tax plate (*vergi levhası* appears nowhere; the source's "statement of taxes
+  payment" is a different document) and the signature circular (absent entirely). The signature
+  circular was deliberately **not** re-pointed alongside its siblings: no evidence places it in any
+  bucket, and moving it to match a pattern would be inventing a rule.
+- **Condition and requiredness are part of the claim.** A requirement whose wording is source-backed
+  but whose condition is wrong is not verified — it is a correct sentence shown to the wrong person.
+  That is why the two behavioural corrections were in scope for an evidence sprint.
+- **The shared array is not what its name says.** `commonSchengenDocuments` already contained
+  Türkiye-specific concepts before this sprint — `SGK Hizmet Dökümü`, `nüfus cüzdanı`, `vukuatlı
+  nüfus kayıt örneği` — and now carries Türkiye-scoped citations too. It has **no override
+  mechanism**: a pack takes all nineteen verbatim or none. So the honest reading is that it means
+  *"shared by the only production pack, Greece for applicants in Türkiye"*, not *"proven across
+  Schengen"*.
+- **Quarantine beats either alternative.** Preserving known-wrong "3-6 months" to protect a
+  misleading abstraction would be worse for the applicant; refactoring pack composition mid-evidence
+  sprint would design the split from guesses instead of from real domain data. The invariant does
+  not assert a pack count — it identifies the contaminated requirements by jurisdiction-scoped
+  citation *and* by institution names in either locale, and fails when a second pack would inherit
+  them, naming each one. Deleting a number cannot silence it.
+
+**Trade-off:** the debt is real and now explicit. Until it is paid, `commonSchengenDocuments`
+overstates its own generality, and the guard is a holding action rather than a fix.
+
+**Consequences.** `CIVIL_REGISTRY_EXTRACT` is a new required code, so every existing dossier gains
+one outstanding item — the sprint's one genuine readiness change for current users. By contrast,
+flipping `SOCIAL_SECURITY` to required affects **only new dossiers**: `Document.required` is
+persisted per document and `planTemplateSync` diffs by code, so existing records keep the old flag.
+That asymmetry is recorded rather than smoothed over. `templateVersion` moves to `1.1.0`; the app
+version, dossier `schemaVersion` and `STORAGE_FORMAT_VERSION` are untouched, and no canonical field
+was added. `validityPeriodDays` remains deprecated and unread — a three-month *history* requirement
+is not a document-validity window, and the distinction is the whole reason the field is quarantined.
+
+**Deferred, with reasons audited rather than assumed.** The list also requires notarised parental
+consent for minors travelling alone, and proof of residence for non-Turkish nationals. Neither is
+added, and neither needs a schema change: `applicant.dateOfBirth` is required, `trip.entryDate`
+exists, and `nationality`/`countryOfResidence` exist. The real blockers are that the conditional
+evaluation context is only `{ employment, financing }`, that `ConditionalRequirement` has no
+comparison, date or conjunction operator, and that nothing models travelling alone.
+
+**Next:** the architecture this evidence now justifies designing — likely **Common Schengen →
+Destination pack → Jurisdiction overlay** — before country pack #2.
+
+**Implementation:** `src/config/sources/{eu,greece}.sources.ts`,
+`src/config/countries/common/schengen-short-stay.ts`, `src/config/countries/greece/tourism.ts`,
+`src/i18n/locales/{tr,en}/visa-domain.json`,
+`src/tests/features/country-pack-provenance.test.ts`,
+`src/tests/features/jurisdiction-applicability.test.ts` (new).

@@ -126,7 +126,7 @@
     "APPLICATION_FORM": {
       "name": "Vize Başvuru Formu",
       "description": "Eksiksiz doldurulmuş ve imzalanmış Schengen vize başvuru formu",
-      "notes": "İki ayrı yerde imzalanmalıdır"
+      "notes": "Eksiksiz doldurulmalı ve imzalanmalıdır; reşit olmayanların formu ebeveyn veya yasal vasi tarafından imzalanır"
     },
     "PASSPORT_CURRENT": {
       "name": "Güncel Pasaport",
@@ -158,33 +158,34 @@
     },
     "ACCOMMODATION": {
       "name": "Konaklama Rezervasyonu",
-      "description": "Tüm konaklama süresini kapsayan otel rezervasyonu veya konaklama belgesi"
+      "description": "Otel rezervasyonu veya başka bir konaklama belgesi"
     },
     "ITINERARY": {
       "name": "Seyahat planı",
-      "description": "Birden fazla yer ziyaret edilecekse gün gün seyahat planı"
+      "description": "Seyahat planınızı gösteren belge"
     },
     "EMPLOYMENT_LETTER": {
       "name": "İşveren yazısı",
-      "description": "Görev, maaş ve işe giriş tarihini belirten işveren yazısı"
+      "description": "Adınızı ve pasaport numaranızı, işe giriş tarihinizi ve görevinizi, ayrıca işverenin iletişim bilgilerini belirten işveren yazısı"
     },
     "APPROVED_LEAVE": {
       "name": "İzin Yazısı",
-      "description": "İşveren tarafından onaylanmış resmî izin belgesi"
+      "description": "İzin süresini ve ücretli mi ücretsiz mi olduğunu belirten izin onayı"
     },
     "PAYSLIPS": {
       "name": "Maaş Bordroları",
-      "description": "Son 3-6 aya ait maaş bordroları",
-      "notes": "Düzenli gelir göstermelidir"
+      "description": "Son üç aya ait maaş bordroları",
+      "notes": "Düzenli bir geliri belgelemelidir"
     },
     "SOCIAL_SECURITY": {
-      "name": "SGK Hizmet Dökümü",
-      "description": "Sosyal güvenlik kurumundan alınan çalışma geçmişi dökümü"
+      "name": "SGK Belgeleri",
+      "description": "SGK Sigortalı İşe Giriş Bildirgesi ve SGK tescil ve hizmet dökümü",
+      "notes": "Her ikisinde de okunabilir bir QR kod bulunmalıdır"
     },
     "BANK_STATEMENTS": {
       "name": "Banka hesap dökümü",
-      "description": "Son 3-6 aya ait banka hesap dökümü",
-      "notes": "Seyahat için yeterli bakiyeyi göstermelidir"
+      "description": "Son üç aydaki hareketleri gösteren banka hesap dökümü",
+      "notes": "Düzenli gelirin kaynağını kanıtlamalıdır"
     },
     "SPONSOR_LETTER": {
       "name": "Sponsor Dilekçesi",
@@ -201,7 +202,7 @@
     "RELATIONSHIP_PROOF": {
       "name": "Yakınlık Belgesi",
       "description": "Sponsor ile yakınlığınızı kanıtlayan belgeler",
-      "notes": "Doğum belgesi, evlilik cüzdanı, vukuatlı nüfus kayıt örneği vb."
+      "notes": "Doğum belgesi, evlilik cüzdanı vb."
     },
     "PREVIOUS_VISAS": {
       "name": "Önceki Vize Fotokopileri",
@@ -213,9 +214,9 @@
       "notes": "Uyruğa bağlı olarak istenebilir"
     },
     "EMPLOYER_TRADE_REGISTRY": {
-      "name": "İşveren Ticaret Sicil Gazetesi",
-      "description": "Şirketin ticaret sicil kaydı",
-      "notes": "Uyruğa bağlı olarak istenebilir"
+      "name": "Şirket Kaydı",
+      "description": "Ticaret odası kaydı ve ticaret sicil gazetesi örneği",
+      "notes": "Şirket sahibiyseniz istenir"
     },
     "EMPLOYER_SIGNATURE_CIRCULAR": {
       "name": "İşveren İmza Sirküleri",
@@ -228,20 +229,25 @@
       "notes": "Ülkenizle bağınızı güçlendirebilir"
     },
     "BUSINESS_LICENSE": {
-      "name": "İşletme Belgesi",
-      "description": "Şirket kaydı veya faaliyet belgesi"
+      "name": "Faaliyet Belgesi",
+      "description": "Şirkete ait faaliyet belgesi"
     },
     "TAX_RETURNS": {
-      "name": "Vergi Beyannameleri",
-      "description": "Serbest çalışanlar için güncel vergi beyannameleri"
+      "name": "Vergi Ödeme Belgesi",
+      "description": "Vergi ödemelerini gösteren belge"
     },
     "STUDENT_CERTIFICATE": {
       "name": "Öğrenci Belgesi",
-      "description": "Okulunuzdan veya üniversitenizden alınmış öğrenci belgesi"
+      "description": "Öğrenci belgesi; yükseköğretimde YÖK tarafından verilen ve okunabilir QR kod taşıyan belge"
     },
     "PENSION_STATEMENT": {
-      "name": "Emekli Maaşı Dökümü",
-      "description": "Güncel emekli maaşı ödeme dökümleri"
+      "name": "Emekli Cüzdanı",
+      "description": "Emekli cüzdanı"
+    },
+    "CIVIL_REGISTRY_EXTRACT": {
+      "name": "Nüfus Kayıt Örneği",
+      "description": "Tam Tekmil Vukuatlı Nüfus Kayıt Örneği",
+      "notes": "Tüm başvuru sahiplerinden istenir"
     }
   },
   "milestones": {
@@ -290,6 +296,18 @@
     "eu-visa-code-annex2": {
       "title": "Vize Kanunu, Ek II — Destekleyici belgelerin sınırlayıcı olmayan listesi",
       "notes": "Konsolosluğun isteyebileceği belgeleri listeler. Açıkça sınırlayıcı değildir; neyin kabul edildiğini gösterir, neyin yeterli olduğunu değil."
+    },
+    "eu-visa-code-art11": {
+      "title": "Vize Kanunu, Madde 11 — Başvuru formu",
+      "notes": "Ek I’de belirtilen, eksiksiz doldurulmuş ve imzalanmış bir başvuru formu ister; reşit olmayanların formu velayet veya vesayet yetkisini kullanan kişi tarafından imzalanır."
+    },
+    "gr-tr-harmonised-list": {
+      "title": "Türkiye’de kısa süreli vize başvuruları için destekleyici belge listesi",
+      "notes": "Türkiye için yerel Schengen işbirliği kapsamında kabul edilen uyumlaştırılmış liste. Genel olarak Schengen başvurularını değil, Türkiye’de yapılan başvuruları kapsar. Resmî kaynak bu ortama HTTP 403 döndürdü; içerik aynı resmî adres üzerinden bir metin çıkarma vekili aracılığıyla incelendi."
+    },
+    "gr-mfa-tr-visa-page": {
+      "title": "Yunanistan Ankara Büyükelçiliği — vize bilgileri",
+      "notes": "Türkiye’de yapılan başvurular için konsolosluk sayfası. Resmî kaynak bu ortama HTTP 403 döndürdü; içerik aynı resmî adres üzerinden bir metin çıkarma vekili aracılığıyla incelendi."
     }
   },
   "templateNotes": {

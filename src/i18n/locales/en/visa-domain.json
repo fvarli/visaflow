@@ -126,7 +126,7 @@
     "APPLICATION_FORM": {
       "name": "Visa Application Form",
       "description": "Completed and signed Schengen visa application form",
-      "notes": "Must be signed in two places"
+      "notes": "Must be completed and signed; a minor’s form is signed by a parent or legal guardian"
     },
     "PASSPORT_CURRENT": {
       "name": "Current Passport",
@@ -158,33 +158,34 @@
     },
     "ACCOMMODATION": {
       "name": "Accommodation Reservation",
-      "description": "Hotel bookings or proof of accommodation for entire stay"
+      "description": "Hotel booking or other proof of accommodation"
     },
     "ITINERARY": {
       "name": "Travel Itinerary",
-      "description": "Day-by-day travel plan if visiting multiple locations"
+      "description": "Proof of your travel itinerary"
     },
     "EMPLOYMENT_LETTER": {
       "name": "Employment Letter",
-      "description": "Letter from employer stating position, salary, and start date"
+      "description": "Letter from your employer stating your name and passport number, start date and role, and the employer’s contact details"
     },
     "APPROVED_LEAVE": {
       "name": "Approved Leave Letter",
-      "description": "Official approval of leave from employer"
+      "description": "Approval of leave stating its length and whether it is paid or unpaid"
     },
     "PAYSLIPS": {
       "name": "Recent Payslips",
-      "description": "Last 3-6 months payslips",
-      "notes": "Should show consistent income"
+      "description": "Salary slips for the last three months",
+      "notes": "Should evidence a regular income"
     },
     "SOCIAL_SECURITY": {
-      "name": "Social Security Record",
-      "description": "Employment history from social security authority"
+      "name": "Social Security Documents",
+      "description": "SGK employment-entry statement and SGK registration and service document",
+      "notes": "Both must carry a readable QR code"
     },
     "BANK_STATEMENTS": {
       "name": "Bank Statements",
-      "description": "Bank statements for last 3-6 months",
-      "notes": "Should show sufficient funds for the trip"
+      "description": "Bank statement showing movements over the last three months",
+      "notes": "Should prove the source of a regular income"
     },
     "SPONSOR_LETTER": {
       "name": "Sponsorship Letter",
@@ -213,9 +214,9 @@
       "notes": "May be required depending on nationality"
     },
     "EMPLOYER_TRADE_REGISTRY": {
-      "name": "Employer Trade Registry Record",
-      "description": "Company registration from trade registry",
-      "notes": "May be required depending on nationality"
+      "name": "Company Registration",
+      "description": "Chamber of commerce registration and a copy of the trade register bulletin",
+      "notes": "Required if you own the company"
     },
     "EMPLOYER_SIGNATURE_CIRCULAR": {
       "name": "Employer Signature Circular",
@@ -228,20 +229,25 @@
       "notes": "Can strengthen ties to home country"
     },
     "BUSINESS_LICENSE": {
-      "name": "Business License",
-      "description": "Business registration or license"
+      "name": "Company Activity Certificate",
+      "description": "Company activity certificate (Faaliyet Belgesi)"
     },
     "TAX_RETURNS": {
-      "name": "Tax Returns",
-      "description": "Recent tax returns for self-employed applicants"
+      "name": "Tax Payment Statement",
+      "description": "Statement of taxes payment"
     },
     "STUDENT_CERTIFICATE": {
       "name": "Student Certificate",
-      "description": "Enrolment certificate from your school or university"
+      "description": "Student certificate; in higher education, issued by YÖK with a readable QR code"
     },
     "PENSION_STATEMENT": {
-      "name": "Pension Statement",
-      "description": "Recent pension payment statements"
+      "name": "Pensioner Booklet",
+      "description": "Pensioner booklet"
+    },
+    "CIVIL_REGISTRY_EXTRACT": {
+      "name": "Civil Registry Extract",
+      "description": "Complete extract of the civil registry (Tam Tekmil Vukuatlı Nüfus Kayıt Örneği)",
+      "notes": "Required of every applicant"
     }
   },
   "milestones": {
@@ -290,6 +296,18 @@
     "eu-visa-code-annex2": {
       "title": "Visa Code, Annex II — Non-exhaustive list of supporting documents",
       "notes": "Lists documents a consulate may request. It is explicitly non-exhaustive, so it shows what is accepted, never what is sufficient."
+    },
+    "eu-visa-code-art11": {
+      "title": "Visa Code, Article 11 — Application form",
+      "notes": "Requires a completed, signed application form as set out in Annex I; a minor’s form is signed by a person exercising parental authority or guardianship."
+    },
+    "gr-tr-harmonised-list": {
+      "title": "List of supporting documents for short stay visas in Turkey",
+      "notes": "The harmonised list adopted under local Schengen cooperation for Türkiye. Applies to applications lodged in Türkiye, not to Schengen applications generally. The official origin refused this environment with HTTP 403; the content was inspected via a text-extraction proxy against that same origin URL."
+    },
+    "gr-mfa-tr-visa-page": {
+      "title": "Greek Embassy in Ankara — visa information",
+      "notes": "The consular page for applications lodged in Türkiye. The official origin refused this environment with HTTP 403; the content was inspected via a text-extraction proxy against that same origin URL."
     }
   },
   "templateNotes": {

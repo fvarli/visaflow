@@ -308,6 +308,25 @@ build reads dossier schema 1.0.0 and 1.1.0 alike, so every existing export impor
       photo dimensions (Article 13(4) delegates to ICAO 9303, which was not
       opened) and the 3-6 month statement windows (ADR-047)
 
+- [x] **The Greece pack is Greece-from-Türkiye, and the shared array is
+      quarantined** — the Ankara mission publishes the harmonised list adopted
+      under local Schengen cooperation for Türkiye, which turned out to be the
+      pack's primary evidence. Coverage rose from 4 of 27 to **18 of 28**. It
+      corrected four requirements that were confidently describing the *wrong
+      document*: tax returns where the authority asks for a statement of taxes
+      payment, pension payment statements where it asks for a pensioner
+      booklet, an employment letter demanding a salary figure the source never
+      lists, and a company registration asked of employees when the source
+      files it under company owners. The invented "3-6 months" window became
+      the source's "last three months", pinned per locale. Two applicability
+      rules were corrected and the missing civil registry extract added — the
+      one change that raises every existing dossier's outstanding count by one.
+      Ten requirements remain uncited, three of them beside a source that
+      nearly fits. `commonSchengenDocuments` is now known to mean "shared by
+      the only production pack", not "proven across Schengen": an invariant
+      names the Türkiye-scoped requirements inside it and fails the build if a
+      second pack would inherit them (ADR-048)
+
 ### Technical
 - [x] TypeScript strict mode
 - [x] Zod schemas for all domain types

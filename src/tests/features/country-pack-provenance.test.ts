@@ -367,13 +367,29 @@ describe('country packs — Greece composition and citations', () => {
   const greece = PACKS.find((p) => p.countryCode === 'GR')
   const tourism = greece?.visaTypes[0]
 
-  it('composes 19 shared Schengen requirements and 8 Greece-specific ones', () => {
+  it('composes 19 shared Schengen requirements and 9 Greece-specific ones', () => {
     // Pins the composition the coverage denominator depends on. If the shared
     // array grows, coverage silently drops and this says so first.
     const codes = requirementsOf(tourism!).map((r) => r.code)
     const shared = commonSchengenDocuments.map((r) => r.code)
-    expect(codes.length).toBe(27)
+    expect(codes.length).toBe(28)
     expect(codes.slice(0, shared.length)).toEqual(shared)
+  })
+
+  it('carries the civil registry extract exactly once', () => {
+    // The harmonised list makes it a general requirement for every applicant,
+    // and VisaFlow had no requirement for it at all — the document existed
+    // only inside another requirement's Turkish notes (ADR-048).
+    const codes = requirementsOf(tourism!).map((r) => r.code)
+    expect(codes.filter((c) => c === 'CIVIL_REGISTRY_EXTRACT')).toHaveLength(1)
+
+    const extract = requirementsOf(tourism!).find(
+      (r) => r.code === 'CIVIL_REGISTRY_EXTRACT'
+    )
+    expect({
+      required: extract?.required,
+      conditional: extract?.conditionalOn,
+    }).toEqual({ required: true, conditional: undefined })
   })
 
   it('resolves every requirement citation it declares', () => {
@@ -384,13 +400,12 @@ describe('country packs — Greece composition and citations', () => {
   })
 
   it('is partially verified on exactly the evidence recorded', () => {
-    // 4 of 27, from Visa Code Articles 12 and 15 and Annex II. The Hellenic
-    // Republic's own publication could not be reached, so every
-    // Greece-specific requirement stays unverified and `gr-mfa-general`
-    // carries no verification date.
+    // 18 of 28. The jump from 4 came from the harmonised list adopted for
+    // Türkiye. Ten requirements stay uncited, three of them because a nearby
+    // source exists but does not state what VisaFlow claims (ADR-048).
     expect(computeVerificationCoverage(greece!, tourism!)).toEqual({
-      total: 27,
-      verified: 4,
+      total: 28,
+      verified: 18,
       isComplete: false,
     })
     expect(tourism!.reviewStatus).toBe('partially_verified')
@@ -398,6 +413,49 @@ describe('country packs — Greece composition and citations', () => {
       sourcesOf(greece!).find((s) => s.id === 'gr-mfa-general')?.lastVerifiedAt
     ).toBeUndefined()
   })
+
+  /**
+   * The period is the rule, not decoration (ADR-048).
+   *
+   * The harmonised list says "the last three months" for both the bank
+   * statement and the salary slips. VisaFlow said "3-6 months", which no
+   * source states — a range invented somewhere upstream and then cited as if
+   * it were authority. Pinned per locale, and pinned negatively too: a
+   * translation that quietly restores the range must fail.
+   */
+  it.each(['tr', 'en'] as const)(
+    'states the source-backed three-month period in %s',
+    async (locale) => {
+      await i18n.changeLanguage(locale)
+      const td = dynamicT(i18n.t.bind(i18n))
+      const text = (code: string) =>
+        [
+          td(`visa-domain:requirements.${code}.description`, {
+            defaultValue: '',
+          }),
+          td(`visa-domain:requirements.${code}.notes`, { defaultValue: '' }),
+        ].join(' ')
+
+      const payslips = text('PAYSLIPS')
+      const bank = text('BANK_STATEMENTS')
+      await i18n.changeLanguage('tr')
+
+      const threeMonths = /three months|üç aya|üç ayd/i
+      const inventedRange = /3\s*-\s*6|3-6/
+
+      expect({
+        payslipsPeriod: threeMonths.test(payslips),
+        payslipsNoRange: !inventedRange.test(payslips),
+        bankPeriod: threeMonths.test(bank),
+        bankNoRange: !inventedRange.test(bank),
+      }).toEqual({
+        payslipsPeriod: true,
+        payslipsNoRange: true,
+        bankPeriod: true,
+        bankNoRange: true,
+      })
+    }
+  )
 
   /**
    * A citation vouches for the whole rule, not the memorable part of it.
@@ -434,4 +492,103 @@ describe('country packs — Greece composition and citations', () => {
       }).toEqual({ amount: true, territory: true, duration: true })
     }
   )
+})
+
+describe('country packs — the shared array is not yet jurisdiction-neutral', () => {
+  /**
+   * A quarantine, not an endorsement (ADR-048).
+   *
+   * `commonSchengenDocuments` is named as though it were proven across every
+   * Schengen jurisdiction. It is not. It currently means "shared by the only
+   * production pack, Greece for applicants in Türkiye", and it contains
+   * Türkiye-scoped wording (SGK) and now Türkiye-scoped citations too.
+   *
+   * That is tolerable while exactly one pack exists and intolerable the moment
+   * a second one does, because the shared array has **no override mechanism**:
+   * pack #2 would inherit "SGK Hizmet Dökümü" and a Türkiye harmonised list
+   * citation verbatim, with nothing to stop it.
+   *
+   * So this does not assert a pack count. It identifies the contaminated
+   * requirements and fails when another pack would inherit them — which means
+   * it cannot be silenced by deleting a number.
+   */
+
+  /** Institution names that are meaningless or wrong outside Türkiye. */
+  const JURISDICTION_TOKENS = [
+    'SGK',
+    'Vukuatlı',
+    'Nüfus',
+    'Faaliyet Belgesi',
+    'YÖK',
+    'Ticaret Sicil',
+    'İmza Sirküleri',
+    'Vergi Levhası',
+  ]
+
+  /** A source scoped to one country's applicants, rather than EU-wide. */
+  const isJurisdictionScoped = (source: RequirementSource) =>
+    typeof source.jurisdiction === 'string' && source.jurisdiction !== 'EU'
+
+  async function contaminatedSharedRequirements(): Promise<string[]> {
+    const scoped = new Set(
+      PACKS.flatMap(sourcesOf)
+        .filter(isJurisdictionScoped)
+        .map((s) => s.id)
+    )
+
+    const offenders = new Set<string>()
+    for (const requirement of commonSchengenDocuments) {
+      if ((requirement.sourceRefs ?? []).some((id) => scoped.has(id))) {
+        offenders.add(requirement.code)
+      }
+    }
+
+    // Wording matters as much as provenance: a shared requirement naming a
+    // Turkish institution is jurisdiction-specific whether or not it cites
+    // anything.
+    for (const locale of ['tr', 'en'] as const) {
+      await i18n.changeLanguage(locale)
+      const td = dynamicT(i18n.t.bind(i18n))
+      for (const requirement of commonSchengenDocuments) {
+        const text = [
+          requirement.nameKey,
+          requirement.descriptionKey,
+          requirement.notesKey,
+        ]
+          .filter((k): k is string => Boolean(k))
+          .map((k) => td(k, { defaultValue: '' }))
+          .join(' ')
+        if (JURISDICTION_TOKENS.some((token) => text.includes(token))) {
+          offenders.add(requirement.code)
+        }
+      }
+    }
+    await i18n.changeLanguage('tr')
+    return [...offenders].sort()
+  }
+
+  it('knows exactly which shared requirements are Türkiye-scoped', async () => {
+    // Recorded, not hidden. If this list shrinks, the debt is being paid down;
+    // if it grows, more of the shared array has quietly become jurisdictional.
+    const offenders = await contaminatedSharedRequirements()
+    expect(offenders.length).toBeGreaterThan(0)
+    expect(offenders).toContain('SOCIAL_SECURITY')
+  })
+
+  it('refuses to let a second country pack inherit them', async () => {
+    const offenders = await contaminatedSharedRequirements()
+    const productionPacks = PACKS.length
+
+    expect({
+      productionPacks,
+      inheritedJurisdictionalRequirements: productionPacks > 1 ? offenders : [],
+    }).toEqual({
+      productionPacks,
+      // While one pack exists this is empty by construction and the quarantine
+      // holds. Registering a second pack makes the offenders real, and the
+      // failure diff names every requirement that must be split out of
+      // `commonSchengenDocuments` or made overridable first (ADR-048).
+      inheritedJurisdictionalRequirements: [],
+    })
+  })
 })

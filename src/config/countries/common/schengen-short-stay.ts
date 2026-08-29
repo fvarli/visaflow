@@ -22,6 +22,11 @@ export const commonSchengenDocuments: DocumentRequirement[] = [
     category: 'application_form',
     ownerType: 'applicant',
     required: true,
+    // Article 11(1) requires a completed, signed form, and the Ankara mission
+    // asks for the same. The note used to claim it must be signed "in two
+    // places", which Annex I contradicts: the form carries one applicant
+    // signature plus a guardian signature for minors (ADR-048).
+    sourceRefs: ['eu-visa-code-art11', 'gr-mfa-tr-visa-page'],
   },
 
   // Identity & passport
@@ -38,7 +43,7 @@ export const commonSchengenDocuments: DocumentRequirement[] = [
     // (a) validity extending at least three months past the intended
     // departure, (b) at least two blank pages, (c) issued within the previous
     // 10 years — the last of which the notes now carry (ADR-047).
-    sourceRefs: ['eu-visa-code-art12'],
+    sourceRefs: ['eu-visa-code-art12', 'gr-mfa-tr-visa-page'],
   },
   {
     code: 'PASSPORT_PREVIOUS',
@@ -79,7 +84,7 @@ export const commonSchengenDocuments: DocumentRequirement[] = [
     // Article 15(3) sets the EUR 30 000 minimum verbatim, and 15(1) lists the
     // cover this requirement names — repatriation, urgent medical attention,
     // emergency hospital treatment.
-    sourceRefs: ['eu-visa-code-art15'],
+    sourceRefs: ['eu-visa-code-art15', 'gr-mfa-tr-visa-page'],
   },
   {
     code: 'TRANSPORT_RESERVATION',
@@ -94,7 +99,7 @@ export const commonSchengenDocuments: DocumentRequirement[] = [
     // used to add that paid tickets are *not* required, which the Code does
     // not say — Article 14(3) makes Annex II non-exhaustive and leaves the
     // consulate free to ask. The note was corrected before citing (ADR-047).
-    sourceRefs: ['eu-visa-code-annex2'],
+    sourceRefs: ['eu-visa-code-annex2', 'gr-tr-harmonised-list'],
   },
   {
     code: 'ACCOMMODATION',
@@ -103,6 +108,10 @@ export const commonSchengenDocuments: DocumentRequirement[] = [
     category: 'accommodation',
     ownerType: 'applicant',
     required: true,
+    // Harmonised list I.3 — "evidence of hotel booking or other proof of
+    // accommodation". The description used to add "for entire stay", which
+    // neither the Code nor the list states.
+    sourceRefs: ['eu-visa-code-annex2', 'gr-tr-harmonised-list'],
   },
   {
     code: 'ITINERARY',
@@ -111,6 +120,10 @@ export const commonSchengenDocuments: DocumentRequirement[] = [
     category: 'travel',
     ownerType: 'applicant',
     required: false,
+    // Harmonised list I.1 offers "proof of travel itinerary" as an accepted
+    // travel arrangement; Annex II A.3(b) says the same. Neither prescribes a
+    // day-by-day form, which is what the description used to demand.
+    sourceRefs: ['eu-visa-code-annex2', 'gr-tr-harmonised-list'],
   },
 
   // Employment
@@ -127,6 +140,9 @@ export const commonSchengenDocuments: DocumentRequirement[] = [
       value: 'employed',
     },
     validityPeriodDays: 30,
+    // Harmonised list I.5.a spells out what the letter must contain. Notably
+    // it does *not* ask for salary, which the description used to require.
+    sourceRefs: ['gr-tr-harmonised-list'],
   },
   {
     code: 'APPROVED_LEAVE',
@@ -141,6 +157,8 @@ export const commonSchengenDocuments: DocumentRequirement[] = [
       value: 'employed',
     },
     validityPeriodDays: 30,
+    // Same clause: "letter from employer and/or approval for leave".
+    sourceRefs: ['gr-tr-harmonised-list'],
   },
   {
     code: 'PAYSLIPS',
@@ -156,6 +174,9 @@ export const commonSchengenDocuments: DocumentRequirement[] = [
       value: 'employed',
     },
     validityPeriodDays: 30,
+    // I.4.b — "salary slips of the last three months". The description said
+    // 3-6 months, which no source states.
+    sourceRefs: ['gr-tr-harmonised-list'],
   },
   {
     code: 'SOCIAL_SECURITY',
@@ -163,13 +184,20 @@ export const commonSchengenDocuments: DocumentRequirement[] = [
     descriptionKey: 'visa-domain:requirements.SOCIAL_SECURITY.description',
     category: 'employment',
     ownerType: 'applicant',
-    required: false,
+    // The harmonised list puts both SGK documents under Employees as
+    // requirements, not suggestions, so this is no longer optional (ADR-048).
+    required: true,
     conditionalOn: {
       field: 'employment.employmentStatus',
       operator: 'equals',
       value: 'employed',
     },
     validityPeriodDays: 30,
+    // I.5.a — SGK statement of employment (Sigortalı İşe Giriş Bildirgesi) and
+    // SGK registration and service document (SGK tescil ve hizmet dökümü),
+    // both with a readable QR code. Entirely Türkiye-scoped; see the
+    // jurisdiction quarantine in the provenance tests.
+    sourceRefs: ['gr-tr-harmonised-list'],
   },
 
   // Financial
@@ -182,6 +210,10 @@ export const commonSchengenDocuments: DocumentRequirement[] = [
     ownerType: 'applicant',
     required: true,
     validityPeriodDays: 30,
+    // I.4.a — "bank account statement showing movements over the last three
+    // months, proving the source of regular income", and Annex II B.3 names
+    // bank statements. The description said 3-6 months.
+    sourceRefs: ['eu-visa-code-annex2', 'gr-tr-harmonised-list'],
   },
 
   // Sponsor (conditional)

@@ -138,10 +138,14 @@ describe('Dashboard — seeded command center', () => {
 
       // Readiness is the single dominant indicator: the ring exposes the
       // percentage via its label. The example applicant is employed, so the
-      // Greece pack makes 11 required documents applicable while the dossier
-      // carries 10 records (no APPROVED_LEAVE) — 7 of 11 ready → 64%.
+      // Greece pack makes 13 required documents applicable while the dossier
+      // carries 10 records (no APPROVED_LEAVE) — 7 of 13 ready → 54%.
+      //
+      // Was 7 of 11 → 64% before ADR-048, which added the civil registry
+      // extract for every applicant and made the SGK documents required of
+      // employed ones. The denominator grew; nothing regressed.
       const ring = screen.getByRole('img')
-      expect(ring.getAttribute('aria-label')).toContain('64')
+      expect(ring.getAttribute('aria-label')).toContain('54')
 
       // The single next action offers exactly one CTA.
       expect(

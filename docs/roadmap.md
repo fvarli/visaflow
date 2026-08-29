@@ -136,17 +136,26 @@ treated `verified` and `partially_verified` alike, so a pack could claim `verifi
 requirement unsourced. `reviewStatus` is now checked against coverage computed from each
 requirement's own sources ([ADR-047]).
 
-**Greece is `partially_verified`: 4 of 27 requirements.** The evidence is EU primary law — Visa Code
-Articles 12 and 15 and Annex II. It is not more because **every Greek-jurisdiction source is
-unreachable**: mfa.gr and gov.gr refuse this network at the CDN edge, the appointed visa centre
-returns 403, and Global Visa Center World serves an invalid TLS certificate. Requirements specific
-to Greece therefore stay unverified, and a Greece-specific verification pass is still outstanding.
+**Greece is `partially_verified`: 18 of 28 requirements.** The primary evidence turned out to be the
+harmonised list adopted under local Schengen cooperation **for Türkiye**, published by the Ankara
+mission, layered with the Visa Code where the EU rule is the stronger authority. It corrected four
+requirements that were describing the wrong document, replaced an invented "3-6 months" window with
+the source's "last three months", corrected two applicability rules and surfaced a mandatory
+requirement the pack lacked entirely ([ADR-048]).
+
+**The pack is Greece *for applicants in Türkiye*, and the shared array knows it now.**
+`commonSchengenDocuments` has no override mechanism and already carried Türkiye-specific concepts, so
+it means "shared by the only production pack", not "proven across Schengen". An invariant names the
+Türkiye-scoped requirements inside it and fails the build if a second pack would inherit them.
 
 **Theme:** grow from "a Greece pack" to a maintained ecosystem of country packs.
 **Why here:** country packs are already data, not code — so scaling coverage is a content and
 process problem, best tackled once the workspace is worth filling with more countries.
 
-- **More countries & visa types** authored as packs. *Next.*
+- **Pack composition: Common Schengen → Destination → Jurisdiction overlay** — the split the Greece
+  evidence now justifies designing from real domain data rather than from guesses. **Blocks pack #2**,
+  and the quarantine invariant enforces that ([ADR-048]). *Next.*
+- **More countries & visa types** authored as packs. *After the composition split.*
 - **Source verification workflow** — a repeatable, honest process to move packs from
   `unverified` toward `verified` with recorded evidence. The mechanism now exists and has been used
   once end to end: evidence attaches per requirement, coverage is computed rather than declared, and
@@ -242,3 +251,4 @@ Implementation status of the current phase is tracked in [current-status.md](./c
 [ADR-045]: ./decisions.md
 [ADR-046]: ./decisions.md
 [ADR-047]: ./decisions.md
+[ADR-048]: ./decisions.md
