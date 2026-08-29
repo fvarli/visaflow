@@ -398,4 +398,40 @@ describe('country packs — Greece composition and citations', () => {
       sourcesOf(greece!).find((s) => s.id === 'gr-mfa-general')?.lastVerifiedAt
     ).toBeUndefined()
   })
+
+  /**
+   * A citation vouches for the whole rule, not the memorable part of it.
+   *
+   * Article 15(3) sets three criteria — the EUR 30 000 minimum, validity
+   * throughout the territory of the Member States, and cover for the entire
+   * intended stay. The first pass cited Article 15 while stating only the
+   * amount, which understated the rule to the applicant most likely to buy the
+   * wrong policy: one that is cheap, compliant on paper, and expires mid-trip
+   * or excludes half of Schengen.
+   *
+   * Pinned in both locales because a translation is where half a rule quietly
+   * goes missing.
+   */
+  it.each(['tr', 'en'] as const)(
+    'states all three Article 15(3) criteria in %s',
+    async (locale) => {
+      await i18n.changeLanguage(locale)
+      const td = dynamicT(i18n.t.bind(i18n))
+      const notes = td('visa-domain:requirements.TRAVEL_INSURANCE.notes', {
+        defaultValue: '',
+      })
+      const description = td(
+        'visa-domain:requirements.TRAVEL_INSURANCE.description',
+        { defaultValue: '' }
+      )
+      await i18n.changeLanguage('tr')
+
+      const combined = `${description} ${notes}`
+      expect({
+        amount: /30[.,]?000/.test(combined),
+        territory: /schengen/i.test(combined),
+        duration: /entire stay|tamamını/i.test(combined),
+      }).toEqual({ amount: true, territory: true, duration: true })
+    }
+  )
 })

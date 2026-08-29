@@ -149,7 +149,7 @@
     "TRAVEL_INSURANCE": {
       "name": "Seyahat Sağlık Sigortası",
       "description": "En az 30.000 EUR teminatlı seyahat sağlık sigortası",
-      "notes": "Tedavi, hastane masrafları ve ülkeye geri gönderimi kapsamalıdır"
+      "notes": "Tedavi, hastane masrafları ve ülkeye geri gönderimi kapsamalı, tüm Schengen bölgesinde geçerli olmalı ve konaklamanızın tamamını kapsamalıdır"
     },
     "TRANSPORT_RESERVATION": {
       "name": "Gidiş Dönüş Ulaşım Rezervasyonu",
@@ -285,7 +285,7 @@
     },
     "eu-visa-code-art15": {
       "title": "Vize Kanunu, Madde 15 — Seyahat sağlık sigortası",
-      "notes": "30.000 EUR asgari teminatı ve kapsamını belirler: tıbbi nedenlerle ülkeye geri gönderim, acil tıbbi müdahale ve acil hastane tedavisi."
+      "notes": "30.000 EUR asgari teminatı, kapsamını (tıbbi nedenlerle ülkeye geri gönderim, acil tıbbi müdahale ve acil hastane tedavisi) ve tüm üye devletlerin ülkesinde, planlanan konaklamanın tamamı boyunca geçerli olması gerektiğini belirler."
     },
     "eu-visa-code-annex2": {
       "title": "Vize Kanunu, Ek II — Destekleyici belgelerin sınırlayıcı olmayan listesi",

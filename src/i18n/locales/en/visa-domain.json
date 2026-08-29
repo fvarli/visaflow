@@ -149,7 +149,7 @@
     "TRAVEL_INSURANCE": {
       "name": "Travel Medical Insurance",
       "description": "Travel insurance with minimum 30,000 EUR coverage",
-      "notes": "Must cover medical expenses, hospitalization, and repatriation"
+      "notes": "Must cover medical expenses, hospitalization, and repatriation, be valid throughout the Schengen area, and cover your entire stay"
     },
     "TRANSPORT_RESERVATION": {
       "name": "Round-trip Transport Reservation",
@@ -285,7 +285,7 @@
     },
     "eu-visa-code-art15": {
       "title": "Visa Code, Article 15 — Travel medical insurance",
-      "notes": "Sets the EUR 30,000 minimum cover and what it must include: repatriation for medical reasons, urgent medical attention and emergency hospital treatment."
+      "notes": "Sets the EUR 30,000 minimum cover, what it must include (repatriation for medical reasons, urgent medical attention and emergency hospital treatment), and that it must be valid throughout the territory of the Member States for the entire period of the intended stay."
     },
     "eu-visa-code-annex2": {
       "title": "Visa Code, Annex II — Non-exhaustive list of supporting documents",

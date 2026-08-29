@@ -1637,6 +1637,33 @@ because nobody could open it. The EU records live in a shared `eu.sources.ts` be
 Schengen requirements they support, so the next Schengen pack inherits the evidence with them — and
 must carry those records or its citations dangle, which the invariants catch.
 
+**Second evidence pass (2026-08-29).** A re-audit against the specific claims most likely to be
+wrong produced one correction and three useful negative results.
+
+- **Article 15(3) was cited but half-stated.** The rule sets *three* criteria: the EUR 30 000
+  minimum, validity **throughout the territory of the Member States**, and cover for the **entire
+  period of the intended stay**. `TRAVEL_INSURANCE` cited Article 15 while naming only the amount.
+  That is the same class of omission as the passport's 10-year rule, and it understated the rule to
+  exactly the applicant most likely to buy the wrong policy — one that is cheap, compliant on paper,
+  and expires mid-trip or excludes half of Schengen. The wording is now complete in both locales and
+  a test pins all three criteria per locale, because half a rule is where a translation quietly
+  loses something. Coverage did not move: the requirement never made an *unsupported* claim, only an
+  *incomplete* one, so it was correctly counted before.
+- **"Signed in two places" is not supported, and nearly passed anyway.** A grep found two
+  `Signature` fields in the Visa Code and it looked like Annex I carried both. Reading the context
+  showed the second sits in **Annex VI, the standard form for notifying refusal** — Annex I has one
+  applicant signature plus a guardian signature for minors. `APPLICATION_FORM` stays unsourced. The
+  near-miss is recorded because it is precisely the shape of rounding a partial up to verified: a
+  string match that agrees with the answer you wanted.
+- **The photo specifications cannot be cited at all from this Regulation.** Article 13(4) delegates
+  the technical requirements to ICAO Doc 9303 Part 1, and a search for any millimetre dimension
+  across the whole Visa Code returns nothing. ICAO 9303 was not opened, so "35x45mm", "white
+  background" and "within last 6 months" remain useful practical guidance with no citation behind
+  them.
+- **Greek sources were retried and remain unreachable** — five `mfa.gr` paths including plain HTTP,
+  plus `gov.gr`, `visa.gov.gr` and `greece.gov.gr`. Nothing changed, and nothing was inferred to
+  compensate.
+
 **Next:** Greece-specific verification, from a network that can reach `mfa.gr` or by a maintainer
 entering the ministry's published list by hand. Every requirement above marked partial or
 conflicting is waiting on precisely that.

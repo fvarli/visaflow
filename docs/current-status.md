@@ -300,7 +300,13 @@ build reads dossier schema 1.0.0 and 1.1.0 alike, so every existing export impor
       verbatim. Two source-driven wording fixes: the passport's 10-year issue
       rule added, the "paid tickets not required" claim removed. The
       `validityPeriodDays` tripwire is now a production-consumer scan rather
-      than a `sourceRefs` coupling (ADR-047)
+      than a `sourceRefs` coupling. A second evidence pass completed the
+      insurance citation with Article 15(3)'s territorial-validity and
+      entire-stay criteria, which the first pass cited but did not state, and
+      settled three claims as uncitable: "signed in two places" (Annex I has
+      one applicant signature; the second is Annex VI's refusal form), the
+      photo dimensions (Article 13(4) delegates to ICAO 9303, which was not
+      opened) and the 3-6 month statement windows (ADR-047)
 
 ### Technical
 - [x] TypeScript strict mode
