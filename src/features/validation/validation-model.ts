@@ -303,6 +303,11 @@ export function buildValidationModel(
       ),
       application
     ),
+    template: resolveVisaTemplate(
+      application?.destinationCountry,
+      application?.visaType
+    ),
+    application,
   })
 
   const actionable: ActionableFinding[] = validation.findings.map(

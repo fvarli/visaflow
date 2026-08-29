@@ -385,20 +385,42 @@ describe('buildDashboardModel', () => {
       NOW
     )
     expect(populated.active.validation.totalRules).toBeGreaterThan(0)
-    // 4 ready of 11 applicable. Was 4 of 10 → 40% before ADR-048 added the
-    // civil registry extract, which every applicant owes.
-    expect(populated.active.documents.percent).toBe(36)
+    // 4 ready of 9 applicable. This fixture's applicant has no employment
+    // status, so EMPLOYMENT_LETTER and PAYSLIPS do not apply to it — before
+    // ADR-049 they were counted anyway, because readiness trusted the
+    // `required: true` frozen into each record instead of asking the template
+    // whether the requirement still applied.
+    expect(populated.active.documents.percent).toBe(44)
 
     // Given-name greeting only; null (→ neutral) when there is no applicant.
     expect(populated.active.greetingName).toBe('Demo')
     expect(empty.active.greetingName).toBeNull()
 
     // One canonical figure backs both the ring and the documents breakdown.
-    expect(populated.active.documents.applicable).toBe(11)
-    expect(populated.active.documents.ready).toBe(4)
-    expect(populated.active.documents.needsUpdate).toBe(1)
-    expect(populated.active.documents.inProgress).toBe(1)
-    expect(populated.active.documents.obtained).toBe(1)
+    //
+    // `inProgress` and `obtained` are zero because the only records carrying
+    // those statuses were EMPLOYMENT_LETTER and PAYSLIPS, which do not apply to
+    // an applicant with no employment status. They used to be counted from
+    // their frozen `required` flags regardless (ADR-049).
+    const d = populated.active.documents
+    expect({
+      applicable: d.applicable,
+      ready: d.ready,
+      needsUpdate: d.needsUpdate,
+      inProgress: d.inProgress,
+      obtained: d.obtained,
+      notStarted: d.notStarted,
+    }).toEqual({
+      applicable: 9,
+      ready: 4,
+      needsUpdate: 1,
+      inProgress: 0,
+      obtained: 0,
+      notStarted: 4,
+    })
+    expect(
+      d.ready + d.needsUpdate + d.inProgress + d.obtained + d.notStarted
+    ).toBe(d.applicable)
   })
 
   it('surfaces the nearest upcoming date as the next milestone', () => {

@@ -1,4 +1,7 @@
 import type { Document } from '@/domain/schemas/document.schema'
+import type { Application } from '@/domain/schemas/application.schema'
+import type { VisaTypeTemplate } from '@/config/types'
+import { resolveDocumentSemantics } from '@/features/documents/document-semantics'
 import type { DocumentStatus } from '@/domain/types/common'
 import {
   READINESS_CLASS,
@@ -58,6 +61,18 @@ export function isApplicable(status: DocumentStatus): boolean {
 export interface ReadinessInput {
   documents: Document[]
   /**
+   * The resolved template, so requiredness and applicability come from the
+   * pack as it stands today rather than from the copy frozen into each record
+   * when it was seeded (ADR-049).
+   *
+   * Optional only so the documents filter — which deliberately counts every
+   * record regardless of the template — can keep its existing behaviour.
+   * Production surfaces that report readiness must pass it.
+   */
+  template?: VisaTypeTemplate
+  /** Needed to evaluate applicability; without it every known code applies. */
+  application?: Application | null
+  /**
    * Codes of the applicable **required** template requirements for this
    * application (see `requirement-readiness.ts`).
    *
@@ -90,7 +105,12 @@ const EMPTY: DocumentReadiness = {
 export function buildDocumentReadiness(
   input: ReadinessInput
 ): DocumentReadiness {
-  const { documents, requiredRequirementCodes = [] } = input
+  const {
+    documents,
+    requiredRequirementCodes = [],
+    template,
+    application,
+  } = input
 
   const counts: Record<ReadinessClass, number> = {
     ready: 0,
@@ -106,7 +126,13 @@ export function buildDocumentReadiness(
 
   for (const doc of documents) {
     present.add(doc.code)
-    if (!doc.required) {
+    const semantics = resolveDocumentSemantics(doc, template, application)
+
+    // A record left behind by an applicability change keeps its user state and
+    // stays visible, but it is not work this dossier still owes (ADR-049).
+    if (!semantics.isApplicable) continue
+
+    if (!semantics.required) {
       optional += 1
       continue
     }

@@ -121,6 +121,8 @@ export function buildAppointmentDay(
   const allRequiredReady = buildDocumentReadiness({
     documents,
     requiredRequirementCodes: requiredRequirementCodes(template, application),
+    template,
+    application,
   }).complete
   const form = documents.find((d) => d.code === 'APPLICATION_FORM')
   const formReady =
@@ -172,6 +174,8 @@ export function buildTimelineModel(
   const readiness = buildDocumentReadiness({
     documents,
     requiredRequirementCodes: requiredRequirementCodes(template, application),
+    template,
+    application,
   })
   const actions = deriveNextActions(readiness, validation, application)
 

@@ -13,6 +13,7 @@ import type { ValidationFinding } from '@/domain/rules/types'
 import { buildDocumentReadiness } from '@/features/readiness/document-readiness'
 import type { DocumentReadiness } from '@/features/readiness/readiness-types'
 import { requiredRequirementCodes } from '@/features/readiness/requirement-readiness'
+import { resolveDocumentSemantics } from '@/features/documents/document-semantics'
 
 /**
  * Pure presentation adapter for the Documents workspace.
@@ -203,10 +204,17 @@ export function classifyDoc(
   doc: Document,
   template: VisaTypeTemplate | undefined
 ): DocumentKind {
-  const req = template?.documentRequirements.find((r) => r.code === doc.code)
-  if (!req) return 'custom'
-  if (req.conditionalOn) return 'conditional'
-  return req.required ? 'required' : 'optional'
+  // Through the shared resolver, so the badge this produces and the percentage
+  // readiness produces are derived from one answer (ADR-049). They used to be
+  // computed independently, which is how the same document could carry a
+  // "required" badge while counting as optional.
+  const { isKnown, required, requirement } = resolveDocumentSemantics(
+    doc,
+    template
+  )
+  if (!isKnown) return 'custom'
+  if (requirement?.conditionalOn) return 'conditional'
+  return required ? 'required' : 'optional'
 }
 
 export interface FindingLink {
@@ -326,7 +334,12 @@ export function buildDocumentsModel(
     readiness: buildDocumentReadiness({
       documents,
       requiredRequirementCodes: requirementCodes,
+      template,
+      application,
     }),
+    // Deliberately template-free: the filter counts every record the user can
+    // see, including ones no longer applicable, so the counts beside the
+    // filter chips match the rows they filter.
     filterableReadiness: buildDocumentReadiness({ documents }),
     pendingRequirementCount: requirementCodes.filter(
       (code) => !present.has(code)

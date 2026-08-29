@@ -35,11 +35,17 @@ const codesFor = (employmentStatus: EmploymentStatus) =>
     (r) => r.code
   )
 
-/** Documents the harmonised list files under "Company owners". */
+/**
+ * Documents the harmonised list files under "Company owners".
+ *
+ * Two of these carry codes minted in template 1.2.0: the requirements they
+ * replaced described different documents, so reusing their identities would
+ * have shown existing holders as already satisfying them (ADR-049).
+ */
 const COMPANY_OWNER_DOCUMENTS = [
   'EMPLOYER_TRADE_REGISTRY',
-  'BUSINESS_LICENSE',
-  'TAX_RETURNS',
+  'COMPANY_ACTIVITY_CERTIFICATE',
+  'TAX_PAYMENT_STATEMENT',
 ]
 
 describe('company-owner documents follow the applicant, not the employer', () => {

@@ -44,12 +44,27 @@ export const GATHER_GROUP_ORDER: GatherGroupId[] = [
 ]
 
 /** Income evidence, regardless of its document category (some are `financial`). */
+/**
+ * Codes that evidence income, for the Finance workspace.
+ *
+ * The retired codes stay listed. A document keeps its code forever, so a
+ * dossier written before those requirements were replaced still holds
+ * `TAX_RETURNS` or `PENSION_STATEMENT` records — and `financeDocGroup`
+ * returning `null` is the one consumer that *hides* a document outright.
+ * Dropping them here would make a person's own files disappear from a screen
+ * they had filed them under (ADR-049).
+ */
 const INCOME_CODES = new Set<string>([
   'PAYSLIPS',
   'EMPLOYMENT_LETTER',
+  'SOCIAL_SECURITY',
+  // Current
+  'TAX_PAYMENT_STATEMENT',
+  'PENSIONER_BOOKLET',
+  'COMPANY_ACTIVITY_CERTIFICATE',
+  // Retired, still held by existing dossiers
   'TAX_RETURNS',
   'PENSION_STATEMENT',
-  'SOCIAL_SECURITY',
   'BUSINESS_LICENSE',
 ])
 
@@ -145,6 +160,8 @@ export function buildFinanceDocuments(
           financeDocGroup(req.code, req.category, req.ownerType) !== null
       )
       .map((req) => req.code),
+    template,
+    application,
   })
 
   const byCode = new Map(financeDocs.map((d) => [d.code, d]))

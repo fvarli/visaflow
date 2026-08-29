@@ -327,6 +327,24 @@ build reads dossier schema 1.0.0 and 1.1.0 alike, so every existing export impor
       names the Türkiye-scoped requirements inside it and fails the build if a
       second pack would inherit them (ADR-048)
 
+- [x] **A requirement code is an identity, not a label** — the evidence sprint
+      re-pointed three codes at different real-world documents while keeping
+      their identities, and because `Document.name` is deprecated and unwritten,
+      every existing record relabelled itself: a user's tax return presented as
+      proof of payment, still marked ready, still printed onto the checklist.
+      `TAX_RETURNS`, `PENSION_STATEMENT` and `BUSINESS_LICENSE` are now retired
+      — removed from the template, never deleted, never aliased, and restored to
+      their original wording so historical records still show the document their
+      owner filed. Their replacements carry new codes and no records, so they
+      correctly read as not started. Separately, template-owned metadata
+      (`required`, `category`, `ownerType`, applicability) is re-derived from the
+      current pack through one resolver instead of the copy frozen at seed time,
+      which lands the SGK requiredness fix on existing dossiers without touching
+      user state and removes an existing contradiction where the badge said
+      required and the percentage counted optional. A shipped-codes ledger fails
+      the build if a code is renamed or removed without an explicit retirement
+      entry (ADR-049)
+
 ### Technical
 - [x] TypeScript strict mode
 - [x] Zod schemas for all domain types

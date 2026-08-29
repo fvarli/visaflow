@@ -445,6 +445,8 @@ function buildApplicationModel(
   const readiness = buildDocumentReadiness({
     documents,
     requiredRequirementCodes: requiredRequirementCodes(template, application),
+    template,
+    application,
   })
 
   const state = deriveReadinessState(

@@ -229,25 +229,37 @@
       "notes": "Can strengthen ties to home country"
     },
     "BUSINESS_LICENSE": {
-      "name": "Company Activity Certificate",
-      "description": "Company activity certificate (Faaliyet Belgesi)"
+      "name": "Business License",
+      "description": "Business registration or license"
     },
     "TAX_RETURNS": {
-      "name": "Tax Payment Statement",
-      "description": "Statement of taxes payment"
+      "name": "Tax Returns",
+      "description": "Recent tax returns for self-employed applicants"
     },
     "STUDENT_CERTIFICATE": {
       "name": "Student Certificate",
       "description": "Student certificate; in higher education, issued by YÖK with a readable QR code"
     },
     "PENSION_STATEMENT": {
-      "name": "Pensioner Booklet",
-      "description": "Pensioner booklet"
+      "name": "Pension Statement",
+      "description": "Recent pension payment statements"
     },
     "CIVIL_REGISTRY_EXTRACT": {
       "name": "Civil Registry Extract",
       "description": "Complete extract of the civil registry (Tam Tekmil Vukuatlı Nüfus Kayıt Örneği)",
       "notes": "Required of every applicant"
+    },
+    "TAX_PAYMENT_STATEMENT": {
+      "name": "Tax Payment Statement",
+      "description": "Statement of taxes payment"
+    },
+    "COMPANY_ACTIVITY_CERTIFICATE": {
+      "name": "Company Activity Certificate",
+      "description": "Company activity certificate (Faaliyet Belgesi)"
+    },
+    "PENSIONER_BOOKLET": {
+      "name": "Pensioner Booklet",
+      "description": "Pensioner booklet"
     }
   },
   "milestones": {

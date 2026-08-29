@@ -7,6 +7,7 @@ import type {
   OwnerType,
 } from '@/domain/types/common'
 import { applicableRequirements } from '@/features/documents/template-sync'
+import { resolveDocumentSemantics } from '@/features/documents/document-semantics'
 import { classifyFreshness } from '@/features/timeline/document-freshness'
 
 /**
@@ -198,17 +199,20 @@ export function buildSubmissionChecklist(
   const byCode = new Map(documents.map((doc) => [doc.code, doc]))
 
   const rows: ChecklistRow[] = documents.map((doc) => {
+    // Requiredness from the pack as it stands, not the copy frozen into the
+    // record when it was seeded (ADR-049).
+    const effective = resolveDocumentSemantics(doc, template, application)
     const expiresBeforeAppointment =
       classifyFreshness(doc, appointmentDate, false) ===
       'expiresBeforeAppointment'
     return {
       code: doc.code,
-      category: doc.category,
-      group: groupForCategory(doc.category),
-      ownerType: doc.ownerType,
-      required: doc.required,
+      category: effective.category,
+      group: groupForCategory(effective.category),
+      ownerType: effective.ownerType,
+      required: effective.required,
       status: doc.status,
-      state: checklistState(doc.status, doc.required),
+      state: checklistState(doc.status, effective.required),
       docId: doc.id,
       legacyName: doc.name,
       validUntil: doc.validUntil ?? null,

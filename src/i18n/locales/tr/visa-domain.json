@@ -229,25 +229,37 @@
       "notes": "Ülkenizle bağınızı güçlendirebilir"
     },
     "BUSINESS_LICENSE": {
-      "name": "Faaliyet Belgesi",
-      "description": "Şirkete ait faaliyet belgesi"
+      "name": "İşletme Belgesi",
+      "description": "Şirket kaydı veya faaliyet belgesi"
     },
     "TAX_RETURNS": {
-      "name": "Vergi Ödeme Belgesi",
-      "description": "Vergi ödemelerini gösteren belge"
+      "name": "Vergi Beyannameleri",
+      "description": "Serbest çalışanlar için güncel vergi beyannameleri"
     },
     "STUDENT_CERTIFICATE": {
       "name": "Öğrenci Belgesi",
       "description": "Öğrenci belgesi; yükseköğretimde YÖK tarafından verilen ve okunabilir QR kod taşıyan belge"
     },
     "PENSION_STATEMENT": {
-      "name": "Emekli Cüzdanı",
-      "description": "Emekli cüzdanı"
+      "name": "Emekli Maaşı Dökümü",
+      "description": "Güncel emekli maaşı ödeme dökümleri"
     },
     "CIVIL_REGISTRY_EXTRACT": {
       "name": "Nüfus Kayıt Örneği",
       "description": "Tam Tekmil Vukuatlı Nüfus Kayıt Örneği",
       "notes": "Tüm başvuru sahiplerinden istenir"
+    },
+    "TAX_PAYMENT_STATEMENT": {
+      "name": "Vergi Ödeme Belgesi",
+      "description": "Vergi ödemelerini gösteren belge"
+    },
+    "COMPANY_ACTIVITY_CERTIFICATE": {
+      "name": "Faaliyet Belgesi",
+      "description": "Şirkete ait faaliyet belgesi"
+    },
+    "PENSIONER_BOOKLET": {
+      "name": "Emekli Cüzdanı",
+      "description": "Emekli cüzdanı"
     }
   },
   "milestones": {

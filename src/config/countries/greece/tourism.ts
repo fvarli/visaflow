@@ -109,9 +109,18 @@ const greeceSpecificDocuments: DocumentRequirement[] = [
 
   // Self-employed
   {
-    code: 'BUSINESS_LICENSE',
-    nameKey: 'visa-domain:requirements.BUSINESS_LICENSE.name',
-    descriptionKey: 'visa-domain:requirements.BUSINESS_LICENSE.description',
+    /**
+     * Not a rename of `BUSINESS_LICENSE` — a replacement of it (ADR-049).
+     *
+     * The old code described a business registration or operating licence. The
+     * harmonised list asks company owners for the activity certificate, and an
+     * applicant could have satisfied the old wording with a different artifact.
+     * Reusing the code would have shown them as already holding this one.
+     */
+    code: 'COMPANY_ACTIVITY_CERTIFICATE',
+    nameKey: 'visa-domain:requirements.COMPANY_ACTIVITY_CERTIFICATE.name',
+    descriptionKey:
+      'visa-domain:requirements.COMPANY_ACTIVITY_CERTIFICATE.description',
     category: 'employment',
     ownerType: 'applicant',
     required: true,
@@ -125,9 +134,15 @@ const greeceSpecificDocuments: DocumentRequirement[] = [
     sourceRefs: ['gr-tr-harmonised-list'],
   },
   {
-    code: 'TAX_RETURNS',
-    nameKey: 'visa-domain:requirements.TAX_RETURNS.name',
-    descriptionKey: 'visa-domain:requirements.TAX_RETURNS.description',
+    /**
+     * Replaces `TAX_RETURNS`, which described a filing the applicant submits.
+     * A statement of taxes payment evidences settlement instead — a filed
+     * return proves nothing about it (ADR-049).
+     */
+    code: 'TAX_PAYMENT_STATEMENT',
+    nameKey: 'visa-domain:requirements.TAX_PAYMENT_STATEMENT.name',
+    descriptionKey:
+      'visa-domain:requirements.TAX_PAYMENT_STATEMENT.description',
     category: 'financial',
     ownerType: 'applicant',
     required: true,
@@ -161,9 +176,14 @@ const greeceSpecificDocuments: DocumentRequirement[] = [
 
   // Retired
   {
-    code: 'PENSION_STATEMENT',
-    nameKey: 'visa-domain:requirements.PENSION_STATEMENT.name',
-    descriptionKey: 'visa-domain:requirements.PENSION_STATEMENT.description',
+    /**
+     * Replaces `PENSION_STATEMENT`, which described periodic payment
+     * printouts. The booklet is an identity document; holding one is no
+     * evidence of holding the other (ADR-049).
+     */
+    code: 'PENSIONER_BOOKLET',
+    nameKey: 'visa-domain:requirements.PENSIONER_BOOKLET.name',
+    descriptionKey: 'visa-domain:requirements.PENSIONER_BOOKLET.description',
     category: 'financial',
     ownerType: 'applicant',
     required: true,
@@ -212,7 +232,7 @@ export const greeceTourismTemplate: VisaTypeTemplate = {
    * rules and added a requirement. The pack version is its own axis — the app,
    * the dossier schema and the storage format are all untouched.
    */
-  templateVersion: '1.1.0',
+  templateVersion: '1.2.0',
   /**
    * The date this template was last reviewed by a maintainer. Still not a
    * verification date — `lastVerifiedAt` on each source is that.

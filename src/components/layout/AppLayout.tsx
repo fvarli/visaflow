@@ -178,6 +178,8 @@ export function AppLayout() {
           template,
           state.application
         ),
+        template,
+        application: state.application,
       }).outstanding,
     }
   }, [state.documents, state.application])

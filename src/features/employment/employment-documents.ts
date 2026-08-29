@@ -71,6 +71,8 @@ export function buildEmploymentDocuments(
     requiredRequirementCodes: applicable
       .filter((req) => req.required)
       .map((req) => req.code),
+    template,
+    application,
   })
 
   const byCode = new Map(employmentDocs.map((d) => [d.code, d]))

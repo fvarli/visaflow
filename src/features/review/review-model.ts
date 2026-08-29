@@ -124,6 +124,8 @@ export function buildFinalReviewModel(
   const readiness = buildDocumentReadiness({
     documents,
     requiredRequirementCodes: requiredRequirementCodes(template, application),
+    template,
+    application,
   })
   const readinessState = deriveReadinessState(
     readiness,

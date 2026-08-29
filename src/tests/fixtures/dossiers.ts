@@ -208,7 +208,7 @@ export const allApplicableReady: DossierFixture = {
     // percentage in either direction.
     doc(
       {
-        code: 'OLD_VISAS',
+        code: 'PREVIOUS_VISAS',
         status: 'not_started',
         category: 'previous_travel',
         required: false,

@@ -347,6 +347,23 @@ exports that still contain `name` import unchanged; the value is used only as
 a display fallback for codes with no translation. `schemaVersion` stays
 `1.0.0`. See ADR-012.
 
+### Retired requirement codes (template 1.2.0, still `schemaVersion` 1.1.0)
+
+`TAX_RETURNS`, `BUSINESS_LICENSE` and `PENSION_STATEMENT` were retired from the Greece/Türkiye pack
+and replaced by `TAX_PAYMENT_STATEMENT`, `COMPANY_ACTIVITY_CERTIFICATE` and `PENSIONER_BOOKLET`.
+They were re-pointed at genuinely different documents by an earlier evidence sprint, and a `code` is
+the identity of a persisted record — so reusing them would have changed what documents people
+already held were taken to mean (ADR-049).
+
+**Nothing about the format changes.** `code` is a free string, so codes are values rather than
+schema. A file containing a retired code still parses, still round-trips byte-identically, keeps its
+status, notes and dates, and still resolves to its **original** label — the retired translations were
+restored for exactly that reason. A retired code is never mapped to its replacement: the replacement
+is a separate requirement that starts unsatisfied.
+
+`schemaVersion` stays `1.1.0` and `STORAGE_FORMAT_VERSION` stays `2`; only the country pack's
+`templateVersion` moves.
+
 ### Version 1.1.0 (Current) — 2026-08-25
 
 Adds `applicant.previousRefusals`, a list of refused visa applications:

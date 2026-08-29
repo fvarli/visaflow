@@ -1768,3 +1768,98 @@ Destination pack → Jurisdiction overlay** — before country pack #2.
 `src/i18n/locales/{tr,en}/visa-domain.json`,
 `src/tests/features/country-pack-provenance.test.ts`,
 `src/tests/features/jurisdiction-applicability.test.ts` (new).
+
+---
+
+## ADR-049: A Requirement Code Is an Identity, Not a Label
+
+**Status:** Accepted · 2026-08-29 · corrects [ADR-048](#adr-048), extends [ADR-012](#adr-012)
+
+**Decision:**
+
+1. **A document `code` may not change meaning.** Wording, translations, citations and narrowing that
+   keeps the same real-world document are fine. A different document needs a **new code**, and the
+   old one must be **retired** — removed from the template, never deleted, never aliased.
+2. **Template-owned metadata is re-derived on read**, not frozen at seed: `required`, `category`,
+   `ownerType` and applicability come from the current pack through one shared resolver.
+3. **User-owned state is never derived and never rewritten**: status, notes, dates, files.
+4. **A shipped-codes ledger** fails the build when a code is removed or renamed without an explicit
+   retirement entry.
+
+**Context — a defect this project's own contract had already forbidden:**
+
+ADR-012 states that persisted identifiers stay language-independent, and `Document.name` is
+deprecated and no longer written. A stored record therefore carries **only its code**, and the label
+is resolved from `visa-domain:requirements.<code>.name` at render time.
+
+ADR-048 re-pointed three of those translations at different documents while keeping the codes:
+
+| Code | Meant | Was made to mean |
+|---|---|---|
+| `TAX_RETURNS` | a filing the applicant submits | a statement that tax was **paid** |
+| `PENSION_STATEMENT` | periodic payment printouts | the **pensioner booklet**, an identity document |
+| `BUSINESS_LICENSE` | a registration or operating licence | the **Faaliyet Belgesi** activity certificate |
+
+Every existing record relabelled itself the moment that commit shipped. A user's tax return
+presented as proof of payment, still marked ready, still counted green, and printed that way onto the
+checklist they would hand a consulate. Export and import preserved all of it, so the error was
+durable rather than cosmetic.
+
+**Rationale:**
+
+- **The deciding question is not linguistic.** Not "was the old wording broad enough to contain the
+  new document" but "could an applicant have satisfied the old requirement with a different artifact
+  and then be shown as satisfying this one". For `BUSINESS_LICENSE` the answer is yes, which is why
+  the arguable case was retired rather than kept. **When identity is debatable, a new code is the
+  safe direction**: a spurious extra row is visible and repairable; silent reuse corrupts meaning
+  where nobody is looking.
+- **Retirement fixes the false green for free.** The replacement code has no record, so it correctly
+  reads as not started, and the historical record keeps its original label. No user state is touched
+  and no migration runs.
+- **Three kinds of evolution, and they are not interchangeable.** *Replacement* — a different
+  document, needs a new identity. *Same identity, stricter* — `SOCIAL_SECURITY` gaining a second SGK
+  document and a QR requirement; the code survives. *Clarification* — `PAYSLIPS` narrowing to three
+  months; nothing to do. Conflating the first with the third is what went wrong.
+- **Frozen metadata was a second, independent bug.** Nothing ever updated a seeded `required`: sync is
+  add-only, storage migrations touch only the record envelope, and no screen exposes an editor. The
+  codebase had also already half-solved it and disagreed with itself — `classifyDoc` re-derived from
+  the template while readiness trusted the snapshot, so one document could be badged *required* and
+  counted *optional* in the same view. One resolver removes the contradiction rather than adding a
+  third opinion.
+- **`isKnown` is what keeps the fix honest.** Read-time derivation would re-create the original bug
+  if a retired code resolved to whatever requirement now sits in its place. An unresolvable code
+  describes itself from its own snapshot, always.
+
+**What was deliberately not done.** ADR-048 also raised the evidence bar on `SOCIAL_SECURITY` and
+`EMPLOYER_TRADE_REGISTRY` without changing their identity, so a record marked `ready` under the older,
+laxer wording stays green. The obvious remedy is to move those records to `needs_update` — and it is
+**not implementable**, because nothing in the data can distinguish "ready under the old definition"
+from "ready under the new one":
+
+- `Document` has no status-changed timestamp; `receivedAt`/`issuedAt` are optional and user-entered;
+- `templateVersion` is persisted nowhere — not in the export, not in `SavedDossierRecord`;
+- `updatedAt` is record-level and moves on every keystroke.
+
+A blanket downgrade would therefore also demote the users who *did* obtain the correct documents
+after the change — punishing precisely the people who complied. So no status is touched. The durable
+fix is to stamp the pack revision a document was seeded under, which is a canonical-schema addition
+and is recorded here as the recommendation for a later sprint rather than taken unilaterally.
+
+**Trade-off:** those two requirements can still read green over evidence that no longer meets the
+authority's bar. That is a known, bounded gap with a named cause, which is better than a silent
+correction that punishes compliant users.
+
+**Consequences.** `templateVersion` → `1.2.0`. **No `schemaVersion` change and no
+`STORAGE_FORMAT_VERSION` change** — the JSON shape is untouched, `code` is a free string so codes are
+values rather than schema, old files parse, and persisted `required`/`category`/`ownerType`
+round-trip byte-identically; the corrections live only in read models. Retired codes stay in
+`INCOME_CODES` in the finance workspace, because `financeDocGroup` returning `null` is the one
+consumer that hides a document outright, and a person's filed documents must not vanish from a screen
+they filed them under. Greece coverage is unchanged at **18 of 28** — retiring three codes and
+introducing three replacements is identity-neutral for the count.
+
+**Implementation:** `src/config/countries/retired.ts` (new),
+`src/features/documents/document-semantics.ts` (new), `greece/tourism.ts`,
+`i18n/locales/{tr,en}/visa-domain.json`, `document-readiness.ts`, `documents-model.ts`,
+`review-checklist.ts`, `finance-documents.ts` and the other read models,
+`src/tests/features/requirement-identity.test.ts` and `document-semantics.test.ts` (new).
