@@ -1863,3 +1863,92 @@ introducing three replacements is identity-neutral for the count.
 `i18n/locales/{tr,en}/visa-domain.json`, `document-readiness.ts`, `documents-model.ts`,
 `review-checklist.ts`, `finance-documents.ts` and the other read models,
 `src/tests/features/requirement-identity.test.ts` and `document-semantics.test.ts` (new).
+
+---
+
+## ADR-050: Only an Active Requirement Is Current Work
+
+**Status:** Accepted · 2026-08-29 · completes [ADR-049](#adr-049)
+
+**Decision:**
+
+1. **Membership replaces a boolean.** `DocumentSemantics` carries
+   `membership: 'active' | 'retired' | 'custom' | 'unknown'`, resolved in that order — template
+   first, then the retirement registry, then the custom prefix, then unresolved.
+2. **Only `active` counts.** A persisted document contributes to current requirement readiness only
+   if its code names a requirement the current template still asks for **and** that requirement
+   currently applies.
+3. **Retired records get a `historical` count** — informational only, outside every readiness bucket.
+4. **A retired document is not a custom one.** `DocumentKind` gains `'retired'`.
+
+**Context:**
+
+ADR-049 retired three requirement codes and said their records must remain visible without
+satisfying anything. The first half shipped; the second did not. `isRetiredRequirement` was **never
+called in production** — the registry was a documentation-and-test artifact with no runtime reach —
+and `resolveDocumentSemantics` returned `isApplicable: true` for every unresolved code while falling
+back to the persisted `required`.
+
+So a retired `TAX_RETURNS` at `required: true, status: 'ready'` entered **both the numerator and the
+denominator**. On the shipped fixture 4/9 = 44% became 5/10 = 50%. The distortion had a direction: a
+collected withdrawn document **inflated** the figure, and an uncollected one made 100% unreachable,
+with no escape — the module's own comment claims `not_applicable` is the only way out of both sides,
+and retirement had no equivalent.
+
+It reached every surface that passes a template: the Dashboard ring and its aria-label, the Documents
+hero and a group caption, the Validation Center — whose comment promises byte-identity with the
+Dashboard, which it had, distortion included — Final Review, and print, where a non-ready retired row
+also downgraded a physical bundle. In Final Review a retired record that was not ready rendered as
+**`missing`**, telling the applicant to go and obtain a document nobody asks for.
+
+**Rationale:**
+
+- **A boolean was the bug.** `isKnown: false` meant "retired, custom, or unknown" — three domain
+  states with three different meanings, sharing one branch and therefore one behaviour. Naming them
+  separately is what makes the readiness rule expressible at all.
+- **Retirement is a registry fact, not an absence.** Deciding it by "not in the template" would let
+  every foreign or mistyped code claim a history it does not have. `unknown` is a different concept
+  and is deliberately **not** counted as historical.
+- **`historical` is stated, not silent.** Excluding retired records arithmetically would have been
+  enough to be correct, and would have left an unexplained gap between the document count and the
+  readiness count — an invitation for someone to close it by counting them again. The number says
+  what happened.
+- **Persisted `required` is not authority for a non-active code.** `DocumentSchema.required` defaults
+  to **`true`**, so a hand-edited import omitting the field yields a required custom document. Custom
+  documents are therefore routed to `optional` unconditionally rather than on the stored flag.
+- **The filter had to move with it.** `filterableReadiness` was deliberately template-free so chip
+  counts matched the rows they filter. That held only while both trusted the persisted flag; once
+  readiness stopped, a template-free chip would have counted a withdrawn requirement as ready beside
+  a percentage that did not. `filterDocuments` takes effective requiredness as a **callback**, so the
+  shared primitive stays domain-free.
+- **"Custom supporting document" was false.** The detail panel told the user they had added a record
+  the app itself seeded, and internally `kind === 'custom'` while `isCustom === false` — two flags
+  disagreeing invisibly. A retired document now says what it is, beside its original label, in
+  neutral wording that implies nothing about validity or deletion.
+
+**A sixth surface, found by the fixture.** Adding a retired-bearing dossier to the shared readiness
+fixtures immediately failed an existing invariant: `deriveNextDocument` filtered on the persisted
+`required` and so nominated a withdrawn requirement as the next thing to fetch — on a dossier
+readiness had already called complete. The one screen whose entire job is to say what to do next was
+sending people after a document nobody asks for. It now uses the same effective requiredness. This is
+the argument for adding fixtures to the shared harness rather than writing bespoke tests: the
+invariant that caught it was written long before retirement existed.
+
+**Trade-off:** a fourth membership state is more to hold in mind than a boolean, and `historical`
+adds a field consumers may ignore. Both are the cost of saying precisely what a record is instead of
+inferring it — and inference is what produced a readiness percentage that moved for a requirement
+nobody had.
+
+**Consequences.** No format change: `historical` is a read-model field, nothing is persisted, and
+`schemaVersion` `1.1.0`, `STORAGE_FORMAT_VERSION` `2` and `templateVersion` `1.2.0` all stand. Greece
+coverage is unchanged at 18 of 28. `finance-documents.ts` now reads the retirement registry instead
+of duplicating the codes as literals, so a fourth retirement cannot silently drop a filed document
+out of that workspace. The retiree guidance copy, which still named the withdrawn "pension
+statement", now names the pensioner booklet.
+
+**Implementation:** `src/features/documents/document-semantics.ts`,
+`src/features/readiness/{document-readiness,readiness-types}.ts`,
+`src/features/documents/{documents-model,document-filters}.ts`, `src/pages/DocumentsPage.tsx`,
+`src/components/documents/DocumentDetailPanel.tsx`,
+`src/i18n/locales/{tr,en}/{documents,employment}.json`, `src/features/finance/finance-documents.ts`,
+`src/tests/features/document-semantics.test.ts`.

@@ -49,7 +49,17 @@ export const QUICK_FILTERS: Record<BucketKey, Partial<DocumentFilters>> = {
 export function filterDocuments(
   documents: Document[],
   filters: DocumentFilters,
-  labelOf: (doc: Document) => string
+  labelOf: (doc: Document) => string,
+  /**
+   * Effective requiredness, supplied by the caller.
+   *
+   * A callback rather than a template argument, so this stays a domain-free
+   * primitive. Without it the filter falls back to the persisted flag, which
+   * for a withdrawn or unrecognised code is not authority for anything
+   * (ADR-050) — and would put a row under "required" that the readiness figure
+   * does not count.
+   */
+  requiredOf: (doc: Document) => boolean = (doc) => doc.required
 ): Document[] {
   const q = filters.search.trim().toLocaleLowerCase()
   return documents.filter((doc) => {
@@ -64,8 +74,8 @@ export function filterDocuments(
     if (filters.category !== 'all' && doc.category !== filters.category)
       return false
     if (filters.owner !== 'all' && doc.ownerType !== filters.owner) return false
-    if (filters.requirement === 'required' && !doc.required) return false
-    if (filters.requirement === 'optional' && doc.required) return false
+    if (filters.requirement === 'required' && !requiredOf(doc)) return false
+    if (filters.requirement === 'optional' && requiredOf(doc)) return false
     return true
   })
 }

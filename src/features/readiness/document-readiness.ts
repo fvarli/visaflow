@@ -96,6 +96,7 @@ const EMPTY: DocumentReadiness = {
   notStarted: 0,
   needsUpdate: 0,
   optional: 0,
+  historical: 0,
   percent: 0,
   outstanding: 0,
   complete: false,
@@ -122,11 +123,44 @@ export function buildDocumentReadiness(
   }
 
   let optional = 0
+  let historical = 0
   const present = new Set<string>()
 
   for (const doc of documents) {
     present.add(doc.code)
     const semantics = resolveDocumentSemantics(doc, template, application)
+
+    /**
+     * Only an active requirement is current work (ADR-050).
+     *
+     * Persisted `required` is not authority for a code the template no longer
+     * lists. Trusting it is how a withdrawn obligation ended up in both the
+     * numerator and the denominator, raising the percentage because the
+     * applicant had once collected something nobody asks for now.
+     */
+    // Retirement is a registry fact, true with or without a template.
+    if (semantics.membership === 'retired') {
+      historical += 1
+      continue
+    }
+
+    /**
+     * Activeness, unlike retirement, cannot be judged without a template —
+     * every code looks unresolved. Callers that deliberately omit it (the
+     * documents filter's own counting, the dashboard snapshot) keep the older
+     * behaviour of trusting the record, which is correct for them: they are
+     * counting records the user can see, not obligations.
+     */
+    if (template) {
+      if (semantics.membership === 'unknown') continue
+      if (semantics.membership === 'custom') {
+        // Real work someone chose to do, never an authoritative requirement —
+        // whatever a hand-edited file claims. `required` defaults to `true` on
+        // import, so this must not be conditional on the stored flag.
+        optional += 1
+        continue
+      }
+    }
 
     // A record left behind by an applicability change keeps its user state and
     // stays visible, but it is not work this dossier still owes (ADR-049).
@@ -153,7 +187,7 @@ export function buildDocumentReadiness(
     counts.needsUpdate
 
   if (applicable === 0 && counts.notApplicable === 0) {
-    return { ...EMPTY, optional }
+    return { ...EMPTY, optional, historical }
   }
 
   return {
@@ -166,6 +200,7 @@ export function buildDocumentReadiness(
     notStarted: counts.notStarted,
     needsUpdate: counts.needsUpdate,
     optional,
+    historical,
     percent: applicable > 0 ? Math.round((counts.ready / applicable) * 100) : 0,
     outstanding: applicable - counts.ready,
     complete: applicable > 0 && counts.ready === applicable,

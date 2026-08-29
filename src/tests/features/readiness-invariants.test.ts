@@ -19,6 +19,7 @@ import { CHECKLIST_STATE_TONE } from '@/components/review/state-meta'
 import {
   ALL_FIXTURE_ENTRIES,
   allApplicableReady,
+  withRetiredHistory,
   manyNotApplicable,
   partiallyPrepared,
   readyButWithFindings,
@@ -42,6 +43,40 @@ function canonical(fixture: DossierFixture) {
     ),
   })
 }
+
+describe('INVARIANT 0 — withdrawn requirements are not current work', () => {
+  /**
+   * The strongest statement of ADR-050, and the one the agreement test above
+   * cannot make: agreeing on a wrong number is still agreement.
+   *
+   * `withRetiredHistory` is `allApplicableReady` plus three records for
+   * requirements the pack has withdrawn — two collected, one not. If any of
+   * them reached the arithmetic, the two dossiers would report different
+   * percentages, and the uncollected one alone would stop a complete dossier
+   * from reading complete.
+   */
+  it('reads identically to the dossier it copies', () => {
+    const plain = canonical(allApplicableReady)
+    const withHistory = canonical(withRetiredHistory)
+
+    expect(withHistory.percent).toBe(plain.percent)
+    expect(withHistory.complete).toBe(plain.complete)
+    expect(withHistory.outstanding).toBe(plain.outstanding)
+    expect(withHistory.applicable).toBe(plain.applicable)
+    expect(withHistory.ready).toBe(plain.ready)
+    expect(withHistory.optional).toBe(plain.optional)
+  })
+
+  it('still reaches 100% with an uncollected withdrawn requirement present', () => {
+    // The direction that would silently cap a finished dossier below complete.
+    expect(canonical(withRetiredHistory).complete).toBe(true)
+  })
+
+  it('accounts for them separately, so the exclusion is visible', () => {
+    expect(canonical(withRetiredHistory).historical).toBe(3)
+    expect(canonical(allApplicableReady).historical).toBe(0)
+  })
+})
 
 describe('INVARIANT 1 — one readiness number on every surface', () => {
   it.each(ALL_FIXTURE_ENTRIES)(

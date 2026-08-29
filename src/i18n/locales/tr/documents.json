@@ -70,7 +70,8 @@
     "requested": "Talep",
     "received": "Teslim",
     "findings_one": "{{count}} sorun",
-    "findings_other": "{{count}} sorun"
+    "findings_other": "{{count}} sorun",
+    "kindRetired": "Kaldırılmış"
   },
   "group": {
     "addDocument": "Belge ekle",
@@ -92,7 +93,8 @@
       "required": "Zorunlu",
       "conditional": "Sizin durumunuzda zorunlu",
       "optional": "İsteğe bağlı",
-      "custom": "Özel destekleyici belge"
+      "custom": "Özel destekleyici belge",
+      "retired": "Kaldırılmış gereklilik"
     },
     "customNote": "Eklediğiniz bir destekleyici belge. Ülke şablonunun parçası değildir.",
     "status": "Durum",
@@ -109,7 +111,8 @@
     "remove": "Çalışma alanından kaldır",
     "markNotApplicable": "Uygulanamaz olarak işaretle",
     "removeCustomConfirm": "Bu belge çalışma alanınızdan kaldırılsın mı?",
-    "removeTemplateWarning": "Bu, ülke şablonundaki zorunlu bir belgedir. Kaldırmak onu çalışma alanınızdan çıkarır — daha sonra tekrar ekleyebilirsiniz. Bunun yerine “Uygulanamaz olarak işaretle”yi düşünün."
+    "removeTemplateWarning": "Bu, ülke şablonundaki zorunlu bir belgedir. Kaldırmak onu çalışma alanınızdan çıkarır — daha sonra tekrar ekleyebilirsiniz. Bunun yerine “Uygulanamaz olarak işaretle”yi düşünün.",
+    "retiredNote": "VisaFlow bu gerekliliği eskiden takip ediyordu. Güncel kontrol listesinin parçası değil; kaydınız bıraktığınız gibi korunuyor."
   },
   "add": {
     "trigger": "Belge ekle",

@@ -234,6 +234,40 @@ export const readyButWithFindings: DossierFixture = {
   sponsors: [],
 }
 
+/**
+ * `allApplicableReady`, plus records for three requirements the pack has since
+ * withdrawn — each `required: true` and `ready`, exactly as a dossier written
+ * before template 1.2.0 would hold them.
+ *
+ * Its whole purpose is that it must read **identically** to
+ * `allApplicableReady` on every surface. Retired obligations used to enter both
+ * sides of the fraction, so this dossier would have reported a different
+ * percentage from the one it is a copy of (ADR-050).
+ */
+export const withRetiredHistory: DossierFixture = {
+  applicant: APPLICANT,
+  application: READY_APPLICATION,
+  documents: [
+    ...allApplicableReady.documents,
+    doc({ code: 'TAX_RETURNS', status: 'ready', category: 'financial' }, 910),
+    doc(
+      { code: 'PENSION_STATEMENT', status: 'ready', category: 'financial' },
+      911
+    ),
+    // Deliberately not ready: an uncollected withdrawn requirement must not
+    // make completion unreachable either.
+    doc(
+      {
+        code: 'BUSINESS_LICENSE',
+        status: 'not_started',
+        category: 'employment',
+      },
+      912
+    ),
+  ],
+  sponsors: [],
+}
+
 /** Named entries for `it.each` — the name shows up in test output. */
 export const ALL_FIXTURE_ENTRIES: [string, DossierFixture][] = [
   ['emptyDossier', emptyDossier],
@@ -242,6 +276,7 @@ export const ALL_FIXTURE_ENTRIES: [string, DossierFixture][] = [
   ['manyNotApplicable', manyNotApplicable],
   ['allApplicableReady', allApplicableReady],
   ['readyButWithFindings', readyButWithFindings],
+  ['withRetiredHistory', withRetiredHistory],
 ]
 
 export const READINESS_FIXTURES: Record<string, DossierFixture> = {

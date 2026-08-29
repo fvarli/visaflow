@@ -1,4 +1,6 @@
 import { isRequirementApplicable } from '@/config/types'
+import { isRetiredRequirement } from '@/config/countries/retired'
+import { isCustomCode } from '@/features/documents/template-sync'
 import type { DocumentRequirement, VisaTypeTemplate } from '@/config/types'
 import type { Document } from '@/domain/schemas/document.schema'
 import type { Application } from '@/domain/schemas/application.schema'
@@ -29,6 +31,8 @@ import type { DocumentCategory, OwnerType } from '@/domain/types/common'
  * fields stay exactly as they are: they remain the export format, and they are
  * the fallback for a code the template no longer knows.
  */
+export type DocumentMembership = 'active' | 'retired' | 'custom' | 'unknown'
+
 export interface DocumentSemantics {
   required: boolean
   category: DocumentCategory
@@ -40,15 +44,27 @@ export interface DocumentSemantics {
    */
   isApplicable: boolean
   /**
-   * Whether the code resolves to a requirement in the current template.
+   * Which requirement set this document's code belongs to.
    *
-   * False for custom documents, for retired codes, and for anything written by
-   * a build this one does not know. **This is the load-bearing flag**: when it
-   * is false the persisted snapshot wins, which is what stops read-time
-   * derivation from doing the very thing it was written to prevent — handing an
-   * old record the meaning of whatever requirement now occupies its slot.
+   * This replaces a boolean that collapsed three different domain states into
+   * one, which is exactly how a retired obligation ended up counted as live
+   * work: `retired`, `custom` and `unknown` all fell into the same branch and
+   * inherited the persisted `required` flag (ADR-050).
+   *
+   * - `active` — a requirement in the current template. The only membership
+   *   that participates in current readiness.
+   * - `retired` — an identity VisaFlow *recognises* and has withdrawn. Decided
+   *   by the registry, never by absence from the template.
+   * - `custom` — a supporting document the applicant added themselves.
+   * - `unknown` — a code this build cannot account for, from an older or
+   *   foreign export.
+   *
+   * The last three all preserve the persisted snapshot, which is what stops
+   * read-time derivation from handing an old record the meaning of whatever
+   * requirement now occupies its slot. They differ in what they *mean*, and
+   * therefore in how they are presented.
    */
-  isKnown: boolean
+  membership: DocumentMembership
   /** The matching requirement, when there is one. */
   requirement?: DocumentRequirement
 }
@@ -70,13 +86,20 @@ export function resolveDocumentSemantics(
   )
 
   if (!requirement) {
-    // Custom, retired or unknown. The record describes itself.
+    // Not current work. The record describes itself, and *which kind* of
+    // non-current it is decides how it is counted and how it is presented.
+    // Order matters: the registry is consulted before the custom prefix, so a
+    // withdrawn requirement is never mistaken for something the user typed in.
     return {
       required: document.required,
       category: document.category,
       ownerType: document.ownerType,
       isApplicable: true,
-      isKnown: false,
+      membership: isRetiredRequirement(document.code)
+        ? 'retired'
+        : isCustomCode(document.code)
+          ? 'custom'
+          : 'unknown',
     }
   }
 
@@ -93,7 +116,7 @@ export function resolveDocumentSemantics(
     category: requirement.category,
     ownerType: requirement.ownerType,
     isApplicable,
-    isKnown: true,
+    membership: 'active',
     requirement,
   }
 }
@@ -101,10 +124,15 @@ export function resolveDocumentSemantics(
 /**
  * Does this document count as outstanding work right now?
  *
- * Two independent gates, and both must pass: the requirement must still apply
- * to this dossier, and it must still be required. An optional document is real
- * work a person may choose to do — it is simply not work the readiness figure
- * is allowed to demand.
+ * Three gates, and all must pass: the code must name a requirement the current
+ * template still asks for, that requirement must apply to this dossier, and it
+ * must be required.
+ *
+ * The first gate is the one this project learned the hard way. A retired
+ * obligation carries `required: true` in storage forever, so without a
+ * membership check a withdrawn requirement counts as satisfied work and pushes
+ * the readiness percentage *up* — the applicant looks better prepared because
+ * of something nobody asks for any more (ADR-050).
  */
 export function countsTowardReadiness(
   document: Document,
@@ -112,5 +140,9 @@ export function countsTowardReadiness(
   application?: Application | null
 ): boolean {
   const semantics = resolveDocumentSemantics(document, template, application)
-  return semantics.isApplicable && semantics.required
+  return (
+    semantics.membership === 'active' &&
+    semantics.isApplicable &&
+    semantics.required
+  )
 }

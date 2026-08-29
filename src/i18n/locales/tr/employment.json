@@ -44,7 +44,7 @@
       "employed": "Ücretli bir çalışan olarak; işveren yazınız, onaylı izniniz ve maaş bordrolarınız mevcut mesleki bağlarınızı ve işe dönüş planınızı belgelemeye yardımcı olur.",
       "self_employed": "Serbest çalışan olarak; ticaret sicil ve vergi kayıtlarınız mesleki durumunuzu belgeler. Çalışana özgü bazı alanlar sizin için geçerli değildir.",
       "unemployed": "Şu anda çalışmadığınız için işveren ve izin bilgileri gerekmez. Durumunuz ve finansmanınız dosyanızın diğer bölümlerinde belgelenir.",
-      "retired": "Emekli olarak işveren ve izin bilgileri gerekmez. Gelirinizi bir emeklilik belgesi (Belgeler bölümünde izlenir) belgeler.",
+      "retired": "Emekli olarak işveren ve izin bilgileri gerekmez. Gelirinizi emekli cüzdanınız (Belgeler bölümünde izlenir) belgeler.",
       "student": "Öğrenci olarak işveren ve izin bilgileri gerekmez. Durumunuzu bir öğrenci belgesi (Belgeler bölümünde izlenir) belgeler.",
       "homemaker": "Durumunuz için işveren ve izin bilgileri gerekmez. Durumunuz ve finansmanınız dosyanızın diğer bölümlerinde belgelenir.",
       "other": "Seçtiğiniz durum için işveren ve izin bilgileri gerekmez. Durumunuz dosyanızın diğer bölümlerinde belgelenir."

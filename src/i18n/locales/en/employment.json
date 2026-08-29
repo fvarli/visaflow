@@ -44,7 +44,7 @@
       "employed": "As a salaried employee, your employer letter, approved leave, and payslips help document your ongoing professional ties and planned return to work.",
       "self_employed": "As a self-employed applicant, your business registration and tax records document your professional situation. Some employee-specific fields don't apply.",
       "unemployed": "You're not currently employed, so employer and leave details aren't needed. Other parts of your dossier document your situation and funding.",
-      "retired": "As a retiree, employer and leave details aren't needed. A pension statement (tracked in Documents) documents your income.",
+      "retired": "As a retiree, employer and leave details aren’t needed. Your pensioner booklet (tracked in Documents) documents your income.",
       "student": "As a student, employer and leave details aren't needed. A student certificate (tracked in Documents) documents your situation.",
       "homemaker": "Employer and leave details aren't needed for your status. Other parts of your dossier document your situation and funding.",
       "other": "Employer and leave details aren't needed for the status you selected. Other parts of your dossier document your situation."

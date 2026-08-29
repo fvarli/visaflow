@@ -29,6 +29,7 @@ import type { ValidationFinding } from '@/domain/rules/types'
 import {
   useDocumentsModel,
   groupByCategory,
+  classifyDoc,
 } from '@/features/documents/documents-model'
 import {
   useDocumentFilters,
@@ -41,6 +42,7 @@ import {
   isCustomCode,
   planTemplateSync,
 } from '@/features/documents/template-sync'
+import { countsTowardReadiness } from '@/features/documents/document-semantics'
 import { DocumentsHero } from '@/components/documents/DocumentsHero'
 import {
   DocumentFilters,
@@ -168,9 +170,16 @@ export default function DocumentsPage() {
     [t]
   )
 
+  /** Effective requiredness, so the rows agree with the counts above them. */
+  const requiredOf = useMemo(
+    () => (doc: Document) =>
+      countsTowardReadiness(doc, template, state.application),
+    [template, state.application]
+  )
+
   const filtered = useMemo(
-    () => filterDocuments(state.documents, filters, labelOf),
-    [state.documents, filters, labelOf]
+    () => filterDocuments(state.documents, filters, labelOf, requiredOf),
+    [state.documents, filters, labelOf, requiredOf]
   )
   const groups = useMemo(() => groupByCategory(filtered), [filtered])
 
@@ -249,8 +258,14 @@ export default function DocumentsPage() {
       ownerLabel: td(`visa-domain:ownerType.${doc.ownerType}`),
       statusLabel: td(`visa-domain:documentStatus.${doc.status}`),
       statusTone: DOCUMENT_STATUS_TONE[doc.status] ?? 'neutral',
-      isCustom: isCustomCode(doc.code),
-      customLabel: t('documents:card.kindCustom'),
+      // A withdrawn requirement is marked too, but as what it is. The label
+      // itself never changes — the marker sits beside it (ADR-050).
+      isCustom:
+        isCustomCode(doc.code) || classifyDoc(doc, template) === 'retired',
+      customLabel:
+        classifyDoc(doc, template) === 'retired'
+          ? t('documents:card.kindRetired')
+          : t('documents:card.kindCustom'),
       dates: buildDates(doc),
       notesPreview: doc.notes,
       missingInfo: doc.status === 'not_started',

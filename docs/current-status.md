@@ -345,6 +345,25 @@ build reads dossier schema 1.0.0 and 1.1.0 alike, so every existing export impor
       the build if a code is renamed or removed without an explicit retirement
       entry (ADR-049)
 
+- [x] **Only an active requirement is current work** — the retirement shipped
+      half-finished: `isRetiredRequirement` was never called in production, so a
+      withdrawn obligation still carried `required: true` from storage and
+      landed in both the readiness numerator and denominator. A collected one
+      *inflated* the percentage (44% → 50% on the shipped fixture) and an
+      uncollected one made 100% unreachable, across the Dashboard ring and its
+      aria-label, the Documents hero, the Validation Center, Final Review — where
+      it rendered as `missing`, telling the applicant to fetch a document nobody
+      asks for — and print, where it downgraded a physical bundle. The boolean
+      that caused it (`isKnown`, meaning "retired, custom, or unknown" at once)
+      is replaced by an explicit `membership`, resolved template → retirement
+      registry → custom prefix → unknown. Only `active` counts; retired records
+      get their own informational `historical` count so the exclusion is stated
+      rather than silent; unknown codes contribute zero and are not called
+      historical; and a custom document is routed to `optional` unconditionally,
+      because `DocumentSchema.required` defaults to `true` and an import that
+      omits the field would otherwise invent a requirement. A retired document
+      also stops being labelled "Custom supporting document" (ADR-050)
+
 ### Technical
 - [x] TypeScript strict mode
 - [x] Zod schemas for all domain types

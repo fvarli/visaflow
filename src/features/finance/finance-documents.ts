@@ -4,6 +4,7 @@ import { applicableRequirements } from '@/features/documents/template-sync'
 import type { Document } from '@/domain/schemas/document.schema'
 import type { Application } from '@/domain/schemas/application.schema'
 import type { VisaTypeTemplate } from '@/config/types'
+import { RETIRED_REQUIREMENTS } from '@/config/countries/retired'
 import type {
   DocumentCategory,
   DocumentStatus,
@@ -58,14 +59,13 @@ const INCOME_CODES = new Set<string>([
   'PAYSLIPS',
   'EMPLOYMENT_LETTER',
   'SOCIAL_SECURITY',
-  // Current
   'TAX_PAYMENT_STATEMENT',
   'PENSIONER_BOOKLET',
   'COMPANY_ACTIVITY_CERTIFICATE',
-  // Retired, still held by existing dossiers
-  'TAX_RETURNS',
-  'PENSION_STATEMENT',
-  'BUSINESS_LICENSE',
+  // Withdrawn income requirements, read from the registry rather than copied
+  // as literals — a fourth retirement would otherwise silently drop a
+  // person's filed document out of this workspace (ADR-050).
+  ...RETIRED_REQUIREMENTS.map((r) => r.code),
 ])
 
 export interface FinanceDocRow {

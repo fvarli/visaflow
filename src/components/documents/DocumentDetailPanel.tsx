@@ -146,9 +146,16 @@ export function DocumentDetailPanel({
                     {t('documents:panel.requirementContext')}
                   </AccordionTrigger>
                   <AccordionContent className="space-y-3">
-                    {isCustom || !requirement ? (
+                    {!requirement ? (
                       <p className="text-body text-muted-foreground text-pretty">
-                        {t('documents:panel.customNote')}
+                        {/*
+                         * A withdrawn requirement is not something the
+                         * applicant added, and saying so about a record the app
+                         * itself seeded is simply false (ADR-050).
+                         */}
+                        {kind === 'retired'
+                          ? t('documents:panel.retiredNote')
+                          : t('documents:panel.customNote')}
                       </p>
                     ) : (
                       <>

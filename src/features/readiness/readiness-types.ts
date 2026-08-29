@@ -62,6 +62,20 @@ export interface DocumentReadiness {
   needsUpdate: number
   /** Non-required documents. Never in the numerator or the denominator. */
   optional: number
+  /**
+   * Records for requirement identities the pack has **withdrawn**.
+   *
+   * Informational accounting only. A retired obligation is not current work, so
+   * it is outside every readiness bucket and can never move `percent`,
+   * `outstanding` or `complete` — it is surfaced as its own number precisely so
+   * the exclusion is stated rather than silent, and so nobody later "fixes" the
+   * gap between the document count and the readiness count by counting it again
+   * (ADR-050).
+   *
+   * Only codes in `RETIRED_REQUIREMENTS`. An unrecognised code is not the same
+   * concept and is not counted here.
+   */
+  historical: number
   /** `round(ready / applicable * 100)`; 0 when there is no applicable work. */
   percent: number
   /** Applicable work that is not confirmed ready yet. */

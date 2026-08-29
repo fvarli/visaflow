@@ -60,6 +60,7 @@ describe('documents model — canonical readiness', () => {
       inProgress: 1,
       notStarted: 1,
       needsUpdate: 1,
+      historical: 0,
       optional: 1,
       percent: 20,
       outstanding: 4,

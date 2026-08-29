@@ -13,7 +13,10 @@ import type { ValidationFinding } from '@/domain/rules/types'
 import { buildDocumentReadiness } from '@/features/readiness/document-readiness'
 import type { DocumentReadiness } from '@/features/readiness/readiness-types'
 import { requiredRequirementCodes } from '@/features/readiness/requirement-readiness'
-import { resolveDocumentSemantics } from '@/features/documents/document-semantics'
+import {
+  resolveDocumentSemantics,
+  countsTowardReadiness,
+} from '@/features/documents/document-semantics'
 
 /**
  * Pure presentation adapter for the Documents workspace.
@@ -158,9 +161,21 @@ export interface NextDocumentRecommendation {
  */
 export function deriveNextDocument(
   documents: Document[],
-  requiredRequirementCodes: string[] = []
+  requiredRequirementCodes: string[] = [],
+  template?: VisaTypeTemplate,
+  application?: Application | null
 ): NextDocumentRecommendation | null {
-  const required = documents.filter((d) => d.required)
+  /**
+   * Effective requiredness, not the persisted flag (ADR-050).
+   *
+   * Filtering on `d.required` recommended a withdrawn requirement as the next
+   * thing to fetch — on a dossier readiness had already called complete. The
+   * one screen whose whole job is to say what to do next was sending people
+   * after a document nobody asks for.
+   */
+  const required = documents.filter((d) =>
+    template ? countsTowardReadiness(d, template, application) : d.required
+  )
   const present = new Set(documents.map((d) => d.code))
 
   const pick = (
@@ -193,7 +208,8 @@ export function deriveNextDocument(
   )
 }
 
-export type DocumentKind = 'required' | 'conditional' | 'optional' | 'custom'
+export type DocumentKind =
+  'required' | 'conditional' | 'optional' | 'retired' | 'custom'
 
 /**
  * Where a document comes from. A document is template-derived iff its `code`
@@ -208,11 +224,15 @@ export function classifyDoc(
   // readiness produces are derived from one answer (ADR-049). They used to be
   // computed independently, which is how the same document could carry a
   // "required" badge while counting as optional.
-  const { isKnown, required, requirement } = resolveDocumentSemantics(
+  const { membership, required, requirement } = resolveDocumentSemantics(
     doc,
     template
   )
-  if (!isKnown) return 'custom'
+  // A withdrawn requirement is not a document the applicant invented. Calling
+  // it "custom" misstates where it came from, which matters most for the one
+  // record whose provenance is the reason it was kept (ADR-050).
+  if (membership === 'retired') return 'retired'
+  if (membership !== 'active') return 'custom'
   if (requirement?.conditionalOn) return 'conditional'
   return required ? 'required' : 'optional'
 }
@@ -337,15 +357,31 @@ export function buildDocumentsModel(
       template,
       application,
     }),
-    // Deliberately template-free: the filter counts every record the user can
-    // see, including ones no longer applicable, so the counts beside the
-    // filter chips match the rows they filter.
-    filterableReadiness: buildDocumentReadiness({ documents }),
+    /**
+     * Template-aware, like the hero above it.
+     *
+     * It used to be deliberately template-free so the chip counts matched the
+     * rows they filter. That held only while both trusted the persisted
+     * `required` flag; once readiness stopped trusting it, a template-free
+     * chip would have counted a withdrawn requirement as "ready" while the
+     * percentage beside it did not. The filter predicate is aligned through
+     * the same resolver, so rows, chips and percentage agree (ADR-050).
+     */
+    filterableReadiness: buildDocumentReadiness({
+      documents,
+      template,
+      application,
+    }),
     pendingRequirementCount: requirementCodes.filter(
       (code) => !present.has(code)
     ).length,
     groups: groupByCategory(documents),
-    nextDocument: deriveNextDocument(documents, requirementCodes),
+    nextDocument: deriveNextDocument(
+      documents,
+      requirementCodes,
+      template,
+      application
+    ),
     template,
     findingsByDoc: associateFindings(documents, findings),
     totalDocuments: documents.length,
