@@ -45,6 +45,7 @@ import {
 import {
   completionStanding,
   countsTowardReadiness,
+  effectiveStatus,
 } from '@/features/documents/document-semantics'
 import { DocumentsHero } from '@/components/documents/DocumentsHero'
 import {
@@ -180,9 +181,19 @@ export default function DocumentsPage() {
     [template, state.application]
   )
 
+  /**
+   * The status the counts above the list use, so a chip and the rows it reveals
+   * agree even when a claim has been superseded (ADR-051).
+   */
+  const statusOf = useMemo(
+    () => (doc: Document) => effectiveStatus(doc, template),
+    [template]
+  )
+
   const filtered = useMemo(
-    () => filterDocuments(state.documents, filters, labelOf, requiredOf),
-    [state.documents, filters, labelOf, requiredOf]
+    () =>
+      filterDocuments(state.documents, filters, labelOf, requiredOf, statusOf),
+    [state.documents, filters, labelOf, requiredOf, statusOf]
   )
   const groups = useMemo(() => groupByCategory(filtered), [filtered])
 
@@ -259,8 +270,11 @@ export default function DocumentsPage() {
       label: labelOf(doc),
       categoryLabel: td(`visa-domain:documentCategory.${doc.category}`),
       ownerLabel: td(`visa-domain:ownerType.${doc.ownerType}`),
-      statusLabel: td(`visa-domain:documentStatus.${doc.status}`),
-      statusTone: DOCUMENT_STATUS_TONE[doc.status] ?? 'neutral',
+      // The status the dossier is *counted* by, so a card cannot read "Ready"
+      // inside the "Needs update" bucket that revealed it. The stored status is
+      // untouched and the detail panel still edits it (ADR-051).
+      statusLabel: td(`visa-domain:documentStatus.${statusOf(doc)}`),
+      statusTone: DOCUMENT_STATUS_TONE[statusOf(doc)] ?? 'neutral',
       // A withdrawn requirement is marked too, but as what it is. The label
       // itself never changes — the marker sits beside it (ADR-050).
       isCustom:
@@ -505,10 +519,10 @@ export default function DocumentsPage() {
                           `visa-domain:ownerType.${doc.ownerType}`
                         )}`}
                         statusLabel={td(
-                          `visa-domain:documentStatus.${doc.status}`
+                          `visa-domain:documentStatus.${statusOf(doc)}`
                         )}
                         statusTone={
-                          DOCUMENT_STATUS_TONE[doc.status] ?? 'neutral'
+                          DOCUMENT_STATUS_TONE[statusOf(doc)] ?? 'neutral'
                         }
                         findingCount={findings.length}
                         openLabel={t('documents:card.open')}

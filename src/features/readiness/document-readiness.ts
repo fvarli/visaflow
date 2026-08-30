@@ -3,7 +3,7 @@ import type { Application } from '@/domain/schemas/application.schema'
 import type { VisaTypeTemplate } from '@/config/types'
 import {
   resolveDocumentSemantics,
-  completionStanding,
+  effectiveStatus,
 } from '@/features/documents/document-semantics'
 import type { DocumentStatus } from '@/domain/types/common'
 import {
@@ -179,16 +179,12 @@ export function buildDocumentReadiness(
      * requirement today (ADR-051).
      *
      * The persisted `status` is untouched — it is what the user asserted, and
-     * theirs to change. What moves is the derived answer: the claim lands in
-     * `needsUpdate`, which already means "obtained, but needing correction".
-     * An unrecorded claim is left alone: no stamp is not evidence of staleness.
+     * theirs to change. What moves is the derived answer, and `effectiveStatus`
+     * is where that move is defined, so the Documents filter reaches the same
+     * conclusion instead of reading the raw field. An unrecorded claim is left
+     * alone: no stamp is not evidence of staleness.
      */
-    if (template && completionStanding(doc, template) === 'superseded') {
-      counts.needsUpdate += 1
-      continue
-    }
-
-    counts[classifyStatus(doc.status)] += 1
+    counts[classifyStatus(effectiveStatus(doc, template))] += 1
   }
 
   // A requirement with no record at all is work that has not been started.

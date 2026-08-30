@@ -4,7 +4,11 @@ import { isCustomCode } from '@/features/documents/template-sync'
 import type { DocumentRequirement, VisaTypeTemplate } from '@/config/types'
 import type { Document } from '@/domain/schemas/document.schema'
 import type { Application } from '@/domain/schemas/application.schema'
-import type { DocumentCategory, OwnerType } from '@/domain/types/common'
+import type {
+  DocumentCategory,
+  DocumentStatus,
+  OwnerType,
+} from '@/domain/types/common'
 
 /**
  * What a stored document *currently means*, as opposed to what it meant when it
@@ -214,6 +218,32 @@ export function applyDocumentUpdate(
  */
 export type CompletionStanding =
   'none' | 'current' | 'superseded' | 'unrecorded'
+
+/**
+ * The status the rest of the product should *count and filter* this document
+ * under, as opposed to the status stored on it.
+ *
+ * They differ in exactly one case. A claim made against a superseded
+ * requirement keeps `status: 'ready'` — that is the applicant's own assertion
+ * and is never rewritten — while the derived answer is that the requirement is
+ * not satisfied today, which is `needs_update`: "obtained, but needing
+ * correction" (ADR-051).
+ *
+ * This exists because that reclassification was written inline in the readiness
+ * counter and nowhere else, so the Documents chips filtered on the persisted
+ * field and contradicted the very numbers they were labelled with: "Needs
+ * update 1" revealed no rows, and "Ready 6" revealed seven, the seventh being
+ * the superseded claim displayed among the satisfied. One definition, used by
+ * both.
+ */
+export function effectiveStatus(
+  document: Document,
+  template: VisaTypeTemplate | undefined
+): DocumentStatus {
+  return completionStanding(document, template) === 'superseded'
+    ? 'needs_update'
+    : document.status
+}
 
 export function completionStanding(
   document: Document,

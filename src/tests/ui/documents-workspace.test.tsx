@@ -361,3 +361,72 @@ describe('Documents workspace — interaction', () => {
     ).toBeInTheDocument()
   })
 })
+
+describe('Documents workspace — a superseded claim', () => {
+  /**
+   * Found by reading a screenshot, not by an assertion: the card, the row and
+   * the panel header all rendered the *stored* status, so a claim the readiness
+   * figures counted under "needs update" appeared under a satisfied badge —
+   * in the panel, directly above the note explaining it no longer counts
+   * (ADR-051). The editable status below it is the applicant's own assertion
+   * and must still read exactly as they set it.
+   */
+  const SUPERSEDED_SEED: Dossier = {
+    ...SEED,
+    documents: SEED.documents.map((d) =>
+      d.code === 'PASSPORT_CURRENT'
+        ? { ...d, status: 'ready' as const, satisfiedRevision: 1 }
+        : d
+    ),
+  }
+
+  it('shows the card under the status readiness counts it as', async () => {
+    await i18n.changeLanguage(DEFAULT_LOCALE)
+    renderDocuments(SUPERSEDED_SEED)
+
+    const label = labelFor('PASSPORT_CURRENT')
+    const card = (await screen.findByText(label)).closest('div[data-slot]')
+    expect(card).not.toBeNull()
+    expect(
+      within(card as HTMLElement).getByText(
+        i18n.t('visa-domain:documentStatus.needs_update')
+      )
+    ).toBeInTheDocument()
+    expect(
+      within(card as HTMLElement).queryByText(
+        i18n.t('visa-domain:documentStatus.ready')
+      )
+    ).toBeNull()
+  })
+
+  it('keeps the stored status intact in the editor', async () => {
+    await i18n.changeLanguage(DEFAULT_LOCALE)
+    const user = userEvent.setup()
+    renderDocuments(SUPERSEDED_SEED)
+
+    await user.click(await screen.findByText(labelFor('PASSPORT_CURRENT')))
+
+    // The panel explains the standing...
+    expect(
+      await screen.findByText(i18n.t('documents:panel.superseded.action'))
+    ).toBeInTheDocument()
+    // ...its header states the standing rather than a satisfied badge sitting
+    // directly above the note that says the claim no longer counts...
+    const kind = screen.getByText(i18n.t('documents:panel.kind.required'))
+    const header = kind.parentElement as HTMLElement
+    expect(
+      within(header).getByText(
+        i18n.t('visa-domain:documentStatus.needs_update')
+      )
+    ).toBeInTheDocument()
+    expect(
+      within(header).queryByText(i18n.t('visa-domain:documentStatus.ready'))
+    ).toBeNull()
+
+    // ...and the status control still reports what the applicant asserted.
+    const status = screen.getByRole('combobox', {
+      name: i18n.t('documents:panel.status'),
+    })
+    expect(status).toHaveTextContent(i18n.t('visa-domain:documentStatus.ready'))
+  })
+})

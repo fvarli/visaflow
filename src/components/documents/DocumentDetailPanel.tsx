@@ -39,7 +39,10 @@ import { StatusBadge } from '@/components/ui/status-badge'
 import { SourceNote } from '@/components/ui/source-note'
 import { GuidanceNote } from '@/components/ui/guidance-note'
 import { getSourcesForRefs } from '@/config/countries'
-import { completionStanding } from '@/features/documents/document-semantics'
+import {
+  completionStanding,
+  effectiveStatus,
+} from '@/features/documents/document-semantics'
 import { documentLabel } from '@/lib/document-label'
 import { useFindingText } from '@/lib/finding-text'
 import { dynamicT } from '@/lib/i18n-dynamic'
@@ -143,8 +146,22 @@ export function DocumentDetailPanel({
               </SheetTitle>
               <SheetDescription className="flex items-center gap-2">
                 <span>{t(`documents:panel.kind.${kind}`)}</span>
-                <StatusBadge tone={DOCUMENT_STATUS_TONE[document.status]} dot>
-                  {td(`visa-domain:documentStatus.${document.status}`)}
+                {/*
+                 * The header states where this document *stands*, so a
+                 * superseded claim must not sit under a satisfied badge
+                 * directly above the note explaining that it no longer counts.
+                 * The editable status below is the applicant's own assertion
+                 * and still reads exactly as they set it (ADR-051).
+                 */}
+                <StatusBadge
+                  tone={
+                    DOCUMENT_STATUS_TONE[effectiveStatus(document, template)]
+                  }
+                  dot
+                >
+                  {td(
+                    `visa-domain:documentStatus.${effectiveStatus(document, template)}`
+                  )}
                 </StatusBadge>
               </SheetDescription>
             </SheetHeader>
