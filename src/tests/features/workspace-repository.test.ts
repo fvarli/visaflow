@@ -69,6 +69,57 @@ describe('dossier repository contract', () => {
     expect(loaded?.storageVersion).toBe(STORAGE_FORMAT_VERSION)
   })
 
+  it('preserves a completion stamp through storage', async () => {
+    /**
+     * `satisfiedRevision` records which requirement definition a completion
+     * was claimed against (ADR-051). Losing it in storage would silently
+     * downgrade every claim to "unrecorded" on the next load — the dossier
+     * would still look finished, so nothing else would notice.
+     *
+     * Asserted field-by-field against the *source* fixture rather than against
+     * another `toRecord` result: comparing two records that both went through
+     * the same builder cannot detect a field that builder drops.
+     */
+    const repo = new MemoryDossierRepository()
+    await repo.put(record('a', payloadOf(partiallyPrepared)))
+    const loaded = await repo.get('a')
+
+    const stamped = partiallyPrepared.documents.filter(
+      (d) => d.satisfiedRevision !== undefined
+    )
+    expect(stamped.length).toBeGreaterThan(0)
+    for (const original of stamped) {
+      const back = loaded?.payload.documents.find((d) => d.id === original.id)
+      expect({ id: original.id, revision: back?.satisfiedRevision }).toEqual({
+        id: original.id,
+        revision: original.satisfiedRevision,
+      })
+    }
+  })
+
+  it('carries a completion stamp across the v1 to v2 migration', () => {
+    // The one migration that exists rewrites the record envelope. It must not
+    // reach inside the payload it is wrapping.
+    const legacy = {
+      ...record('a', payloadOf(partiallyPrepared)),
+      storageVersion: 1,
+    }
+    const result = migrateRecord(legacy)
+    if (!result.ok) throw new Error(`migration refused: ${result.reason}`)
+
+    const stamped = partiallyPrepared.documents.filter(
+      (d) => d.satisfiedRevision !== undefined
+    )
+    expect(stamped.length).toBeGreaterThan(0)
+    expect(result.record.storageVersion).toBe(STORAGE_FORMAT_VERSION)
+    for (const original of stamped) {
+      const after = result.record.payload.documents.find(
+        (d) => d.id === original.id
+      )
+      expect(after?.satisfiedRevision).toBe(original.satisfiedRevision)
+    }
+  })
+
   it('keeps dossiers isolated from one another', async () => {
     const repo = new MemoryDossierRepository()
     await repo.put(record('a', payloadOf(partiallyPrepared)))

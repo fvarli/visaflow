@@ -6,7 +6,7 @@ Application version **1.1.0** (Phase 1 — Foundation shipped; Phase 2 — the s
 — shipped in v1.1.0). **Five** version numbers now move independently. Since the release the dossier
 JSON `schemaVersion` has moved to **1.2.0** (`applicant.previousRefusals` in 1.1.0,
 `document.satisfiedRevision` in 1.2.0 — both optional additions); the Greece pack's `templateVersion`
-is **1.3.0**; the local `STORAGE_FORMAT_VERSION` remains **2**, because the record wrapping a dossier
+is **1.4.0**; the local `STORAGE_FORMAT_VERSION` remains **2**, because the record wrapping a dossier
 never changed shape. The fifth axis is new: a country-pack requirement carries a `revision`, the
 version of what it *accepts as evidence*, which is deliberately not tied to any of the other four.
 This build reads dossier schema 1.0.0, 1.1.0 and 1.2.0 alike, so every existing export imports with
@@ -397,6 +397,32 @@ no warning.
       called stale: absence of a stamp is not evidence. Nothing is fixed
       retroactively; the mechanism makes the *next* tightening discriminable
       (ADR-051)
+
+- [x] **The revision versions what we rendered** — a post-implementation audit
+      of the provenance sprint found four defects, two of them because the
+      sprint stated a policy and then did not follow it. The policy: a
+      requirement's revision versions the acceptance criteria the pack
+      *renders*, so a correction of VisaFlow's own under-specification counts
+      exactly like a deliberate tightening — the applicant verified what we
+      printed. Under it, `SOCIAL_SECURITY` is revision **3**, not 2: its
+      readable-QR criterion sat in both locale files with no `notesKey` to
+      reach it, and the detail panel is the only thing that renders requirement
+      prose, so nobody had ever seen it. Wiring the key is a new contract, and
+      the ledger's first entry that does real work rather than recording
+      history. `BANK_STATEMENTS` gains the revision 2 it should have had when
+      its acceptance test moved from a balance question to an income-provenance
+      one — though not for `3-6 months` becoming `three months`, which narrowed
+      nothing. `revision` is now required on all 28 requirements instead of
+      optional with an implicit `?? 1`, which had let a `revision: 0` typo reach
+      the persisted schema and make a dossier unimportable. And
+      `deriveNextDocument` was blind to superseded claims — it picks by stored
+      status, and a superseded claim is still `ready`, so the Documents hero
+      read "all caught up" beneath a ring below 100% while the Dashboard said
+      "update 1 document" about the same record; it now recommends a distinct
+      `recheck`, because telling someone to replace a document that may be
+      perfectly valid is the wrong instruction. The ledger's guards are
+      registry-wide instead of walking one hardcoded template, and its unused
+      `currentRevision` is gone (ADR-051a)
 
 ### Technical
 - [x] TypeScript strict mode

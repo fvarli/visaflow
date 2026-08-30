@@ -152,15 +152,15 @@ export function countsTowardReadiness(
  *
  * Only an active requirement has one. A retired, custom or unrecognised code
  * has no current contract to satisfy, so there is nothing to stamp.
+ *
+ * No fallback: `revision` is required on every requirement, so a missing value
+ * is a pack that does not compile rather than a silent 1 (ADR-051).
  */
 export function requirementRevision(
   code: string,
   template: VisaTypeTemplate | undefined
 ): number | undefined {
-  const requirement = template?.documentRequirements.find(
-    (r) => r.code === code
-  )
-  return requirement ? (requirement.revision ?? 1) : undefined
+  return template?.documentRequirements.find((r) => r.code === code)?.revision
 }
 
 /**

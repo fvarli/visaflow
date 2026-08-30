@@ -96,18 +96,28 @@ export interface DocumentRequirement {
   /** Zero or more RequirementSource ids. Empty means unverified. */
   sourceRefs?: string[]
   /**
-   * The **acceptance contract** version — what a person must produce, not what
-   * this object says.
+   * The **acceptance contract** version — the criteria this pack *renders to
+   * the applicant*, not what the authority has always required.
    *
    * Bumped only when a claim that was previously sufficient might no longer be:
-   * stricter evidence for the same document. Wording, translations and
-   * citations move freely without it, because invalidating somebody's completed
-   * work over a copy edit would be worse than the staleness it detects.
+   * the same requirement, asking for stricter evidence. Wording, translations
+   * and citations move freely without it, because invalidating somebody's
+   * completed work over a copy edit would be worse than the staleness it
+   * detects. The governing test is directional — did the *rendered* criteria
+   * start accepting a strictly smaller set of evidence? Motive is irrelevant:
+   * correcting our own under-specification lands on the applicant exactly like
+   * a deliberate tightening, because they confirmed against the shorter list.
    *
-   * Absent means 1. Every bump is recorded in `REQUIREMENT_REVISIONS` with its
-   * reason, and a test holds the two in agreement (ADR-051).
+   * **Required, and starts at 1.** It was briefly optional with an implicit
+   * `?? 1` default, which is how a `revision: 0` typo could reach the persisted
+   * schema and make a dossier unimportable — and, worse, let a new requirement
+   * acquire a revision nobody chose. Declaring it is a decision a pack author
+   * must make, not boilerplate to infer.
+   *
+   * Every value above 1 is recorded in `REQUIREMENT_REVISIONS` with its reason,
+   * and registry-wide tests hold the two in agreement (ADR-051).
    */
-  revision?: number
+  revision: number
 }
 
 export interface PreparationMilestone {

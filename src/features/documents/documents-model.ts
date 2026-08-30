@@ -14,6 +14,7 @@ import { buildDocumentReadiness } from '@/features/readiness/document-readiness'
 import type { DocumentReadiness } from '@/features/readiness/readiness-types'
 import { requiredRequirementCodes } from '@/features/readiness/requirement-readiness'
 import {
+  completionStanding,
   resolveDocumentSemantics,
   countsTowardReadiness,
 } from '@/features/documents/document-semantics'
@@ -132,7 +133,18 @@ export function groupByCategory(documents: Document[]): DocumentGroupView[] {
  * `requested` document is not "missing", and a `received` one must never be
  * recommended for obtaining again (ADR-034).
  */
-export type NextDocumentAction = 'obtain' | 'followUp' | 'update' | 'confirm'
+export type NextDocumentAction =
+  | 'obtain'
+  | 'followUp'
+  | 'update'
+  | 'confirm'
+  /**
+   * A completion claim made against an older, laxer definition (ADR-051).
+   * Deliberately distinct from `update`: the document may be perfectly valid
+   * and need only re-confirming, so "update or replace it" would be the wrong
+   * instruction.
+   */
+  | 'recheck'
 
 export interface NextDocumentRecommendation {
   /** Stable code — always present, so the UI can always label the item. */
@@ -200,9 +212,35 @@ export function deriveNextDocument(
     return { code: uninstantiated, document: null, action: 'obtain' }
   }
 
+  /**
+   * A superseded claim is outstanding work, and picking by persisted status
+   * alone cannot see it (ADR-051).
+   *
+   * Its `status` is still `ready` — that is what the applicant asserted — so it
+   * matched none of the buckets below and this function returned null while
+   * readiness counted the same document in `needsUpdate`. The Documents hero
+   * said "all caught up" under a ring below 100%, and the Dashboard, which
+   * reads the readiness counts, said "update 1 document" about the very same
+   * record. Routed through `completionStanding` so there is one definition of
+   * staleness, not two.
+   */
+  const superseded = required.find(
+    (d) => completionStanding(d, template) === 'superseded'
+  )
+
   return (
     pick('requested', 'followUp') ??
+    // An explicit `needs_update` is the applicant's own statement about their
+    // document, so it leads a standing we inferred for them.
     pick('needs_update', 'update') ??
+    (superseded
+      ? {
+          code: superseded.code,
+          document: superseded,
+          legacyName: superseded.name,
+          action: 'recheck' as const,
+        }
+      : null) ??
     pick('received', 'confirm') ??
     null
   )

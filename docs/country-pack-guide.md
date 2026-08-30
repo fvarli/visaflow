@@ -84,11 +84,29 @@ const documentRequirements: DocumentRequirement[] = [
       value: 'employed',
     },
     sourceRefs: ['xx-consulate-doc-list'], // optional
+    revision: 1, // required — the acceptance-contract version
   },
 ]
 ```
 
 Reuse `commonSchengenDocuments` for the shared Schengen set rather than re-listing it.
+
+### `revision` — the acceptance contract
+
+Every requirement declares one, and a new requirement starts at `1`. It versions **the criteria you
+render to the applicant**, and it is deliberately not optional: a pack author decides it rather than
+inheriting a default nobody chose.
+
+Bump it only when the same requirement starts asking for **stricter** evidence — when a document that
+satisfied the criteria you used to render could now fail. Do not bump for wording, translations,
+attached sources, clarification that excludes nothing, loosening, or applicability changes. Every
+value above `1` needs a matching entry in `src/config/countries/requirement-revisions.ts` explaining
+what a previously-sufficient claim would now be missing; a registry-wide test fails the build
+otherwise.
+
+A criterion the applicant cannot read is not part of the contract. If you add an acceptance
+criterion to `notes`, wire `notesKey` — a test refuses to let a `notes` string exist unreachable, and
+making a previously-invisible criterion visible is itself a bump. See ADR-051.
 
 ## Step 4 — Sources and review status (be honest)
 

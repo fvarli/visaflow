@@ -27,6 +27,7 @@ export const commonSchengenDocuments: DocumentRequirement[] = [
     // places", which Annex I contradicts: the form carries one applicant
     // signature plus a guardian signature for minors (ADR-048).
     sourceRefs: ['eu-visa-code-art11', 'gr-mfa-tr-visa-page'],
+    revision: 1,
   },
 
   // Identity & passport
@@ -54,6 +55,7 @@ export const commonSchengenDocuments: DocumentRequirement[] = [
     category: 'passport',
     ownerType: 'applicant',
     required: false,
+    revision: 1,
   },
   {
     code: 'PHOTOS',
@@ -64,6 +66,7 @@ export const commonSchengenDocuments: DocumentRequirement[] = [
     ownerType: 'applicant',
     required: true,
     validityPeriodDays: 180,
+    revision: 1,
   },
   {
     code: 'ID_CARD_COPY',
@@ -72,6 +75,7 @@ export const commonSchengenDocuments: DocumentRequirement[] = [
     category: 'identity',
     ownerType: 'applicant',
     required: true,
+    revision: 1,
   },
 
   // Travel
@@ -104,6 +108,7 @@ export const commonSchengenDocuments: DocumentRequirement[] = [
     // not say — Article 14(3) makes Annex II non-exhaustive and leaves the
     // consulate free to ask. The note was corrected before citing (ADR-047).
     sourceRefs: ['eu-visa-code-annex2', 'gr-tr-harmonised-list'],
+    revision: 1,
   },
   {
     code: 'ACCOMMODATION',
@@ -116,6 +121,7 @@ export const commonSchengenDocuments: DocumentRequirement[] = [
     // accommodation". The description used to add "for entire stay", which
     // neither the Code nor the list states.
     sourceRefs: ['eu-visa-code-annex2', 'gr-tr-harmonised-list'],
+    revision: 1,
   },
   {
     code: 'ITINERARY',
@@ -128,6 +134,7 @@ export const commonSchengenDocuments: DocumentRequirement[] = [
     // travel arrangement; Annex II A.3(b) says the same. Neither prescribes a
     // day-by-day form, which is what the description used to demand.
     sourceRefs: ['eu-visa-code-annex2', 'gr-tr-harmonised-list'],
+    revision: 1,
   },
 
   // Employment
@@ -147,6 +154,7 @@ export const commonSchengenDocuments: DocumentRequirement[] = [
     // Harmonised list I.5.a spells out what the letter must contain. Notably
     // it does *not* ask for salary, which the description used to require.
     sourceRefs: ['gr-tr-harmonised-list'],
+    revision: 1,
   },
   {
     code: 'APPROVED_LEAVE',
@@ -163,6 +171,7 @@ export const commonSchengenDocuments: DocumentRequirement[] = [
     validityPeriodDays: 30,
     // Same clause: "letter from employer and/or approval for leave".
     sourceRefs: ['gr-tr-harmonised-list'],
+    revision: 1,
   },
   {
     code: 'PAYSLIPS',
@@ -181,11 +190,16 @@ export const commonSchengenDocuments: DocumentRequirement[] = [
     // I.4.b — "salary slips of the last three months". The description said
     // 3-6 months, which no source states.
     sourceRefs: ['gr-tr-harmonised-list'],
+    revision: 1,
   },
   {
     code: 'SOCIAL_SECURITY',
     nameKey: 'visa-domain:requirements.SOCIAL_SECURITY.name',
     descriptionKey: 'visa-domain:requirements.SOCIAL_SECURITY.description',
+    // The readable-QR criterion lived in both locale files with no key to reach
+    // it, so no applicant ever saw it — which is why wiring it here is a
+    // revision bump and not a copy fix (ADR-051).
+    notesKey: 'visa-domain:requirements.SOCIAL_SECURITY.notes',
     category: 'employment',
     ownerType: 'applicant',
     // The harmonised list puts both SGK documents under Employees as
@@ -202,8 +216,9 @@ export const commonSchengenDocuments: DocumentRequirement[] = [
     // both with a readable QR code. Entirely Türkiye-scoped; see the
     // jurisdiction quarantine in the provenance tests.
     sourceRefs: ['gr-tr-harmonised-list'],
-    // One SGK record no longer suffices — see REQUIREMENT_REVISIONS.
-    revision: 2,
+    // Two bumps: naming both SGK documents (2), then rendering the readable-QR
+    // criterion at all (3). See REQUIREMENT_REVISIONS.
+    revision: 3,
   },
 
   // Financial
@@ -220,6 +235,10 @@ export const commonSchengenDocuments: DocumentRequirement[] = [
     // months, proving the source of regular income", and Annex II B.3 names
     // bank statements. The description said 3-6 months.
     sourceRefs: ['eu-visa-code-annex2', 'gr-tr-harmonised-list'],
+    // The notes moved from a balance test to an income-provenance test —
+    // see REQUIREMENT_REVISIONS. Not the 3-6 month window, which narrowed
+    // nothing: anyone holding 3-6 months also holds the last three.
+    revision: 2,
   },
 
   // Sponsor (conditional)
@@ -236,6 +255,7 @@ export const commonSchengenDocuments: DocumentRequirement[] = [
       value: 'sponsor',
     },
     validityPeriodDays: 30,
+    revision: 1,
   },
   {
     code: 'SPONSOR_BANK_STATEMENTS',
@@ -251,6 +271,7 @@ export const commonSchengenDocuments: DocumentRequirement[] = [
       value: 'sponsor',
     },
     validityPeriodDays: 30,
+    revision: 1,
   },
   {
     code: 'SPONSOR_INCOME_PROOF',
@@ -265,6 +286,7 @@ export const commonSchengenDocuments: DocumentRequirement[] = [
       value: 'sponsor',
     },
     validityPeriodDays: 30,
+    revision: 1,
   },
   {
     code: 'RELATIONSHIP_PROOF',
@@ -279,6 +301,7 @@ export const commonSchengenDocuments: DocumentRequirement[] = [
       operator: 'equals',
       value: 'sponsor',
     },
+    revision: 1,
   },
 
   // Previous travel
@@ -289,6 +312,7 @@ export const commonSchengenDocuments: DocumentRequirement[] = [
     category: 'previous_travel',
     ownerType: 'applicant',
     required: false,
+    revision: 1,
   },
 ]
 

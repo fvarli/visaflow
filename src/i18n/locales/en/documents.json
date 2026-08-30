@@ -15,7 +15,8 @@
       "obtain": "Obtain this document",
       "followUp": "Requested — follow up on it",
       "update": "Update or replace it",
-      "confirm": "Obtained — review and confirm it"
+      "confirm": "Obtained — review and confirm it",
+      "recheck": "Requirement changed — check it and re-confirm"
     }
   },
   "view": {

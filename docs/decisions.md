@@ -1962,8 +1962,9 @@ statement", now names the pensioner booklet.
 **Decision:**
 
 1. **`DocumentRequirement.revision: number`** — the *acceptance contract* version. Config only, never
-   persisted. Absent means 1. It moves only when a same-identity requirement asks for **stricter**
-   evidence, and every move is recorded in `REQUIREMENT_REVISIONS` with its reason.
+   persisted, **required on every requirement, starting at 1**. It moves only when a same-identity
+   requirement asks for **stricter** evidence, and every move is recorded in `REQUIREMENT_REVISIONS`
+   with its reason.
 2. **`Document.satisfiedRevision?: number`** — persisted, optional. *The revision this document is
    currently claimed to satisfy.* Written when the applicant asserts `ready`; removed when they
    assert anything else.
@@ -2078,3 +2079,93 @@ is a named gap, not an oversight.
 `src/components/documents/DocumentDetailPanel.tsx`, `src/i18n/locales/{tr,en}/documents.json`,
 `src/tests/fixtures/dossiers.ts`,
 `src/tests/features/{completion-provenance,readiness-boundary,schema-compat}.test.ts`.
+
+---
+
+## ADR-051a: The Revision Versions What We Rendered — Post-Implementation Corrections
+
+**Status:** Accepted · 2026-08-30 · amends [ADR-051](#adr-051)
+
+A post-implementation audit of ADR-051 found four defects, one behavioural. Two of them exist because
+ADR-051 stated a policy and then did not follow it.
+
+**1. The policy, stated properly.** A requirement's `revision` versions **the acceptance criteria the
+pack renders to the applicant** — not a reconstruction of what the authority always required. The
+governing test is directional:
+
+> Could an evidence set that satisfied the *previously rendered* criteria fail the *newly rendered*
+> criteria, with the requirement identity unchanged?
+
+Motive does not enter into it. A newly discovered official rule, a correction of VisaFlow's own
+under-specification, and a deliberate tightening all land identically on somebody who ticked `ready`
+against the shorter list: they verified what we printed, and we printed less. Still not a bump:
+attached sources, translation cleanup, clarification that excludes no previously accepted evidence,
+loosening, applicability-only changes, `templateVersion` moves.
+
+**2. `SOCIAL_SECURITY` is revision 3.** ADR-051 justified its revision 2 partly by a readable-QR
+criterion which sat in both locale files with **no `notesKey` to reach it** — and
+`DocumentDetailPanel` is the only thing that renders requirement prose, so no applicant had ever seen
+it. Wiring the key is therefore a new contract, not a copy fix; arguing "we intended it at rev 2" is
+the unpublished-intent claim the policy above forbids. Two correct SGK documents scanned faintly
+enough that their QR codes will not read satisfy the rendered revision 2 and fail revision 3.
+
+This is the ledger's **first non-retrospective entry**, and it does real work: a claim stamped
+`satisfiedRevision: 2` between ADR-051 shipping and this change becomes superseded and is asked to be
+re-checked. That is correct — that applicant never saw the criterion — but it is a live consequence,
+not a paper one, so it is recorded here rather than left to surprise someone.
+
+A test now refuses to let a `requirements.<CODE>.notes` string exist that no `notesKey` renders.
+`SOCIAL_SECURITY` was the only offender across all 28 requirements.
+
+**3. `BANK_STATEMENTS` is revision 2.** Its notes moved from "should show sufficient funds for the
+trip" to "should prove the source of a regular income", and its description gained "showing
+movements". A statement showing a large one-off deposit — a car sale, ample for the trip — satisfies
+the first and fails the second. Recorded late; the change itself shipped in template 1.2.0.
+Deliberately **not** bumped for `3-6 months` becoming `three months`, in either this requirement or
+`PAYSLIPS`: anyone holding 3–6 months of statements also holds the last three, so that narrowed
+nothing. The window removed an invented upper bound; it raised no floor.
+
+**4. `revision` is required, not optional-with-a-default.** `revision?: number` plus
+`requirement.revision ?? 1` recreated exactly the implicit semantics this project keeps being burned
+by. A `revision: 0` typo passed `??`, reached `satisfiedRevision`, and was then rejected by the
+persisted schema — an unimportable dossier with no earlier signal. More importantly, a new
+requirement could acquire a revision nobody chose. All 28 requirements now declare one explicitly;
+the compiler enumerates any that do not.
+
+**5. `deriveNextDocument` was blind to superseded claims** — the behavioural defect, and the same
+class ADR-051 had just closed five instances of. It picks by persisted status, and a superseded claim
+is still `ready`, so it matched nothing and returned `null` while readiness counted the same document
+in `needsUpdate`. The Documents hero showed "all caught up" beneath a ring below 100% while the
+Dashboard said "update 1 document" about that very record. Routed through the existing
+`completionStanding`, ranked below an explicit `needs_update` — the applicant's own statement leads
+one we inferred — with a distinct `recheck` action, because "update or replace it" is wrong advice
+for a document that may be perfectly valid and need only re-confirming.
+
+The existing invariant `nextDocument !== null ⟺ outstanding > 0` had been written long before, and
+passed only because no fixture carried a superseded claim. `withSupersededClaim` is that fixture.
+
+**6. The ledger's guards were the shape ADR-050 warned about.** `currentRevision` had no production
+caller at all, and the agreement test walked one hardcoded template rather than the registry.
+`currentRevision` is deleted — the requirement's own `revision` is the runtime authority and this file
+is the audited record of why. The guards are now registry-wide and deduped: every active requirement
+declares an integer ≥ 1; a revision of N requires a contiguous ledger history 2..N; no ledger row
+names a code no pack declares; no retired identity is bumped; replacements start at 1; no duplicate
+rows.
+
+**One assumption of mine that was wrong, and is worth recording.** I claimed that putting
+`satisfiedRevision` on a shared fixture would make the existing workspace `toEqual(payload)`
+assertions guard it for free. It would not have: both sides of those comparisons are built by the
+same `toRecord`, so a field that builder drops disappears from both and the assertion still passes.
+The round-trip is now asserted field-by-field against the source fixture, and separately across the
+v1→v2 migration.
+
+**Consequences.** Greece `templateVersion` `1.3.0` → **`1.4.0`**. `schemaVersion` stays **`1.2.0`** and
+`STORAGE_FORMAT_VERSION` stays **`2`** — `revision` is config-only and never persisted. Greece
+coverage is unchanged at 18 of 28. **Browser QA remains outstanding for both `9133569` and this
+change**; nothing here has been seen in a real browser.
+
+**Implementation:** `src/config/types.ts`, `src/config/countries/{common/schengen-short-stay,
+greece/tourism,requirement-revisions}.ts`, `src/features/documents/{document-semantics,
+documents-model}.ts`, `src/i18n/locales/{tr,en}/documents.json`, `src/tests/fixtures/dossiers.ts`,
+`src/tests/features/{next-document,completion-provenance,requirement-identity,
+country-pack-provenance,workspace-repository}.test.ts`, `docs/country-pack-guide.md`.

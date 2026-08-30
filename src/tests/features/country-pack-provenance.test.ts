@@ -176,6 +176,7 @@ describe('country packs — a claim of verification must be evidenced', () => {
           category: 'supporting',
           ownerType: 'applicant',
           required: true,
+          revision: 1,
         },
       ],
       preparationMilestones: [],
@@ -278,6 +279,44 @@ describe('country packs — an official source can be checked by the reader', ()
       .map((s) => s.id)
     expect(nameless).toEqual([])
   })
+})
+
+/**
+ * The reverse of the key-resolves check below: prose that exists but which no
+ * requirement can reach.
+ *
+ * `SOCIAL_SECURITY` carried "Both must carry a readable QR code" in both
+ * locales from template 1.2.0, with no `notesKey` to render it — and the
+ * requirement's revision was justified by that very criterion. An acceptance
+ * criterion the applicant cannot read is not part of the contract, so this
+ * mattered twice: the wording was invisible, and the revision was wrong
+ * (ADR-051).
+ */
+describe('country packs — no acceptance criterion is unreachable', () => {
+  const wiredNotesKeys = new Set(
+    TEMPLATES.flatMap(([, t]) =>
+      t.documentRequirements
+        .map((r) => r.notesKey)
+        .filter((k): k is string => Boolean(k))
+    )
+  )
+
+  it.each(['tr', 'en'] as const)(
+    'every requirement notes string in %s is rendered by some requirement',
+    (locale) => {
+      const bundle = i18n.getResourceBundle(locale, 'visa-domain') as {
+        requirements?: Record<string, { notes?: string }>
+      }
+      const orphaned = Object.entries(bundle.requirements ?? {})
+        .filter(([, value]) => typeof value?.notes === 'string')
+        .map(([code]) => code)
+        .filter(
+          (code) =>
+            !wiredNotesKeys.has(`visa-domain:requirements.${code}.notes`)
+        )
+      expect(orphaned).toEqual([])
+    }
+  )
 })
 
 describe('country packs — source copy exists in both languages', () => {

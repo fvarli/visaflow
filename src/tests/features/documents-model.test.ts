@@ -37,6 +37,7 @@ const req = (partial: Partial<DocumentRequirement>): DocumentRequirement => ({
   category: 'supporting',
   ownerType: 'applicant',
   required: true,
+  revision: 1,
   ...partial,
 })
 

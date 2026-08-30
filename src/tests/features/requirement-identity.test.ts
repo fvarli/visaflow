@@ -5,6 +5,7 @@ import {
   RETIRED_REQUIREMENTS,
   isRetiredRequirement,
 } from '@/config/countries/retired'
+import { REQUIREMENT_REVISIONS } from '@/config/countries/requirement-revisions'
 import { dynamicT } from '@/lib/i18n-dynamic'
 
 /**
@@ -139,5 +140,115 @@ describe('requirement identity — retirement is not reuse', () => {
       'PENSION_STATEMENT',
       'TAX_RETURNS',
     ])
+  })
+})
+
+/**
+ * Every active requirement in every registered pack, deduped by code.
+ *
+ * `commonSchengenDocuments` is shared, so a second pack would otherwise yield
+ * the same requirement twice and make a two-way comparison fail for a reason
+ * that has nothing to do with the invariant being tested.
+ */
+const activeRequirements = new Map(
+  getAllCountryConfigs().flatMap((pack) =>
+    pack.visaTypes.flatMap((t) =>
+      t.documentRequirements.map((r) => [r.code, r] as const)
+    )
+  )
+)
+
+/**
+ * The acceptance-contract ledger (ADR-051).
+ *
+ * Acceptance criteria live only in translated prose, so nothing can detect a
+ * tightening automatically — a bump has to be written down. These guards refuse
+ * to let one appear, vanish, or drift from the packs silently. They walk the
+ * registry rather than naming Greece, because the previous version hardcoded a
+ * single template and would have gone blind the moment a second pack shipped.
+ */
+describe('the acceptance-contract ledger', () => {
+  it.each([...activeRequirements.keys()])(
+    '%s declares an explicit integer revision >= 1',
+    (code) => {
+      const revision = activeRequirements.get(code)!.revision
+      // `revision` used to be optional with a `?? 1` fallback, which let a
+      // `revision: 0` typo reach `satisfiedRevision` — where the persisted
+      // schema rejects it, making the dossier unimportable with no earlier
+      // signal. Required + bounded is what closes that.
+      expect({
+        code,
+        valid: Number.isInteger(revision) && revision >= 1,
+      }).toEqual({ code, valid: true })
+    }
+  )
+
+  it.each([...activeRequirements.keys()])(
+    '%s has a complete ledger history for every revision above 1',
+    (code) => {
+      const revision = activeRequirements.get(code)!.revision
+      const recorded = REQUIREMENT_REVISIONS.filter((e) => e.code === code)
+        .map((e) => e.revision)
+        .sort((a, b) => a - b)
+      // 1 means no history; N means one entry for each of 2..N, contiguous.
+      // A gap would mean a bump nobody explained.
+      const expected = Array.from({ length: revision - 1 }, (_, i) => i + 2)
+      expect({ code, recorded }).toEqual({ code, recorded: expected })
+    }
+  )
+
+  it('records no revision for a code no pack declares', () => {
+    // Catches a typo, and catches bumping an identity that has been withdrawn:
+    // a retired requirement has no current contract to tighten.
+    const orphans = REQUIREMENT_REVISIONS.filter(
+      (e) => !activeRequirements.has(e.code)
+    ).map((e) => `${e.code}@${e.revision}`)
+    expect(orphans).toEqual([])
+  })
+
+  it('never bumps a retired identity', () => {
+    // Implied by the test above, but stated separately so the failure names the
+    // actual mistake instead of reading as an unexplained array mismatch.
+    const retired = REQUIREMENT_REVISIONS.filter((e) =>
+      isRetiredRequirement(e.code)
+    ).map((e) => e.code)
+    expect(retired).toEqual([])
+  })
+
+  it('starts a replacement requirement at revision 1', () => {
+    // A replacement is a new identity, not a continuation. Inheriting its
+    // predecessor's revision would be the aliasing ADR-049 forbids, in a
+    // different field.
+    const replacements = RETIRED_REQUIREMENTS.map((r) => r.replacedBy).filter(
+      (code): code is string => Boolean(code)
+    )
+    expect(replacements.length).toBeGreaterThan(0)
+    for (const code of replacements) {
+      expect({
+        code,
+        revision: activeRequirements.get(code)?.revision,
+      }).toEqual({ code, revision: 1 })
+    }
+  })
+
+  it('has no duplicate rows', () => {
+    const keys = REQUIREMENT_REVISIONS.map((e) => `${e.code}@${e.revision}`)
+    expect(keys).toEqual([...new Set(keys)])
+  })
+
+  it('explains every bump it records', () => {
+    for (const entry of REQUIREMENT_REVISIONS) {
+      expect({
+        row: `${entry.code}@${entry.revision}`,
+        hasReason: entry.reason.trim().length > 30,
+        hasVersion: /^\d+\.\d+\.\d+$/.test(entry.bumpedIn),
+        startsAboveOne: entry.revision > 1,
+      }).toEqual({
+        row: `${entry.code}@${entry.revision}`,
+        hasReason: true,
+        hasVersion: true,
+        startsAboveOne: true,
+      })
+    }
   })
 })

@@ -43,6 +43,7 @@ function requirement(code: string, sourceRefs?: string[]): DocumentRequirement {
     category: 'supporting',
     ownerType: 'applicant',
     required: true,
+    revision: 1,
     ...(sourceRefs ? { sourceRefs } : {}),
   }
 }

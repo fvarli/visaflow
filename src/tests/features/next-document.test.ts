@@ -5,6 +5,8 @@ import {
 } from '@/features/documents/documents-model'
 import type { Document } from '@/domain/schemas/document.schema'
 import type { DocumentStatus } from '@/domain/types/common'
+import type { Application } from '@/domain/schemas/application.schema'
+import { resolveVisaTemplate } from '@/config/countries'
 import {
   ALL_FIXTURE_ENTRIES,
   allApplicableReady,
@@ -136,6 +138,74 @@ describe('deriveNextDocument — un-instantiated requirements participate', () =
     expect(model.readiness.outstanding).toBeGreaterThan(0)
     expect(model.nextDocument).not.toBeNull()
     expect(model.nextDocument?.document).toBeNull()
+  })
+})
+
+/**
+ * A superseded completion claim is outstanding work (ADR-051).
+ *
+ * `deriveNextDocument` picks by persisted status, and a superseded claim is
+ * still `ready` — so it matched no bucket and this function returned null while
+ * readiness counted the same document in `needsUpdate`. The Documents hero read
+ * "all caught up" beneath a ring below 100%, and the Dashboard, which reads the
+ * readiness counts, said "update 1 document" about that very record.
+ */
+describe('deriveNextDocument — superseded completion claims', () => {
+  const template = resolveVisaTemplate('GR', 'short_stay_tourism')
+  const employed = {
+    destinationCountry: 'GR',
+    visaType: 'short_stay_tourism',
+    employment: { employmentStatus: 'employed' },
+  } as unknown as Application
+
+  /** PASSPORT_CURRENT sits at revision 2, so a claim at 1 is superseded. */
+  const passport = (satisfiedRevision?: number): Document => ({
+    ...doc('ready', 'PASSPORT_CURRENT'),
+    category: 'passport',
+    ...(satisfiedRevision !== undefined ? { satisfiedRevision } : {}),
+  })
+
+  it('recommends re-checking a superseded claim', () => {
+    const next = deriveNextDocument([passport(1)], [], template, employed)
+    expect(next?.code).toBe('PASSPORT_CURRENT')
+    // Deliberately not `update`: the document may be perfectly valid and need
+    // only re-confirming, so "update or replace it" would be wrong advice.
+    expect(next?.action).toBe('recheck')
+    // The applicant's own status is never restated as something else.
+    expect(next?.document?.status).toBe('ready')
+  })
+
+  it('does not recommend a claim made against the current definition', () => {
+    expect(deriveNextDocument([passport(2)], [], template, employed)).toBeNull()
+  })
+
+  it('does not recommend a claim that predates provenance', () => {
+    // Unrecorded, not superseded — absence of a stamp is not evidence, so
+    // existing users keep their green tick (ADR-051).
+    expect(deriveNextDocument([passport()], [], template, employed)).toBeNull()
+  })
+
+  it("ranks the applicant's own needs_update ahead of one we inferred", () => {
+    const next = deriveNextDocument(
+      [passport(1), { ...doc('needs_update', 'PHOTOS'), category: 'identity' }],
+      [],
+      template,
+      employed
+    )
+    expect(next?.code).toBe('PHOTOS')
+    expect(next?.action).toBe('update')
+  })
+
+  it('still never recommends a record that is not current work', () => {
+    // A superseded stamp on a withdrawn, unknown or custom code has no current
+    // contract behind it, so it must not resurrect the record (ADR-050).
+    for (const code of ['TAX_RETURNS', 'NOT_A_REAL_CODE', 'CUSTOM-x']) {
+      const stale = { ...passport(1), code, id: `d-${code}` }
+      expect({
+        code,
+        next: deriveNextDocument([stale], [], template, employed),
+      }).toEqual({ code, next: null })
+    }
   })
 })
 

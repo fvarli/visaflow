@@ -84,6 +84,8 @@ interface DocSpec {
   category?: DocumentCategory
   required?: boolean
   notes?: string
+  /** Which requirement revision this `ready` claim is made against (ADR-051). */
+  satisfiedRevision?: number
 }
 
 function doc(spec: DocSpec, index: number): Document {
@@ -97,6 +99,9 @@ function doc(spec: DocSpec, index: number): Document {
     status: spec.status,
     verified: false,
     ...(spec.notes ? { notes: spec.notes } : {}),
+    ...(spec.satisfiedRevision !== undefined
+      ? { satisfiedRevision: spec.satisfiedRevision }
+      : {}),
   }
 }
 
@@ -124,7 +129,16 @@ export const partiallyPrepared: DossierFixture = {
   application: application(),
   documents: documents([
     { code: 'APPLICATION_FORM', status: 'ready', category: 'application_form' },
-    { code: 'PASSPORT_CURRENT', status: 'ready', category: 'passport' },
+    // Carries a completion stamp against the current definition, so every
+    // fixture-wide `toEqual(payload)` assertion — notably the workspace
+    // repository round-trips — becomes a real guard that `satisfiedRevision`
+    // survives storage, which nothing else covered (ADR-051).
+    {
+      code: 'PASSPORT_CURRENT',
+      status: 'ready',
+      category: 'passport',
+      satisfiedRevision: 2,
+    },
     { code: 'PHOTOS', status: 'received', category: 'identity' },
     { code: 'BANK_STATEMENTS', status: 'requested', category: 'financial' },
     { code: 'TRAVEL_INSURANCE', status: 'not_started', category: 'insurance' },
@@ -308,6 +322,29 @@ export const withNonCurrentRecords: DossierFixture = {
 }
 
 /**
+ * `allApplicableReady`, except that one claim was made against an older, laxer
+ * definition of the requirement.
+ *
+ * `PASSPORT_CURRENT` sits at revision 2 (Article 12(c), the 10-year issue
+ * rule); this claim is stamped against revision 1, so it is **superseded**: the
+ * applicant confirmed a passport against a shorter list of criteria than the
+ * pack now states (ADR-051).
+ *
+ * The dossier is otherwise complete, which is the point. Everything must agree
+ * that exactly one item is outstanding — the ring, the caption, the checklist
+ * and the next-document recommendation. A surface that reads this dossier as
+ * finished is contradicting the one beside it.
+ */
+export const withSupersededClaim: DossierFixture = {
+  applicant: APPLICANT,
+  application: READY_APPLICATION,
+  documents: allApplicableReady.documents.map((d) =>
+    d.code === 'PASSPORT_CURRENT' ? { ...d, satisfiedRevision: 1 } : d
+  ),
+  sponsors: [],
+}
+
+/**
  * Readiness composed the way every canonical surface composes it.
  *
  * Deliberately an independent statement rather than a call into a page model —
@@ -342,6 +379,7 @@ export const ALL_FIXTURE_ENTRIES: [string, DossierFixture][] = [
   ['readyButWithFindings', readyButWithFindings],
   ['withRetiredHistory', withRetiredHistory],
   ['withNonCurrentRecords', withNonCurrentRecords],
+  ['withSupersededClaim', withSupersededClaim],
 ]
 
 export const READINESS_FIXTURES: Record<string, DossierFixture> = {

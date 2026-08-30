@@ -35,6 +35,7 @@ const greeceSpecificDocuments: DocumentRequirement[] = [
     ownerType: 'applicant',
     required: true,
     sourceRefs: ['gr-tr-harmonised-list'],
+    revision: 1,
   },
 
   // Employer company documents (may be requested for some nationalities)
@@ -51,6 +52,7 @@ const greeceSpecificDocuments: DocumentRequirement[] = [
       operator: 'equals',
       value: 'employed',
     },
+    revision: 1,
   },
   {
     code: 'EMPLOYER_TRADE_REGISTRY',
@@ -92,6 +94,7 @@ const greeceSpecificDocuments: DocumentRequirement[] = [
       operator: 'equals',
       value: 'employed',
     },
+    revision: 1,
   },
 
   // Property documents (supporting)
@@ -107,6 +110,7 @@ const greeceSpecificDocuments: DocumentRequirement[] = [
     // documentation for assessing the intention to leave — which is exactly
     // what this requirement's note claims it does.
     sourceRefs: ['eu-visa-code-annex2'],
+    revision: 1,
   },
 
   // Self-employed
@@ -134,6 +138,7 @@ const greeceSpecificDocuments: DocumentRequirement[] = [
     // Company owners: "company activity certificate (Faaliyet Belgesi)" and
     // the chamber-of-commerce registration.
     sourceRefs: ['gr-tr-harmonised-list'],
+    revision: 1,
   },
   {
     /**
@@ -156,6 +161,7 @@ const greeceSpecificDocuments: DocumentRequirement[] = [
     // Company owners: "statement of taxes payment" — a payment statement, not
     // the tax returns this requirement used to describe.
     sourceRefs: ['gr-tr-harmonised-list'],
+    revision: 1,
   },
 
   // Student
@@ -174,6 +180,7 @@ const greeceSpecificDocuments: DocumentRequirement[] = [
     // I.5.d distinguishes higher education (a YÖK certificate with a readable
     // QR code) from other students and pupils (a student certificate).
     sourceRefs: ['gr-tr-harmonised-list'],
+    revision: 1,
   },
 
   // Retired
@@ -197,6 +204,7 @@ const greeceSpecificDocuments: DocumentRequirement[] = [
     // I.4.c — "pensioner booklet, if relevant". A different document from the
     // payment statements this requirement used to describe.
     sourceRefs: ['gr-tr-harmonised-list'],
+    revision: 1,
   },
 ]
 
@@ -230,11 +238,13 @@ export const greeceTourismTemplate: VisaTypeTemplate = {
   ],
 
   /**
-   * Bumped: this pass changed requirement wording, corrected two applicability
-   * rules and added a requirement. The pack version is its own axis — the app,
-   * the dossier schema and the storage format are all untouched.
+   * Bumped: every requirement now declares its acceptance-contract `revision`
+   * explicitly, `BANK_STATEMENTS` records a tightening that shipped unlogged,
+   * and `SOCIAL_SECURITY` renders a criterion that had been unreachable. The
+   * pack version is its own axis — the app, the dossier schema and the storage
+   * format are all untouched.
    */
-  templateVersion: '1.3.0',
+  templateVersion: '1.4.0',
   /**
    * The date this template was last reviewed by a maintainer. Still not a
    * verification date — `lastVerifiedAt` on each source is that.

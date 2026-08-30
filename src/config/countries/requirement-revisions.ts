@@ -18,6 +18,20 @@
  * same reason: a guard that forces an acknowledgement beats one that tries to
  * infer meaning and quietly gets it wrong.
  *
+ * THE POLICY, STATED. A revision versions the acceptance criteria this pack
+ * **renders to the applicant** — not a reconstruction of what the authority had
+ * always required. The governing test is directional: *could an evidence set
+ * that satisfied the previously rendered criteria fail the newly rendered ones,
+ * with the requirement identity unchanged?*
+ *
+ * Motive does not enter into it. A newly discovered official rule, a correction
+ * of VisaFlow's own under-specification and a deliberate tightening all land
+ * identically on somebody who ticked `ready` against the shorter list: they
+ * verified what we printed, and we printed less. Unpublished intent is not a
+ * contract — a criterion that sat in a locale file with no key to render it was
+ * never part of any contract at all, which is exactly how SOCIAL_SECURITY
+ * reached revision 3.
+ *
  * WHEN TO BUMP — the ADR-049 taxonomy, applied:
  *
  *   translation or copy cleanup ............................ no
@@ -80,7 +94,23 @@ export const REQUIREMENT_REVISIONS: RequirementRevision[] = [
     reason:
       'One SGK service record no longer suffices: the harmonised list asks for ' +
       'the employment-entry statement *and* the registration and service ' +
-      'document, both carrying a readable QR code.',
+      'document. The readable-QR criterion belongs to revision 3, not here — ' +
+      'it was authored at the same time but had no key to render it, so it was ' +
+      'never part of what this revision asked anyone for.',
+  },
+  {
+    code: 'BANK_STATEMENTS',
+    revision: 2,
+    bumpedIn: '1.2.0',
+    reason:
+      'The acceptance test changed kind, not just scope: "should show ' +
+      'sufficient funds for the trip" became "should prove the source of a ' +
+      'regular income", and the description now asks for movements. A ' +
+      'statement showing a large one-off deposit — a car sale, ample for the ' +
+      'trip — satisfies the first and fails the second. Recorded late, in ' +
+      '1.4.0, by the audit of this ledger; the change itself shipped in 1.2.0. ' +
+      'NOT bumped for 3-6 months becoming three: anyone holding 3-6 months of ' +
+      'statements also holds the last three, so that narrowed nothing.',
   },
   {
     code: 'EMPLOYER_TRADE_REGISTRY',
@@ -92,12 +122,30 @@ export const REQUIREMENT_REVISIONS: RequirementRevision[] = [
       'employed-to-self-employed applicability correction, which changes who ' +
       'is asked rather than what satisfies the ask.',
   },
+  {
+    code: 'SOCIAL_SECURITY',
+    revision: 3,
+    bumpedIn: '1.4.0',
+    reason:
+      'The readable-QR criterion existed in both locale files from 1.2.0 but ' +
+      'the requirement carried no notesKey, and the detail panel is the only ' +
+      'thing that renders requirement prose — so no applicant ever saw it. ' +
+      'Wiring the key is therefore a new contract, not a copy fix: two correct ' +
+      'SGK documents scanned faintly enough that their QR codes will not read ' +
+      'satisfy the rendered revision 2 and fail this. The first bump in this ' +
+      'ledger that is not retrospective.',
+  },
 ]
 
-/** The current acceptance-contract revision for a code. Unbumped codes are 1. */
-export function currentRevision(code: string): number {
-  return REQUIREMENT_REVISIONS.filter((entry) => entry.code === code).reduce(
-    (highest, entry) => Math.max(highest, entry.revision),
-    1
-  )
-}
+/**
+ * There is deliberately no accessor here.
+ *
+ * The requirement's own `revision` is the runtime authority — `document-
+ * semantics.ts` reads it from the resolved template — and this file is the
+ * audited record of *why* each value is what it is. An exported
+ * `currentRevision(code)` existed briefly and had no production caller, which
+ * is the shape ADR-050 was written about: a registry that looks authoritative,
+ * is not consulted, and invites somebody to read the wrong source. The
+ * registry-wide tests in `requirement-identity.test.ts` hold the two in
+ * agreement instead.
+ */

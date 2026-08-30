@@ -1,10 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { resolveVisaTemplate } from '@/config/countries'
 import {
-  REQUIREMENT_REVISIONS,
-  currentRevision,
-} from '@/config/countries/requirement-revisions'
-import {
   applyDocumentUpdate,
   completionStanding,
   requirementRevision,
@@ -281,40 +277,40 @@ describe('a claim from before provenance existed', () => {
   })
 })
 
-describe('the acceptance-contract ledger', () => {
-  it('agrees with every revision the packs declare', () => {
-    // The guard. Acceptance criteria live in translated prose, so nothing can
-    // detect a tightening automatically — a bump has to be written down, and
-    // this is what refuses to let one appear or vanish silently.
-    const declared = template.documentRequirements
-      .filter((r) => (r.revision ?? 1) > 1)
-      .map((r) => `${r.code}@${r.revision}`)
-      .sort()
-    const recorded = REQUIREMENT_REVISIONS.map(
-      (entry) => `${entry.code}@${entry.revision}`
-    ).sort()
-    expect(declared).toEqual(recorded)
+/**
+ * The first bump in this project that is not retrospective.
+ *
+ * `SOCIAL_SECURITY` reached revision 3 when its readable-QR criterion was
+ * finally rendered — the criterion existed in both locale files from 1.2.0 with
+ * no `notesKey` to reach it, so no applicant had seen it. Anyone who confirmed
+ * the requirement between ADR-051 shipping and that fix carries a stamp of 2,
+ * and is now correctly asked to look again (ADR-051).
+ */
+describe('the SOCIAL_SECURITY QR bump acts on real claims', () => {
+  it('supersedes a claim confirmed against the un-rendered contract', () => {
+    const claimedAtTwo = doc({ status: 'ready', satisfiedRevision: 2 })
+    expect(completionStanding(claimedAtTwo, template)).toBe('superseded')
   })
 
-  it('records why each bump was necessary', () => {
-    for (const entry of REQUIREMENT_REVISIONS) {
-      expect({
-        code: entry.code,
-        hasReason: entry.reason.trim().length > 30,
-        hasVersion: /^\d+\.\d+\.\d+$/.test(entry.bumpedIn),
-        startsAboveOne: entry.revision > 1,
-      }).toEqual({
-        code: entry.code,
-        hasReason: true,
-        hasVersion: true,
-        startsAboveOne: true,
-      })
-    }
+  it('leaves a claim confirmed against the rendered contract alone', () => {
+    const claimedAtThree = doc({ status: 'ready', satisfiedRevision: 3 })
+    expect(completionStanding(claimedAtThree, template)).toBe('current')
   })
 
-  it('defaults an unbumped requirement to revision 1', () => {
-    expect(currentRevision('ACCOMMODATION')).toBe(1)
-    expect(currentRevision('SOCIAL_SECURITY')).toBe(2)
+  it('stamps 3 for anyone confirming now', () => {
+    const claimed = applyDocumentUpdate(doc(), { status: 'ready' }, template)
+    expect(claimed.satisfiedRevision).toBe(3)
+  })
+
+  it('renders the criterion the bump was made for, in both locales', () => {
+    // The bump is only honest if the applicant can now read the thing they are
+    // being asked to satisfy.
+    const requirement = template.documentRequirements.find(
+      (r) => r.code === 'SOCIAL_SECURITY'
+    )
+    expect(requirement?.notesKey).toBe(
+      'visa-domain:requirements.SOCIAL_SECURITY.notes'
+    )
   })
 })
 

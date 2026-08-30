@@ -15,7 +15,8 @@
       "obtain": "Bu belgeyi edinin",
       "followUp": "Talep edildi — takibini yapın",
       "update": "Güncelleyin veya yenisiyle değiştirin",
-      "confirm": "Alındı — kontrol edip onaylayın"
+      "confirm": "Alındı — kontrol edip onaylayın",
+      "recheck": "Gereklilik değişti — kontrol edip yeniden onaylayın"
     }
   },
   "view": {
