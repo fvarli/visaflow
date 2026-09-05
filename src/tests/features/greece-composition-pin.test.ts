@@ -6,7 +6,7 @@ import type { DocumentRequirement, PreparationMilestone } from '@/config/types'
  * The Greece composition, pinned exactly as it resolves today.
  *
  * This exists to make the Common Schengen -> Destination -> Filing Jurisdiction
- * split a *provably* behaviour-free refactor rather than a plausibly one. The
+ * split a *provably* behaviour-free refactor rather than a plausible one. The
  * pack is about to be taken apart into three ownership layers and put back
  * together by a composer; the only way to know the applicant sees the same
  * checklist afterwards is to write down what they see now, before anything
@@ -29,8 +29,9 @@ import type { DocumentRequirement, PreparationMilestone } from '@/config/types'
  * literal in the same commit that changes the pack — and the diff is then the
  * reviewable record of what applicants will be asked for differently.
  *
- * The three assertions are kept separate so a failure names the actual mistake
- * instead of reading as one unexplained object mismatch.
+ * The five assertions — order, per-requirement contract, envelope, milestones
+ * and sources — are kept separate so a failure names the actual mistake instead
+ * of reading as one unexplained object mismatch.
  */
 
 const template = resolveVisaTemplate('GR', 'short_stay_tourism')

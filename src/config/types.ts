@@ -156,6 +156,72 @@ export interface CountryConfig {
 }
 
 /**
+ * Which ownership layer a set of requirements belongs to.
+ *
+ * The three answer three different questions, and conflating them is what
+ * ADR-048 quarantined: `commonSchengenDocuments` claims to be shared across
+ * Schengen while carrying Türkiye-scoped citations and Turkish institution
+ * names, which a second pack would inherit whole.
+ *
+ *  - `common`       — true of Schengen short-stay applications generally.
+ *  - `destination`  — true because of the country being travelled to.
+ *  - `jurisdiction` — true because of where and how the application is lodged.
+ *
+ * Rank is meaningful, not decorative: layers compose in this order, and the
+ * composer refuses a list that is not in it. A `kind` nothing reads would be
+ * the shape ADR-050 warns about — metadata that looks authoritative and is
+ * never consulted.
+ */
+export type LayerKind = 'common' | 'destination' | 'jurisdiction'
+
+/**
+ * One ownership layer's contribution to a composed template.
+ *
+ * A layer may declare requirements it **owns**, and may append citations to
+ * requirements an earlier layer owns. That is the whole vocabulary. It cannot
+ * remove a requirement, hide one, or change what one asks for — see
+ * `CitationRefinement` for why.
+ */
+export interface RequirementLayer {
+  /** Stable layer id, e.g. 'schengen-short-stay' | 'greece' | 'tr-filing'. */
+  id: string
+  kind: LayerKind
+  /**
+   * Requirements this layer owns.
+   *
+   * A `code` is the identity of a record in someone's dossier (ADR-049), so it
+   * must mean one thing everywhere: exactly one layer owns a code, registry-
+   * wide, and that layer owns its `revision`.
+   */
+  add?: DocumentRequirement[]
+  refine?: CitationRefinement[]
+  /** Source records this layer contributes to the composed pool. */
+  sources?: RequirementSource[]
+}
+
+/**
+ * The only override a layer has: append citations to somebody else's
+ * requirement.
+ *
+ * Deliberately **not** a partial `DocumentRequirement`. Composition may not
+ * change an acceptance contract, because `satisfiedRevision: N` on a stored
+ * document has to mean the same thing in every composition — otherwise a
+ * dossier stops being portable and the aliasing ADR-049 forbids arrives through
+ * the revision axis instead of the label axis. ADR-051 already establishes that
+ * attaching a source is not a contract change, which is exactly why appending
+ * citations is safe and replacing prose or `required` would not be.
+ *
+ * A jurisdiction that genuinely needs different acceptance criteria must
+ * **own** the requirement outright. If contract-bearing override is ever really
+ * needed it arrives as its own capability, with its own ADR and its own
+ * invariants — not by widening this interface.
+ */
+export interface CitationRefinement {
+  code: string
+  addSourceRefs: string[]
+}
+
+/**
  * Unchanged from the previous configuration model — conditional evaluation
  * must behave identically, so this logic is reused verbatim.
  */
