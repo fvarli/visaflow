@@ -1,5 +1,9 @@
 import { describe, it, expect } from 'vitest'
-import { resolveVisaTemplate, greeceConfig } from '@/config/countries'
+import {
+  resolveVisaTemplate,
+  greeceConfig,
+  getSourcesForRefs,
+} from '@/config/countries'
 import type { DocumentRequirement, PreparationMilestone } from '@/config/types'
 
 /**
@@ -571,5 +575,38 @@ describe('Greece composition — pinned before the layer split', () => {
     expect((greeceConfig.sources ?? []).map((s) => s.id)).toEqual(
       PINNED_SOURCE_IDS
     )
+  })
+})
+
+describe('Greece composition — the resolver stays referentially stable', () => {
+  it('returns the same template object on every call', () => {
+    // Not a performance nicety. Roughly a dozen feature models resolve the
+    // template inside `useMemo([template])`, and `DossierProvider` resolves it
+    // synchronously in its reducer on every document update — so a resolver
+    // that rebuilt the template per call would invalidate all of those on every
+    // render. Composing once at module load keeps this true by construction
+    // rather than by a cache that could miss.
+    const first = resolveVisaTemplate('GR', 'short_stay_tourism')
+    const second = resolveVisaTemplate('GR', 'short_stay_tourism')
+    expect(first).toBe(second)
+  })
+
+  it('holds for the arrays inside it too', () => {
+    // A stable template wrapping a freshly-built requirements array would defeat
+    // the point for anything memoising on `template.documentRequirements`.
+    const first = resolveVisaTemplate('GR', 'short_stay_tourism')
+    const second = resolveVisaTemplate('GR', 'short_stay_tourism')
+    expect(first?.documentRequirements).toBe(second?.documentRequirements)
+  })
+
+  it('resolves every citation it composes', () => {
+    // The composer already refuses a dangling citation at import; this asserts
+    // the same thing through the accessor the UI actually uses, so a source
+    // record that stopped being reachable through `getSourcesForRefs` would
+    // show up here rather than as empty provenance on screen (ADR-046).
+    for (const requirement of template.documentRequirements) {
+      const refs = requirement.sourceRefs ?? []
+      expect(getSourcesForRefs('GR', refs).map((s) => s.id)).toEqual(refs)
+    }
   })
 })

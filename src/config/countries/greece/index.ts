@@ -1,7 +1,5 @@
 import type { CountryConfig } from '../../types'
-import { euSources } from '../../sources/eu.sources'
-import { greeceSources } from '../../sources/greece.sources'
-import { greeceTourismTemplate } from './tourism'
+import { greeceTourismComposition, greeceTourismTemplate } from './tourism'
 
 export const greeceConfig: CountryConfig = {
   countryCode: 'GR',
@@ -9,12 +7,21 @@ export const greeceConfig: CountryConfig = {
   schengenMember: true,
   visaTypes: [greeceTourismTemplate],
   /**
-   * EU records first, because the requirements citing them come from the
-   * shared Schengen array. `sourceRefs` resolve against this list, so a pack
-   * that composes `commonSchengenDocuments` must also carry `euSources` or its
-   * citations would dangle — which the provenance invariants catch.
+   * Derived from the composition, not concatenated a second time.
+   *
+   * These used to be written out as `[...euSources, ...greeceSources]`, which
+   * meant the pack stated its source list in two places: once here, and once
+   * implicitly in whichever citations its requirements happened to use. The
+   * composer already merges every layer's records in layer order, and it fails
+   * the build if a requirement cites something no composed layer provides — so
+   * taking the list from it keeps one source of truth and makes a dangling
+   * citation impossible rather than merely unlikely.
+   *
+   * The order is unchanged: common (the four Visa Code records) → destination
+   * (the ministry's general page) → filing jurisdiction (the harmonised list
+   * and the Ankara mission's visa page).
    */
-  sources: [...euSources, ...greeceSources],
+  sources: greeceTourismComposition.sources,
 }
 
 export { greeceTourismTemplate }

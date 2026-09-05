@@ -1,19 +1,38 @@
-import type { DocumentRequirement, PreparationMilestone } from '../../types'
+import { euSources } from '../../sources/eu.sources'
+import type {
+  DocumentRequirement,
+  PreparationMilestone,
+  RequirementLayer,
+} from '../../types'
 
 /**
- * Requirements typical of a Schengen short-stay application, shared by every
- * Schengen country template.
+ * Requirements shared by Schengen short-stay applications, whatever the
+ * destination and wherever the application is lodged.
  *
- * These are general organisational guidance, NOT an official list. Each
- * country template records its own review status and sources; nothing here
+ * THIS ARRAY USED TO OVERSTATE ITSELF. It held nineteen requirements and was
+ * named as though all nineteen were proven across Schengen, while carrying
+ * Türkiye-scoped citations and Turkish institution names — SGK documents, the
+ * harmonised list adopted for Türkiye, the Ankara mission's own visa page. With
+ * no override mechanism, a second destination pack would have inherited every
+ * one of them verbatim as if they were its own (ADR-048). Twelve of the
+ * nineteen were affected.
+ *
+ * Those thirteen requirements now live in the filing-jurisdiction layer that
+ * actually owns them (`countries/jurisdictions/tr-filing.ts`), and the six that
+ * are genuinely EU-level but had picked up a Türkiye citation keep their EU
+ * identity here while the overlay appends its citation at composition time.
+ * What is left is fifteen requirements that a second pack can inherit without
+ * acquiring somebody else's jurisdiction.
+ *
+ * `PROPERTY_DEED` moved *in*, from the Greece array: it cites Visa Code Annex
+ * II B.4 and says nothing about Greece or Türkiye. It was only ever filed under
+ * Greece by accident of where it was written.
+ *
+ * These remain general organisational guidance, NOT an official list. Each
+ * destination template records its own review status and sources; nothing here
  * should be presented to a user as verified on its own.
- *
- * Structure, codes, categories, owner types, `required` flags, conditionals
- * and validity periods are carried over unchanged from the previous
- * configuration — only user-facing prose became translation keys.
  */
 export const commonSchengenDocuments: DocumentRequirement[] = [
-  // Application form
   {
     code: 'APPLICATION_FORM',
     nameKey: 'visa-domain:requirements.APPLICATION_FORM.name',
@@ -26,11 +45,9 @@ export const commonSchengenDocuments: DocumentRequirement[] = [
     // asks for the same. The note used to claim it must be signed "in two
     // places", which Annex I contradicts: the form carries one applicant
     // signature plus a guardian signature for minors (ADR-048).
-    sourceRefs: ['eu-visa-code-art11', 'gr-mfa-tr-visa-page'],
+    sourceRefs: ['eu-visa-code-art11'],
     revision: 1,
   },
-
-  // Identity & passport
   {
     code: 'PASSPORT_CURRENT',
     nameKey: 'visa-domain:requirements.PASSPORT_CURRENT.name',
@@ -44,7 +61,7 @@ export const commonSchengenDocuments: DocumentRequirement[] = [
     // (a) validity extending at least three months past the intended
     // departure, (b) at least two blank pages, (c) issued within the previous
     // 10 years — the last of which the notes now carry (ADR-047).
-    sourceRefs: ['eu-visa-code-art12', 'gr-mfa-tr-visa-page'],
+    sourceRefs: ['eu-visa-code-art12'],
     // Gained Article 12(c) — see REQUIREMENT_REVISIONS.
     revision: 2,
   },
@@ -77,8 +94,6 @@ export const commonSchengenDocuments: DocumentRequirement[] = [
     required: true,
     revision: 1,
   },
-
-  // Travel
   {
     code: 'TRAVEL_INSURANCE',
     nameKey: 'visa-domain:requirements.TRAVEL_INSURANCE.name',
@@ -90,7 +105,7 @@ export const commonSchengenDocuments: DocumentRequirement[] = [
     // Article 15(3) sets the EUR 30 000 minimum verbatim, and 15(1) lists the
     // cover this requirement names — repatriation, urgent medical attention,
     // emergency hospital treatment.
-    sourceRefs: ['eu-visa-code-art15', 'gr-mfa-tr-visa-page'],
+    sourceRefs: ['eu-visa-code-art15'],
     // Gained Article 15(3) territorial validity and duration.
     revision: 2,
   },
@@ -107,7 +122,7 @@ export const commonSchengenDocuments: DocumentRequirement[] = [
     // used to add that paid tickets are *not* required, which the Code does
     // not say — Article 14(3) makes Annex II non-exhaustive and leaves the
     // consulate free to ask. The note was corrected before citing (ADR-047).
-    sourceRefs: ['eu-visa-code-annex2', 'gr-tr-harmonised-list'],
+    sourceRefs: ['eu-visa-code-annex2'],
     revision: 1,
   },
   {
@@ -120,7 +135,7 @@ export const commonSchengenDocuments: DocumentRequirement[] = [
     // Harmonised list I.3 — "evidence of hotel booking or other proof of
     // accommodation". The description used to add "for entire stay", which
     // neither the Code nor the list states.
-    sourceRefs: ['eu-visa-code-annex2', 'gr-tr-harmonised-list'],
+    sourceRefs: ['eu-visa-code-annex2'],
     revision: 1,
   },
   {
@@ -133,115 +148,23 @@ export const commonSchengenDocuments: DocumentRequirement[] = [
     // Harmonised list I.1 offers "proof of travel itinerary" as an accepted
     // travel arrangement; Annex II A.3(b) says the same. Neither prescribes a
     // day-by-day form, which is what the description used to demand.
-    sourceRefs: ['eu-visa-code-annex2', 'gr-tr-harmonised-list'],
-    revision: 1,
-  },
-
-  // Employment
-  {
-    code: 'EMPLOYMENT_LETTER',
-    nameKey: 'visa-domain:requirements.EMPLOYMENT_LETTER.name',
-    descriptionKey: 'visa-domain:requirements.EMPLOYMENT_LETTER.description',
-    category: 'employment',
-    ownerType: 'applicant',
-    required: true,
-    conditionalOn: {
-      field: 'employment.employmentStatus',
-      operator: 'equals',
-      value: 'employed',
-    },
-    validityPeriodDays: 30,
-    // Harmonised list I.5.a spells out what the letter must contain. Notably
-    // it does *not* ask for salary, which the description used to require.
-    sourceRefs: ['gr-tr-harmonised-list'],
+    sourceRefs: ['eu-visa-code-annex2'],
     revision: 1,
   },
   {
-    code: 'APPROVED_LEAVE',
-    nameKey: 'visa-domain:requirements.APPROVED_LEAVE.name',
-    descriptionKey: 'visa-domain:requirements.APPROVED_LEAVE.description',
-    category: 'employment',
+    code: 'PROPERTY_DEED',
+    nameKey: 'visa-domain:requirements.PROPERTY_DEED.name',
+    descriptionKey: 'visa-domain:requirements.PROPERTY_DEED.description',
+    notesKey: 'visa-domain:requirements.PROPERTY_DEED.notes',
+    category: 'supporting',
     ownerType: 'applicant',
-    required: true,
-    conditionalOn: {
-      field: 'employment.employmentStatus',
-      operator: 'equals',
-      value: 'employed',
-    },
-    validityPeriodDays: 30,
-    // Same clause: "letter from employer and/or approval for leave".
-    sourceRefs: ['gr-tr-harmonised-list'],
+    required: false,
+    // Annex II B.4 is "proof of real estate property", and it sits under
+    // documentation for assessing the intention to leave — which is exactly
+    // what this requirement's note claims it does.
+    sourceRefs: ['eu-visa-code-annex2'],
     revision: 1,
   },
-  {
-    code: 'PAYSLIPS',
-    nameKey: 'visa-domain:requirements.PAYSLIPS.name',
-    descriptionKey: 'visa-domain:requirements.PAYSLIPS.description',
-    notesKey: 'visa-domain:requirements.PAYSLIPS.notes',
-    category: 'employment',
-    ownerType: 'applicant',
-    required: true,
-    conditionalOn: {
-      field: 'employment.employmentStatus',
-      operator: 'equals',
-      value: 'employed',
-    },
-    validityPeriodDays: 30,
-    // I.4.b — "salary slips of the last three months". The description said
-    // 3-6 months, which no source states.
-    sourceRefs: ['gr-tr-harmonised-list'],
-    revision: 1,
-  },
-  {
-    code: 'SOCIAL_SECURITY',
-    nameKey: 'visa-domain:requirements.SOCIAL_SECURITY.name',
-    descriptionKey: 'visa-domain:requirements.SOCIAL_SECURITY.description',
-    // The readable-QR criterion lived in both locale files with no key to reach
-    // it, so no applicant ever saw it — which is why wiring it here is a
-    // revision bump and not a copy fix (ADR-051).
-    notesKey: 'visa-domain:requirements.SOCIAL_SECURITY.notes',
-    category: 'employment',
-    ownerType: 'applicant',
-    // The harmonised list puts both SGK documents under Employees as
-    // requirements, not suggestions, so this is no longer optional (ADR-048).
-    required: true,
-    conditionalOn: {
-      field: 'employment.employmentStatus',
-      operator: 'equals',
-      value: 'employed',
-    },
-    validityPeriodDays: 30,
-    // I.5.a — SGK statement of employment (Sigortalı İşe Giriş Bildirgesi) and
-    // SGK registration and service document (SGK tescil ve hizmet dökümü),
-    // both with a readable QR code. Entirely Türkiye-scoped; see the
-    // jurisdiction quarantine in the provenance tests.
-    sourceRefs: ['gr-tr-harmonised-list'],
-    // Two bumps: naming both SGK documents (2), then rendering the readable-QR
-    // criterion at all (3). See REQUIREMENT_REVISIONS.
-    revision: 3,
-  },
-
-  // Financial
-  {
-    code: 'BANK_STATEMENTS',
-    nameKey: 'visa-domain:requirements.BANK_STATEMENTS.name',
-    descriptionKey: 'visa-domain:requirements.BANK_STATEMENTS.description',
-    notesKey: 'visa-domain:requirements.BANK_STATEMENTS.notes',
-    category: 'financial',
-    ownerType: 'applicant',
-    required: true,
-    validityPeriodDays: 30,
-    // I.4.a — "bank account statement showing movements over the last three
-    // months, proving the source of regular income", and Annex II B.3 names
-    // bank statements. The description said 3-6 months.
-    sourceRefs: ['eu-visa-code-annex2', 'gr-tr-harmonised-list'],
-    // The notes moved from a balance test to an income-provenance test —
-    // see REQUIREMENT_REVISIONS. Not the 3-6 month window, which narrowed
-    // nothing: anyone holding 3-6 months also holds the last three.
-    revision: 2,
-  },
-
-  // Sponsor (conditional)
   {
     code: 'SPONSOR_LETTER',
     nameKey: 'visa-domain:requirements.SPONSOR_LETTER.name',
@@ -303,8 +226,6 @@ export const commonSchengenDocuments: DocumentRequirement[] = [
     },
     revision: 1,
   },
-
-  // Previous travel
   {
     code: 'PREVIOUS_VISAS',
     nameKey: 'visa-domain:requirements.PREVIOUS_VISAS.name',
@@ -359,3 +280,18 @@ export const commonPreparationMilestones: PreparationMilestone[] = [
     daysBeforeAppointment: 2,
   },
 ]
+
+/**
+ * The Common Schengen ownership layer.
+ *
+ * It contributes the shared requirements and the EU source records they cite.
+ * Anything that is true only of one destination, or only of applicants filing
+ * in one jurisdiction, belongs to a later layer — the composer has no way to
+ * take a requirement back out once this layer has declared it.
+ */
+export const commonSchengenLayer: RequirementLayer = {
+  id: 'schengen-short-stay',
+  kind: 'common',
+  add: commonSchengenDocuments,
+  sources: euSources,
+}

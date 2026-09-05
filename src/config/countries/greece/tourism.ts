@@ -1,266 +1,162 @@
-import type { DocumentRequirement, VisaTypeTemplate } from '../../types'
+import { composeVisaTemplate } from '../../composition'
+import { greeceSources } from '../../sources/greece.sources'
 import {
   commonSchengenDocuments,
   commonPreparationMilestones,
+  commonSchengenLayer,
 } from '../common/schengen-short-stay'
+import { trFilingLayer } from '../jurisdictions/tr-filing'
+import type { RequirementLayer, VisaTypeTemplate } from '../../types'
 
 /**
- * Greece — Schengen short-stay, tourism (Type C), for applications lodged in
- * Türkiye.
+ * Greece — Schengen short-stay, tourism (Type C), composed for applications
+ * lodged in Türkiye.
  *
- * The jurisdiction matters and is not cosmetic. The strongest evidence behind
- * this template is the harmonised list adopted under local Schengen
- * cooperation *for Türkiye*, so several requirements state Turkish document
- * types and periods. Some of those requirements still physically live in
- * `commonSchengenDocuments`, which is a known and quarantined inaccuracy —
- * see the jurisdiction invariant in the provenance tests (ADR-048).
+ * THE DESTINATION LAYER OWNS NO REQUIREMENTS, AND THAT IS A FINDING RATHER THAN
+ * AN OVERSIGHT. Classifying all twenty-eight by the evidence the pack actually
+ * carries leaves nothing that is true because the destination is Greece: every
+ * requirement is either EU-level (the Visa Code) or Türkiye-level (the
+ * harmonised list adopted for Türkiye). What Greece genuinely owns is its
+ * identity, its review metadata, its three template notes, and the decision
+ * about which filing jurisdiction this pack is composed for.
+ *
+ * That is the clearest evidence the split is drawn in the right place: this
+ * pack was never "Greece", it was "EU + Türkiye" wearing a Greek name.
  */
-const greeceSpecificDocuments: DocumentRequirement[] = [
-  /**
-   * A general requirement for every applicant in the harmonised list (I.2),
-   * and one VisaFlow simply did not have. The document appeared only inside
-   * `RELATIONSHIP_PROOF`'s Turkish notes, where it read as evidence of a
-   * sponsor relationship — which is not what it is (ADR-048).
-   *
-   * Unconditional and required, exactly as the source states it. No recency,
-   * apostille or translation rule is added: the list states none.
-   */
-  {
-    code: 'CIVIL_REGISTRY_EXTRACT',
-    nameKey: 'visa-domain:requirements.CIVIL_REGISTRY_EXTRACT.name',
-    descriptionKey:
-      'visa-domain:requirements.CIVIL_REGISTRY_EXTRACT.description',
-    notesKey: 'visa-domain:requirements.CIVIL_REGISTRY_EXTRACT.notes',
-    category: 'civil_registry',
-    ownerType: 'applicant',
-    required: true,
-    sourceRefs: ['gr-tr-harmonised-list'],
-    revision: 1,
-  },
+const greeceDestinationLayer: RequirementLayer = {
+  id: 'greece',
+  kind: 'destination',
+  sources: greeceSources,
+}
 
-  // Employer company documents (may be requested for some nationalities)
-  {
-    code: 'EMPLOYER_TAX_PLATE',
-    nameKey: 'visa-domain:requirements.EMPLOYER_TAX_PLATE.name',
-    descriptionKey: 'visa-domain:requirements.EMPLOYER_TAX_PLATE.description',
-    notesKey: 'visa-domain:requirements.EMPLOYER_TAX_PLATE.notes',
-    category: 'employment',
-    ownerType: 'employer',
-    required: false,
-    conditionalOn: {
-      field: 'employment.employmentStatus',
-      operator: 'equals',
-      value: 'employed',
-    },
-    revision: 1,
-  },
-  {
-    code: 'EMPLOYER_TRADE_REGISTRY',
-    nameKey: 'visa-domain:requirements.EMPLOYER_TRADE_REGISTRY.name',
-    descriptionKey:
-      'visa-domain:requirements.EMPLOYER_TRADE_REGISTRY.description',
-    notesKey: 'visa-domain:requirements.EMPLOYER_TRADE_REGISTRY.notes',
-    category: 'employment',
-    /**
-     * Corrected from `employer` / `employed` (ADR-048).
-     *
-     * The harmonised list files the chamber-of-commerce registration and trade
-     * register bulletin under **Company owners** — it is the applicant's own
-     * company, not their employer's. VisaFlow was asking employees for a
-     * document the authority asks of business owners.
-     */
-    ownerType: 'applicant',
-    required: false,
-    conditionalOn: {
-      field: 'employment.employmentStatus',
-      operator: 'equals',
-      value: 'self_employed',
-    },
-    sourceRefs: ['gr-tr-harmonised-list'],
-    // Added the chamber-of-commerce registration — see REQUIREMENT_REVISIONS.
-    revision: 2,
-  },
-  {
-    code: 'EMPLOYER_SIGNATURE_CIRCULAR',
-    nameKey: 'visa-domain:requirements.EMPLOYER_SIGNATURE_CIRCULAR.name',
-    descriptionKey:
-      'visa-domain:requirements.EMPLOYER_SIGNATURE_CIRCULAR.description',
-    notesKey: 'visa-domain:requirements.EMPLOYER_SIGNATURE_CIRCULAR.notes',
-    category: 'employment',
-    ownerType: 'employer',
-    required: false,
-    conditionalOn: {
-      field: 'employment.employmentStatus',
-      operator: 'equals',
-      value: 'employed',
-    },
-    revision: 1,
-  },
-
-  // Property documents (supporting)
-  {
-    code: 'PROPERTY_DEED',
-    nameKey: 'visa-domain:requirements.PROPERTY_DEED.name',
-    descriptionKey: 'visa-domain:requirements.PROPERTY_DEED.description',
-    notesKey: 'visa-domain:requirements.PROPERTY_DEED.notes',
-    category: 'supporting',
-    ownerType: 'applicant',
-    required: false,
-    // Annex II B.4 is "proof of real estate property", and it sits under
-    // documentation for assessing the intention to leave — which is exactly
-    // what this requirement's note claims it does.
-    sourceRefs: ['eu-visa-code-annex2'],
-    revision: 1,
-  },
-
-  // Self-employed
-  {
-    /**
-     * Not a rename of `BUSINESS_LICENSE` — a replacement of it (ADR-049).
-     *
-     * The old code described a business registration or operating licence. The
-     * harmonised list asks company owners for the activity certificate, and an
-     * applicant could have satisfied the old wording with a different artifact.
-     * Reusing the code would have shown them as already holding this one.
-     */
-    code: 'COMPANY_ACTIVITY_CERTIFICATE',
-    nameKey: 'visa-domain:requirements.COMPANY_ACTIVITY_CERTIFICATE.name',
-    descriptionKey:
-      'visa-domain:requirements.COMPANY_ACTIVITY_CERTIFICATE.description',
-    category: 'employment',
-    ownerType: 'applicant',
-    required: true,
-    conditionalOn: {
-      field: 'employment.employmentStatus',
-      operator: 'equals',
-      value: 'self_employed',
-    },
-    // Company owners: "company activity certificate (Faaliyet Belgesi)" and
-    // the chamber-of-commerce registration.
-    sourceRefs: ['gr-tr-harmonised-list'],
-    revision: 1,
-  },
-  {
-    /**
-     * Replaces `TAX_RETURNS`, which described a filing the applicant submits.
-     * A statement of taxes payment evidences settlement instead — a filed
-     * return proves nothing about it (ADR-049).
-     */
-    code: 'TAX_PAYMENT_STATEMENT',
-    nameKey: 'visa-domain:requirements.TAX_PAYMENT_STATEMENT.name',
-    descriptionKey:
-      'visa-domain:requirements.TAX_PAYMENT_STATEMENT.description',
-    category: 'financial',
-    ownerType: 'applicant',
-    required: true,
-    conditionalOn: {
-      field: 'employment.employmentStatus',
-      operator: 'equals',
-      value: 'self_employed',
-    },
-    // Company owners: "statement of taxes payment" — a payment statement, not
-    // the tax returns this requirement used to describe.
-    sourceRefs: ['gr-tr-harmonised-list'],
-    revision: 1,
-  },
-
-  // Student
-  {
-    code: 'STUDENT_CERTIFICATE',
-    nameKey: 'visa-domain:requirements.STUDENT_CERTIFICATE.name',
-    descriptionKey: 'visa-domain:requirements.STUDENT_CERTIFICATE.description',
-    category: 'supporting',
-    ownerType: 'applicant',
-    required: true,
-    conditionalOn: {
-      field: 'employment.employmentStatus',
-      operator: 'equals',
-      value: 'student',
-    },
-    // I.5.d distinguishes higher education (a YÖK certificate with a readable
-    // QR code) from other students and pupils (a student certificate).
-    sourceRefs: ['gr-tr-harmonised-list'],
-    revision: 1,
-  },
-
-  // Retired
-  {
-    /**
-     * Replaces `PENSION_STATEMENT`, which described periodic payment
-     * printouts. The booklet is an identity document; holding one is no
-     * evidence of holding the other (ADR-049).
-     */
-    code: 'PENSIONER_BOOKLET',
-    nameKey: 'visa-domain:requirements.PENSIONER_BOOKLET.name',
-    descriptionKey: 'visa-domain:requirements.PENSIONER_BOOKLET.description',
-    category: 'financial',
-    ownerType: 'applicant',
-    required: true,
-    conditionalOn: {
-      field: 'employment.employmentStatus',
-      operator: 'equals',
-      value: 'retired',
-    },
-    // I.4.c — "pensioner booklet, if relevant". A different document from the
-    // payment statements this requirement used to describe.
-    sourceRefs: ['gr-tr-harmonised-list'],
-    revision: 1,
-  },
+/**
+ * The canonical order of the composed checklist.
+ *
+ * Order is load-bearing, not presentational. It decides the sequence documents
+ * are seeded into a new dossier, and `deriveNextDocument` picks the *first*
+ * required requirement with no record yet — so reordering this array changes
+ * which document the workspace tells an applicant to get next.
+ *
+ * It is stated explicitly because layer order would not reproduce it. The
+ * Türkiye-owned requirements are interleaved through the middle of the list
+ * (positions 9–13) and again at the end, which is where they sat when the pack
+ * was two concatenated arrays. Preserving that exactly is what makes the layer
+ * split a refactor rather than a change to what applicants are asked for; the
+ * pin in `greece-composition-pin.test.ts` is what proves it.
+ */
+const GREECE_TOURISM_ORDER = [
+  'APPLICATION_FORM',
+  'PASSPORT_CURRENT',
+  'PASSPORT_PREVIOUS',
+  'PHOTOS',
+  'ID_CARD_COPY',
+  'TRAVEL_INSURANCE',
+  'TRANSPORT_RESERVATION',
+  'ACCOMMODATION',
+  'ITINERARY',
+  'EMPLOYMENT_LETTER',
+  'APPROVED_LEAVE',
+  'PAYSLIPS',
+  'SOCIAL_SECURITY',
+  'BANK_STATEMENTS',
+  'SPONSOR_LETTER',
+  'SPONSOR_BANK_STATEMENTS',
+  'SPONSOR_INCOME_PROOF',
+  'RELATIONSHIP_PROOF',
+  'PREVIOUS_VISAS',
+  'CIVIL_REGISTRY_EXTRACT',
+  'EMPLOYER_TAX_PLATE',
+  'EMPLOYER_TRADE_REGISTRY',
+  'EMPLOYER_SIGNATURE_CIRCULAR',
+  'PROPERTY_DEED',
+  'COMPANY_ACTIVITY_CERTIFICATE',
+  'TAX_PAYMENT_STATEMENT',
+  'STUDENT_CERTIFICATE',
+  'PENSIONER_BOOKLET',
 ]
 
-export const greeceTourismTemplate: VisaTypeTemplate = {
-  id: 'schengen-short-stay-tourism',
-  visaType: 'short_stay_tourism',
-  nameKey: 'visa-domain:visaTypes.schengen-short-stay-tourism',
-  documentRequirements: [
-    ...commonSchengenDocuments,
-    ...greeceSpecificDocuments,
-  ],
-  preparationMilestones: [
-    ...commonPreparationMilestones,
-    {
-      id: 'request-employer-company-docs',
-      nameKey: 'visa-domain:milestones.request-employer-company-docs.name',
-      descriptionKey:
-        'visa-domain:milestones.request-employer-company-docs.description',
-      daysBeforeAppointment: 28,
-      relatedDocuments: [
-        'EMPLOYER_TAX_PLATE',
-        'EMPLOYER_TRADE_REGISTRY',
-        'EMPLOYER_SIGNATURE_CIRCULAR',
-      ],
-    },
-  ],
-  notesKeys: [
-    'visa-domain:templateNotes.greece.nationalityVaries',
-    'visa-domain:templateNotes.greece.visaCentre',
-    'visa-domain:templateNotes.greece.peakSeason',
-  ],
+/**
+ * Composed once, at module load.
+ *
+ * `resolveVisaTemplate` therefore returns the same object every time, exactly
+ * as it did when this was an array literal — which matters because a dozen
+ * `useMemo([template])` hooks across the feature models depend on that
+ * reference being stable, and the `DossierProvider` reducer resolves the
+ * template synchronously on every document update.
+ *
+ * Composing here rather than behind a cache in the resolver also means a
+ * malformed pack fails at **import** — a boot error naming the conflict, not a
+ * lazy one on whichever screen happens to resolve first.
+ */
+export const greeceTourismComposition = composeVisaTemplate({
+  base: {
+    id: 'schengen-short-stay-tourism',
+    visaType: 'short_stay_tourism',
+    nameKey: 'visa-domain:visaTypes.schengen-short-stay-tourism',
+    /**
+     * Milestones are not layer-owned yet. The composer has a vocabulary for
+     * requirements only, so these stay concatenated as they were. Splitting
+     * them is a separate question — one of the seven is Greece's and six are
+     * shared — and doing it inside the behaviour-risk slice would have meant
+     * changing the composer to change the pack at the same time.
+     */
+    preparationMilestones: [
+      ...commonPreparationMilestones,
+      {
+        id: 'request-employer-company-docs',
+        nameKey: 'visa-domain:milestones.request-employer-company-docs.name',
+        descriptionKey:
+          'visa-domain:milestones.request-employer-company-docs.description',
+        daysBeforeAppointment: 28,
+        relatedDocuments: [
+          'EMPLOYER_TAX_PLATE',
+          'EMPLOYER_TRADE_REGISTRY',
+          'EMPLOYER_SIGNATURE_CIRCULAR',
+        ],
+      },
+    ],
+    notesKeys: [
+      'visa-domain:templateNotes.greece.nationalityVaries',
+      'visa-domain:templateNotes.greece.visaCentre',
+      'visa-domain:templateNotes.greece.peakSeason',
+    ],
 
+    /**
+     * Unchanged by the layer split, deliberately. `templateVersion` versions
+     * what the pack *asks an applicant for*, and the composed output is
+     * identical to what the concatenated arrays produced — same codes, same
+     * order, same revisions, same citations. Bumping it would assert a change
+     * to the requirements that did not happen.
+     */
+    templateVersion: '1.4.0',
+    lastReviewedAt: '2026-08-29',
+    /**
+     * Still derived from evidence rather than chosen: 18 of the 28 requirements
+     * carry their own resolvable, dated source. A test recomputes it rather
+     * than trusting this line (ADR-047, ADR-048). Moving requirements between
+     * layers changes neither their citations nor the arithmetic.
+     */
+    reviewStatus: 'partially_verified',
+    sourceIds: ['gr-mfa-general'],
+  },
   /**
-   * Bumped: every requirement now declares its acceptance-contract `revision`
-   * explicitly, `BANK_STATEMENTS` records a tightening that shipped unlogged,
-   * and `SOCIAL_SECURITY` renders a criterion that had been unreachable. The
-   * pack version is its own axis — the app, the dossier schema and the storage
-   * format are all untouched.
-   */
-  templateVersion: '1.4.0',
-  /**
-   * The date this template was last reviewed by a maintainer. Still not a
-   * verification date — `lastVerifiedAt` on each source is that.
-   */
-  lastReviewedAt: '2026-08-29',
-  /**
-   * Derived from evidence, not chosen: 18 of the 28 requirements carry their
-   * own resolvable, dated source and 10 do not. A test recomputes it rather
-   * than trusting this line (ADR-047, ADR-048).
+   * THE TRANSITIONAL SEAM. The destination declares which filing jurisdiction
+   * production composes, because the domain cannot yet answer "where is this
+   * application being lodged?" — there is no `filingJurisdiction` field, and
+   * `countryOfResidence` means something else (a Turkish national resident in
+   * Germany may file in either).
    *
-   * The jump from 4 came from the harmonised list adopted for Türkiye, which
-   * names actual Turkish document types and the periods they must cover. Ten
-   * requirements are still uncited, three of them because a nearby source
-   * exists but does not say what VisaFlow claims — the photo dimensions, the
-   * employer tax plate and the signature circular.
+   * This is NOT an assertion that Greece implies Türkiye. It is a placeholder
+   * for a selector that does not exist yet, and it is shaped so that when one
+   * arrives it replaces this line without disturbing the ownership layers
+   * themselves. Do not read it as domain truth, and do not derive a
+   * jurisdiction from residence to remove it.
    */
-  reviewStatus: 'partially_verified',
-  sourceIds: ['gr-mfa-general'],
-}
+  layers: [commonSchengenLayer, greeceDestinationLayer, trFilingLayer],
+  requirementOrder: GREECE_TOURISM_ORDER,
+})
+
+export const greeceTourismTemplate: VisaTypeTemplate =
+  greeceTourismComposition.template
+
+export { commonSchengenDocuments }

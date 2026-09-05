@@ -4,6 +4,7 @@ import {
   getAllCountryConfigs,
   commonSchengenDocuments,
 } from '@/config/countries'
+import { greeceTourismComposition } from '@/config/countries/greece/tourism'
 import {
   computeVerificationCoverage,
   isReviewStatusSupported,
@@ -406,13 +407,29 @@ describe('country packs — Greece composition and citations', () => {
   const greece = PACKS.find((p) => p.countryCode === 'GR')
   const tourism = greece?.visaTypes[0]
 
-  it('composes 19 shared Schengen requirements and 9 Greece-specific ones', () => {
-    // Pins the composition the coverage denominator depends on. If the shared
-    // array grows, coverage silently drops and this says so first.
+  it('composes 28 requirements from three ownership layers', () => {
+    // Pins the composition the coverage denominator depends on. It used to
+    // assert that the first nineteen codes were the shared array, which held
+    // only while the pack was two concatenated arrays — the Türkiye-owned
+    // requirements sit at positions 9-13 and again at the end, so a prefix
+    // comparison cannot express the split.
+    //
+    // What it says instead is where the twenty-eight come from, which is the
+    // fact the coverage arithmetic actually depends on.
     const codes = requirementsOf(tourism!).map((r) => r.code)
-    const shared = commonSchengenDocuments.map((r) => r.code)
     expect(codes.length).toBe(28)
-    expect(codes.slice(0, shared.length)).toEqual(shared)
+
+    const byLayer = new Map<string, number>()
+    for (const [, layerId] of greeceTourismComposition.ownership) {
+      byLayer.set(layerId, (byLayer.get(layerId) ?? 0) + 1)
+    }
+    expect(Object.fromEntries(byLayer)).toEqual({
+      'schengen-short-stay': 15,
+      'tr-filing': 13,
+      // 'greece' owns none: nothing in this pack is true *because* the
+      // destination is Greece. Absent from the map rather than zero, since a
+      // layer that declares nothing never reaches the ownership tally.
+    })
   })
 
   it('carries the civil registry extract exactly once', () => {
@@ -568,19 +585,27 @@ describe('country packs — the shared array is not yet jurisdiction-neutral', (
   const isJurisdictionScoped = (source: RequirementSource) =>
     typeof source.jurisdiction === 'string' && source.jurisdiction !== 'EU'
 
-  async function contaminatedSharedRequirements(): Promise<string[]> {
+  /**
+   * Shared requirements citing a source scoped to one filing jurisdiction.
+   *
+   * This is the contamination that actually propagates: a citation is part of
+   * what the requirement asserts, so a second destination inheriting it would
+   * be claiming another jurisdiction's authority for its own checklist.
+   */
+  function citationScopedSharedRequirements(): string[] {
     const scoped = new Set(
       PACKS.flatMap(sourcesOf)
         .filter(isJurisdictionScoped)
         .map((s) => s.id)
     )
+    return commonSchengenDocuments
+      .filter((r) => (r.sourceRefs ?? []).some((id) => scoped.has(id)))
+      .map((r) => r.code)
+      .sort()
+  }
 
-    const offenders = new Set<string>()
-    for (const requirement of commonSchengenDocuments) {
-      if ((requirement.sourceRefs ?? []).some((id) => scoped.has(id))) {
-        offenders.add(requirement.code)
-      }
-    }
+  async function contaminatedSharedRequirements(): Promise<string[]> {
+    const offenders = new Set<string>(citationScopedSharedRequirements())
 
     // Wording matters as much as provenance: a shared requirement naming a
     // Turkish institution is jurisdiction-specific whether or not it cites
@@ -606,12 +631,31 @@ describe('country packs — the shared array is not yet jurisdiction-neutral', (
     return [...offenders].sort()
   }
 
-  it('knows exactly which shared requirements are Türkiye-scoped', async () => {
-    // Recorded, not hidden. If this list shrinks, the debt is being paid down;
-    // if it grows, more of the shared array has quietly become jurisdictional.
+  it('no longer holds a jurisdiction-scoped citation', () => {
+    // The debt ADR-048 quarantined, and the half that actually propagates: a
+    // citation travels with the requirement, so a second destination
+    // inheriting one would be claiming Türkiye's authority for its own
+    // checklist. Eleven shared requirements carried one before the split; the
+    // six that are genuinely EU-level now get theirs back as a
+    // composition-time refinement from the overlay that owns it.
+    expect(citationScopedSharedRequirements()).toEqual([])
+  })
+
+  it('still names one requirement whose Turkish label glosses a Turkish document', async () => {
+    // `ID_CARD_COPY` is not a layer-ownership problem, and moving it would be
+    // the wrong fix. Its English prose is entirely generic — "Copy of national
+    // identity card (both sides)" — it cites nothing, and a national ID copy is
+    // a reasonable ask for any Schengen destination. What trips the scan is the
+    // *Turkish translation*, which glosses the local document by name
+    // ("nüfus cüzdanının veya kimlik kartının").
+    //
+    // So the token scan cannot currently tell a jurisdictional requirement from
+    // a translation that names a local document to be helpful. Recorded rather
+    // than silenced: neutralising the gloss is i18n content work, and teaching
+    // the scan the difference is a change to the invariant. Both are real, and
+    // neither belongs in a layer-split commit.
     const offenders = await contaminatedSharedRequirements()
-    expect(offenders.length).toBeGreaterThan(0)
-    expect(offenders).toContain('SOCIAL_SECURITY')
+    expect(offenders).toEqual(['ID_CARD_COPY'])
   })
 
   it('refuses to let a second country pack inherit them', async () => {
