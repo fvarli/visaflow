@@ -2189,6 +2189,10 @@ country-pack-provenance,workspace-repository}.test.ts`, `docs/country-pack-guide
    belongs to the owning layer and composition cannot change it.
 5. Where product behaviour depends on requirement order, the template declares that order explicitly.
 6. Composition runs **once at module load** for the current static packs.
+7. Every layer is registered in `src/config/countries/layers.ts`, and code ownership is enforced
+   **registry-wide** rather than per composition.
+8. The jurisdiction quarantine is checked at **two levels** — at the layer and at the composition —
+   because neither subsumes the other.
 
 **Context:**
 
@@ -2237,6 +2241,24 @@ non-EU source; `ID_CARD_COPY` and `SOCIAL_SECURITY` named Turkish institutions i
   edit invalidate a country-pack composition, which inverts the dependency. `code` decides identity;
   the useful neighbouring guard — every shipped code resolves to a non-empty label in both locales —
   lives in `requirement-identity.test.ts` and catches the failure that actually reaches an applicant.
+- **Ownership is enforced registry-wide, not per composition.** The violation that matters is
+  invisible to composition: if the Türkiye overlay and a future German overlay both declared
+  `SOCIAL_SECURITY`, no composition would ever contain both, every composition would compose
+  cleanly, and the collision would surface only when somebody exported a dossier from one and
+  imported it into the other. So the invariant walks `ALL_REQUIREMENT_LAYERS`. That registry is
+  read by no production code path, which is exactly the shape [ADR-050](#adr-050) warns about — so
+  it is cross-checked in both directions against the composer's own `ownership` map: every layer a
+  composition used must be registered, and every registered layer declaring requirements must be
+  composed by something. A registry that can drift is a registry that will.
+- **The quarantine has two levels, and the second is not redundant.** At the **layer**, a `common` or
+  `destination` layer must not *declare* a requirement citing jurisdiction-scoped evidence — the
+  original ADR-048 defect, caught where it is written. At the **composition**, the jurisdictions
+  appearing in citations must be a subset of those the composed layers contribute. The case that
+  forces both: `PASSPORT_CURRENT` is common-owned and *does* cite a Türkiye source in the Greece
+  composition, because the overlay appended it. The layer check correctly calls that clean; only a
+  composition-aware check can distinguish the refinement mechanism working from evidence leaking in.
+  Both assert something positive as well as something absent, since "no violations found" and "found
+  nothing at all" are otherwise the same result.
 - **The two proof scopes stay separate.** Synthetic layers (two destinations × two jurisdictions)
   prove the generic composition and quarantine property and that its negative controls fire;
   production invariants read only the real layer declarations and the composed pack. They share a
