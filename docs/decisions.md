@@ -2169,3 +2169,134 @@ greece/tourism,requirement-revisions}.ts`, `src/features/documents/{document-sem
 documents-model}.ts`, `src/i18n/locales/{tr,en}/documents.json`, `src/tests/fixtures/dossiers.ts`,
 `src/tests/features/{next-document,completion-provenance,requirement-identity,
 country-pack-provenance,workspace-repository}.test.ts`, `docs/country-pack-guide.md`.
+
+---
+
+## ADR-052: A Country Pack Is Composed From Three Ownership Layers
+
+**Status:** Accepted · 2026-09-06 · pays down [ADR-048](#adr-048), extends
+[ADR-049](#adr-049), [ADR-051](#adr-051)
+
+**Decision:**
+
+1. A visa-type template is **composed** from ordered ownership layers —
+   **Common Schengen → Destination → Filing Jurisdiction** — rather than concatenated.
+2. A requirement `code` is **globally unique across every declared layer**, and exactly one layer
+   owns it. Ownership is structural: the layer whose `add` array declares it.
+3. A later layer may do exactly one thing to an earlier layer's requirement: **append `sourceRefs`**.
+   There is no contract-bearing override and no suppression.
+4. `REQUIREMENT_REVISIONS` stays keyed by `code`, with contiguity checked per code. A revision
+   belongs to the owning layer and composition cannot change it.
+5. Where product behaviour depends on requirement order, the template declares that order explicitly.
+6. Composition runs **once at module load** for the current static packs.
+
+**Context:**
+
+ADR-048 found that `commonSchengenDocuments` was not what its name claimed. It held nineteen
+requirements presented as shared across Schengen while carrying Türkiye-scoped citations and Turkish
+institution names, and — decisively — it had **no override mechanism**, so a second destination pack
+would have inherited all of it verbatim. That ADR quarantined the array behind an executable
+invariant rather than refactoring mid-evidence-sprint, and the invariant blocked pack #2.
+
+Measured before the split: **12 of the 19 shared requirements were contaminated.** Eleven cited a
+non-EU source; `ID_CARD_COPY` and `SOCIAL_SECURITY` named Turkish institutions in rendered prose.
+
+**Rationale:**
+
+- **The destination layer owns no requirements, and that is the finding.** Classifying all
+  twenty-eight by the evidence the pack actually carries leaves nothing true *because* the
+  destination is Greece: everything is either EU-level (the Visa Code) or Türkiye-level (the
+  harmonised list adopted under local Schengen cooperation). Greece owns its identity, review
+  metadata, three template notes and its order contract. The pack was never "Greece"; it was
+  "EU + Türkiye" wearing a Greek name. `PROPERTY_DEED` moved the other way, into Common: it cites
+  Annex II B.4 and says nothing about either.
+- **Identity is global because a dossier is portable.** A `code` names a record in somebody's file.
+  If two layers could own one code, a dossier exported from one composition and imported into
+  another would silently change meaning. Per-composition checking cannot see that violation — two
+  overlays never co-compose — so the invariant walks the layer registry instead.
+- **Refinement is citation-only for the same reason.** Allowing a layer to change `required`,
+  `conditionalOn`, prose or `revision` on a code it does not own would make `satisfiedRevision: N`
+  mean different things in different compositions: the aliasing ADR-049 forbids, arriving through
+  the revision axis instead of the label axis. ADR-051 already establishes that attaching a source
+  is not a contract change, which is precisely why appending citations is safe and replacing prose
+  would not be. **A layer needing different acceptance criteria must own the requirement outright.**
+- **Order is behaviour, not presentation.** It decides the sequence documents are seeded into a new
+  dossier, and `deriveNextDocument` picks the *first* required requirement with no record yet — so
+  reordering changes which document the workspace tells an applicant to obtain next. Greece's
+  Türkiye-owned requirements are interleaved through the middle of the checklist and again at the
+  end, so layer order alone would have moved thirteen of twenty-eight. The explicit
+  `requirementOrder` is what made the split provably behaviour-free.
+- **Module-load composition, not a cache.** `resolveVisaTemplate` returns the same object every
+  call, which a dozen `useMemo([template])` hooks and the `DossierProvider` reducer depend on.
+  Composing once at definition means that is true by construction rather than by a cache that could
+  miss, and a malformed pack fails at **import**, naming the conflict, rather than lazily on
+  whichever screen resolves first. `resolveVisaTemplate` itself was not modified.
+- **Rendered prose is never identity.** Labels vary by locale, improve when a translator rewords
+  them, and are absent for an untranslated key; two legitimate requirements may reasonably share a
+  short label. A duplicate-label check therefore exists nowhere: as a hard gate it would let an i18n
+  edit invalidate a country-pack composition, which inverts the dependency. `code` decides identity;
+  the useful neighbouring guard — every shipped code resolves to a non-empty label in both locales —
+  lives in `requirement-identity.test.ts` and catches the failure that actually reaches an applicant.
+- **The two proof scopes stay separate.** Synthetic layers (two destinations × two jurisdictions)
+  prove the generic composition and quarantine property and that its negative controls fire;
+  production invariants read only the real layer declarations and the composed pack. They share a
+  data-free detector, which is not the same as sharing a source of truth.
+
+**The transitional seam — read this before assuming.**
+
+Greece's production composition selects the Türkiye overlay **from configuration**. This is **not**
+the domain assertion "Greece implies Türkiye". No `filingJurisdiction` field exists, and filing
+jurisdiction must **not** be derived from `countryOfResidence` — residence is not where an
+application is lodged, and a Turkish national resident in Germany may file in either. Dossier-driven
+selection is a deferred domain capability; the API is shaped so a selector replaces the
+config-declared line without restructuring the layers.
+
+**Deliberately not built, so the absence is not mistaken for an oversight:**
+
+- **Contract-bearing override.** See above; it arrives, if ever, with its own ADR and invariants.
+- **`suppress`** ("present, but not in this composition"). Nothing needs it, and its distinction from
+  retirement is domain-significant enough that fixing its semantics before a real case could argue
+  about them would be the wrong order.
+- **Layer-keyed revision history.** Considered and rejected: it would have made one code carry two
+  revision histories, which is the portability break above.
+
+**Known limitations, recorded rather than resolved:**
+
+- **`BANK_STATEMENTS` ownership is genuinely ambiguous.** The concept is EU-level (Annex II B.3);
+  its revision-2 contract — movements over three months proving regular income — is Türkiye-driven.
+  Assigned to `tr-filing` so Greece's output was preserved. The clean answer needs generic prose that
+  does not exist *and* contract-bearing override, which is not built. Consequence accepted knowingly:
+  a future Greece-from-elsewhere composition has no financial-means requirement until both arrive.
+- **`ID_CARD_COPY` is an i18n question, not an ownership one.** Its English prose is generic and it
+  cites nothing; only the Turkish translation glosses the local document by name. Moving it would
+  leave a second destination asking for no ID copy at all. The token scan cannot tell a jurisdictional
+  requirement from a translator being helpful, so it is a heuristic with a reasoned allowlist, and a
+  second test asserts the entry still fires — a stale allowlist entry is worse than none.
+- **Milestones are outside the layer model.** The composer has a vocabulary for requirements only, so
+  `preparationMilestones` are still concatenated. Six of the seven are shared and one is Greece's.
+- **`isRequirementApplicable` cannot see the filing jurisdiction.** Its context is
+  `{ employment, financing }` and contains no applicant data, so no jurisdiction-conditional
+  requirement is expressible even once a discriminator exists ([ADR-048] records the same blocker
+  alongside the missing comparison and conjunction operators).
+- **Generic codes monopolised by Türkiye-specific contracts.** `SOCIAL_SECURITY`,
+  `CIVIL_REGISTRY_EXTRACT`, `PENSIONER_BOOKLET`, `TAX_PAYMENT_STATEMENT` and
+  `COMPANY_ACTIVITY_CERTIFICATE` are generic names holding jurisdiction-specific documents; a second
+  jurisdiction with its own social-security document finds the obvious code taken. `EMPLOYER_TRADE_REGISTRY`
+  keeps a prefix that contradicts the `ownerType` ADR-048 corrected. Renaming means retire + new code
+  under ADR-049, so these are reported, not renamed.
+
+**Consequences.** No schema, storage or template version moved: `schemaVersion` stays `1.2.0`,
+`STORAGE_FORMAT_VERSION` stays `2`, and `templateVersion` stays `1.4.0` deliberately — it versions
+what the pack asks an applicant for, and the composed output is identical, so bumping it would assert
+a change that did not happen. No migration was required and none was written. The entire consumer
+surface — roughly fourteen modules resolving the template — is untouched. Equivalence is *proven*
+rather than asserted: a pin written before any content moved compares the resolved output code by
+code, object by object, including milestones and source order.
+
+**Implementation:** `src/config/composition.ts` (new), `src/config/types.ts`,
+`src/config/countries/layers.ts` (new), `src/config/countries/jurisdictions/tr-filing.ts` (new),
+`src/config/sources/tr-filing.sources.ts` (new), `src/config/countries/{common/schengen-short-stay,
+greece/tourism,greece/index}.ts`, `src/config/sources/greece.sources.ts`,
+`src/tests/support/jurisdiction-scope.ts` (new), `src/tests/fixtures/test-packs.ts` (new),
+`src/tests/features/{greece-composition-pin,composition,pack-composition,country-pack-provenance,
+requirement-identity}.test.ts`.

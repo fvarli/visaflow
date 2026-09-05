@@ -94,9 +94,24 @@ persisted. Full detail: [validation-engine.md](./validation-engine.md). **Depend
 `CountryConfig → VisaTypeTemplate → DocumentRequirement`, plus preparation milestones and honest
 `RequirementSource` records ([ADR-004], [ADR-014], [ADR-015]). Requirements use translation keys,
 not prose; identifiers are stable and language-independent. `resolveVisaTemplate(countryCode,
-visaType)` maps the persisted dossier enum to a template. Authoring guide:
-[country-pack-guide.md](./country-pack-guide.md). **Depends on:** Domain types. **Must not:**
-contain applicant data or invented/scraped source information.
+visaType)` maps the persisted dossier enum to a template.
+
+A template is **composed from three ownership layers** — Common Schengen → Destination → Filing
+jurisdiction — rather than written as one array ([ADR-052]). Each layer answers a different question:
+what is true of Schengen short-stay applications generally, what is true because of the destination,
+and what is true because of where the application is lodged. A requirement `code` is globally unique
+and owned by exactly one layer; a later layer's only power over an earlier one's requirement is to
+**append a citation**. It cannot change wording, requiredness, applicability or `revision`, because
+`satisfiedRevision` on a stored document has to mean the same thing in every composition.
+
+Composition runs once at module load, so `resolveVisaTemplate` returns the same object on every call
+— which the feature models' `useMemo` dependencies and the `DossierProvider` reducer rely on — and a
+malformed pack fails at import rather than on whichever screen resolves first. Where order affects
+behaviour (document seeding, the next-document recommendation) the template declares it explicitly.
+
+Authoring guide: [country-pack-guide.md](./country-pack-guide.md). **Depends on:** Domain types.
+**Must not:** contain applicant data, invented/scraped source information, or a requirement whose
+evidence is scoped to a filing jurisdiction the layer does not belong to.
 
 ### 4. Import / Export
 

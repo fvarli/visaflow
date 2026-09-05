@@ -326,10 +326,22 @@ no warning.
       rules were corrected and the missing civil registry extract added — the
       one change that raises every existing dossier's outstanding count by one.
       Ten requirements remain uncited, three of them beside a source that
-      nearly fits. `commonSchengenDocuments` is now known to mean "shared by
-      the only production pack", not "proven across Schengen": an invariant
-      names the Türkiye-scoped requirements inside it and fails the build if a
-      second pack would inherit them (ADR-048)
+      nearly fits. `commonSchengenDocuments` was known to mean "shared by
+      the only production pack", not "proven across Schengen" (ADR-048) — a debt
+      the layer split has since paid (below)
+
+- [x] **A country pack is composed from three ownership layers** — Common
+      Schengen → Destination → Filing jurisdiction (ADR-052). Twelve of the
+      nineteen shared requirements had been carrying Türkiye-scoped citations or
+      Turkish institution names that a second pack would have inherited whole.
+      Classifying all 28 by the evidence the pack actually carries put 15 in
+      Common, 13 in a Türkiye filing-jurisdiction layer, and **none** in the
+      Greece destination layer — the pack was never "Greece", it was "EU +
+      Türkiye". A `code` is globally unique and owned by exactly one layer; a
+      later layer may only append citations, never change a requirement's
+      wording, requiredness, applicability or revision. Greece's resolved output
+      is byte-identical, proven by a pin written before anything moved, and the
+      resolver was not modified at all
 
 - [x] **A requirement code is an identity, not a label** — the evidence sprint
       re-pointed three codes at different real-world documents while keeping

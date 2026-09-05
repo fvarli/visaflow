@@ -41,15 +41,37 @@ Two ideas are load-bearing:
 
 ```
 src/config/
-  types.ts                         # shared model (CountryConfig, VisaTypeTemplate, …)
-  sources/<country>.sources.ts     # official-source citations
+  types.ts                          # shared model + RequirementLayer, CitationRefinement
+  composition.ts                    # composeVisaTemplate + CompositionError
+  sources/<country>.sources.ts      # destination-scoped citations
+  sources/<jurisdiction>.sources.ts # filing-jurisdiction-scoped citations
   countries/
-    common/schengen-short-stay.ts  # shared Schengen requirements + milestones
+    common/schengen-short-stay.ts   # the Common Schengen layer + milestones
+    jurisdictions/<jx>-filing.ts    # a filing-jurisdiction layer
     <country>/
-      index.ts                     # CountryConfig
-      <visa-type>.ts               # VisaTypeTemplate
-    index.ts                       # registry + resolvers
+      index.ts                      # CountryConfig
+      <visa-type>.ts                # destination layer + composition
+    layers.ts                       # every declared layer, for the invariants
+    index.ts                        # registry + resolvers
 ```
+
+## The three layers
+
+A template is **composed**, not concatenated. Each layer answers a different question, and putting a
+requirement in the wrong one is how a pack ends up claiming somebody else's authority (ADR-052):
+
+| Layer | Holds a requirement when it is true… |
+|---|---|
+| **Common Schengen** | of Schengen short-stay applications generally |
+| **Destination** | because of the country being travelled to |
+| **Filing jurisdiction** | because of where and how the application is lodged |
+
+The test that decides: *would an applicant filing for this destination from a different country be
+asked for it?* If no, it is not Common. *Would an applicant filing in this country for a different
+destination plausibly be asked for it?* If yes, it is jurisdiction, not destination.
+
+Greece's destination layer owns **zero** requirements. That is not a mistake — nothing in that pack
+is true because the destination is Greece.
 
 ## Step 1 — Stable identifiers
 
@@ -89,7 +111,37 @@ const documentRequirements: DocumentRequirement[] = [
 ]
 ```
 
-Reuse `commonSchengenDocuments` for the shared Schengen set rather than re-listing it.
+Declare it in the layer that **owns** it, then compose. Do not re-list a requirement another layer
+already declares — a `code` is owned by exactly one layer registry-wide, and the composer rejects a
+second declaration.
+
+```typescript
+export const xxFilingLayer: RequirementLayer = {
+  id: 'xx-filing',
+  kind: 'jurisdiction',
+  add: documentRequirements,
+  // The only override a layer has: append a citation to somebody else's
+  // requirement. You cannot change its wording, requiredness, applicability or
+  // revision — a layer needing different criteria must own it outright.
+  refine: [{ code: 'APPLICATION_FORM', addSourceRefs: ['xx-consulate-doc-list'] }],
+  sources: xxSources,
+}
+```
+
+Then compose, register the layer in `countries/layers.ts`, and declare an explicit
+`requirementOrder` if the pack has an established order to preserve — order decides document seeding
+and which document the workspace recommends next, so it is behaviour rather than presentation:
+
+```typescript
+export const xxComposition = composeVisaTemplate({
+  base: { /* id, visaType, milestones, templateVersion, reviewStatus, … */ },
+  layers: [commonSchengenLayer, xxDestinationLayer, xxFilingLayer],
+  requirementOrder: XX_ORDER, // omit for a new pack with no order to preserve
+})
+```
+
+Composition happens once at module load, so a malformed pack fails at import rather than on whichever
+screen resolves first, and `resolveVisaTemplate` keeps returning the same object every call.
 
 ### `revision` — the acceptance contract
 

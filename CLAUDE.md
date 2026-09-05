@@ -113,8 +113,15 @@ src/
 ### Country Configurations
 - `country → visa type → requirements`; requirements carry translation keys,
   not prose (`nameKey`/`descriptionKey`/`notesKey`)
+- A template is **composed** from three ownership layers — Common Schengen →
+  Destination → Filing jurisdiction (ADR-052). A requirement `code` is globally
+  unique and owned by exactly one layer; a later layer may only **append
+  citations** to an earlier one's requirement, never change its wording,
+  requiredness, applicability or `revision`. Register every layer in
+  `src/config/countries/layers.ts` — the identity invariants walk it
 - Located in `src/config/countries/<country>/`; resolve with
-  `resolveVisaTemplate(countryCode, visaType)`
+  `resolveVisaTemplate(countryCode, visaType)`, which returns a composition
+  built once at module load (so the reference is stable across renders)
 - Support conditional requirements (e.g., "required if employed")
 - Source metadata is honest: no scraping, no invented dates; unverified stays
   `unverified` (ADR-015). Greece Schengen tourism is the first implemented pack;

@@ -2233,3 +2233,86 @@ different things), no aggregate readiness, no ranking or comparison across dossi
 unchanged: switching dossiers while on `/documents` still re-seeds a checklist into an empty incoming
 dossier — pre-existing behaviour of visiting that page, not switch-specific, and left alone rather
 than changed on the way past.
+
+---
+
+# Iteration 30 — Country-pack composition: three ownership layers
+
+Baseline `b038416`, clean, CI green, 1233/1233. ADR-048 had quarantined
+`commonSchengenDocuments` rather than refactoring it mid-evidence-sprint, and that quarantine
+blocked country pack #2. This paid it down.
+
+### What the measurement found before anything moved
+
+**12 of the 19 shared requirements were contaminated** — eleven cited a non-EU source, and
+`ID_CARD_COPY` and `SOCIAL_SECURITY` named Turkish institutions in rendered prose. So the split was
+not architecture for its own sake.
+
+Then classifying all 28 by the evidence the pack actually carries produced the finding that shaped
+everything else: **the destination layer owns zero requirements.** Nothing in the pack is true
+*because* the destination is Greece — it is all either EU-level (the Visa Code) or Türkiye-level (the
+harmonised list). Greece owns its identity, review metadata, three notes and its order contract. The
+pack was never "Greece"; it was "EU + Türkiye" wearing a Greek name. `PROPERTY_DEED` moved the other
+way into Common, having been filed under Greece by accident of where it was written.
+
+### Shipped in five commits, each independently revertable
+
+| | |
+|---|---|
+| `d40e3be` | Pin Greece's resolved output before anything moves |
+| `5d1f327` | Composer primitives, wired to nothing |
+| `a0edde5` | Prove composition on a *second* composition, not Greece |
+| `6cc6c7e` | Move content into layers; compose Greece |
+| `275cca8` + `0e7e4af` | Invariants over layers and compositions |
+
+### The decisions worth remembering
+
+- **Identity is global by `code`, and that constrains everything else.** An early draft keyed the
+  revision ledger by `(layer, code)`, which would have let `satisfiedRevision: 2` mean two things for
+  one code depending on which composition read it — the aliasing ADR-049 forbids, arriving through
+  the revision axis. Narrowing refinement to citations-only removed the need for it entirely, and
+  `requirement-revisions.ts` ended up **unchanged**.
+- **Order was load-bearing and nearly missed.** The Türkiye-owned requirements are interleaved
+  through the middle of the checklist and again at the end, so layer order alone would have reordered
+  13 of 28 — changing document seeding and which document the workspace recommends next. Hence the
+  explicit `requirementOrder`.
+- **Composing at module load meant `resolveVisaTemplate` needed no change at all.** The reference
+  stays stable for the ~14 consumers' `useMemo` deps, and a malformed pack fails at import.
+- **Prose is not identity.** A duplicate-rendered-label check briefly existed as a hard gate and was
+  removed: as a gate it lets an i18n edit invalidate a composition, which inverts the dependency.
+- **The two proof scopes must not borrow truth.** Synthetic layers (two destinations × two
+  jurisdictions) prove the generic property; production invariants read only real declarations. They
+  share a data-free detector, which is not the same as sharing a source of truth.
+
+### Harness lessons that cost real time
+
+- **A mutation that fails to compile reports the same thing as a test that cannot fail.** Twice a
+  negative-control sweep printed "not covered" for every guard because the mutation was a TypeScript
+  error and vitest never ran. Confirm the control compiled before believing its result.
+- **One test process at a time.** Concurrent vitest runs produced a false "act guard fails on clean
+  HEAD, therefore pre-existing breakage" conclusion, and later an OOM kill. Run alone, it passes. A
+  `git stash -u` started while a run was in flight briefly stashed the whole slice mid-test; nothing
+  was lost but nothing about that was safe.
+- **`pnpm lint | tail -2` hides the error line behind the summary.** Grep for `problems` instead. An
+  unused-import error sat unnoticed behind an `[ELIFECYCLE]` line.
+- **A shared test helper cannot assume a domain constant.** `jurisdictionScopedCodes` hardcoded the
+  synthetic fixture's supra-national marker, so the first time it was pointed at a real pack it
+  reported `EU` itself as foreign evidence.
+
+### Gates
+
+`format:check` ✓ · `lint` **0 errors / 92 warnings** (baseline) · `typecheck` ✓ ·
+`test` **1337/1337, 88 files** · `build` ✓ · act guard **0** · `diff --check` clean.
+
+`schemaVersion` still `1.2.0`; `STORAGE_FORMAT_VERSION` still `2`; `templateVersion` still `1.4.0` —
+deliberately, since the composed output is identical and bumping it would assert a change that did
+not happen. No migration was required and none was written.
+
+### Next
+
+Pack #2 is unblocked and needs content, not architecture. Deliberately not built: contract-bearing
+override, `suppress`, and any dossier-driven filing-jurisdiction selector — Greece's overlay is
+declared in configuration as an explicit transitional seam, **not** the claim that Greece implies
+Türkiye. Known limitations are recorded in ADR-052: `BANK_STATEMENTS` ownership, the `ID_CARD_COPY`
+locale gloss, milestones sitting outside the layer model, `isRequirementApplicable` being unable to
+see a filing jurisdiction, and generic codes monopolised by Türkiye-specific contracts.

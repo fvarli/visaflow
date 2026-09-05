@@ -152,10 +152,16 @@ Türkiye-scoped requirements inside it and fails the build if a second pack woul
 **Why here:** country packs are already data, not code — so scaling coverage is a content and
 process problem, best tackled once the workspace is worth filling with more countries.
 
-- **Pack composition: Common Schengen → Destination → Jurisdiction overlay** — the split the Greece
-  evidence now justifies designing from real domain data rather than from guesses. **Blocks pack #2**,
-  and the quarantine invariant enforces that ([ADR-048]). *Next.*
-- **More countries & visa types** authored as packs. *After the composition split.*
+- **Pack composition: Common Schengen → Destination → Filing jurisdiction** — **done.** The split
+  ADR-048's evidence justified designing from real domain data rather than guesses. Classifying all
+  28 requirements by the evidence the pack carries put 15 in Common, 13 in a Türkiye filing-
+  jurisdiction layer, and **none** in the Greece destination layer — the pack was never "Greece", it
+  was "EU + Türkiye". Identity is global by `code`, a later layer may only append citations, and the
+  quarantine now runs over layers and compositions instead of one named array ([ADR-052]). Greece's
+  resolved output is unchanged, proven by a pin written before anything moved. *Done.*
+- **More countries & visa types** authored as packs. **No longer blocked** — the shared layer carries
+  no jurisdiction-scoped evidence for a second pack to inherit. What a second pack still needs is
+  content and sources, not architecture. *Next.*
 - **Source verification workflow** — a repeatable, honest process to move packs from
   `unverified` toward `verified` with recorded evidence. The mechanism now exists and has been used
   once end to end: evidence attaches per requirement, coverage is computed rather than declared, and
