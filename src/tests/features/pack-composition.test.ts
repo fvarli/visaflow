@@ -6,6 +6,7 @@ import {
   composeContaminated,
   composeTestPack,
   jurisdictionScopedCodes,
+  TEST_BLOC,
   jxSource,
   jySource,
   testCommonLayer,
@@ -142,7 +143,7 @@ describe('composition — the ADR-048 quarantine property', () => {
    * composition" would only restate how the fixture was built.
    */
   it.each(NAMES)('%s carries no foreign jurisdiction evidence', (name) => {
-    const scoped = jurisdictionScopedCodes(composed(name))
+    const scoped = jurisdictionScopedCodes(composed(name), TEST_BLOC)
     expect([...scoped.keys()].sort()).toEqual([JURISDICTION_OF[name]])
   })
 
@@ -153,7 +154,7 @@ describe('composition — the ADR-048 quarantine property', () => {
     // indistinguishable from one that cannot, which is exactly how the
     // production invariant became a tripwire that asserts an empty list.
     const leaked = composeContaminated(testlandALayer, testJyLayer)
-    const scoped = jurisdictionScopedCodes(leaked)
+    const scoped = jurisdictionScopedCodes(leaked, TEST_BLOC)
 
     expect([...scoped.keys()].sort()).toEqual(['JX', 'JY'])
     expect(scoped.get('JX')).toContain('TEST_LEAKED')
@@ -164,7 +165,9 @@ describe('composition — the ADR-048 quarantine property', () => {
     // otherwise it reports that something is wrong and leaves the reader to
     // find it.
     const leaked = composeContaminated(testlandBLayer, testJyLayer)
-    expect(jurisdictionScopedCodes(leaked).get('JX')).toEqual(['TEST_LEAKED'])
+    expect(jurisdictionScopedCodes(leaked, TEST_BLOC).get('JX')).toEqual([
+      'TEST_LEAKED',
+    ])
   })
 })
 

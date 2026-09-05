@@ -23,7 +23,7 @@ import type { RequirementLayer, VisaTypeTemplate } from '../../types'
  * That is the clearest evidence the split is drawn in the right place: this
  * pack was never "Greece", it was "EU + Türkiye" wearing a Greek name.
  */
-const greeceDestinationLayer: RequirementLayer = {
+export const greeceDestinationLayer: RequirementLayer = {
   id: 'greece',
   kind: 'destination',
   sources: greeceSources,

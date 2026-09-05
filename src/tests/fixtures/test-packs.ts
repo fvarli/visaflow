@@ -160,11 +160,27 @@ export type TestCompositionName = keyof typeof TEST_COMPOSITIONS
  * a live assertion.
  */
 export function jurisdictionScopedCodes(
-  result: CompositionResult
+  result: CompositionResult,
+  /**
+   * The marker meaning "authority spans the whole bloc, not one filing
+   * jurisdiction" — `EU` for the production packs, `TESTBLOC` for the synthetic
+   * ones.
+   *
+   * Required rather than defaulted, and the default is what this parameter
+   * replaces. The helper originally hardcoded `TEST_BLOC`, which made it silently
+   * wrong the first time it was pointed at a real pack: every EU source counted
+   * as jurisdiction-scoped, and the invariant reported `EU` itself as foreign
+   * evidence. A supra-national marker is not something a shared helper can
+   * assume, so it has to be told.
+   */
+  supranational: string
 ): Map<string, string[]> {
   const scopedSourceJurisdiction = new Map<string, string>()
   for (const s of result.sources) {
-    if (typeof s.jurisdiction === 'string' && s.jurisdiction !== TEST_BLOC) {
+    if (
+      typeof s.jurisdiction === 'string' &&
+      s.jurisdiction !== supranational
+    ) {
       scopedSourceJurisdiction.set(s.id, s.jurisdiction)
     }
   }

@@ -7,6 +7,9 @@ import {
 } from '@/config/countries/retired'
 import { REQUIREMENT_REVISIONS } from '@/config/countries/requirement-revisions'
 import { dynamicT } from '@/lib/i18n-dynamic'
+import { ALL_REQUIREMENT_LAYERS } from '@/config/countries/layers'
+import { greeceTourismComposition } from '@/config/countries/greece/tourism'
+import type { DocumentRequirement } from '@/config/types'
 
 /**
  * The requirement-identity contract (ADR-049).
@@ -144,19 +147,54 @@ describe('requirement identity — retirement is not reuse', () => {
 })
 
 /**
- * Every active requirement in every registered pack, deduped by code.
+ * Every active requirement in every registered pack, keyed by code.
  *
- * `commonSchengenDocuments` is shared, so a second pack would otherwise yield
- * the same requirement twice and make a two-way comparison fail for a reason
- * that has nothing to do with the invariant being tested.
+ * Still one entry per code, because identity *is* global — a shared layer
+ * legitimately yields the same requirement in several compositions, and one
+ * entry is the correct answer for it. What changed is that the map used to
+ * reach that answer by silently overwriting: `new Map(...)` keeps whichever
+ * pair came last, so two packs declaring the same code with different
+ * revisions would have produced one entry and no complaint at all.
+ *
+ * The dedupe was assuming an invariant nothing enforced. It is enforced here
+ * now: agreeing declarations collapse, disagreeing ones throw, so the map can
+ * only be built when the assumption it rests on actually holds.
  */
-const activeRequirements = new Map(
-  getAllCountryConfigs().flatMap((pack) =>
-    pack.visaTypes.flatMap((t) =>
-      t.documentRequirements.map((r) => [r.code, r] as const)
+function buildActiveRequirements(): Map<string, DocumentRequirement> {
+  const byCode = new Map<string, DocumentRequirement>()
+  const conflicts: string[] = []
+
+  for (const pack of getAllCountryConfigs()) {
+    for (const template of pack.visaTypes) {
+      for (const requirement of template.documentRequirements) {
+        const seen = byCode.get(requirement.code)
+        if (!seen) {
+          byCode.set(requirement.code, requirement)
+          continue
+        }
+        // Composition may append citations, so two compositions of one code can
+        // differ in `sourceRefs` and still be the same requirement. Everything
+        // else is the acceptance contract and must be identical.
+        const strip = ({ sourceRefs: _refs, ...rest }: DocumentRequirement) =>
+          JSON.stringify(rest)
+        if (strip(seen) !== strip(requirement)) {
+          conflicts.push(requirement.code)
+        }
+      }
+    }
+  }
+
+  if (conflicts.length > 0) {
+    throw new Error(
+      `Requirement codes declared with conflicting contracts: ${[
+        ...new Set(conflicts),
+      ].join(', ')}`
     )
-  )
-)
+  }
+  return byCode
+}
+
+const activeRequirements = buildActiveRequirements()
 
 /**
  * The acceptance-contract ledger (ADR-051).
@@ -250,5 +288,73 @@ describe('the acceptance-contract ledger', () => {
         startsAboveOne: true,
       })
     }
+  })
+})
+
+/**
+ * Requirement identity is global across every declared layer.
+ *
+ * A `code` names a record in somebody's dossier, so it has to mean one thing
+ * everywhere — not one thing per composition. Per-composition checking cannot
+ * express that: if the Türkiye overlay and a future German overlay both
+ * declared `SOCIAL_SECURITY`, no single composition would ever contain both,
+ * every composition would compose cleanly, and the collision would surface only
+ * when somebody exported a dossier from one and imported it into the other.
+ *
+ * So these walk the layer registry rather than the compositions. It is the one
+ * question that has to be asked of the layers themselves.
+ */
+describe('requirement identity — one code, one owning layer, registry-wide', () => {
+  const declarations = ALL_REQUIREMENT_LAYERS.flatMap((layer) =>
+    (layer.add ?? []).map((r) => ({ code: r.code, layerId: layer.id }))
+  )
+
+  it('declares every code exactly once across all layers', () => {
+    const owners = new Map<string, string[]>()
+    for (const { code, layerId } of declarations) {
+      owners.set(code, [...(owners.get(code) ?? []), layerId])
+    }
+    const duplicated = [...owners.entries()]
+      .filter(([, layerIds]) => layerIds.length > 1)
+      .map(([code, layerIds]) => `${code}: ${layerIds.join(' + ')}`)
+
+    expect(duplicated).toEqual([])
+  })
+
+  it('has layers to walk, so the check is not vacuous', () => {
+    // "No duplicates found" and "found nothing" are the same result otherwise.
+    expect(ALL_REQUIREMENT_LAYERS.length).toBeGreaterThan(1)
+    expect(declarations.length).toBeGreaterThan(0)
+  })
+
+  it('accounts for every composed requirement', () => {
+    // Ties the registry to reality: a requirement reaching an applicant whose
+    // code no registered layer declares would mean the registry is incomplete
+    // and the duplicate check above is looking at the wrong set.
+    const declared = new Set(declarations.map((d) => d.code))
+    const composed = greeceTourismComposition.template.documentRequirements.map(
+      (r) => r.code
+    )
+    expect(composed.filter((code) => !declared.has(code))).toEqual([])
+  })
+
+  it('registers every layer the composition actually used', () => {
+    // The other direction. `ALL_REQUIREMENT_LAYERS` is consulted by nothing in
+    // production, which is exactly the shape ADR-050 warns about — a registry
+    // that looks authoritative, is never read, and drifts. Cross-checking it
+    // against the composer's own ownership map is what keeps it honest.
+    const registered = new Set(ALL_REQUIREMENT_LAYERS.map((l) => l.id))
+    const used = new Set(greeceTourismComposition.ownership.values())
+    expect([...used].filter((id) => !registered.has(id))).toEqual([])
+  })
+
+  it('composes every registered layer that declares requirements', () => {
+    // And a layer registered but composed by nothing is dead configuration
+    // whose codes are being held against every other layer for no reason.
+    const used = new Set(greeceTourismComposition.ownership.values())
+    const orphaned = ALL_REQUIREMENT_LAYERS.filter(
+      (l) => (l.add?.length ?? 0) > 0 && !used.has(l.id)
+    ).map((l) => l.id)
+    expect(orphaned).toEqual([])
   })
 })

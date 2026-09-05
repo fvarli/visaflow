@@ -1,10 +1,13 @@
 import { describe, it, expect } from 'vitest'
 import i18n from '@/i18n'
-import {
-  getAllCountryConfigs,
-  commonSchengenDocuments,
-} from '@/config/countries'
+// `commonSchengenDocuments` is deliberately no longer imported here. The
+// quarantine used to read that array by name; it now walks the layer registry
+// and the compositions, so the shared array is no longer a special case this
+// file knows about.
+import { getAllCountryConfigs } from '@/config/countries'
 import { greeceTourismComposition } from '@/config/countries/greece/tourism'
+import { ALL_REQUIREMENT_LAYERS } from '@/config/countries/layers'
+import { jurisdictionScopedCodes } from '@/tests/fixtures/test-packs'
 import {
   computeVerificationCoverage,
   isReviewStatusSupported,
@@ -550,26 +553,144 @@ describe('country packs — Greece composition and citations', () => {
   )
 })
 
-describe('country packs — the shared array is not yet jurisdiction-neutral', () => {
-  /**
-   * A quarantine, not an endorsement (ADR-048).
-   *
-   * `commonSchengenDocuments` is named as though it were proven across every
-   * Schengen jurisdiction. It is not. It currently means "shared by the only
-   * production pack, Greece for applicants in Türkiye", and it contains
-   * Türkiye-scoped wording (SGK) and now Türkiye-scoped citations too.
-   *
-   * That is tolerable while exactly one pack exists and intolerable the moment
-   * a second one does, because the shared array has **no override mechanism**:
-   * pack #2 would inherit "SGK Hizmet Dökümü" and a Türkiye harmonised list
-   * citation verbatim, with nothing to stop it.
-   *
-   * So this does not assert a pack count. It identifies the contaminated
-   * requirements and fails when another pack would inherit them — which means
-   * it cannot be silenced by deleting a number.
-   */
+/**
+ * The ADR-048 quarantine, re-expressed over layers and compositions.
+ *
+ * It used to read `commonSchengenDocuments` by name and assert the offender
+ * list was non-empty — an honest record of a debt while the debt existed, and
+ * useless the moment it was paid or a second layer appeared. The property it
+ * was really protecting is not about one array: *a requirement must not carry
+ * evidence scoped to a filing jurisdiction unless the jurisdiction that owns
+ * that evidence is part of what you are looking at.*
+ *
+ * That splits into two checks which fail for genuinely different reasons, and
+ * neither subsumes the other:
+ *
+ *  - **At the layer**, where contamination is written. A `common` or
+ *    `destination` layer declaring a requirement that cites a
+ *    jurisdiction-scoped source is the original defect: a second destination
+ *    would inherit somebody else's consulate as its own authority.
+ *  - **At the composition**, where contamination could still arrive. This one
+ *    exists because the layer check is not sufficient: `PASSPORT_CURRENT` is
+ *    common-owned and *does* cite a Türkiye source in the Greece composition,
+ *    because the overlay appended it. That is the mechanism working, not a
+ *    leak, and only a composition-aware check can tell the two apart.
+ */
+describe('country packs — jurisdiction evidence stays with its jurisdiction', () => {
+  /** A source scoped to one country's applicants rather than EU-wide. */
+  const isJurisdictionScoped = (source: RequirementSource) =>
+    typeof source.jurisdiction === 'string' && source.jurisdiction !== 'EU'
 
-  /** Institution names that are meaningless or wrong outside Türkiye. */
+  const scopedSourceIds = new Set(
+    ALL_REQUIREMENT_LAYERS.flatMap((layer) =>
+      (layer.sources ?? []).filter(isJurisdictionScoped).map((s) => s.id)
+    )
+  )
+
+  const PRODUCTION_COMPOSITIONS = [greeceTourismComposition]
+
+  it('has jurisdiction-scoped evidence to reason about at all', () => {
+    // Non-vacuity. Every assertion below is of the form "no violations", and
+    // "found no violations" is indistinguishable from "found nothing" unless
+    // something positive is asserted first. If the packs ever stop carrying
+    // jurisdiction-scoped sources, these checks stop meaning anything and this
+    // is what says so.
+    expect(scopedSourceIds.size).toBeGreaterThan(0)
+  })
+
+  it('declares jurisdiction-scoped citations only in jurisdiction layers', () => {
+    const misplaced = ALL_REQUIREMENT_LAYERS.filter(
+      (l) => l.kind !== 'jurisdiction'
+    ).flatMap((layer) =>
+      (layer.add ?? [])
+        .filter((r) =>
+          (r.sourceRefs ?? []).some((id) => scopedSourceIds.has(id))
+        )
+        .map((r) => `${layer.id} → ${r.code}`)
+    )
+
+    // The original ADR-048 defect, stated positively: eleven shared
+    // requirements cited a Türkiye source before the split.
+    expect(misplaced).toEqual([])
+  })
+
+  it('and a jurisdiction layer does carry some, so the check is not empty', () => {
+    const carried = ALL_REQUIREMENT_LAYERS.filter(
+      (l) => l.kind === 'jurisdiction'
+    ).flatMap((layer) =>
+      (layer.add ?? [])
+        .filter((r) =>
+          (r.sourceRefs ?? []).some((id) => scopedSourceIds.has(id))
+        )
+        .map((r) => r.code)
+    )
+    expect(carried.length).toBeGreaterThan(0)
+  })
+
+  it.each(PRODUCTION_COMPOSITIONS.map((c) => [c.template.id, c] as const))(
+    '%s composes no jurisdiction it does not include',
+    (_id, composition) => {
+      // Reuses the detector proven against four synthetic compositions in
+      // `pack-composition.test.ts`, including its own vacuity control. Derived
+      // from composed sources rather than layer membership, so it asks the
+      // question ADR-048 asks rather than restating how the pack was built.
+      const present = jurisdictionScopedCodes(composition, 'EU')
+      const composedJurisdictions = new Set(
+        composition.sources
+          .filter(isJurisdictionScoped)
+          .map((s) => s.jurisdiction as string)
+      )
+      const foreign = [...present.keys()].filter(
+        (j) => !composedJurisdictions.has(j)
+      )
+      expect(foreign).toEqual([])
+    }
+  )
+
+  it.each(PRODUCTION_COMPOSITIONS.map((c) => [c.template.id, c] as const))(
+    '%s actually contains jurisdiction-scoped evidence',
+    (_id, composition) => {
+      // The other half of non-vacuity: a composition carrying none would pass
+      // the check above for the wrong reason.
+      expect(jurisdictionScopedCodes(composition, 'EU').size).toBeGreaterThan(0)
+    }
+  )
+})
+
+/**
+ * Requirements whose *translation* names a local document, without that making
+ * the requirement itself jurisdictional.
+ *
+ * The token scan cannot tell these apart, and this is where that limitation is
+ * written down rather than silently tolerated. `ID_CARD_COPY` asks for a copy
+ * of a national identity card: the English prose is entirely generic, it cites
+ * nothing, and any Schengen destination might reasonably ask for it. What trips
+ * the scan is the Turkish translation glossing the local document by name
+ * ("nüfus cüzdanının veya kimlik kartının") — a translator being helpful, not a
+ * pack making a jurisdictional claim.
+ *
+ * Moving it to the Türkiye layer would be the wrong fix: a second destination
+ * would then not ask for an ID copy at all. Rewriting the translation is
+ * content work with its own review. Both are real options and neither is a
+ * refactor, so the limitation is quarantined precisely instead: a *new* token
+ * offender fails, this one does not.
+ */
+const KNOWN_LOCALE_GLOSSES: Record<string, string> = {
+  ID_CARD_COPY:
+    'Generic English prose and no citation; only the Turkish translation names ' +
+    'the local document (nüfus cüzdanı). A translation gloss, not jurisdictional evidence.',
+}
+
+describe('country packs — institution names in shared prose (heuristic)', () => {
+  /**
+   * A heuristic, and deliberately never the authority.
+   *
+   * Citations decide whether a requirement is jurisdictional, because a
+   * citation is a claim the pack makes about where its evidence comes from.
+   * Prose is softer: it can name a local document in one locale for clarity
+   * while asserting nothing. So this scan reports, and the citation check
+   * above enforces.
+   */
   const JURISDICTION_TOKENS = [
     'SGK',
     'Vukuatlı',
@@ -581,49 +702,25 @@ describe('country packs — the shared array is not yet jurisdiction-neutral', (
     'Vergi Levhası',
   ]
 
-  /** A source scoped to one country's applicants, rather than EU-wide. */
-  const isJurisdictionScoped = (source: RequirementSource) =>
-    typeof source.jurisdiction === 'string' && source.jurisdiction !== 'EU'
-
-  /**
-   * Shared requirements citing a source scoped to one filing jurisdiction.
-   *
-   * This is the contamination that actually propagates: a citation is part of
-   * what the requirement asserts, so a second destination inheriting it would
-   * be claiming another jurisdiction's authority for its own checklist.
-   */
-  function citationScopedSharedRequirements(): string[] {
-    const scoped = new Set(
-      PACKS.flatMap(sourcesOf)
-        .filter(isJurisdictionScoped)
-        .map((s) => s.id)
-    )
-    return commonSchengenDocuments
-      .filter((r) => (r.sourceRefs ?? []).some((id) => scoped.has(id)))
-      .map((r) => r.code)
-      .sort()
-  }
-
-  async function contaminatedSharedRequirements(): Promise<string[]> {
-    const offenders = new Set<string>(citationScopedSharedRequirements())
-
-    // Wording matters as much as provenance: a shared requirement naming a
-    // Turkish institution is jurisdiction-specific whether or not it cites
-    // anything.
+  async function tokenOffendersInSharedLayers(): Promise<string[]> {
+    const offenders = new Set<string>()
     for (const locale of ['tr', 'en'] as const) {
       await i18n.changeLanguage(locale)
       const td = dynamicT(i18n.t.bind(i18n))
-      for (const requirement of commonSchengenDocuments) {
-        const text = [
-          requirement.nameKey,
-          requirement.descriptionKey,
-          requirement.notesKey,
-        ]
-          .filter((k): k is string => Boolean(k))
-          .map((k) => td(k, { defaultValue: '' }))
-          .join(' ')
-        if (JURISDICTION_TOKENS.some((token) => text.includes(token))) {
-          offenders.add(requirement.code)
+      for (const layer of ALL_REQUIREMENT_LAYERS) {
+        if (layer.kind === 'jurisdiction') continue
+        for (const requirement of layer.add ?? []) {
+          const text = [
+            requirement.nameKey,
+            requirement.descriptionKey,
+            requirement.notesKey,
+          ]
+            .filter((k): k is string => Boolean(k))
+            .map((k) => td(k, { defaultValue: '' }))
+            .join(' ')
+          if (JURISDICTION_TOKENS.some((token) => text.includes(token))) {
+            offenders.add(requirement.code)
+          }
         }
       }
     }
@@ -631,47 +728,68 @@ describe('country packs — the shared array is not yet jurisdiction-neutral', (
     return [...offenders].sort()
   }
 
-  it('no longer holds a jurisdiction-scoped citation', () => {
-    // The debt ADR-048 quarantined, and the half that actually propagates: a
-    // citation travels with the requirement, so a second destination
-    // inheriting one would be claiming Türkiye's authority for its own
-    // checklist. Eleven shared requirements carried one before the split; the
-    // six that are genuinely EU-level now get theirs back as a
-    // composition-time refinement from the overlay that owns it.
-    expect(citationScopedSharedRequirements()).toEqual([])
+  it('flags only requirements already recorded as locale glosses', async () => {
+    // Not `toEqual([])`: that would require either moving a requirement or
+    // editing a translation to stay green, and both are decisions rather than
+    // cleanups. Not `toBeGreaterThan(0)` either, since the honest outcome is
+    // that this list shrinks to nothing one day. A subset check keeps the guard
+    // live — a new offender fails — while letting the known one stay recorded.
+    const offenders = await tokenOffendersInSharedLayers()
+    expect(offenders).toEqual(
+      offenders.filter((code) => code in KNOWN_LOCALE_GLOSSES)
+    )
   })
 
-  it('still names one requirement whose Turkish label glosses a Turkish document', async () => {
-    // `ID_CARD_COPY` is not a layer-ownership problem, and moving it would be
-    // the wrong fix. Its English prose is entirely generic — "Copy of national
-    // identity card (both sides)" — it cites nothing, and a national ID copy is
-    // a reasonable ask for any Schengen destination. What trips the scan is the
-    // *Turkish translation*, which glosses the local document by name
-    // ("nüfus cüzdanının veya kimlik kartının").
-    //
-    // So the token scan cannot currently tell a jurisdictional requirement from
-    // a translation that names a local document to be helpful. Recorded rather
-    // than silenced: neutralising the gloss is i18n content work, and teaching
-    // the scan the difference is a change to the invariant. Both are real, and
-    // neither belongs in a layer-split commit.
-    const offenders = await contaminatedSharedRequirements()
+  it('still names the one it knows about, so the entry cannot rot', async () => {
+    // If `ID_CARD_COPY` stops tripping the scan — because the gloss was
+    // reworded or the requirement moved — the allowlist entry is stale and
+    // should be deleted rather than left implying a limitation that is gone.
+    const offenders = await tokenOffendersInSharedLayers()
     expect(offenders).toEqual(['ID_CARD_COPY'])
   })
 
-  it('refuses to let a second country pack inherit them', async () => {
-    const offenders = await contaminatedSharedRequirements()
-    const productionPacks = PACKS.length
-
-    expect({
-      productionPacks,
-      inheritedJurisdictionalRequirements: productionPacks > 1 ? offenders : [],
-    }).toEqual({
-      productionPacks,
-      // While one pack exists this is empty by construction and the quarantine
-      // holds. Registering a second pack makes the offenders real, and the
-      // failure diff names every requirement that must be split out of
-      // `commonSchengenDocuments` or made overridable first (ADR-048).
-      inheritedJurisdictionalRequirements: [],
-    })
+  it('every recorded gloss explains itself', () => {
+    for (const [code, reason] of Object.entries(KNOWN_LOCALE_GLOSSES)) {
+      expect({ code, explained: reason.trim().length > 40 }).toEqual({
+        code,
+        explained: true,
+      })
+    }
   })
+})
+
+/**
+ * Two requirements rendering the same label in one composition.
+ *
+ * Also a heuristic, and for the same reason: identity is the `code` (ADR-049),
+ * never the prose. This cannot detect the case it would most like to — two
+ * layers describing the same real document in different words under different
+ * codes — because that needs meaning, and meaning lives only in translation.
+ * What it does catch is the realistic slip: two layers both calling something
+ * "Bank Statements", which reads to an applicant as one requirement listed
+ * twice.
+ */
+describe('country packs — duplicate rendered labels (heuristic)', () => {
+  it.each(['tr', 'en'] as const)(
+    'no two composed requirements share a label in %s',
+    async (locale) => {
+      await i18n.changeLanguage(locale)
+      const td = dynamicT(i18n.t.bind(i18n))
+
+      const collisions: string[] = []
+      for (const composition of [greeceTourismComposition]) {
+        const byLabel = new Map<string, string[]>()
+        for (const requirement of composition.template.documentRequirements) {
+          const label = td(requirement.nameKey, { defaultValue: '' })
+          if (!label) continue
+          byLabel.set(label, [...(byLabel.get(label) ?? []), requirement.code])
+        }
+        for (const [label, codes] of byLabel) {
+          if (codes.length > 1) collisions.push(`${label}: ${codes.join(', ')}`)
+        }
+      }
+      await i18n.changeLanguage('tr')
+      expect(collisions).toEqual([])
+    }
+  )
 })
