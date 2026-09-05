@@ -5,7 +5,6 @@ import {
   TEST_COMPOSITIONS,
   composeContaminated,
   composeTestPack,
-  jurisdictionScopedCodes,
   TEST_BLOC,
   jxSource,
   jySource,
@@ -17,6 +16,7 @@ import {
   treatySource,
   type TestCompositionName,
 } from '@/tests/fixtures/test-packs'
+import { jurisdictionScopedCodes } from '@/tests/support/jurisdiction-scope'
 
 /**
  * Proof that the composition model is genuinely compositional.

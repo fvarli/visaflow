@@ -7,7 +7,7 @@ import i18n from '@/i18n'
 import { getAllCountryConfigs } from '@/config/countries'
 import { greeceTourismComposition } from '@/config/countries/greece/tourism'
 import { ALL_REQUIREMENT_LAYERS } from '@/config/countries/layers'
-import { jurisdictionScopedCodes } from '@/tests/fixtures/test-packs'
+import { jurisdictionScopedCodes } from '@/tests/support/jurisdiction-scope'
 import {
   computeVerificationCoverage,
   isReviewStatusSupported,
@@ -759,37 +759,28 @@ describe('country packs — institution names in shared prose (heuristic)', () =
 })
 
 /**
- * Two requirements rendering the same label in one composition.
+ * WHY THERE IS NO DUPLICATE-RENDERED-LABEL INVARIANT HERE.
  *
- * Also a heuristic, and for the same reason: identity is the `code` (ADR-049),
- * never the prose. This cannot detect the case it would most like to — two
- * layers describing the same real document in different words under different
- * codes — because that needs meaning, and meaning lives only in translation.
- * What it does catch is the realistic slip: two layers both calling something
- * "Bank Statements", which reads to an applicant as one requirement listed
- * twice.
+ * An earlier version of this file failed the build when two composed
+ * requirements rendered the same name in either locale. It was removed
+ * deliberately, and re-adding it would be a mistake.
+ *
+ * Identity is `requirement.code` (ADR-049) — a stable, language-independent
+ * value that a stored dossier record actually carries. Rendered prose is not
+ * identity and cannot become identity, because it varies by locale, changes
+ * when a translator improves a phrase, and is absent entirely for a code whose
+ * key has not been translated yet. Two legitimate requirements from different
+ * layers may reasonably render the same short label; that is a wording question
+ * for whoever owns the translation, not a statement that the pack is
+ * structurally invalid.
+ *
+ * Making it a gate had a specific, bad consequence: an i18n edit — the kind of
+ * change a translator makes without touching a single pack file — could turn
+ * the country-pack composition red. Prose must never be able to invalidate a
+ * composition.
+ *
+ * The neighbouring invariant that *is* worth having already exists elsewhere:
+ * `requirement-identity.test.ts` asserts every shipped code still resolves to a
+ * non-empty label in both locales, which catches the failure that actually
+ * reaches an applicant — a raw code where a document name belongs.
  */
-describe('country packs — duplicate rendered labels (heuristic)', () => {
-  it.each(['tr', 'en'] as const)(
-    'no two composed requirements share a label in %s',
-    async (locale) => {
-      await i18n.changeLanguage(locale)
-      const td = dynamicT(i18n.t.bind(i18n))
-
-      const collisions: string[] = []
-      for (const composition of [greeceTourismComposition]) {
-        const byLabel = new Map<string, string[]>()
-        for (const requirement of composition.template.documentRequirements) {
-          const label = td(requirement.nameKey, { defaultValue: '' })
-          if (!label) continue
-          byLabel.set(label, [...(byLabel.get(label) ?? []), requirement.code])
-        }
-        for (const [label, codes] of byLabel) {
-          if (codes.length > 1) collisions.push(`${label}: ${codes.join(', ')}`)
-        }
-      }
-      await i18n.changeLanguage('tr')
-      expect(collisions).toEqual([])
-    }
-  )
-})

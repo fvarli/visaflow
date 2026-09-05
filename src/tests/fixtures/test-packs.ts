@@ -144,59 +144,13 @@ export const TEST_COMPOSITIONS = {
 export type TestCompositionName = keyof typeof TEST_COMPOSITIONS
 
 /**
- * Requirements in a composition whose evidence is scoped to one filing
- * jurisdiction, grouped by that jurisdiction.
+ * The jurisdiction-scope detector used to live here, and no longer does.
  *
- * Derived from the composed sources, never from which layer a requirement came
- * out of. That distinction is the whole point: asserting "the JX requirement is
- * absent from a JY composition" only restates how the fixture was built, while
- * asking "does this composition contain anything whose authority is scoped to a
- * jurisdiction it does not include" is the property ADR-048 actually states —
- * and it is the same question `country-pack-provenance.test.ts` asks of the
- * production packs today.
- *
- * Exported rather than kept in the test because Slice 4 points it at the real
- * registry, which is what turns the current `productionPacks > 1` tripwire into
- * a live assertion.
+ * Keeping it beside these synthetic layers meant the production invariants
+ * imported their detector from a module of made-up packs. It now lives in
+ * `@/tests/support/jurisdiction-scope`, so this fixture and the production
+ * invariants share the logic without either being the other's source of truth.
  */
-export function jurisdictionScopedCodes(
-  result: CompositionResult,
-  /**
-   * The marker meaning "authority spans the whole bloc, not one filing
-   * jurisdiction" — `EU` for the production packs, `TESTBLOC` for the synthetic
-   * ones.
-   *
-   * Required rather than defaulted, and the default is what this parameter
-   * replaces. The helper originally hardcoded `TEST_BLOC`, which made it silently
-   * wrong the first time it was pointed at a real pack: every EU source counted
-   * as jurisdiction-scoped, and the invariant reported `EU` itself as foreign
-   * evidence. A supra-national marker is not something a shared helper can
-   * assume, so it has to be told.
-   */
-  supranational: string
-): Map<string, string[]> {
-  const scopedSourceJurisdiction = new Map<string, string>()
-  for (const s of result.sources) {
-    if (
-      typeof s.jurisdiction === 'string' &&
-      s.jurisdiction !== supranational
-    ) {
-      scopedSourceJurisdiction.set(s.id, s.jurisdiction)
-    }
-  }
-
-  const byJurisdiction = new Map<string, string[]>()
-  for (const requirement of result.template.documentRequirements) {
-    for (const ref of requirement.sourceRefs ?? []) {
-      const jurisdiction = scopedSourceJurisdiction.get(ref)
-      if (!jurisdiction) continue
-      const codes = byJurisdiction.get(jurisdiction) ?? []
-      if (!codes.includes(requirement.code)) codes.push(requirement.code)
-      byJurisdiction.set(jurisdiction, codes)
-    }
-  }
-  return byJurisdiction
-}
 
 /**
  * A deliberately broken topology: a jurisdiction-scoped requirement declared in
