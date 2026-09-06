@@ -146,7 +146,11 @@ const PINNED_REQUIREMENTS: Record<string, DocumentRequirement> = {
     category: 'travel',
     ownerType: 'applicant',
     required: true,
-    sourceRefs: ['eu-visa-code-annex2', 'gr-tr-harmonised-list'],
+    sourceRefs: [
+      'eu-visa-code-annex2',
+      'eu-c2021-5156-turkey-annex3',
+      'gr-tr-harmonised-list',
+    ],
     revision: 1,
   },
   ACCOMMODATION: {
@@ -156,7 +160,11 @@ const PINNED_REQUIREMENTS: Record<string, DocumentRequirement> = {
     category: 'accommodation',
     ownerType: 'applicant',
     required: true,
-    sourceRefs: ['eu-visa-code-annex2', 'gr-tr-harmonised-list'],
+    sourceRefs: [
+      'eu-visa-code-annex2',
+      'eu-c2021-5156-turkey-annex3',
+      'gr-tr-harmonised-list',
+    ],
     revision: 1,
   },
   ITINERARY: {
@@ -166,7 +174,11 @@ const PINNED_REQUIREMENTS: Record<string, DocumentRequirement> = {
     category: 'travel',
     ownerType: 'applicant',
     required: false,
-    sourceRefs: ['eu-visa-code-annex2', 'gr-tr-harmonised-list'],
+    sourceRefs: [
+      'eu-visa-code-annex2',
+      'eu-c2021-5156-turkey-annex3',
+      'gr-tr-harmonised-list',
+    ],
     revision: 1,
   },
   EMPLOYMENT_LETTER: {
@@ -182,7 +194,7 @@ const PINNED_REQUIREMENTS: Record<string, DocumentRequirement> = {
       value: 'employed',
     },
     validityPeriodDays: 30,
-    sourceRefs: ['gr-tr-harmonised-list'],
+    sourceRefs: ['eu-c2021-5156-turkey-annex3', 'gr-tr-harmonised-list'],
     revision: 1,
   },
   APPROVED_LEAVE: {
@@ -198,7 +210,7 @@ const PINNED_REQUIREMENTS: Record<string, DocumentRequirement> = {
       value: 'employed',
     },
     validityPeriodDays: 30,
-    sourceRefs: ['gr-tr-harmonised-list'],
+    sourceRefs: ['eu-c2021-5156-turkey-annex3', 'gr-tr-harmonised-list'],
     revision: 1,
   },
   PAYSLIPS: {
@@ -215,7 +227,7 @@ const PINNED_REQUIREMENTS: Record<string, DocumentRequirement> = {
       value: 'employed',
     },
     validityPeriodDays: 30,
-    sourceRefs: ['gr-tr-harmonised-list'],
+    sourceRefs: ['eu-c2021-5156-turkey-annex3', 'gr-tr-harmonised-list'],
     revision: 1,
   },
   SOCIAL_SECURITY: {
@@ -232,7 +244,7 @@ const PINNED_REQUIREMENTS: Record<string, DocumentRequirement> = {
       value: 'employed',
     },
     validityPeriodDays: 30,
-    sourceRefs: ['gr-tr-harmonised-list'],
+    sourceRefs: ['eu-c2021-5156-turkey-annex3', 'gr-tr-harmonised-list'],
     revision: 3,
   },
   BANK_STATEMENTS: {
@@ -244,7 +256,11 @@ const PINNED_REQUIREMENTS: Record<string, DocumentRequirement> = {
     ownerType: 'applicant',
     required: true,
     validityPeriodDays: 30,
-    sourceRefs: ['eu-visa-code-annex2', 'gr-tr-harmonised-list'],
+    sourceRefs: [
+      'eu-visa-code-annex2',
+      'eu-c2021-5156-turkey-annex3',
+      'gr-tr-harmonised-list',
+    ],
     revision: 2,
   },
   SPONSOR_LETTER: {
@@ -326,7 +342,7 @@ const PINNED_REQUIREMENTS: Record<string, DocumentRequirement> = {
     category: 'civil_registry',
     ownerType: 'applicant',
     required: true,
-    sourceRefs: ['gr-tr-harmonised-list'],
+    sourceRefs: ['eu-c2021-5156-turkey-annex3', 'gr-tr-harmonised-list'],
     revision: 1,
   },
   EMPLOYER_TAX_PLATE: {
@@ -358,7 +374,7 @@ const PINNED_REQUIREMENTS: Record<string, DocumentRequirement> = {
       operator: 'equals',
       value: 'self_employed',
     },
-    sourceRefs: ['gr-tr-harmonised-list'],
+    sourceRefs: ['eu-c2021-5156-turkey-annex3', 'gr-tr-harmonised-list'],
     revision: 2,
   },
   EMPLOYER_SIGNATURE_CIRCULAR: {
@@ -401,7 +417,7 @@ const PINNED_REQUIREMENTS: Record<string, DocumentRequirement> = {
       operator: 'equals',
       value: 'self_employed',
     },
-    sourceRefs: ['gr-tr-harmonised-list'],
+    sourceRefs: ['eu-c2021-5156-turkey-annex3', 'gr-tr-harmonised-list'],
     revision: 1,
   },
   TAX_PAYMENT_STATEMENT: {
@@ -417,7 +433,7 @@ const PINNED_REQUIREMENTS: Record<string, DocumentRequirement> = {
       operator: 'equals',
       value: 'self_employed',
     },
-    sourceRefs: ['gr-tr-harmonised-list'],
+    sourceRefs: ['eu-c2021-5156-turkey-annex3', 'gr-tr-harmonised-list'],
     revision: 1,
   },
   STUDENT_CERTIFICATE: {
@@ -432,7 +448,7 @@ const PINNED_REQUIREMENTS: Record<string, DocumentRequirement> = {
       operator: 'equals',
       value: 'student',
     },
-    sourceRefs: ['gr-tr-harmonised-list'],
+    sourceRefs: ['eu-c2021-5156-turkey-annex3', 'gr-tr-harmonised-list'],
     revision: 1,
   },
   PENSIONER_BOOKLET: {
@@ -447,7 +463,7 @@ const PINNED_REQUIREMENTS: Record<string, DocumentRequirement> = {
       operator: 'equals',
       value: 'retired',
     },
-    sourceRefs: ['gr-tr-harmonised-list'],
+    sourceRefs: ['eu-c2021-5156-turkey-annex3', 'gr-tr-harmonised-list'],
     revision: 1,
   },
 }
@@ -532,6 +548,7 @@ const PINNED_SOURCE_IDS = [
   'eu-visa-code-art15',
   'eu-visa-code-annex2',
   'gr-mfa-general',
+  'eu-c2021-5156-turkey-annex3',
   'gr-tr-harmonised-list',
   'gr-mfa-tr-visa-page',
 ]

@@ -315,11 +315,15 @@
     },
     "gr-tr-harmonised-list": {
       "title": "List of supporting documents for short stay visas in Turkey",
-      "notes": "The harmonised list adopted under local Schengen cooperation for Türkiye. Applies to applications lodged in Türkiye, not to Schengen applications generally. The official origin refused this environment with HTTP 403; the content was inspected via a text-extraction proxy against that same origin URL."
+      "notes": "The Greek mission’s rendering of the harmonised list for Türkiye. The underlying instrument — Commission Implementing Decision C(2021) 5156, Annex III — is now cited directly and first-hand; this page stands as one mission’s publication of it, which is why it attaches to Greece alone. The official origin previously refused this environment with HTTP 403 and the content was inspected via a text-extraction proxy against that same origin URL."
     },
     "gr-mfa-tr-visa-page": {
       "title": "Greek Embassy in Ankara — visa information",
       "notes": "The consular page for applications lodged in Türkiye. The official origin refused this environment with HTTP 403; the content was inspected via a text-extraction proxy against that same origin URL."
+    },
+    "eu-c2021-5156-turkey-annex3": {
+      "title": "Commission Implementing Decision C(2021) 5156 — supporting documents for short stay visas in Turkey",
+      "notes": "Annex III to Implementing Decision C(2011) 7192, as amended on 29 July 2021. Adopted by the European Commission under Visa Code Article 14(5a) for the Türkiye jurisdiction, so it applies to applications lodged in Türkiye whichever Schengen state they are for. Article 14(3) leaves the list non-exhaustive: an individual mission may ask for more, and several do. Retrieved from a member state ministry’s published copy of the act."
     }
   },
   "templateNotes": {

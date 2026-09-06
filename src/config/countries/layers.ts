@@ -1,5 +1,6 @@
 import { commonSchengenLayer } from './common/schengen-short-stay'
 import { greeceDestinationLayer } from './greece/tourism'
+import { grTrMissionLayer } from './jurisdictions/gr-tr-mission'
 import { trFilingLayer } from './jurisdictions/tr-filing'
 import type { RequirementLayer } from '../types'
 
@@ -30,4 +31,5 @@ export const ALL_REQUIREMENT_LAYERS: RequirementLayer[] = [
   commonSchengenLayer,
   greeceDestinationLayer,
   trFilingLayer,
+  grTrMissionLayer,
 ]

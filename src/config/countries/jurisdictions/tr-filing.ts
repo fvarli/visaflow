@@ -1,6 +1,9 @@
 import { trFilingSources } from '../../sources/tr-filing.sources'
 import type { DocumentRequirement, RequirementLayer } from '../../types'
 
+/** The jurisdiction-level instrument every requirement below is measured against. */
+const COMMISSION_ANNEX_III = 'eu-c2021-5156-turkey-annex3'
+
 /**
  * Requirements that exist because the application is lodged in **Türkiye**.
  *
@@ -34,7 +37,7 @@ const trFilingDocuments: DocumentRequirement[] = [
     validityPeriodDays: 30,
     // Harmonised list I.5.a spells out what the letter must contain. Notably
     // it does *not* ask for salary, which the description used to require.
-    sourceRefs: ['gr-tr-harmonised-list'],
+    sourceRefs: ['eu-c2021-5156-turkey-annex3'],
     revision: 1,
   },
   {
@@ -51,7 +54,7 @@ const trFilingDocuments: DocumentRequirement[] = [
     },
     validityPeriodDays: 30,
     // Same clause: "letter from employer and/or approval for leave".
-    sourceRefs: ['gr-tr-harmonised-list'],
+    sourceRefs: ['eu-c2021-5156-turkey-annex3'],
     revision: 1,
   },
   {
@@ -70,7 +73,7 @@ const trFilingDocuments: DocumentRequirement[] = [
     validityPeriodDays: 30,
     // I.4.b — "salary slips of the last three months". The description said
     // 3-6 months, which no source states.
-    sourceRefs: ['gr-tr-harmonised-list'],
+    sourceRefs: ['eu-c2021-5156-turkey-annex3'],
     revision: 1,
   },
   {
@@ -96,7 +99,7 @@ const trFilingDocuments: DocumentRequirement[] = [
     // SGK registration and service document (SGK tescil ve hizmet dökümü),
     // both with a readable QR code. Entirely Türkiye-scoped; see the
     // jurisdiction quarantine in the provenance tests.
-    sourceRefs: ['gr-tr-harmonised-list'],
+    sourceRefs: ['eu-c2021-5156-turkey-annex3'],
     // Two bumps: naming both SGK documents (2), then rendering the readable-QR
     // criterion at all (3). See REQUIREMENT_REVISIONS.
     revision: 3,
@@ -113,7 +116,7 @@ const trFilingDocuments: DocumentRequirement[] = [
     // I.4.a — "bank account statement showing movements over the last three
     // months, proving the source of regular income", and Annex II B.3 names
     // bank statements. The description said 3-6 months.
-    sourceRefs: ['eu-visa-code-annex2', 'gr-tr-harmonised-list'],
+    sourceRefs: ['eu-visa-code-annex2', 'eu-c2021-5156-turkey-annex3'],
     // The notes moved from a balance test to an income-provenance test —
     // see REQUIREMENT_REVISIONS. Not the 3-6 month window, which narrowed
     // nothing: anyone holding 3-6 months also holds the last three.
@@ -128,7 +131,7 @@ const trFilingDocuments: DocumentRequirement[] = [
     category: 'civil_registry',
     ownerType: 'applicant',
     required: true,
-    sourceRefs: ['gr-tr-harmonised-list'],
+    sourceRefs: ['eu-c2021-5156-turkey-annex3'],
     revision: 1,
   },
   {
@@ -168,7 +171,7 @@ const trFilingDocuments: DocumentRequirement[] = [
       operator: 'equals',
       value: 'self_employed',
     },
-    sourceRefs: ['gr-tr-harmonised-list'],
+    sourceRefs: ['eu-c2021-5156-turkey-annex3'],
     // Added the chamber-of-commerce registration — see REQUIREMENT_REVISIONS.
     revision: 2,
   },
@@ -202,7 +205,7 @@ const trFilingDocuments: DocumentRequirement[] = [
     },
     // I.5.d distinguishes higher education (a YÖK certificate with a readable
     // QR code) from other students and pupils (a student certificate).
-    sourceRefs: ['gr-tr-harmonised-list'],
+    sourceRefs: ['eu-c2021-5156-turkey-annex3'],
     revision: 1,
   },
   {
@@ -228,7 +231,7 @@ const trFilingDocuments: DocumentRequirement[] = [
     },
     // Company owners: "company activity certificate (Faaliyet Belgesi)" and
     // the chamber-of-commerce registration.
-    sourceRefs: ['gr-tr-harmonised-list'],
+    sourceRefs: ['eu-c2021-5156-turkey-annex3'],
     revision: 1,
   },
   {
@@ -251,7 +254,7 @@ const trFilingDocuments: DocumentRequirement[] = [
     },
     // Company owners: "statement of taxes payment" — a payment statement, not
     // the tax returns this requirement used to describe.
-    sourceRefs: ['gr-tr-harmonised-list'],
+    sourceRefs: ['eu-c2021-5156-turkey-annex3'],
     revision: 1,
   },
   {
@@ -273,7 +276,7 @@ const trFilingDocuments: DocumentRequirement[] = [
     },
     // I.4.c — "pensioner booklet, if relevant". A different document from the
     // payment statements this requirement used to describe.
-    sourceRefs: ['gr-tr-harmonised-list'],
+    sourceRefs: ['eu-c2021-5156-turkey-annex3'],
     revision: 1,
   },
 ]
@@ -299,19 +302,19 @@ export const trFilingLayer: RequirementLayer = {
   kind: 'jurisdiction',
   add: trFilingDocuments,
   refine: [
-    // Article 11 states the form; the Ankara mission asks for the same thing.
-    { code: 'APPLICATION_FORM', addSourceRefs: ['gr-mfa-tr-visa-page'] },
-    // Article 12 states all three passport criteria; the mission restates them.
-    { code: 'PASSPORT_CURRENT', addSourceRefs: ['gr-mfa-tr-visa-page'] },
-    // Article 15 sets the cover and the EUR 30 000 minimum.
-    { code: 'TRAVEL_INSURANCE', addSourceRefs: ['gr-mfa-tr-visa-page'] },
-    // Annex II B.1 lists the reservation; the harmonised list repeats it as
-    // one of the accepted travel arrangements.
-    { code: 'TRANSPORT_RESERVATION', addSourceRefs: ['gr-tr-harmonised-list'] },
-    // Harmonised list I.3 — hotel booking or other proof of accommodation.
-    { code: 'ACCOMMODATION', addSourceRefs: ['gr-tr-harmonised-list'] },
-    // Harmonised list I.1 offers a travel itinerary as an accepted arrangement.
-    { code: 'ITINERARY', addSourceRefs: ['gr-tr-harmonised-list'] },
+    // Annex III I.1 — "Travel arrangements: flight reservations, other proof
+    // of intended means of transport, or proof of travel itinerary."
+    { code: 'TRANSPORT_RESERVATION', addSourceRefs: [COMMISSION_ANNEX_III] },
+    { code: 'ITINERARY', addSourceRefs: [COMMISSION_ANNEX_III] },
+    // Annex III I.3 — "Proof of accommodation: evidence of hotel booking or
+    // other proof of accommodation."
+    { code: 'ACCOMMODATION', addSourceRefs: [COMMISSION_ANNEX_III] },
+    //
+    // APPLICATION_FORM, PASSPORT_CURRENT and TRAVEL_INSURANCE deliberately get
+    // nothing here. Annex III does not cover them — they are Visa Code Article
+    // 11, 12 and 15 matters, already cited as such in the common layer. The
+    // Greek mission's restatement of them is destination-specific and arrives
+    // from `gr-tr-mission`.
   ],
   sources: trFilingSources,
 }

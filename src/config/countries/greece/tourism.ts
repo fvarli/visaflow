@@ -5,6 +5,7 @@ import {
   commonPreparationMilestones,
   commonSchengenLayer,
 } from '../common/schengen-short-stay'
+import { grTrMissionLayer } from '../jurisdictions/gr-tr-mission'
 import { trFilingLayer } from '../jurisdictions/tr-filing'
 import type { RequirementLayer, VisaTypeTemplate } from '../../types'
 
@@ -152,7 +153,12 @@ export const greeceTourismComposition = composeVisaTemplate({
    * themselves. Do not read it as domain truth, and do not derive a
    * jurisdiction from residence to remove it.
    */
-  layers: [commonSchengenLayer, greeceDestinationLayer, trFilingLayer],
+  layers: [
+    commonSchengenLayer,
+    greeceDestinationLayer,
+    trFilingLayer,
+    grTrMissionLayer,
+  ],
   requirementOrder: GREECE_TOURISM_ORDER,
 })
 

@@ -1,59 +1,59 @@
 import type { RequirementSource } from '../types'
 
 /**
- * Sources governing applications lodged in Türkiye.
+ * The jurisdiction-level instrument for applications lodged in Türkiye.
  *
- * These sit apart from `greece.sources.ts` because they are not Greece's — they
- * are the filing jurisdiction's. Both are published *by* the Hellenic Republic,
- * which is exactly why the distinction is easy to lose: the authority is Greek,
- * the scope is Turkish. `jurisdiction` here means the applicant jurisdiction a
- * source governs, not the authority's own country (ADR-048).
+ * One record, and the authority is the **European Commission** — not any
+ * member state. Article 14(5a) of the Visa Code has the Commission adopt, by
+ * implementing act, a harmonised list of supporting documents for each
+ * jurisdiction; this is that act for Türkiye.
  *
- * Keeping them in the destination file would have left the ownership lie in
- * place one level down: a second destination composing this overlay would take
- * these citations, and a second *jurisdiction* would have to unpick them from a
- * file named for Greece.
+ * WHY THIS FILE CHANGED SHAPE. It previously held the Greek mission's two
+ * publications, on the reasoning that a Türkiye-scoped source belongs to the
+ * Türkiye layer. That was half right. The *jurisdiction* authority is the
+ * Commission act; a mission's rendering of it is **destination**-specific, and
+ * leaving Greek publications here would have made a second destination pack
+ * cite the Hellenic Republic as its authority for SGK documents — ADR-048's
+ * defect one layer up. The Greek renderings now live in
+ * `gr-tr-mission.sources.ts`.
  *
- * HONESTY RULES (ADR-015) apply unchanged. VisaFlow never scrapes; every record
- * is entered by hand from something a maintainer actually read, and an absent
- * `lastVerifiedAt` is information rather than a gap to fill.
+ * The Commission act is also the stronger citation. The Greek mission page
+ * records an HTTP 403 and a proxied read; this instrument was retrieved and
+ * read directly.
+ *
+ * HONESTY RULES (ADR-015) unchanged: entered by hand from a document a
+ * maintainer actually read, and `url` points at where it was genuinely
+ * obtained.
  */
 export const trFilingSources: RequirementSource[] = [
   {
     /**
-     * The harmonised list adopted under local Schengen cooperation for Türkiye
-     * — the Annex III document the consular page links as "required supporting
-     * documents". This is the strongest evidence in the pack: it names actual
-     * Turkish document types and the periods they must cover.
+     * Commission Implementing Decision C(2021) 5156 final of 29.7.2021 — the
+     * ANNEX amending Annex III to Implementing Decision C(2011) 7192, "List of
+     * supporting documents to be submitted by applicants for short stay visas
+     * in Turkey".
+     *
+     * The `url` is the Czech Ministry of Foreign Affairs' publication of it,
+     * because that is where this copy was actually retrieved and read, and it
+     * resolves. A member state publishing the same act a Greek mission renders
+     * is itself the evidence that the instrument is destination-neutral. The
+     * act's own reference is carried in the title so a maintainer can find it
+     * on any other official channel.
      */
-    id: 'gr-tr-harmonised-list',
-    authority: 'Hellenic Republic — Ministry of Foreign Affairs',
-    titleKey: 'visa-domain:sources.gr-tr-harmonised-list.title',
-    url: 'https://www.mfa.gr/missionsabroad/images/visas/missions/Turkey/Harmonized_list_en.pdf',
-    sourceType: 'government',
-    jurisdiction: 'TR',
-    language: 'en',
-    lastVerifiedAt: '2026-08-29',
-    retrievedAt: '2026-08-29',
-    notesKey: 'visa-domain:sources.gr-tr-harmonised-list.notes',
-  },
-  {
+    id: 'eu-c2021-5156-turkey-annex3',
+    authority: 'European Commission',
+    titleKey: 'visa-domain:sources.eu-c2021-5156-turkey-annex3.title',
+    url: 'https://mzv.gov.cz/public/e3/a2/fb/4835381_2943202_Turecko_EN.PDF',
+    sourceType: 'regulation',
     /**
-     * The Ankara mission's own visa page. It restates the passport and
-     * insurance criteria in the consulate's words, which is why those two
-     * requirements now carry both the Regulation and this page: the EU rule is
-     * the norm, this is the implementation the applicant actually meets.
+     * The jurisdiction the list governs — where the application is lodged —
+     * not the authority's own territory. The Commission is supra-national; the
+     * list is for Türkiye.
      */
-    id: 'gr-mfa-tr-visa-page',
-    authority:
-      'Hellenic Republic — Ministry of Foreign Affairs, Embassy in Ankara',
-    titleKey: 'visa-domain:sources.gr-mfa-tr-visa-page.title',
-    url: 'https://www.mfa.gr/turkey/visas.html?lang=extra1&mission=ank',
-    sourceType: 'embassy',
     jurisdiction: 'TR',
     language: 'en',
-    lastVerifiedAt: '2026-08-29',
-    retrievedAt: '2026-08-29',
-    notesKey: 'visa-domain:sources.gr-mfa-tr-visa-page.notes',
+    lastVerifiedAt: '2026-09-06',
+    retrievedAt: '2026-09-06',
+    notesKey: 'visa-domain:sources.eu-c2021-5156-turkey-annex3.notes',
   },
 ]

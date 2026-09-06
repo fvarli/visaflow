@@ -315,11 +315,15 @@
     },
     "gr-tr-harmonised-list": {
       "title": "Türkiye’de kısa süreli vize başvuruları için destekleyici belge listesi",
-      "notes": "Türkiye için yerel Schengen işbirliği kapsamında kabul edilen uyumlaştırılmış liste. Genel olarak Schengen başvurularını değil, Türkiye’de yapılan başvuruları kapsar. Resmî kaynak bu ortama HTTP 403 döndürdü; içerik aynı resmî adres üzerinden bir metin çıkarma vekili aracılığıyla incelendi."
+      "notes": "Yunan temsilciliğinin, Türkiye için uyumlaştırılmış listeyi kendi yayımı. Dayandığı belge — Komisyon Uygulama Kararı C(2021) 5156, EK III — artık doğrudan ve birinci elden kaynak gösteriliyor; bu sayfa ise tek bir temsilciliğin yayımı olarak duruyor, bu nedenle yalnızca Yunanistan’a bağlanır. Resmî kaynak daha önce bu ortama HTTP 403 döndürmüş ve içerik aynı kaynak adresine karşı bir metin çıkarma vekili aracılığıyla incelenmişti."
     },
     "gr-mfa-tr-visa-page": {
       "title": "Yunanistan Ankara Büyükelçiliği — vize bilgileri",
       "notes": "Türkiye’de yapılan başvurular için konsolosluk sayfası. Resmî kaynak bu ortama HTTP 403 döndürdü; içerik aynı resmî adres üzerinden bir metin çıkarma vekili aracılığıyla incelendi."
+    },
+    "eu-c2021-5156-turkey-annex3": {
+      "title": "Komisyon Uygulama Kararı C(2021) 5156 — Türkiye’de kısa süreli vize başvuruları için destekleyici belgeler",
+      "notes": "C(2011) 7192 sayılı Uygulama Kararı’nın 29 Temmuz 2021’de değiştirilen EK III’ü. Avrupa Komisyonu tarafından Vize Kanunu 14(5a) maddesi uyarınca Türkiye yetki alanı için kabul edilmiştir; bu nedenle hangi Schengen ülkesi için olursa olsun Türkiye’de yapılan başvurular için geçerlidir. Madde 14(3) listeyi sınırlayıcı saymaz: tek tek temsilcilikler daha fazlasını isteyebilir ve bazıları istemektedir. Bir üye devlet bakanlığının yayımladığı nüshadan alınmıştır."
     }
   },
   "templateNotes": {
