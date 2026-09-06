@@ -280,6 +280,59 @@ describe('composeVisaTemplate — conflict guards', () => {
     )
   })
 
+  it("rejects an earlier layer refining a later layer's requirement", () => {
+    // The rule ADR-052 always stated and the composer did not enforce. The
+    // two-pass design resolves refinements against every declaration, so
+    // without this guard a destination layer could refine a jurisdiction-owned
+    // requirement even though it composes first — which is how the Greek
+    // mission citations could have ended up in the wrong layer.
+    expectKind('forward-refine', () =>
+      composeVisaTemplate({
+        base: BASE,
+        layers: [
+          commonLayer,
+          {
+            id: 'test-dest-reaching-forward',
+            kind: 'destination',
+            refine: [{ code: 'TEST_D', addSourceRefs: ['src-eu'] }],
+          },
+          jurisdictionLayer,
+        ],
+      })
+    )
+  })
+
+  it('still allows a later layer to refine an earlier one', () => {
+    // The legitimate direction, asserted positively so the new guard cannot be
+    // over-tightened into rejecting the case the mechanism exists for.
+    const { template } = composeVisaTemplate({
+      base: BASE,
+      layers: ALL_LAYERS,
+    })
+    expect(
+      template.documentRequirements.find((r) => r.code === 'TEST_A')?.sourceRefs
+    ).toEqual(['src-eu', 'src-jx'])
+  })
+
+  it('decides by position, not by kind', () => {
+    // Two layers of one kind: the later may refine the earlier. Kind fixes the
+    // composition order; it does not by itself say who may refine whom.
+    const { template } = composeVisaTemplate({
+      base: BASE,
+      layers: [
+        commonLayer,
+        {
+          id: 'test-common-2',
+          kind: 'common',
+          refine: [{ code: 'TEST_B', addSourceRefs: ['src-eu'] }],
+        },
+      ],
+    })
+    expect(
+      template.documentRequirements.find((r) => r.code === 'TEST_B')?.sourceRefs
+    ).toEqual(['src-eu'])
+  })
+
   it('rejects a refinement carrying any key beyond code and addSourceRefs', () => {
     // The type already forbids this, so the cast is the point: it simulates a
     // future author widening CitationRefinement. The guard is what makes that

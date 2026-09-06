@@ -49,6 +49,7 @@ export type CompositionErrorKind =
   | 'duplicate-source'
   | 'dangling-refine'
   | 'self-refine'
+  | 'forward-refine'
   | 'invalid-refinement'
   | 'dangling-source-ref'
   | 'order-mismatch'
@@ -256,13 +257,23 @@ export function composeVisaTemplate(
   assertLayerOrder(layers)
 
   const ownership = new Map<string, string>()
+  /**
+   * Which layer *position* declared each code.
+   *
+   * Position rather than layer id, because that is what the visibility rule is
+   * actually about, and because two layers sharing an id would defeat an
+   * id comparison. The composer does not police layer-id uniqueness — the
+   * registry-wide invariant does, over the whole registry rather than over one
+   * composition.
+   */
+  const declaredAt = new Map<string, number>()
   /** Composition order, by code. The requirements themselves live in `byCode`. */
   const layerOrder: string[] = []
   const byCode = new Map<string, DocumentRequirement>()
 
   // Pass 1 — ownership. Every code is claimed exactly once, and a code's owner
   // owns everything about it including its `revision`.
-  for (const layer of layers) {
+  for (const [index, layer] of layers.entries()) {
     for (const requirement of layer.add ?? []) {
       const owner = ownership.get(requirement.code)
       if (owner !== undefined) {
@@ -274,15 +285,22 @@ export function composeVisaTemplate(
         )
       }
       ownership.set(requirement.code, layer.id)
+      declaredAt.set(requirement.code, index)
       layerOrder.push(requirement.code)
       byCode.set(requirement.code, requirement)
     }
   }
 
-  // Pass 2 — citations. Separate from pass 1 so a refinement is checked against
-  // the whole composed set: within one layer, declaration order between `add`
-  // and `refine` should not decide whether a composition is valid.
-  for (const layer of layers) {
+  // Pass 2 — citations, and the direction they may travel.
+  //
+  // Two passes so that *within* one layer the order of `add` and `refine` does
+  // not decide whether a composition is valid. Across layers the rule is
+  // stricter and is enforced here: a refinement may only reach **backwards**,
+  // to a requirement an earlier layer declared. That is what ADR-052 always
+  // said, and until this guard existed the two-pass design quietly permitted
+  // the opposite — a destination layer could refine a jurisdiction-owned
+  // requirement even though it composes first, and nothing objected.
+  for (const [index, layer] of layers.entries()) {
     for (const refinement of layer.refine ?? []) {
       assertCitationRefinementShape(layer.id, refinement)
 
@@ -296,16 +314,27 @@ export function composeVisaTemplate(
             'in this composition declares.'
         )
       }
-      // Its own kind, not folded into `invalid-refinement`: that one means "the
-      // refinement contract was widened", this one means "this belongs in the
-      // declaration". A shared discriminant would make a failure name the wrong
-      // mistake.
-      if (ownership.get(refinement.code) === layer.id) {
+      // Three kinds rather than one, because they call for three different
+      // fixes: move the citation into your own declaration, move your layer,
+      // or find out why nothing declares the code at all. A shared
+      // discriminant would make a failure name the wrong mistake.
+      const declaringIndex = declaredAt.get(refinement.code)
+      if (declaringIndex === index) {
         throw new CompositionError(
           'self-refine',
           `Layer "${layer.id}" refines "${refinement.code}", which it owns. ` +
             'Citations belonging to the owner go in the declaration itself, ' +
             'so there is one way to say this rather than two.'
+        )
+      }
+      if (declaringIndex !== undefined && declaringIndex > index) {
+        throw new CompositionError(
+          'forward-refine',
+          `Layer "${layer.id}" refines "${refinement.code}", which is declared ` +
+            `by the later layer "${ownership.get(refinement.code)}". Layers ` +
+            'compose in one direction, so a refinement may only reach a ' +
+            'requirement an earlier layer declared — move this layer after ' +
+            'the one that owns the code.'
         )
       }
 

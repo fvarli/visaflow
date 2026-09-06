@@ -2184,7 +2184,9 @@ country-pack-provenance,workspace-repository}.test.ts`, `docs/country-pack-guide
 2. A requirement `code` is **globally unique across every declared layer**, and exactly one layer
    owns it. Ownership is structural: the layer whose `add` array declares it.
 3. A later layer may do exactly one thing to an earlier layer's requirement: **append `sourceRefs`**.
-   There is no contract-bearing override and no suppression.
+   There is no contract-bearing override and no suppression. **Refinement travels backwards only** —
+   a layer may refine a requirement an *earlier* layer declared, never one declared by itself or by a
+   later layer.
 4. `REQUIREMENT_REVISIONS` stays keyed by `code`, with contiguity checked per code. A revision
    belongs to the owning layer and composition cannot change it.
 5. Where product behaviour depends on requirement order, the template declares that order explicitly.
@@ -2241,6 +2243,15 @@ non-EU source; `ID_CARD_COPY` and `SOCIAL_SECURITY` named Turkish institutions i
   edit invalidate a country-pack composition, which inverts the dependency. `code` decides identity;
   the useful neighbouring guard — every shipped code resolves to a non-empty label in both locales —
   lives in `requirement-identity.test.ts` and catches the failure that actually reaches an applicant.
+- **Refinement direction is enforced, not merely stated.** The composer resolves every declaration
+  before any refinement, so that the order of `add` and `refine` *within* one layer cannot decide
+  whether a composition is valid. That same design originally let a refinement reach *forwards*: a
+  destination layer could refine a jurisdiction-owned requirement even though it composes first, and
+  nothing objected — the rule above was prose the code did not have. It is now a guard, with three
+  distinct kinds because they call for three different fixes: `self-refine` (the citation belongs in
+  your own declaration), `forward-refine` (your layer is in the wrong position), and
+  `dangling-refine` (nothing declares that code at all). Sharing one discriminant between them would
+  make a failure name the wrong mistake.
 - **Ownership is enforced registry-wide, not per composition.** The violation that matters is
   invisible to composition: if the Türkiye overlay and a future German overlay both declared
   `SOCIAL_SECURITY`, no composition would ever contain both, every composition would compose
