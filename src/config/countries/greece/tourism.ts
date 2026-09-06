@@ -132,7 +132,7 @@ export const greeceTourismComposition = composeVisaTemplate({
     templateVersion: '1.4.0',
     lastReviewedAt: '2026-08-29',
     /**
-     * Still derived from evidence rather than chosen: 18 of the 28 requirements
+     * Still derived from evidence rather than chosen: 19 of the 28 requirements
      * carry their own resolvable, dated source. A test recomputes it rather
      * than trusting this line (ADR-047, ADR-048). Moving requirements between
      * layers changes neither their citations nor the arithmetic.

@@ -138,9 +138,9 @@
       "description": "Previous passports with Schengen visas if applicable"
     },
     "PHOTOS": {
-      "name": "Biometric Photos",
-      "description": "2 recent biometric passport photos (35x45mm)",
-      "notes": "White background, taken within last 6 months"
+      "name": "Biometric Photograph",
+      "description": "Photograph meeting the international travel-document standard (ICAO 9303)",
+      "notes": "Your consulate or visa centre states how many photographs to bring and any local format requirements."
     },
     "ID_CARD_COPY": {
       "name": "National ID Card Copy",
@@ -300,6 +300,10 @@
     "eu-visa-code-art12": {
       "title": "Visa Code, Article 12 — Travel document",
       "notes": "Sets the passport conditions: validity extending at least three months past the intended departure, at least two blank pages, and issue within the previous 10 years."
+    },
+    "eu-visa-code-art13": {
+      "title": "Visa Code, Article 13 — Biometric identifiers",
+      "notes": "Requires the photograph to meet the international standards set out in ICAO document 9303 Part 1, 6th edition. It states no number of photographs, no dimensions, no background colour and no maximum age — those come from the consulate, not from the Code."
     },
     "eu-visa-code-art15": {
       "title": "Visa Code, Article 15 — Travel medical insurance",

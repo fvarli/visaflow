@@ -139,8 +139,8 @@
     },
     "PHOTOS": {
       "name": "Biyometrik Fotoğraf",
-      "description": "Son döneme ait 2 adet biyometrik vesikalık fotoğraf (35x45 mm)",
-      "notes": "Beyaz fon, son 6 ay içinde çekilmiş olmalıdır"
+      "description": "Uluslararası seyahat belgesi standardına (ICAO 9303) uygun fotoğraf",
+      "notes": "Kaç adet fotoğraf getirmeniz gerektiğini ve yerel biçim koşullarını konsolosluğunuz veya vize merkeziniz belirtir."
     },
     "ID_CARD_COPY": {
       "name": "Kimlik Fotokopisi",
@@ -300,6 +300,10 @@
     "eu-visa-code-art12": {
       "title": "Vize Kanunu, Madde 12 — Seyahat belgesi",
       "notes": "Pasaport koşullarını belirler: planlanan çıkış tarihinden sonra en az üç ay geçerlilik, en az iki boş sayfa ve son 10 yıl içinde düzenlenmiş olma."
+    },
+    "eu-visa-code-art13": {
+      "title": "Vize Kanunu, Madde 13 — Biyometrik tanımlayıcılar",
+      "notes": "Fotoğrafın ICAO 9303 Bölüm 1, 6. baskıda belirlenen uluslararası standartlara uygun olmasını ister. Fotoğraf adedi, ölçü, fon rengi veya çekim tarihi üst sınırı belirtmez; bunlar Kanundan değil konsolosluktan gelir."
     },
     "eu-visa-code-art15": {
       "title": "Vize Kanunu, Madde 15 — Seyahat sağlık sigortası",

@@ -44,6 +44,7 @@ const PRODUCTION_PUBLISHER: Record<string, PublishingAuthority> = {
   // publishes them and every member state's consulates apply them.
   'eu-visa-code-art11': { kind: 'supranational' },
   'eu-visa-code-art12': { kind: 'supranational' },
+  'eu-visa-code-art13': { kind: 'supranational' },
   'eu-visa-code-art15': { kind: 'supranational' },
   'eu-visa-code-annex2': { kind: 'supranational' },
   // Commission Implementing Decision C(2021) 5156 — adopted by the Commission

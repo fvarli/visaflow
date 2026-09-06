@@ -61,6 +61,29 @@ export const euSources: RequirementSource[] = [
     notesKey: 'visa-domain:sources.eu-visa-code-art12.notes',
   },
   {
+    /**
+     * Cited for one sentence and no more: "The technical requirements for the
+     * photograph shall be in accordance with the international standards as set
+     * out in the International Civil Aviation Organization (ICAO) document 9303
+     * Part 1, 6th edition."
+     *
+     * That is a conformance rule and nothing else. The Article sets no number of
+     * photographs, no dimensions, no background and no age — which is exactly
+     * why this record exists, because the requirement it supports used to assert
+     * all four on no authority at all.
+     */
+    id: 'eu-visa-code-art13',
+    authority: AUTHORITY,
+    titleKey: 'visa-domain:sources.eu-visa-code-art13.title',
+    url: VISA_CODE_URL,
+    sourceType: 'regulation',
+    jurisdiction: EU,
+    language: 'en',
+    lastVerifiedAt: '2026-09-06',
+    retrievedAt: '2026-09-06',
+    notesKey: 'visa-domain:sources.eu-visa-code-art13.notes',
+  },
+  {
     id: 'eu-visa-code-art15',
     authority: AUTHORITY,
     titleKey: 'visa-domain:sources.eu-visa-code-art15.title',

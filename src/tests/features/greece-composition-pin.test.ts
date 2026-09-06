@@ -115,6 +115,10 @@ const PINNED_REQUIREMENTS: Record<string, DocumentRequirement> = {
     ownerType: 'applicant',
     required: true,
     validityPeriodDays: 180,
+    // Gained in C2. The keys are unchanged, so the copy correction behind this
+    // citation is invisible here by design — the pin holds the contract, and
+    // what the contract now says is "ICAO 9303" and nothing more.
+    sourceRefs: ['eu-visa-code-art13'],
     revision: 1,
   },
   ID_CARD_COPY: {
@@ -545,6 +549,7 @@ const PINNED_ENVELOPE = {
 const PINNED_SOURCE_IDS = [
   'eu-visa-code-art11',
   'eu-visa-code-art12',
+  'eu-visa-code-art13',
   'eu-visa-code-art15',
   'eu-visa-code-annex2',
   'gr-mfa-general',

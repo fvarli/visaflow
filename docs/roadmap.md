@@ -136,7 +136,7 @@ treated `verified` and `partially_verified` alike, so a pack could claim `verifi
 requirement unsourced. `reviewStatus` is now checked against coverage computed from each
 requirement's own sources ([ADR-047]).
 
-**Greece is `partially_verified`: 18 of 28 requirements.** The primary evidence turned out to be the
+**Greece is `partially_verified`: 19 of 28 requirements.** The primary evidence turned out to be the
 harmonised list adopted under local Schengen cooperation **for Türkiye**, published by the Ankara
 mission, layered with the Visa Code where the EU rule is the stronger authority. It corrected four
 requirements that were describing the wrong document, replaced an invented "3-6 months" window with

@@ -466,12 +466,14 @@ describe('country packs — Greece composition and citations', () => {
   })
 
   it('is partially verified on exactly the evidence recorded', () => {
-    // 18 of 28. The jump from 4 came from the harmonised list adopted for
-    // Türkiye. Ten requirements stay uncited, three of them because a nearby
-    // source exists but does not state what VisaFlow claims (ADR-048).
+    // 19 of 28. The jump from 4 came from the harmonised list adopted for
+    // Türkiye; `PHOTOS` is the nineteenth, cited to Visa Code Article 13 once
+    // its copy was cut back to what that Article actually states. Nine
+    // requirements stay uncited, three of them because a nearby source exists
+    // but does not state what VisaFlow claims (ADR-048).
     expect(computeVerificationCoverage(greece!, tourism!)).toEqual({
       total: 28,
-      verified: 18,
+      verified: 19,
       isComplete: false,
     })
     expect(tourism!.reviewStatus).toBe('partially_verified')
@@ -762,6 +764,143 @@ describe('country packs — institution names in shared prose (heuristic)', () =
         explained: true,
       })
     }
+  })
+})
+
+/**
+ * The photograph contract asserts only what Article 13 supports.
+ *
+ * `PHOTOS` used to tell an applicant four things — bring **2**, at **35x45mm**,
+ * on a **white background**, taken **within the last 6 months** — while citing
+ * nothing at all. The Visa Code's only sentence about photographs is Article
+ * 13's: they must meet ICAO 9303 Part 1, 6th edition. That is a conformance
+ * standard. It states no count, no dimensions, no background and no age, and no
+ * other source in this repository states them either.
+ *
+ * So all four left the copy and the Article became the citation. This guard is
+ * what stops them coming back: the failure mode is not a deliberate re-add but
+ * a well-meaning edit restoring "2 adet" because a consulate page said so —
+ * which is exactly the move that put them here in the first place.
+ *
+ * Each pattern carries the string it was written to catch. A regex that
+ * silently matches nothing would make the whole check vacuous while looking
+ * green, and this project has shipped that mistake before.
+ */
+const UNSUPPORTED_PHOTO_CLAIMS: {
+  claim: string
+  pattern: RegExp
+  wasWrittenFor: string
+}[] = [
+  {
+    claim: 'a number of photographs (en)',
+    pattern: /\b\d+\s+(recent\s+)?(biometric\s+)?(passport\s+)?photo/i,
+    wasWrittenFor: '2 recent biometric passport photos (35x45mm)',
+  },
+  {
+    claim: 'a number of photographs (tr)',
+    // Requires a digit, so the replacement copy — "Kaç adet fotoğraf
+    // getirmeniz gerektiğini ... konsolosluğunuz belirtir" — passes. Telling an
+    // applicant that the consulate states the number is not asserting one.
+    pattern: /\b\d+\s*adet\b/i,
+    wasWrittenFor:
+      'Son döneme ait 2 adet biyometrik vesikalık fotoğraf (35x45 mm)',
+  },
+  {
+    claim: 'photograph dimensions',
+    pattern: /\b\d{2}\s*[x\u00d7]\s*\d{2}\s*mm\b/i,
+    wasWrittenFor: '2 recent biometric passport photos (35x45mm)',
+  },
+  {
+    claim: 'a background colour (en)',
+    pattern: /\bwhite\s+background\b/i,
+    wasWrittenFor: 'White background, taken within last 6 months',
+  },
+  {
+    claim: 'a background colour (tr)',
+    pattern: /beyaz\s+fon/i,
+    wasWrittenFor: 'Beyaz fon, son 6 ay içinde çekilmiş olmalıdır',
+  },
+  {
+    claim: 'a recency window (en)',
+    pattern: /within\s+(the\s+)?last\s+\d+\s+months?/i,
+    wasWrittenFor: 'White background, taken within last 6 months',
+  },
+  {
+    claim: 'a recency window (tr)',
+    pattern: /\bson\s+\d+\s+ay\b/i,
+    wasWrittenFor: 'Beyaz fon, son 6 ay içinde çekilmiş olmalıdır',
+  },
+]
+
+describe('country packs — the photograph contract states only ICAO conformance', () => {
+  const photos = greeceTourismComposition.template.documentRequirements.find(
+    (r) => r.code === 'PHOTOS'
+  )
+
+  async function renderedPhotoText(): Promise<string> {
+    const parts: string[] = []
+    for (const locale of ['tr', 'en'] as const) {
+      await i18n.changeLanguage(locale)
+      const td = dynamicT(i18n.t.bind(i18n))
+      for (const key of [
+        photos?.nameKey,
+        photos?.descriptionKey,
+        photos?.notesKey,
+      ]) {
+        if (key) parts.push(td(key, { defaultValue: '' }))
+      }
+    }
+    await i18n.changeLanguage('tr')
+    return parts.join(' \n ')
+  }
+
+  it.each(UNSUPPORTED_PHOTO_CLAIMS.map((c) => [c.claim, c] as const))(
+    'does not assert %s',
+    async (_claim, { pattern }) => {
+      expect(pattern.test(await renderedPhotoText())).toBe(false)
+    }
+  )
+
+  it.each(UNSUPPORTED_PHOTO_CLAIMS.map((c) => [c.claim, c] as const))(
+    'the pattern for %s still matches the wording it was written for',
+    (_claim, { pattern, wasWrittenFor }) => {
+      // Non-vacuity. Without this, a typo in a pattern would report the claim
+      // as absent from copy that still contains it.
+      expect(pattern.test(wasWrittenFor)).toBe(true)
+    }
+  )
+
+  it('renders something in both locales, so the scan has text to read', async () => {
+    const text = await renderedPhotoText()
+    expect(text.length).toBeGreaterThan(80)
+    expect(text).toContain('ICAO 9303')
+  })
+
+  it('cites Article 13, and nothing else', () => {
+    expect(photos?.sourceRefs).toEqual(['eu-visa-code-art13'])
+  })
+
+  it('cites an EU-level source for it', () => {
+    // The point of the citation is that it is not a consulate page. A local
+    // rendering of local practice is what the removed copy effectively was.
+    const source = greeceTourismComposition.sources.find(
+      (s) => s.id === 'eu-visa-code-art13'
+    )
+    expect({
+      jurisdiction: source?.jurisdiction,
+      sourceType: source?.sourceType,
+    }).toEqual({ jurisdiction: 'EU', sourceType: 'regulation' })
+  })
+
+  it('does not bump the revision for a loosening', () => {
+    // Removing four assertions is a loosening and adding a citation is not a
+    // contract change, so the revision does not move (ADR-051, ADR-052).
+    //
+    // Every other field — `validityPeriodDays: 180` included — is left to the
+    // pin, which compares the whole requirement object. Re-asserting them here
+    // would duplicate that and, for the validity window, mean a second
+    // deprecated read of a field nothing is supposed to consume.
+    expect(photos?.revision).toBe(1)
   })
 })
 
