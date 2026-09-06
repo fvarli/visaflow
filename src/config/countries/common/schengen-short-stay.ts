@@ -86,8 +86,9 @@ export const commonSchengenDocuments: DocumentRequirement[] = [
     // Article 13's one sentence about photographs: they must meet ICAO 9303
     // Part 1, 6th edition. That is the whole of the EU authority here. The
     // copy used to assert a count, 35x45mm, a white background and a six-month
-    // recency window, none of which any cited source says — the Article sets a
-    // conformance standard, and how many to bring is the consulate's to state.
+    // recency window, none of which any cited source says. The notes now point
+    // the applicant at their own consulate's instructions, as advice rather
+    // than as a second claim about what the rule is.
     sourceRefs: ['eu-visa-code-art13'],
     // Unchanged at 1. Every removal above is a loosening and a citation is not
     // a contract change, so neither bumps (ADR-051, ADR-052).

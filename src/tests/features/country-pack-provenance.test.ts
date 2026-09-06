@@ -798,9 +798,8 @@ const UNSUPPORTED_PHOTO_CLAIMS: {
   },
   {
     claim: 'a number of photographs (tr)',
-    // Requires a digit, so the replacement copy — "Kaç adet fotoğraf
-    // getirmeniz gerektiğini ... konsolosluğunuz belirtir" — passes. Telling an
-    // applicant that the consulate states the number is not asserting one.
+    // Requires a digit, so advisory copy that mentions photographs without
+    // naming a number passes. What must fail is a restored count.
     pattern: /\b\d+\s*adet\b/i,
     wasWrittenFor:
       'Son döneme ait 2 adet biyometrik vesikalık fotoğraf (35x45 mm)',

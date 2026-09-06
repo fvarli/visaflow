@@ -140,7 +140,7 @@
     "PHOTOS": {
       "name": "Biyometrik Fotoğraf",
       "description": "Uluslararası seyahat belgesi standardına (ICAO 9303) uygun fotoğraf",
-      "notes": "Kaç adet fotoğraf getirmeniz gerektiğini ve yerel biçim koşullarını konsolosluğunuz veya vize merkeziniz belirtir."
+      "notes": "Başvurunuzu işleme alacak konsolosluğun yönergelerinde ek fotoğraf koşulları olup olmadığını kontrol edin."
     },
     "ID_CARD_COPY": {
       "name": "Kimlik Fotokopisi",
@@ -303,7 +303,7 @@
     },
     "eu-visa-code-art13": {
       "title": "Vize Kanunu, Madde 13 — Biyometrik tanımlayıcılar",
-      "notes": "Fotoğrafın ICAO 9303 Bölüm 1, 6. baskıda belirlenen uluslararası standartlara uygun olmasını ister. Fotoğraf adedi, ölçü, fon rengi veya çekim tarihi üst sınırı belirtmez; bunlar Kanundan değil konsolosluktan gelir."
+      "notes": "Fotoğrafın ICAO 9303 Bölüm 1, 6. baskıda belirlenen uluslararası standartlara uygun olmasını ister. Fotoğraf adedi, ölçü, fon rengi veya çekim tarihi üst sınırı belirtmez."
     },
     "eu-visa-code-art15": {
       "title": "Vize Kanunu, Madde 15 — Seyahat sağlık sigortası",
