@@ -2333,3 +2333,155 @@ greece/tourism,greece/index}.ts`, `src/config/sources/greece.sources.ts`,
 `src/tests/support/jurisdiction-scope.ts` (new), `src/tests/fixtures/test-packs.ts` (new),
 `src/tests/features/{greece-composition-pin,composition,pack-composition,country-pack-provenance,
 requirement-identity}.test.ts`.
+
+---
+
+## ADR-052a: One Code, One Acceptance Bar — Ownership, Quarantine and Observed Practice
+
+**Status:** Accepted · 2026-09-07 · amends [ADR-052](#adr-052)
+
+ADR-052 established the composition *mechanism*. Building the evidence base for a second pack —
+Germany short-stay tourism, filed from Türkiye — exercised that mechanism against a destination that
+is not Greece for the first time, and raised three questions the mechanism does not answer on its
+own. Each is a rule about **when a code may be reused**, and each failure mode is invisible to every
+invariant the composer runs: a wrong answer composes cleanly and surfaces in somebody's dossier.
+
+**1. One requirement `code` cannot carry two materially different acceptance bars.**
+
+`revision` is global per code (Decision 4) and refinement is citation-only (Decision 3), so a code
+carries exactly one contract wherever it composes. The reuse rule that follows is not the obvious
+one:
+
+> If satisfying destination A's evidence bar would not satisfy destination B's, one code may not
+> serve both — **however similar the real-world concept**.
+
+Conceptual similarity is not the test. Substitutability of evidence is. Two destinations asking for
+"proof of previous travel" are asking for one thing only if the document that satisfies one would be
+accepted for the other; where they are not interchangeable, sharing a code makes `satisfiedRevision:
+N` mean two different things in two dossiers — the portability break Decision 4 exists to prevent,
+arriving through the reuse axis rather than the overlay axis.
+
+This is the rule that will justify Germany declaring its own travel-history requirement rather than
+reusing `PREVIOUS_VISAS`. That content is not decided here; the rule that will decide it is.
+
+The opposite error is equally available and equally silent: two codes for one document. Neither
+direction is mechanically detectable, so both are judgement calls that must be argued in writing
+when they are made.
+
+**2. A mission-scoped layer may own requirements, and ownership there is not verification.**
+
+`PREVIOUS_VISAS` and `EMPLOYER_SIGNATURE_CIRCULAR` now live in `gr-tr-mission`, a layer scoped to one
+destination's mission in one filing jurisdiction, composing after `tr-filing`. Article 14(3) leaves
+the harmonised list non-exhaustive, so a mission asking for more than the jurisdiction instrument is
+a shape the model must be able to express.
+
+**What that ownership does not assert.** It is not a finding that the Greek mission currently
+requires either document. mfa.gr returns HTTP 403 to this environment, so nothing was verified in
+either direction; the move is a **containment** decision, chosen so that neither requirement can
+leak into the Common layer (where a second destination would inherit it) or into `tr-filing` (where
+a second destination composing Türkiye would). Both carry **no citations at all**, and a test asserts
+that quarantined requirements carry none — attaching one of the mission's citations would convert a
+recorded evidence gap into a claim of authority, which is the failure the allowlist exists to
+prevent.
+
+**Quarantine is a hold, not a verdict, and citation absence must not harden into authority.** Two
+resolutions end it, and both are expected rather than hypothetical:
+
+- A reachable official source arrives → the requirement gains its citation and its gap entry is
+  **deleted**. The stale-entry test fails if the entry is left behind, precisely so the record cannot
+  outlive the limitation it describes.
+- The requirement is shown to be gone → retirement under [ADR-049](#adr-049), which is not deletion
+  and never permits reusing the code.
+
+Nothing about the present state licenses "it has been uncited for a long time, therefore it is
+correct."
+
+**3. Shared practice is not jurisdiction-level authority.**
+
+`EMPLOYER_TAX_PLATE` (Vergi Levhası) is asked for by the German mission's own checklist for
+applicants in Türkiye and is carried by this pack — and it is **absent** from Commission
+Implementing Decision C(2021) 5156, the ANNEX amending Annex III to C(2011) 7192, which is the
+authority for applications lodged in Türkiye.
+
+Two missions asking for a document is evidence about **observed practice**. It is not evidence that
+the filing jurisdiction requires it, and a requirement does not earn a citation by being asked for
+twice. It is retained in `tr-filing` **provisionally**, under the bounded evidence-gap mechanism,
+because representing it per destination would create two codes for one real-world document — Rule 1
+failing in the other direction.
+
+I proposed the generalisation "two independent missions ≈ jurisdictional evidence" during the pack
+#2 audit and it was rejected. That rejection is recorded here rather than left implicit, because the
+temptation is structural: the moment a third mission asks for something, the same inference will look
+even more reasonable, and it will be just as unsupported. **"N missions ask for it" is never promoted
+to a jurisdiction rule.**
+
+**The evidence-gap mechanism, stated as a contract.**
+
+- Entries are **explicit** — keyed by `code`, never a pattern or a category.
+- Entries are **reasoned** — each carries a written reason naming what was searched and what was not
+  found; a length floor keeps a placeholder from passing for one.
+- Entries are **stale-checked** — an entry whose requirement has gained a citation, or that no layer
+  declares any more, fails the build. A stale exemption is worse than none: it reads as a live
+  limitation that no longer exists.
+- Every uncited requirement in a jurisdiction-kind layer must be **either cited or listed**, so a new
+  one fails until somebody writes down why it is being asserted without authority.
+- **The numeric cap is review hygiene, not a domain rule.** The current bound (five) exists so the
+  list stays short enough that somebody actually reads it. Nothing about the domain says five. Do not
+  cite it as a statement about how many gaps may legitimately exist, and do not raise it to avoid
+  recording a real one — a list that grows unnoticed has stopped being a record and become a backlog.
+
+**The `PREVIOUS_VISAS` move, justified narrowly.**
+
+It is **not** "the VIS forbids collecting copies of previous visas". Nothing read supports that, and
+asserting it would be exactly the invented authority [ADR-015](#adr-015) forbids. Two narrower
+findings are all that is claimed:
+
+1. **No Common-level submission authority was found.** Visa Code Annex II — sections A, B and C read
+   in full from the Official Journal text — contains no previous-visas item.
+2. **Prior Schengen history is already part of the assessment mechanism.** Article 21(2) states the
+   VIS *shall* be consulted for each application, so that history is retrieved by the consulate
+   rather than supplied by the applicant.
+
+Together those say the requirement is **not common**. They do not say it is prohibited, and they do
+not say no mission may ask for it — which is why it is quarantined rather than retired.
+
+**What C2 settled, in the same voice.** A requirement's rendered contract may assert only what a
+cited source supports. `PHOTOS` told an applicant to bring 2 photographs at 35x45mm on a white
+background taken within six months, and cited nothing; Visa Code Article 13 supports ICAO 9303
+conformance and nothing else. All four assertions left both locales, the count was **not** replaced
+by "1", and no ICAO dimensions were written in — the repository holds no copy of 9303. Removal is a
+loosening, so `revision` stays 1 ([ADR-051](#adr-051)). Greece coverage moves **18 → 19 of 28**; the
+earlier figure in [ADR-051a](#adr-051a) and in the status log was correct when written. The
+replacement notes were themselves corrected in a follow-up: "your consulate or visa centre states how
+many photographs to bring" reads as a sourced rule with a named authority, and Article 14(3) is not
+licence to write one. They are now plainly advisory.
+
+**Also shipped between ADR-052 and this amendment, recorded so the trail is not silent.**
+
+- **The neutral jurisdiction instrument.** Every citation in `tr-filing` was a Hellenic Republic
+  publication, so a German pack composing that layer would have cited the Greek mission as its
+  authority for SGK documents — the ADR-048 defect one layer up, and invisible to the quarantine
+  because `jurisdiction: 'TR'` is correct for a Greek mission page and for the Commission act alike.
+  The Commission act is now the layer's authority; each mission's rendering of it is appended by that
+  mission's own layer, authority first. The counterfactual was **measured** by reverting the
+  citations and re-running, not reasoned from the diff: evaluated against a destination that is not
+  `GR`, ten requirements had rested solely on Greek mission authority.
+- **Publisher is not jurisdiction.** `jurisdiction` says whom a source binds; it does not say who
+  published it. Publisher is therefore *stated* per source rather than derived — not inferred from
+  `sourceType` (a member state can publish a regulation) and not matched against `authority` strings
+  (which breaks the day a ministry's name is improved). The invariant is that a pack must not rest
+  **solely** on another destination's authority; citing one's own mission alongside the neutral
+  instrument is the designed shape, not a violation. It lives in test metadata rather than on
+  `RequirementSource`, because no production code path reads it — adding a config field nothing
+  consumes is the shape [ADR-050](#adr-050) warns about.
+
+**Not decided here.** German pack content. Whether `PASSPORT_PREVIOUS` and `ID_CARD_COPY` belong in
+Common: both sit there with no Annex II analogue, which is exactly the position `PREVIOUS_VISAS` was
+in before this work, and both are flagged rather than moved because neither has been audited against
+a source yet.
+
+**Implementation:** documentation only — `docs/decisions.md`, `docs/country-pack-guide.md`. The
+production changes this amendment records shipped in `fa9955f` (neutral instrument), `fbe3dce`
+(publishing authority), `cc24ae0` (mission-layer quarantine), `d66f96e` and `2b78633` (the
+photograph contract). The refinement-direction guard shipped in `db603b5` and is recorded in
+ADR-052's own text, which that commit amended; it is not restated here.

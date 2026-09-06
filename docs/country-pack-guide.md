@@ -73,6 +73,20 @@ destination plausibly be asked for it?* If yes, it is jurisdiction, not destinat
 Greece's destination layer owns **zero** requirements. That is not a mistake — nothing in that pack
 is true because the destination is Greece.
 
+### Mission-scoped layers
+
+A filing-jurisdiction layer holds what that jurisdiction's own authority states. A **mission-scoped**
+layer — one destination's mission in one filing jurisdiction, such as `gr-tr-mission` — composes
+*after* it and holds two things: citations that are that mission's rendering of the jurisdiction
+instrument, and requirements the mission carries which no authority at any level supports.
+
+Owning a requirement there is a **containment** decision, not a verification. It says "this must not
+reach a second destination", not "this mission requires it". Such a requirement carries **no**
+citations — attaching one would turn a recorded evidence gap into a claim of authority — and its
+absence of evidence is recorded, with a written reason, in the evidence-gap allowlist in
+`country-pack-provenance.test.ts`. The quarantine is a hold pending a reachable source, not a
+permanent answer. See ADR-052a.
+
 ## Step 1 — Stable identifiers
 
 Choose language-independent identifiers up front:
