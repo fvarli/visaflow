@@ -427,8 +427,15 @@ describe('country packs — Greece composition and citations', () => {
       byLayer.set(layerId, (byLayer.get(layerId) ?? 0) + 1)
     }
     expect(Object.fromEntries(byLayer)).toEqual({
-      'schengen-short-stay': 15,
-      'tr-filing': 13,
+      'schengen-short-stay': 14,
+      'tr-filing': 12,
+      // Two legacy requirements with no resolvable source, quarantined to the
+      // pack that carries them so a second destination cannot inherit them:
+      // PREVIOUS_VISAS (no Annex II basis; Article 21(2) has the consulate
+      // consult the VIS instead) and EMPLOYER_SIGNATURE_CIRCULAR (no source at
+      // any level). Placement here is containment, not a finding that Greece
+      // requires either.
+      'gr-tr-mission': 2,
       // 'greece' owns none: nothing in this pack is true *because* the
       // destination is Greece. Absent from the map rather than zero, since a
       // layer that declares nothing never reaches the ownership tally.
@@ -784,3 +791,101 @@ describe('country packs — institution names in shared prose (heuristic)', () =
  * non-empty label in both locales, which catches the failure that actually
  * reaches an applicant — a raw code where a document name belongs.
  */
+
+/**
+ * Requirements a jurisdiction-scoped layer asserts that the jurisdiction's own
+ * instrument does not contain.
+ *
+ * The Commission act is the authority for applications lodged in Türkiye. Where
+ * a jurisdiction-kind layer asks for something that act omits, the gap is real
+ * and it is recorded here rather than argued away — with a written reason each,
+ * so the set stays bounded and a fourth member takes a deliberate edit.
+ *
+ * The distinction this exists to hold: **shared mission practice is not
+ * jurisdiction-level authority.** Two missions asking for the same document is
+ * evidence about practice. It does not promote the document to something the
+ * jurisdiction requires, and a requirement does not earn a citation by being
+ * asked for twice.
+ */
+const JURISDICTION_EVIDENCE_GAPS: Record<string, string> = {
+  EMPLOYER_TAX_PLATE:
+    'Vergi Levhası. Absent from the Commission Annex III for Türkiye, and asked ' +
+    'for by the German mission sheet as well as carried by this pack. Retained in ' +
+    'the shared jurisdiction layer provisionally: representing it per destination ' +
+    'would create two codes for one real-world document, which is the collision ' +
+    'ADR-052 records as mechanically undetectable. Shared practice observed in two ' +
+    'destinations is not jurisdiction-level authority, and this entry is the cost ' +
+    'of saying so honestly rather than promoting it.',
+  EMPLOYER_SIGNATURE_CIRCULAR:
+    'İmza Sirküleri. No current official source at any level — absent from Visa ' +
+    'Code Annex II, from Annex III, and from the German mission sheet, and ' +
+    'unverifiable against the Greek mission because mfa.gr returns HTTP 403 to ' +
+    'this environment. Held in the Greek mission layer as quarantine so it cannot ' +
+    'reach a second destination. Retention is a hold pending a reachable source, ' +
+    'not a finding that Greece requires it.',
+  PREVIOUS_VISAS:
+    'Legacy and uncited. No Visa Code Annex II basis, and Article 21(2) requires ' +
+    'the consulate to consult the VIS for each application — so prior Schengen ' +
+    'visas are retrieved electronically rather than collected. Moved out of the ' +
+    'common layer because it is not common; quarantined rather than retired ' +
+    'because the Greek mission is unreachable and absence of a reachable source ' +
+    'is not proof the requirement is gone.',
+}
+
+describe('country packs — the jurisdiction evidence gap is bounded', () => {
+  const COMMISSION = 'eu-c2021-5156-turkey-annex3'
+
+  const jurisdictionOwned = ALL_REQUIREMENT_LAYERS.filter(
+    (l) => l.kind === 'jurisdiction'
+  ).flatMap((layer) => (layer.add ?? []).map((r) => ({ layer: layer.id, r })))
+
+  it('has jurisdiction-owned requirements to reason about', () => {
+    // Without this the assertions below pass by having nothing to check.
+    expect(jurisdictionOwned.length).toBeGreaterThan(0)
+  })
+
+  it('every jurisdiction requirement is either cited or recorded as a gap', () => {
+    const unaccounted = jurisdictionOwned
+      .filter(({ r }) => !(r.sourceRefs ?? []).includes(COMMISSION))
+      .filter(({ r }) => !(r.code in JURISDICTION_EVIDENCE_GAPS))
+      .map(({ layer, r }) => `${layer} → ${r.code}`)
+
+    // A new uncited requirement in a jurisdiction layer fails here until
+    // somebody writes down why it is being asserted without authority.
+    expect(unaccounted).toEqual([])
+  })
+
+  it('records no gap for a requirement that does not have one', () => {
+    // Catches an entry left behind after its requirement gained a citation or
+    // was removed — a stale exemption is worse than none, because it reads as a
+    // limitation that no longer exists.
+    const codes = new Set(jurisdictionOwned.map(({ r }) => r.code))
+    const cited = new Set(
+      jurisdictionOwned
+        .filter(({ r }) => (r.sourceRefs ?? []).includes(COMMISSION))
+        .map(({ r }) => r.code)
+    )
+    const stale = Object.keys(JURISDICTION_EVIDENCE_GAPS).filter(
+      (code) => !codes.has(code) || cited.has(code)
+    )
+    expect(stale).toEqual([])
+  })
+
+  it('explains every gap it records', () => {
+    for (const [code, reason] of Object.entries(JURISDICTION_EVIDENCE_GAPS)) {
+      expect({ code, explained: reason.trim().length > 80 }).toEqual({
+        code,
+        explained: true,
+      })
+    }
+  })
+
+  it('keeps the set small enough to stay reviewable', () => {
+    // Not an arbitrary cap: the point of recording gaps is that somebody reads
+    // them. A list that grows without anyone noticing has stopped being a
+    // record and become a backlog.
+    expect(Object.keys(JURISDICTION_EVIDENCE_GAPS).length).toBeLessThanOrEqual(
+      5
+    )
+  })
+})

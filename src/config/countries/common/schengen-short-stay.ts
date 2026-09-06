@@ -226,15 +226,6 @@ export const commonSchengenDocuments: DocumentRequirement[] = [
     },
     revision: 1,
   },
-  {
-    code: 'PREVIOUS_VISAS',
-    nameKey: 'visa-domain:requirements.PREVIOUS_VISAS.name',
-    descriptionKey: 'visa-domain:requirements.PREVIOUS_VISAS.description',
-    category: 'previous_travel',
-    ownerType: 'applicant',
-    required: false,
-    revision: 1,
-  },
 ]
 
 export const commonPreparationMilestones: PreparationMilestone[] = [

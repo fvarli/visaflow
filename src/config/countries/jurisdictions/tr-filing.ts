@@ -176,22 +176,6 @@ const trFilingDocuments: DocumentRequirement[] = [
     revision: 2,
   },
   {
-    code: 'EMPLOYER_SIGNATURE_CIRCULAR',
-    nameKey: 'visa-domain:requirements.EMPLOYER_SIGNATURE_CIRCULAR.name',
-    descriptionKey:
-      'visa-domain:requirements.EMPLOYER_SIGNATURE_CIRCULAR.description',
-    notesKey: 'visa-domain:requirements.EMPLOYER_SIGNATURE_CIRCULAR.notes',
-    category: 'employment',
-    ownerType: 'employer',
-    required: false,
-    conditionalOn: {
-      field: 'employment.employmentStatus',
-      operator: 'equals',
-      value: 'employed',
-    },
-    revision: 1,
-  },
-  {
     code: 'STUDENT_CERTIFICATE',
     nameKey: 'visa-domain:requirements.STUDENT_CERTIFICATE.name',
     descriptionKey: 'visa-domain:requirements.STUDENT_CERTIFICATE.description',

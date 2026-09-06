@@ -20,14 +20,68 @@ import type { RequirementLayer } from '../../types'
  * placed after `tr-filing` refines in the stated direction and names its
  * authority accurately.
  *
- * It declares no requirements. A mission that genuinely asks for something the
- * harmonised list does not contain would declare it here and own it — Article
- * 14(3) leaves missions free to ask for more, so that is a real possibility
- * rather than a hypothetical. Greece currently asks for nothing of the kind.
+ * IT ALSO OWNS TWO REQUIREMENTS, AND NEITHER IS A FINDING. Both were inherited
+ * from before the layer split and neither has a resolvable official source.
+ * They are held here as **quarantine**, not endorsement: scoped to the one pack
+ * that carries them so a second destination cannot inherit an unverified ask.
+ * Nothing about this placement says Greece currently requires either document.
+ *
+ * They are not retired instead, because the Greek mission page returns HTTP 403
+ * to this environment, and an unreachable source is not evidence that the
+ * requirement is gone. Retiring on that basis would strip documents from Greek
+ * applicants' checklists on the strength of a network failure. Both are listed
+ * in the evidence-gap allowlist in `country-pack-provenance.test.ts`, which
+ * bounds the set and demands a written reason for each.
  */
 export const grTrMissionLayer: RequirementLayer = {
   id: 'gr-tr-mission',
   kind: 'jurisdiction',
+  add: [
+    /**
+     * Moved out of the common layer, where it never belonged.
+     *
+     * There is no Annex II basis for it, and Visa Code Article 21(2) requires
+     * the consulate to consult the VIS for each application — so prior
+     * *Schengen* visas are retrieved electronically rather than collected from
+     * the applicant. That is also why Germany's own version is scoped to UK,
+     * USA and Canada: those are the visas the VIS cannot see.
+     *
+     * Uncited, and held here rather than retired for the reason above.
+     */
+    {
+      code: 'PREVIOUS_VISAS',
+      nameKey: 'visa-domain:requirements.PREVIOUS_VISAS.name',
+      descriptionKey: 'visa-domain:requirements.PREVIOUS_VISAS.description',
+      category: 'previous_travel',
+      ownerType: 'applicant',
+      required: false,
+      revision: 1,
+    },
+    /**
+     * No current official source at any level: absent from Visa Code Annex II,
+     * absent from the Commission's Annex III for Türkiye, and absent from the
+     * German mission's own sheet. ADR-048 already declined to re-point it.
+     *
+     * Retention is a hold pending a reachable Greek source, not a finding that
+     * one exists.
+     */
+    {
+      code: 'EMPLOYER_SIGNATURE_CIRCULAR',
+      nameKey: 'visa-domain:requirements.EMPLOYER_SIGNATURE_CIRCULAR.name',
+      descriptionKey:
+        'visa-domain:requirements.EMPLOYER_SIGNATURE_CIRCULAR.description',
+      notesKey: 'visa-domain:requirements.EMPLOYER_SIGNATURE_CIRCULAR.notes',
+      category: 'employment',
+      ownerType: 'employer',
+      required: false,
+      conditionalOn: {
+        field: 'employment.employmentStatus',
+        operator: 'equals',
+        value: 'employed',
+      },
+      revision: 1,
+    },
+  ],
   refine: [
     // The consulate's restatement of the Visa Code criteria. These carry no
     // Commission citation because Annex III does not cover them.

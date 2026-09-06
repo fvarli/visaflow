@@ -143,14 +143,27 @@ describe('Greek mission authority arrives only by destination refinement', () =>
     }
   })
 
-  it('arrives from the Greek mission layer, which owns no requirement', () => {
-    // A mission may add requirements of its own — Article 14(3) permits it —
-    // but Greece's does not, so this layer is citations only.
-    expect(grTrMissionLayer.add ?? []).toEqual([])
+  it('arrives from the Greek mission layer, and only from there', () => {
+    // This layer used to own nothing. It now holds two quarantined legacy
+    // requirements — Article 14(3) permits a mission to ask for more than the
+    // harmonised list, and this is where such a thing would live — but that is
+    // separate from the point here, which is about citations: every Greek
+    // mission reference in the composition comes from this layer's refinements
+    // and from nowhere else.
     const refined = (grTrMissionLayer.refine ?? []).flatMap(
       (r) => r.addSourceRefs
     )
     expect([...new Set(refined)].sort()).toEqual([...GREEK_MISSION].sort())
+  })
+
+  it('does not let its own quarantined requirements claim Greek authority', () => {
+    // The two it owns are held precisely because no source supports them.
+    // Attaching one of the mission citations to either would convert a recorded
+    // evidence gap into a claim of authority — the failure mode the allowlist in
+    // `country-pack-provenance.test.ts` exists to prevent.
+    for (const requirement of grTrMissionLayer.add ?? []) {
+      expect(requirement.sourceRefs ?? []).toEqual([])
+    }
   })
 
   it('composes after the jurisdiction layer, so it refines forwards', () => {
