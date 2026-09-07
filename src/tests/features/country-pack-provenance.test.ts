@@ -4,10 +4,11 @@ import i18n from '@/i18n'
 // quarantine used to read that array by name; it now walks the layer registry
 // and the compositions, so the shared array is no longer a special case this
 // file knows about.
-import { getAllCountryConfigs } from '@/config/countries'
+import { getAllCountryConfigs, getCountryConfig } from '@/config/countries'
 import { greeceTourismComposition } from '@/config/countries/greece/tourism'
 import { ALL_REQUIREMENT_LAYERS } from '@/config/countries/layers'
 import { jurisdictionScopedCodes } from '@/tests/support/jurisdiction-scope'
+import { PRODUCTION_COMPOSITIONS } from '@/tests/support/production-compositions'
 import {
   computeVerificationCoverage,
   isReviewStatusSupported,
@@ -68,6 +69,33 @@ const TODAY = new Date().toISOString().slice(0, 10)
 
 const isFuture = (iso: string | undefined): boolean =>
   typeof iso === 'string' && iso.slice(0, 10) > TODAY
+
+describe('country packs — every registered pack is actually measured', () => {
+  /**
+   * `PRODUCTION_COMPOSITIONS` is hand-maintained, and a hand-maintained list
+   * that nothing checks is how an invariant quietly stops covering a pack. So
+   * it is cross-checked in both directions against the registry, exactly as
+   * `ALL_REQUIREMENT_LAYERS` is cross-checked against the composer's ownership
+   * map, and for the same reason.
+   */
+  it('has a composition for every country in the registry', () => {
+    const registered = getAllCountryConfigs()
+      .map((p) => p.countryCode)
+      .sort()
+    const measured = PRODUCTION_COMPOSITIONS.map((p) => p.countryCode).sort()
+    expect(measured).toEqual(registered)
+  })
+
+  it('resolves each one to the template that pack actually ships', () => {
+    // Guards the other half: an entry could name the right country and carry
+    // the wrong pack's composition, which is the defect this list was created
+    // to end rather than to repeat.
+    for (const { countryCode, composition } of PRODUCTION_COMPOSITIONS) {
+      const shipped = getCountryConfig(countryCode)?.visaTypes ?? []
+      expect(shipped).toContain(composition.template)
+    }
+  })
+})
 
 describe('country packs — the registry is not empty', () => {
   it('registers at least one pack, so these invariants mean something', () => {
@@ -597,8 +625,6 @@ describe('country packs — jurisdiction evidence stays with its jurisdiction', 
     )
   )
 
-  const PRODUCTION_COMPOSITIONS = [greeceTourismComposition]
-
   it('has jurisdiction-scoped evidence to reason about at all', () => {
     // Non-vacuity. Every assertion below is of the form "no violations", and
     // "found no violations" is indistinguishable from "found nothing" unless
@@ -637,9 +663,11 @@ describe('country packs — jurisdiction evidence stays with its jurisdiction', 
     expect(carried.length).toBeGreaterThan(0)
   })
 
-  it.each(PRODUCTION_COMPOSITIONS.map((c) => [c.template.id, c] as const))(
+  it.each(
+    PRODUCTION_COMPOSITIONS.map((p) => [p.countryCode, p.composition] as const)
+  )(
     '%s composes no jurisdiction it does not include',
-    (_id, composition) => {
+    (_countryCode, composition) => {
       // Reuses the detector proven against four synthetic compositions in
       // `pack-composition.test.ts`, including its own vacuity control. Derived
       // from composed sources rather than layer membership, so it asks the
@@ -657,9 +685,11 @@ describe('country packs — jurisdiction evidence stays with its jurisdiction', 
     }
   )
 
-  it.each(PRODUCTION_COMPOSITIONS.map((c) => [c.template.id, c] as const))(
+  it.each(
+    PRODUCTION_COMPOSITIONS.map((p) => [p.countryCode, p.composition] as const)
+  )(
     '%s actually contains jurisdiction-scoped evidence',
-    (_id, composition) => {
+    (_countryCode, composition) => {
       // The other half of non-vacuity: a composition carrying none would pass
       // the check above for the wrong reason.
       expect(jurisdictionScopedCodes(composition, 'EU').size).toBeGreaterThan(0)

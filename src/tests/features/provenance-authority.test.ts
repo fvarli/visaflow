@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest'
 import { composeVisaTemplate } from '@/config/composition'
 import { getAllCountryConfigs } from '@/config/countries'
 import { greeceTourismComposition } from '@/config/countries/greece/tourism'
+import { compositionFor } from '@/tests/support/production-compositions'
 import {
   soleForeignAuthorityCodes,
   type PublishingAuthority,
@@ -60,10 +61,21 @@ const PRODUCTION_PUBLISHER: Record<string, PublishingAuthority> = {
 
 const publisherOf = (id: string) => PRODUCTION_PUBLISHER[id]
 
+/**
+ * Each pack evaluated against **its own** composition.
+ *
+ * This used to attach `greeceTourismComposition` to every registry row, which
+ * was true while Greece was the only pack and silently false the moment it was
+ * not: a second pack's row would ask whether *Greece's* requirements rest on
+ * that pack's authority — an assertion that cannot fail, in the one file whose
+ * header warns that a guard only ever seen passing is indistinguishable from
+ * one that cannot. `compositionFor` throws on a pack it does not know, so a new
+ * pack cannot slip through by being skipped.
+ */
 const PRODUCTION_PACKS = getAllCountryConfigs().map((pack) => ({
   countryCode: pack.countryCode,
   sources: pack.sources ?? [],
-  composition: greeceTourismComposition,
+  composition: compositionFor(pack.countryCode),
 }))
 
 describe('provenance authority — production packs', () => {

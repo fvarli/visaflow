@@ -8,7 +8,7 @@ import {
 import { REQUIREMENT_REVISIONS } from '@/config/countries/requirement-revisions'
 import { dynamicT } from '@/lib/i18n-dynamic'
 import { ALL_REQUIREMENT_LAYERS } from '@/config/countries/layers'
-import { greeceTourismComposition } from '@/config/countries/greece/tourism'
+import { PRODUCTION_COMPOSITIONS } from '@/tests/support/production-compositions'
 import type { DocumentRequirement } from '@/config/types'
 
 /**
@@ -327,33 +327,53 @@ describe('requirement identity — one code, one owning layer, registry-wide', (
     expect(declarations.length).toBeGreaterThan(0)
   })
 
+  /**
+   * The union across every production pack, not one pack's map.
+   *
+   * Reachability is a claim about the registry as a whole: a layer composed by
+   * *some* pack is not dead configuration, and reading a single pack's
+   * ownership map would report every other pack's layers as orphaned. With one
+   * pack the two are the same set, which is exactly why this had to be fixed
+   * before a second pack existed rather than after it failed.
+   */
+  const usedLayerIds = new Set(
+    PRODUCTION_COMPOSITIONS.flatMap((p) => [
+      ...p.composition.ownership.values(),
+    ])
+  )
+  const composedCodes = PRODUCTION_COMPOSITIONS.flatMap((p) =>
+    p.composition.template.documentRequirements.map((r) => r.code)
+  )
+
   it('accounts for every composed requirement', () => {
     // Ties the registry to reality: a requirement reaching an applicant whose
     // code no registered layer declares would mean the registry is incomplete
     // and the duplicate check above is looking at the wrong set.
     const declared = new Set(declarations.map((d) => d.code))
-    const composed = greeceTourismComposition.template.documentRequirements.map(
-      (r) => r.code
-    )
-    expect(composed.filter((code) => !declared.has(code))).toEqual([])
+    expect(composedCodes.filter((code) => !declared.has(code))).toEqual([])
   })
 
-  it('registers every layer the composition actually used', () => {
+  it('has composed requirements to account for', () => {
+    // The union above would satisfy the previous assertion trivially if it were
+    // empty, and an empty union is what a mis-wired pack list produces.
+    expect(composedCodes.length).toBeGreaterThan(0)
+    expect(usedLayerIds.size).toBeGreaterThan(0)
+  })
+
+  it('registers every layer any pack actually used', () => {
     // The other direction. `ALL_REQUIREMENT_LAYERS` is consulted by nothing in
     // production, which is exactly the shape ADR-050 warns about — a registry
     // that looks authoritative, is never read, and drifts. Cross-checking it
-    // against the composer's own ownership map is what keeps it honest.
+    // against the composers' own ownership maps is what keeps it honest.
     const registered = new Set(ALL_REQUIREMENT_LAYERS.map((l) => l.id))
-    const used = new Set(greeceTourismComposition.ownership.values())
-    expect([...used].filter((id) => !registered.has(id))).toEqual([])
+    expect([...usedLayerIds].filter((id) => !registered.has(id))).toEqual([])
   })
 
   it('composes every registered layer that declares requirements', () => {
     // And a layer registered but composed by nothing is dead configuration
     // whose codes are being held against every other layer for no reason.
-    const used = new Set(greeceTourismComposition.ownership.values())
     const orphaned = ALL_REQUIREMENT_LAYERS.filter(
-      (l) => (l.add?.length ?? 0) > 0 && !used.has(l.id)
+      (l) => (l.add?.length ?? 0) > 0 && !usedLayerIds.has(l.id)
     ).map((l) => l.id)
     expect(orphaned).toEqual([])
   })
