@@ -1,6 +1,7 @@
 {
   "countries": {
-    "GR": "Yunanistan"
+    "GR": "Yunanistan",
+    "DE": "Almanya"
   },
   "visaTypes": {
     "schengen-short-stay-tourism": "Schengen Kısa Süreli — Turistik (Tip C)",
@@ -260,6 +261,16 @@
     "PENSIONER_BOOKLET": {
       "name": "Emekli Cüzdanı",
       "description": "Emekli cüzdanı"
+    },
+    "DE_S54_DECLARATION": {
+      "name": "İkamet Kanunu 54. Madde Beyannamesi",
+      "description": "Başvuru formuyla birlikte verilen, Alman İkamet Kanunu’nun 54. maddesi uyarınca istenen imzalı beyanname",
+      "notes": "Vize sürecinde yanlış veya eksik beyanın İkamet Kanunu 54(2) no. 8 uyarınca sonuçları olduğunun size bildirildiğini kayda geçirir. Metni misyon verir."
+    },
+    "DE_TRAVEL_HISTORY_COPIES": {
+      "name": "Son 10 Yılın Vize Fotokopileri",
+      "description": "Son 10 yıl içinde geçerli olan Schengen, AB, Birleşik Krallık, ABD ve Kanada vizelerinizin ve bu vizeleri taşıyan pasaportun birer adet fotokopisi",
+      "notes": "Mevcut pasaportunuzdan ayrı bir belgedir: söz konusu vizeleri taşıyan pasaportun — süresi dolmuş olsa bile — ilgili sayfalarını kapsar."
     }
   },
   "milestones": {
@@ -328,6 +339,18 @@
     "eu-c2021-5156-turkey-annex3": {
       "title": "Komisyon Uygulama Kararı C(2021) 5156 — Türkiye’de kısa süreli vize başvuruları için destekleyici belgeler",
       "notes": "C(2011) 7192 sayılı Uygulama Kararı’nın 29 Temmuz 2021’de değiştirilen EK III’ü. Avrupa Komisyonu tarafından Vize Kanunu 14(5a) maddesi uyarınca Türkiye yetki alanı için kabul edilmiştir; bu nedenle hangi Schengen ülkesi için olursa olsun Türkiye’de yapılan başvurular için geçerlidir. Madde 14(3) listeyi sınırlayıcı saymaz: tek tek temsilcilikler daha fazlasını isteyebilir ve bazıları istemektedir. Bir üye devlet bakanlığının yayımladığı nüshadan alınmıştır."
+    },
+    "de-tr-tourism-checklist": {
+      "title": "Türkiye’deki Alman misyonları — turistik amaçlı vize kontrol listesi",
+      "notes": "Her başvuru sahibinin vereceği belgeleri, ardından başvuru sahibi kategorisine göre ek belgeleri listeler: çalışanlar, çiftçiler, şirket sahipleri, öğrenciler, reşit olmayanlar ve Türk vatandaşı olmayanlar."
+    },
+    "de-tr-schengen-general": {
+      "title": "Türkiye’deki Alman misyonları — genel Schengen vizesi bilgileri",
+      "notes": "Kontrol listesinin pasaport, fotoğraf ve sigorta için bağlantı verdiği sayfa. 35 x 45 mm ölçüsünde, 6 aydan eski olmayan 1 adet fotoğraf; son on yıl içinde düzenlenmiş, dönüş tarihinden sonra üç ay geçerli ve iki boş sayfası olan pasaport; 30.000 EUR teminatlı sigorta belirtir."
+    },
+    "de-aufenthg-54": {
+      "title": "İkamet Kanunu, 54. madde — Sınır dışı etme menfaati",
+      "notes": "(2) no. 8, Schengen vize sürecinde yanlış veya eksik beyanı ağır bir sınır dışı etme menfaati sayar; (b) bendi ise yalnızca kişiye bu sonuçların önceden bildirilmiş olması hâlinde uygulanır. Beyannamenin dayandığı hüküm budur; belge sunulmasını kendisi düzenlemez."
     }
   },
   "templateNotes": {

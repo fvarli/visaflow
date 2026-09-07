@@ -1,3 +1,4 @@
+import { germanyTourismComposition } from '@/config/countries/germany/tourism'
 import { greeceTourismComposition } from '@/config/countries/greece/tourism'
 import type { CompositionResult } from '@/config/composition'
 
@@ -36,6 +37,7 @@ export interface ProductionComposition {
 
 export const PRODUCTION_COMPOSITIONS: ProductionComposition[] = [
   { countryCode: 'GR', composition: greeceTourismComposition },
+  { countryCode: 'DE', composition: germanyTourismComposition },
 ]
 
 /**

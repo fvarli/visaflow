@@ -31,7 +31,7 @@
     "languageHint": "Turkish is the default. This never changes your exported data.",
     "destinationLabel": "Destination country",
     "destinationHint": "Where you plan to apply for your visa.",
-    "availablePack": "Greece (Schengen short-stay tourism) is the requirement pack available today. You can choose another destination, but its document checklist isn't built yet."
+    "availablePack": "The requirement packs built so far are {{packs}} (Schengen short-stay tourism). You can choose another destination, but its document checklist isn't built yet."
   },
   "create": {
     "heading": "Create or import",

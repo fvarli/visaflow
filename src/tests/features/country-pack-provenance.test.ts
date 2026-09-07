@@ -991,8 +991,6 @@ const JURISDICTION_EVIDENCE_GAPS: Record<string, string> = {
 }
 
 describe('country packs — the jurisdiction evidence gap is bounded', () => {
-  const COMMISSION = 'eu-c2021-5156-turkey-annex3'
-
   const jurisdictionOwned = ALL_REQUIREMENT_LAYERS.filter(
     (l) => l.kind === 'jurisdiction'
   ).flatMap((layer) => (layer.add ?? []).map((r) => ({ layer: layer.id, r })))
@@ -1002,9 +1000,30 @@ describe('country packs — the jurisdiction evidence gap is bounded', () => {
     expect(jurisdictionOwned.length).toBeGreaterThan(0)
   })
 
+  /**
+   * "Cited" means cited by anything, and that is a widening this file made
+   * deliberately when the German mission layer arrived.
+   *
+   * It used to mean "cites the Commission act for Türkiye", which was right
+   * while every jurisdiction-owned requirement in the repository was a Türkiye
+   * document that the act either covered or did not. A mission layer owns
+   * requirements the act was never going to mention — the § 54 declaration is
+   * not in a harmonised list of Turkish documents — and failing them for that
+   * would push a maintainer to record a gap where there is none, which is
+   * worse than the check being narrow.
+   *
+   * The question this test asks is therefore "is anything being asserted with
+   * no evidence at all, unrecorded". *Whose* evidence is a different question,
+   * asked where it can be answered properly: `tr-filing-provenance.test.ts`
+   * pins the Türkiye layer's citations to the clauses of Annex III that
+   * support them, and `provenance-authority.test.ts` refuses a pack that rests
+   * solely on another destination's authority.
+   */
+  const isCited = (refs: string[] | undefined) => (refs ?? []).length > 0
+
   it('every jurisdiction requirement is either cited or recorded as a gap', () => {
     const unaccounted = jurisdictionOwned
-      .filter(({ r }) => !(r.sourceRefs ?? []).includes(COMMISSION))
+      .filter(({ r }) => !isCited(r.sourceRefs))
       .filter(({ r }) => !(r.code in JURISDICTION_EVIDENCE_GAPS))
       .map(({ layer, r }) => `${layer} → ${r.code}`)
 
@@ -1020,13 +1039,21 @@ describe('country packs — the jurisdiction evidence gap is bounded', () => {
     const codes = new Set(jurisdictionOwned.map(({ r }) => r.code))
     const cited = new Set(
       jurisdictionOwned
-        .filter(({ r }) => (r.sourceRefs ?? []).includes(COMMISSION))
+        .filter(({ r }) => isCited(r.sourceRefs))
         .map(({ r }) => r.code)
     )
     const stale = Object.keys(JURISDICTION_EVIDENCE_GAPS).filter(
       (code) => !codes.has(code) || cited.has(code)
     )
     expect(stale).toEqual([])
+  })
+
+  it('has cited jurisdiction requirements too, so the gap list is not the rule', () => {
+    // If every jurisdiction-owned requirement were uncited, the allowlist would
+    // have quietly become the mechanism rather than the exception.
+    expect(
+      jurisdictionOwned.filter(({ r }) => isCited(r.sourceRefs)).length
+    ).toBeGreaterThan(0)
   })
 
   it('explains every gap it records', () => {

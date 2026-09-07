@@ -84,8 +84,12 @@ export function firstRunTarget(
 }
 
 /**
- * The destination country a fresh dossier starts with. Greece is the only pack
- * configured today; kept as a single named constant (replacing the page-local
- * literal that used to live in `DashboardPage`) rather than scattered strings.
+ * The destination country a fresh dossier starts with.
+ *
+ * Greece rather than "the first registered pack": it is the pack this project
+ * has verified longest, and a default that reshuffles when a registry entry is
+ * added would change what a new user starts with for no reason they could see.
+ * Germany is equally available — the onboarding step names every pack from the
+ * registry and the picker offers every country.
  */
 export const DEFAULT_DESTINATION_COUNTRY = 'GR'

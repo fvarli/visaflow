@@ -57,6 +57,15 @@ const PRODUCTION_PUBLISHER: Record<string, PublishingAuthority> = {
   'gr-mfa-general': { kind: 'destination', countryCode: 'GR' },
   'gr-tr-harmonised-list': { kind: 'destination', countryCode: 'GR' },
   'gr-mfa-tr-visa-page': { kind: 'destination', countryCode: 'GR' },
+  // German publications, and the reason this axis exists. The two mission
+  // pages carry `jurisdiction: 'TR'` exactly as the Commission act and the
+  // Greek mission pages do — three different publishers, one jurisdiction
+  // field, and only this map tells them apart. The statute carries `DE`, which
+  // still says nothing about who published it: a member state can publish a
+  // regulation, which is why `sourceType` cannot answer this either.
+  'de-tr-tourism-checklist': { kind: 'destination', countryCode: 'DE' },
+  'de-tr-schengen-general': { kind: 'destination', countryCode: 'DE' },
+  'de-aufenthg-54': { kind: 'destination', countryCode: 'DE' },
 }
 
 const publisherOf = (id: string) => PRODUCTION_PUBLISHER[id]

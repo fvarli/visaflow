@@ -133,6 +133,9 @@ describe('the neutral citation goes only where the act supports it', () => {
 
 describe('Greek mission authority arrives only by destination refinement', () => {
   it('appears nowhere in the shared jurisdiction layer', () => {
+    // Shared now means shared by two real packs: `tr-filing` composes into
+    // Greece and Germany alike, so a Greek citation here would reach a German
+    // applicant's checklist.
     const declared = (trFilingLayer.add ?? []).flatMap(
       (r) => r.sourceRefs ?? []
     )
@@ -173,6 +176,31 @@ describe('Greek mission authority arrives only by destination refinement', () =>
     expect(ids.indexOf(grTrMissionLayer.id)).toBeGreaterThan(
       ids.indexOf(trFilingLayer.id)
     )
+  })
+
+  it.each(
+    ALL_REQUIREMENT_LAYERS.filter((l) => l.id.endsWith('-tr-mission')).map(
+      (l) => [l.id, l] as const
+    )
+  )('%s follows the same rules', (_id, mission) => {
+    // Every mission layer, not the Greek one by name — Germany's arrived after
+    // these rules were written and must obey them without anybody remembering
+    // to add a row. The Commission act is the jurisdiction's authority and no
+    // mission may re-declare it as its own record; a mission's own citations
+    // are its own; and it composes after the layer it refines.
+    const ids = ALL_REQUIREMENT_LAYERS.map((l) => l.id)
+    expect(ids.indexOf(mission.id)).toBeGreaterThan(
+      ids.indexOf(trFilingLayer.id)
+    )
+    expect((mission.sources ?? []).map((s) => s.id)).not.toContain(COMMISSION)
+    expect(mission.kind).toBe('jurisdiction')
+  })
+
+  it('has more than one mission layer to hold to that', () => {
+    // Otherwise the row above is the Greek layer wearing a general name.
+    expect(
+      ALL_REQUIREMENT_LAYERS.filter((l) => l.id.endsWith('-tr-mission')).length
+    ).toBeGreaterThan(1)
   })
 
   it('still reaches the composed pack, ordered authority-first', () => {

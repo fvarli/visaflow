@@ -31,7 +31,7 @@
     "languageHint": "Varsayılan dil Türkçe'dir. Bu, dışa aktardığın veriyi asla değiştirmez.",
     "destinationLabel": "Hedef ülke",
     "destinationHint": "Vizen için başvurmayı planladığın ülke.",
-    "availablePack": "Bugün mevcut olan gereksinim paketi Yunanistan (Schengen kısa süreli turizm). Başka bir hedef seçebilirsin, ancak onun belge listesi henüz hazır değil."
+    "availablePack": "Şu ana kadar hazırlanan gereksinim paketleri: {{packs}} (Schengen kısa süreli turizm). Başka bir hedef seçebilirsin, ancak onun belge listesi henüz hazır değil."
   },
   "create": {
     "heading": "Oluştur veya içe aktar",

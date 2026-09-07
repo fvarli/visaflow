@@ -64,6 +64,9 @@ const SHIPPED_CODES = [
   'COMPANY_ACTIVITY_CERTIFICATE',
   'TAX_PAYMENT_STATEMENT',
   'PENSIONER_BOOKLET',
+  // Germany/Türkiye
+  'DE_S54_DECLARATION',
+  'DE_TRAVEL_HISTORY_COPIES',
   // Retired in template 1.2.0 — still held by dossiers written before it
   'TAX_RETURNS',
   'BUSINESS_LICENSE',

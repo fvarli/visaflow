@@ -7,6 +7,7 @@ import {
   resolveStep,
   stepIndex,
 } from '@/features/onboarding/onboarding-model'
+import { hasCountryConfig } from '@/config/countries'
 
 describe('onboarding-model — resolveStep', () => {
   it('accepts every known step id', () => {
@@ -85,7 +86,13 @@ describe('onboarding-model — firstRunTarget', () => {
 })
 
 describe('onboarding-model — defaults', () => {
-  it('starts a fresh dossier on the only configured pack', () => {
+  it('starts a fresh dossier on a pack that is actually configured', () => {
+    // Both halves matter. The constant is Greece by choice — the longest-
+    // verified pack, and a default that reshuffled when a country was
+    // registered would change what a new user starts with for no visible
+    // reason. And whatever it is, a pack must exist for it, which is the part
+    // that would have caught a default pointing at an unbuilt country.
     expect(DEFAULT_DESTINATION_COUNTRY).toBe('GR')
+    expect(hasCountryConfig(DEFAULT_DESTINATION_COUNTRY)).toBe(true)
   })
 })

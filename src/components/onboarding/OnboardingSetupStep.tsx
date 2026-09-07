@@ -6,13 +6,15 @@ import { CountryCombobox } from '@/components/ui/country-combobox'
 import { GuidanceNote } from '@/components/ui/guidance-note'
 import { Button } from '@/components/ui/button'
 import { useLocale } from '@/app/providers/LocaleProvider'
+import { getAllCountryConfigs } from '@/config/countries'
+import { dynamicT } from '@/lib/i18n-dynamic'
 import { SUPPORTED_LOCALES, type Locale } from '@/i18n'
 
 /**
  * Step two: the interface language (live switching, persisted only as the
  * non-personal locale preference) and the destination country. Both are calm,
- * changeable-later choices; the honest note makes clear which pack actually
- * ships today. Reuses the same primitives as the Settings and wizard surfaces.
+ * changeable-later choices; the honest note names the packs that actually ship
+ * today, read from the registry so it cannot go stale. Reuses the same primitives as the Settings and wizard surfaces.
  */
 export function OnboardingSetupStep({
   country,
@@ -23,8 +25,20 @@ export function OnboardingSetupStep({
   onCountryChange: (code: string) => void
   onContinue: () => void
 }) {
-  const { t } = useTranslation('onboarding')
+  const { t, i18n } = useTranslation('onboarding')
   const { locale, setLocale } = useLocale()
+
+  /**
+   * Named from the registry rather than written into the sentence. The copy
+   * said "Greece is the pack available today" for as long as that was true and
+   * for exactly as long as it was not — a second pack shipped and the note kept
+   * saying otherwise. Reading the registry means the note cannot go stale
+   * again, and the honest caveat that follows it is unchanged.
+   */
+  const td = dynamicT(i18n.t.bind(i18n))
+  const packNames = getAllCountryConfigs()
+    .map((pack) => td(pack.nameKey, { defaultValue: pack.countryCode }))
+    .join(', ')
 
   return (
     <div className="space-y-6">
@@ -61,7 +75,9 @@ export function OnboardingSetupStep({
         />
       </div>
 
-      <GuidanceNote tone="info">{t('setup.availablePack')}</GuidanceNote>
+      <GuidanceNote tone="info">
+        {t('setup.availablePack', { packs: packNames })}
+      </GuidanceNote>
 
       <Button onClick={onContinue}>
         {t('actions.continue')}

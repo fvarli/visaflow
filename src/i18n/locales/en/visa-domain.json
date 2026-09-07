@@ -1,6 +1,7 @@
 {
   "countries": {
-    "GR": "Greece"
+    "GR": "Greece",
+    "DE": "Germany"
   },
   "visaTypes": {
     "schengen-short-stay-tourism": "Schengen Short-Stay — Tourism (Type C)",
@@ -260,6 +261,16 @@
     "PENSIONER_BOOKLET": {
       "name": "Pensioner Booklet",
       "description": "Pensioner booklet"
+    },
+    "DE_S54_DECLARATION": {
+      "name": "Residence Act § 54 Declaration",
+      "description": "Signed declaration submitted with the application form, required under § 54 of the German Residence Act",
+      "notes": "It records that you have been informed that false or incomplete statements in a visa procedure carry consequences under § 54(2) no. 8 of the Residence Act. The mission provides the wording."
+    },
+    "DE_TRAVEL_HISTORY_COPIES": {
+      "name": "Copies of Visas from the Last 10 Years",
+      "description": "One photocopy of each Schengen, EU, United Kingdom, United States or Canadian visa valid within the last 10 years, and of the passport that carries them",
+      "notes": "This is separate from your current passport: it covers the pages of any passport holding those visas, including an expired one."
     }
   },
   "milestones": {
@@ -328,6 +339,18 @@
     "eu-c2021-5156-turkey-annex3": {
       "title": "Commission Implementing Decision C(2021) 5156 — supporting documents for short stay visas in Turkey",
       "notes": "Annex III to Implementing Decision C(2011) 7192, as amended on 29 July 2021. Adopted by the European Commission under Visa Code Article 14(5a) for the Türkiye jurisdiction, so it applies to applications lodged in Türkiye whichever Schengen state they are for. Article 14(3) leaves the list non-exhaustive: an individual mission may ask for more, and several do. Retrieved from a member state ministry’s published copy of the act."
+    },
+    "de-tr-tourism-checklist": {
+      "title": "German missions in Türkiye — tourist visa checklist",
+      "notes": "Lists the documents every applicant submits and then the additional documents by applicant category: employees, farmers, business owners, students, minors and non-Turkish citizens."
+    },
+    "de-tr-schengen-general": {
+      "title": "German missions in Türkiye — general Schengen visa information",
+      "notes": "The page the checklist links for the passport, the photograph and the insurance. It states one photograph of 35 x 45 mm, not older than six months; a passport issued within the previous ten years, valid three months beyond the return and with two blank pages; and insurance covering EUR 30,000."
+    },
+    "de-aufenthg-54": {
+      "title": "Residence Act, § 54 — Interest in expulsion",
+      "notes": "Subsection (2) no. 8 makes false or incomplete statements in a Schengen visa procedure a serious interest in expulsion, and point (b) applies only where the person was informed of those consequences beforehand. It is the basis the declaration refers to; it does not itself list a document to submit."
     }
   },
   "templateNotes": {

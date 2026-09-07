@@ -5,6 +5,7 @@ import type {
 } from '../types'
 import type { VisaType } from '@/domain/types/common'
 import { greeceConfig } from './greece'
+import { germanyConfig } from './germany'
 
 /**
  * Registry of country templates: country → visa type → requirements.
@@ -16,6 +17,7 @@ import { greeceConfig } from './greece'
  */
 const countryRegistry: Record<string, CountryConfig> = {
   GR: greeceConfig,
+  DE: germanyConfig,
 }
 
 export function getCountryConfig(
@@ -84,6 +86,7 @@ export function getSourcesForRefs(
 }
 
 export { greeceConfig } from './greece'
+export { germanyConfig } from './germany'
 export {
   commonSchengenDocuments,
   commonPreparationMilestones,
