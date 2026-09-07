@@ -211,8 +211,7 @@
     },
     "EMPLOYER_TAX_PLATE": {
       "name": "İşveren Vergi Levhası",
-      "description": "Şirkete ait güncel vergi levhası",
-      "notes": "Uyruğa bağlı olarak istenebilir"
+      "description": "Şirkete ait güncel vergi levhası"
     },
     "EMPLOYER_TRADE_REGISTRY": {
       "name": "Şirket Kaydı",

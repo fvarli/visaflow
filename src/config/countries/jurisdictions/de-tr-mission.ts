@@ -87,6 +87,45 @@ export const deTrMissionLayer: RequirementLayer = {
       sourceRefs: ['de-tr-tourism-checklist'],
       revision: 1,
     },
+    /**
+     * MOVED HERE FROM `tr-filing` IN E5c, BECAUSE ONLY THIS DESTINATION ASKS
+     * FOR IT.
+     *
+     * Vergi Levhası appears nowhere in the Commission's Annex III for Türkiye,
+     * and the Greek mission's own published requirements — read first-hand —
+     * are silent on it too. It sat in the shared Türkiye layer anyway, so Greek
+     * applicants were asked for a company tax certificate on no authority at
+     * all, while this pack cited it by refinement from the sheet that does ask.
+     *
+     * Removing it from one composition and keeping it in the other looked like
+     * a case for suppression. It is not: the requirement simply was not
+     * jurisdiction-level, and moving it to the layer that evidences it makes
+     * Greece stop composing it as a consequence rather than as an exception.
+     *
+     * Two corrections travel with the move, and neither could be made while it
+     * was shared. Section 4(c) of the sheet files it under "Firma sahipleri /
+     * Serbest meslek sahipleri" — company owners and the self-employed — not
+     * under employees, so the condition was targeting the wrong population in
+     * both directions. And the sheet lists it without qualification for that
+     * category, so it is required rather than optional. The note claiming it
+     * "may be required depending on nationality" is gone: no source at any
+     * level states a nationality rule of that shape.
+     */
+    {
+      code: 'EMPLOYER_TAX_PLATE',
+      nameKey: 'visa-domain:requirements.EMPLOYER_TAX_PLATE.name',
+      descriptionKey: 'visa-domain:requirements.EMPLOYER_TAX_PLATE.description',
+      category: 'employment',
+      ownerType: 'employer',
+      required: true,
+      conditionalOn: {
+        field: 'employment.employmentStatus',
+        operator: 'equals',
+        value: 'self_employed',
+      },
+      sourceRefs: ['de-tr-tourism-checklist'],
+      revision: 1,
+    },
   ],
   /**
    * Citations only, appended after the instrument each requirement already
@@ -144,17 +183,6 @@ export const deTrMissionLayer: RequirementLayer = {
       code: 'EMPLOYER_TRADE_REGISTRY',
       addSourceRefs: ['de-tr-tourism-checklist'],
     },
-    /**
-     * The one requirement in `tr-filing` the Commission act does not support.
-     * The German sheet asks for it under business owners, so in *this*
-     * composition it is cited — by the mission that asks for it, which is the
-     * only thing that citation claims.
-     *
-     * Its declaration in `tr-filing` stays uncited and its evidence-gap entry
-     * stands. Two missions asking for a document still does not make it a
-     * jurisdiction-level rule (ADR-052a).
-     */
-    { code: 'EMPLOYER_TAX_PLATE', addSourceRefs: ['de-tr-tourism-checklist'] },
     { code: 'STUDENT_CERTIFICATE', addSourceRefs: ['de-tr-tourism-checklist'] },
 
     /**

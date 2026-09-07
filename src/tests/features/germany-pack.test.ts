@@ -86,15 +86,15 @@ describe('Germany pack — composition', () => {
     )
   })
 
-  it('owns two requirements and inherits the other twenty', () => {
+  it('owns three requirements and inherits the other nineteen', () => {
     const tally = new Map<string, number>()
     for (const [, layerId] of germany.ownership) {
       tally.set(layerId, (tally.get(layerId) ?? 0) + 1)
     }
     expect(Object.fromEntries(tally)).toEqual({
       'schengen-short-stay': 8,
-      'tr-filing': 12,
-      'de-tr-mission': 2,
+      'tr-filing': 11,
+      'de-tr-mission': 3,
       // 'germany' owns none, the same finding Greece produced — now with a
       // second pack behind it. It contributes Germany's statute and nothing
       // else, so it never reaches the ownership tally.
@@ -398,9 +398,9 @@ describe('Germany pack — refinement adds citations and nothing else', () => {
 
 describe('Germany pack — Greece is untouched by its arrival', () => {
   it('still composes its own requirements with its own coverage', () => {
-    expect(greece.template.documentRequirements).toHaveLength(25)
+    expect(greece.template.documentRequirements).toHaveLength(24)
     expect(computeVerificationCoverage(greeceConfig, greece.template)).toEqual({
-      total: 25,
+      total: 24,
       verified: 19,
       isComplete: false,
     })

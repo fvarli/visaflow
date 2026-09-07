@@ -61,7 +61,16 @@ const SUPPORTED_BY_ANNEX_III: Record<string, string> = {
  * lets a mission ask for more than the harmonised list; it does not let the
  * pack claim the Commission asked for it.
  */
-const NOT_IN_ANNEX_III = ['EMPLOYER_TAX_PLATE', 'EMPLOYER_SIGNATURE_CIRCULAR']
+/**
+ * `EMPLOYER_TAX_PLATE` left this list in E5c — with the Türkiye layer itself.
+ *
+ * It was the clearest case the list ever held: asked for by the German mission
+ * and by nobody else, sitting in the shared jurisdiction layer, so Greek
+ * applicants were asked for a vergi levhası on no authority at all. It now
+ * belongs to `de-tr-mission`, which is where its only evidence lives, so there
+ * is no longer a Greek row to check.
+ */
+const NOT_IN_ANNEX_III = ['EMPLOYER_SIGNATURE_CIRCULAR']
 
 describe('the Türkiye instrument is jurisdiction-level and destination-neutral', () => {
   const source = trFilingLayer.sources?.find((s) => s.id === COMMISSION)

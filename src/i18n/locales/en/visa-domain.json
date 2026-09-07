@@ -211,8 +211,7 @@
     },
     "EMPLOYER_TAX_PLATE": {
       "name": "Employer Tax Registration",
-      "description": "Company tax registration certificate",
-      "notes": "May be required depending on nationality"
+      "description": "Company tax registration certificate"
     },
     "EMPLOYER_TRADE_REGISTRY": {
       "name": "Company Registration",

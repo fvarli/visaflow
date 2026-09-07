@@ -438,7 +438,7 @@ describe('country packs — Greece composition and citations', () => {
   const greece = PACKS.find((p) => p.countryCode === 'GR')
   const tourism = greece?.visaTypes[0]
 
-  it('composes 25 requirements from three ownership layers', () => {
+  it('composes 24 requirements from three ownership layers', () => {
     // Pins the composition the coverage denominator depends on. It used to
     // assert that the first nineteen codes were the shared array, which held
     // only while the pack was two concatenated arrays — the Türkiye-owned
@@ -448,7 +448,7 @@ describe('country packs — Greece composition and citations', () => {
     // What it says instead is where the twenty-eight come from, which is the
     // fact the coverage arithmetic actually depends on.
     const codes = requirementsOf(tourism!).map((r) => r.code)
-    expect(codes.length).toBe(25)
+    expect(codes.length).toBe(24)
 
     const byLayer = new Map<string, number>()
     for (const [, layerId] of greeceTourismComposition.ownership) {
@@ -456,7 +456,7 @@ describe('country packs — Greece composition and citations', () => {
     }
     expect(Object.fromEntries(byLayer)).toEqual({
       'schengen-short-stay': 8,
-      'tr-filing': 12,
+      'tr-filing': 11,
       // Four legacy requirements with no resolvable source, quarantined to the
       // pack that carries them so a second destination cannot inherit them:
       // PREVIOUS_VISAS and PASSPORT_PREVIOUS (no Annex II basis; Article 21(2)
@@ -501,7 +501,7 @@ describe('country packs — Greece composition and citations', () => {
     // requirements stay uncited, three of them because a nearby source exists
     // but does not state what VisaFlow claims (ADR-048).
     expect(computeVerificationCoverage(greece!, tourism!)).toEqual({
-      total: 25,
+      total: 24,
       verified: 19,
       isComplete: false,
     })
@@ -1161,14 +1161,6 @@ const JURISDICTION_EVIDENCE_GAPS: Record<string, string> = {
     'country of residence; neither establishes a bar to prove a relationship ' +
     'to a financial sponsor, and Article 14(4)(g) makes those ties a field on ' +
     'a national form rather than a document to bring.',
-  EMPLOYER_TAX_PLATE:
-    'Vergi Levhası. Absent from the Commission Annex III for Türkiye, and asked ' +
-    'for by the German mission sheet as well as carried by this pack. Retained in ' +
-    'the shared jurisdiction layer provisionally: representing it per destination ' +
-    'would create two codes for one real-world document, which is the collision ' +
-    'ADR-052 records as mechanically undetectable. Shared practice observed in two ' +
-    'destinations is not jurisdiction-level authority, and this entry is the cost ' +
-    'of saying so honestly rather than promoting it.',
   EMPLOYER_SIGNATURE_CIRCULAR:
     'İmza Sirküleri. No current official source at any level — absent from Visa ' +
     'Code Annex II, from Annex III, and from the German mission sheet. The Greek ' +
@@ -1266,7 +1258,7 @@ describe('country packs — the jurisdiction evidence gap is bounded', () => {
     // raises it in order to record four. It remains review hygiene, not a
     // domain rule, and the next raise should be argued the same way.
     expect(Object.keys(JURISDICTION_EVIDENCE_GAPS).length).toBeLessThanOrEqual(
-      7
+      5
     )
   })
 })

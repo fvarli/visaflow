@@ -63,7 +63,6 @@ const GREECE_TOURISM_ORDER = [
   'SPONSOR_INCOME_PROOF',
   'RELATIONSHIP_PROOF',
   'CIVIL_REGISTRY_EXTRACT',
-  'EMPLOYER_TAX_PLATE',
   'EMPLOYER_TRADE_REGISTRY',
   'EMPLOYER_SIGNATURE_CIRCULAR',
   'PROPERTY_DEED',
@@ -106,8 +105,11 @@ export const greeceTourismComposition = composeVisaTemplate({
         descriptionKey:
           'visa-domain:milestones.request-employer-company-docs.description',
         daysBeforeAppointment: 28,
+        // `EMPLOYER_TAX_PLATE` left this list in E5c with the requirement
+        // itself: no Greek authority asks for a vergi levhası, so the pack
+        // stopped composing it and a milestone telling the applicant to request
+        // one would outlive the ask.
         relatedDocuments: [
-          'EMPLOYER_TAX_PLATE',
           'EMPLOYER_TRADE_REGISTRY',
           'EMPLOYER_SIGNATURE_CIRCULAR',
         ],
@@ -120,18 +122,24 @@ export const greeceTourismComposition = composeVisaTemplate({
     ],
 
     /**
-     * `1.5.0`. It held at `1.4.0` through the layer split, deliberately, because
-     * the composed output was identical then. The E5a fidelity corrections do
-     * change what the pack asks for — four contracts render stricter criteria
-     * their authorities always stated — so it moves now.
+     * `1.7.0`. It held at `1.4.0` through the layer split, deliberately,
+     * because the composed output was identical then. Everything since is a
+     * real change to what the pack asks for: `1.5.0` for the E5a corrections,
+     * where four contracts render stricter criteria their authorities always
+     * stated; `1.6.0` for the three retirements; `1.7.0` for the tax plate
+     * leaving. The E5c sponsor move is absent from this list on purpose — it
+     * changed which layer owns those four requirements, not what Greece asks
+     * for, so the composed output was identical and the number held.
      */
-    templateVersion: '1.6.0',
+    templateVersion: '1.7.0',
     lastReviewedAt: '2026-09-07',
     /**
-     * Still derived from evidence rather than chosen: 19 of the 28 requirements
+     * Still derived from evidence rather than chosen: 19 of the 24 requirements
      * carry their own resolvable, dated source. A test recomputes it rather
      * than trusting this line (ADR-047, ADR-048). Moving requirements between
-     * layers changes neither their citations nor the arithmetic.
+     * layers changes neither their citations nor the arithmetic — the
+     * denominator fell because E5c stopped composing four uncited asks, and the
+     * numerator held at 19 because every one of them was uncited.
      */
     reviewStatus: 'partially_verified',
     sourceIds: ['gr-mfa-general'],

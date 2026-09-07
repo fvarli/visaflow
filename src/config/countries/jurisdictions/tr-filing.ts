@@ -139,21 +139,6 @@ const trFilingDocuments: DocumentRequirement[] = [
     revision: 1,
   },
   {
-    code: 'EMPLOYER_TAX_PLATE',
-    nameKey: 'visa-domain:requirements.EMPLOYER_TAX_PLATE.name',
-    descriptionKey: 'visa-domain:requirements.EMPLOYER_TAX_PLATE.description',
-    notesKey: 'visa-domain:requirements.EMPLOYER_TAX_PLATE.notes',
-    category: 'employment',
-    ownerType: 'employer',
-    required: false,
-    conditionalOn: {
-      field: 'employment.employmentStatus',
-      operator: 'equals',
-      value: 'employed',
-    },
-    revision: 1,
-  },
-  {
     code: 'EMPLOYER_TRADE_REGISTRY',
     nameKey: 'visa-domain:requirements.EMPLOYER_TRADE_REGISTRY.name',
     descriptionKey:
