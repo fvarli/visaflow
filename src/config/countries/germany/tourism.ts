@@ -65,13 +65,10 @@ const GERMANY_TOURISM_ORDER = [
   'BANK_STATEMENTS',
   'PAYSLIPS',
   'PENSIONER_BOOKLET',
-  // Means of subsistence continued: Annex II evidence the sheet does not
-  // enumerate but the common layer carries, kept beside the financial block it
-  // belongs to rather than appended at the end.
-  'SPONSOR_LETTER',
-  'SPONSOR_BANK_STATEMENTS',
-  'SPONSOR_INCOME_PROOF',
-  'RELATIONSHIP_PROOF',
+  // Annex II evidence the sheet does not enumerate but the common layer
+  // carries, kept beside the financial block it belongs to. The four sponsor
+  // requirements that sat here until E5c are gone: the mission's sheets are
+  // closed and list none of them.
   'PROPERTY_DEED',
   // Section 4(a) — employees.
   'EMPLOYMENT_LETTER',
@@ -119,18 +116,26 @@ export const germanyTourismComposition = composeVisaTemplate({
      * asks for too. Greece's number counts its own history and the two are
      * unrelated — `templateVersion` is per pack, not repository-wide.
      */
-    templateVersion: '1.1.0',
+    templateVersion: '1.2.0',
     lastReviewedAt: '2026-09-07',
     /**
-     * Derived, not chosen: 22 of the 26 requirements carry their own
-     * resolvable, dated source. A test recomputes it through the same helper
-     * the UI uses rather than trusting this line (ADR-047).
+     * `verified`, and the word means exactly one thing here: **every** composed
+     * requirement carries its own resolvable, dated source. A test recomputes
+     * that through the same helper the UI uses rather than trusting this line
+     * (ADR-047), and `partially_verified` would now be the unsupported claim.
      *
-     * The four without one are `EMPLOYER_TAX_PLATE`'s jurisdiction declaration
-     * — cited here by the mission but recorded as an evidence gap at the layer
-     * — and the three sponsor requirements, which no pack has ever cited.
+     * It became true by subtraction, not by new evidence. The four uncited rows
+     * were the sponsor block, which E5c moved to the layer only Greece
+     * composes, because the German mission's sheets are closed and list none of
+     * them. Removing obligations this pack could not support is what completed
+     * the citation coverage.
+     *
+     * What it does not mean: that a human has audited every rendered criterion
+     * against its source. The E2 audit found eleven contracts thinner than the
+     * clause they cite, and that is a fidelity question this status does not
+     * measure.
      */
-    reviewStatus: 'partially_verified',
+    reviewStatus: 'verified',
     sourceIds: ['de-tr-tourism-checklist'],
   },
   /**

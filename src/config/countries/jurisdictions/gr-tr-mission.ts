@@ -71,6 +71,93 @@ export const grTrMissionLayer: RequirementLayer = {
       },
       revision: 1,
     },
+    /**
+     * THE SPONSOR BLOCK, MOVED HERE IN E5c AND NOT VERIFIED BY THE MOVE.
+     *
+     * These four sat in the common layer, so every pack inherited them. The
+     * German mission's sheets are closed — they state that in principle only
+     * the documents they list are required — and they list none of these, so
+     * for Germany the audit could classify them UNSUPPORTED on an adequate
+     * search. For Greece it could not: the visa centre checklist its mission
+     * directs applicants to is unreachable, and a FAQ on that same site defines
+     * who may act as a sponsor, which is a requirement-specific signal that the
+     * blocked page may well carry them.
+     *
+     * Two different evidence states, one shared requirement. Retiring them
+     * globally would convert Greece's evidence debt into a finding of absence;
+     * leaving them in Common would keep leaking obligations into Germany that
+     * its own authority does not make. Moving them to the layer only Greece
+     * composes says exactly what is true of each pack, and needs no suppression
+     * mechanism to do it.
+     *
+     * They are copied here **verbatim** — same codes, revisions, requiredness,
+     * conditionals and rendered contracts. Nothing about their content is
+     * improved while the evidence is unresolved, including the invented
+     * "3-6 months" window on the sponsor's statements, which is recorded as a
+     * gap rather than quietly corrected into a number no source states.
+     */
+    {
+      code: 'SPONSOR_LETTER',
+      nameKey: 'visa-domain:requirements.SPONSOR_LETTER.name',
+      descriptionKey: 'visa-domain:requirements.SPONSOR_LETTER.description',
+      category: 'sponsor',
+      ownerType: 'sponsor',
+      required: true,
+      conditionalOn: {
+        field: 'financing.source',
+        operator: 'equals',
+        value: 'sponsor',
+      },
+      validityPeriodDays: 30,
+      revision: 1,
+    },
+    {
+      code: 'SPONSOR_BANK_STATEMENTS',
+      nameKey: 'visa-domain:requirements.SPONSOR_BANK_STATEMENTS.name',
+      descriptionKey:
+        'visa-domain:requirements.SPONSOR_BANK_STATEMENTS.description',
+      category: 'sponsor',
+      ownerType: 'sponsor',
+      required: true,
+      conditionalOn: {
+        field: 'financing.source',
+        operator: 'equals',
+        value: 'sponsor',
+      },
+      validityPeriodDays: 30,
+      revision: 1,
+    },
+    {
+      code: 'SPONSOR_INCOME_PROOF',
+      nameKey: 'visa-domain:requirements.SPONSOR_INCOME_PROOF.name',
+      descriptionKey:
+        'visa-domain:requirements.SPONSOR_INCOME_PROOF.description',
+      category: 'sponsor',
+      ownerType: 'sponsor',
+      required: true,
+      conditionalOn: {
+        field: 'financing.source',
+        operator: 'equals',
+        value: 'sponsor',
+      },
+      validityPeriodDays: 30,
+      revision: 1,
+    },
+    {
+      code: 'RELATIONSHIP_PROOF',
+      nameKey: 'visa-domain:requirements.RELATIONSHIP_PROOF.name',
+      descriptionKey: 'visa-domain:requirements.RELATIONSHIP_PROOF.description',
+      notesKey: 'visa-domain:requirements.RELATIONSHIP_PROOF.notes',
+      category: 'civil_registry',
+      ownerType: 'applicant',
+      required: false,
+      conditionalOn: {
+        field: 'financing.source',
+        operator: 'equals',
+        value: 'sponsor',
+      },
+      revision: 1,
+    },
   ],
   refine: [
     // The consulate's restatement of the Visa Code criteria. These carry no

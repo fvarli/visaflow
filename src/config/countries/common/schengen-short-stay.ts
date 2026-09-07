@@ -158,67 +158,6 @@ export const commonSchengenDocuments: DocumentRequirement[] = [
     sourceRefs: ['eu-visa-code-annex2'],
     revision: 1,
   },
-  {
-    code: 'SPONSOR_LETTER',
-    nameKey: 'visa-domain:requirements.SPONSOR_LETTER.name',
-    descriptionKey: 'visa-domain:requirements.SPONSOR_LETTER.description',
-    category: 'sponsor',
-    ownerType: 'sponsor',
-    required: true,
-    conditionalOn: {
-      field: 'financing.source',
-      operator: 'equals',
-      value: 'sponsor',
-    },
-    validityPeriodDays: 30,
-    revision: 1,
-  },
-  {
-    code: 'SPONSOR_BANK_STATEMENTS',
-    nameKey: 'visa-domain:requirements.SPONSOR_BANK_STATEMENTS.name',
-    descriptionKey:
-      'visa-domain:requirements.SPONSOR_BANK_STATEMENTS.description',
-    category: 'sponsor',
-    ownerType: 'sponsor',
-    required: true,
-    conditionalOn: {
-      field: 'financing.source',
-      operator: 'equals',
-      value: 'sponsor',
-    },
-    validityPeriodDays: 30,
-    revision: 1,
-  },
-  {
-    code: 'SPONSOR_INCOME_PROOF',
-    nameKey: 'visa-domain:requirements.SPONSOR_INCOME_PROOF.name',
-    descriptionKey: 'visa-domain:requirements.SPONSOR_INCOME_PROOF.description',
-    category: 'sponsor',
-    ownerType: 'sponsor',
-    required: true,
-    conditionalOn: {
-      field: 'financing.source',
-      operator: 'equals',
-      value: 'sponsor',
-    },
-    validityPeriodDays: 30,
-    revision: 1,
-  },
-  {
-    code: 'RELATIONSHIP_PROOF',
-    nameKey: 'visa-domain:requirements.RELATIONSHIP_PROOF.name',
-    descriptionKey: 'visa-domain:requirements.RELATIONSHIP_PROOF.description',
-    notesKey: 'visa-domain:requirements.RELATIONSHIP_PROOF.notes',
-    category: 'civil_registry',
-    ownerType: 'applicant',
-    required: false,
-    conditionalOn: {
-      field: 'financing.source',
-      operator: 'equals',
-      value: 'sponsor',
-    },
-    revision: 1,
-  },
 ]
 
 export const commonPreparationMilestones: PreparationMilestone[] = [

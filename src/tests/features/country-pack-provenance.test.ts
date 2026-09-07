@@ -455,7 +455,7 @@ describe('country packs — Greece composition and citations', () => {
       byLayer.set(layerId, (byLayer.get(layerId) ?? 0) + 1)
     }
     expect(Object.fromEntries(byLayer)).toEqual({
-      'schengen-short-stay': 12,
+      'schengen-short-stay': 8,
       'tr-filing': 12,
       // Four legacy requirements with no resolvable source, quarantined to the
       // pack that carries them so a second destination cannot inherit them:
@@ -464,7 +464,7 @@ describe('country packs — Greece composition and citations', () => {
       // and cited by nothing at all) and EMPLOYER_SIGNATURE_CIRCULAR (no
       // source at any level). Placement here is containment, not a finding
       // that Greece requires any of them.
-      'gr-tr-mission': 1,
+      'gr-tr-mission': 5,
       // 'greece' owns none: nothing in this pack is true *because* the
       // destination is Greece. Absent from the map rather than zero, since a
       // layer that declares nothing never reaches the ownership tally.
@@ -1136,6 +1136,31 @@ describe('country packs — the E5a corrections render, and stay inside their la
  * asked for twice.
  */
 const JURISDICTION_EVIDENCE_GAPS: Record<string, string> = {
+  SPONSOR_LETTER:
+    'Moved out of the common layer in E5c. Germany could classify it ' +
+    'UNSUPPORTED — its mission sheets are closed and list no sponsor document ' +
+    'at all — so it stopped being composed there. Greece could not: the visa ' +
+    'centre checklist its mission points applicants to is unreachable, and a ' +
+    'FAQ on that same site defines who may sponsor, which is a ' +
+    'requirement-specific signal that the blocked page may carry it.',
+  SPONSOR_BANK_STATEMENTS:
+    'Same move and same evidence state as the sponsor letter. It additionally ' +
+    'renders an invented "3-6 months" window that no authority states — the ' +
+    'range ADR-048 removed from BANK_STATEMENTS, still live here. Recorded ' +
+    'rather than quietly corrected, because inventing a different number ' +
+    'would repeat the defect in the other direction.',
+  SPONSOR_INCOME_PROOF:
+    'Same move and same evidence state as the sponsor letter. Article 14(4) ' +
+    'lets a Member State require sponsorship proof on its own national form; ' +
+    'Greece publishes no such form on any page this audit could reach, and ' +
+    "whether its checklist asks for the sponsor's income another way is what " +
+    'the blocked page would settle.',
+  RELATIONSHIP_PROOF:
+    'Same move and same evidence state. Annex II C.2 is family ties with the ' +
+    'host or inviting person and Annex II B.5 is ties as integration in the ' +
+    'country of residence; neither establishes a bar to prove a relationship ' +
+    'to a financial sponsor, and Article 14(4)(g) makes those ties a field on ' +
+    'a national form rather than a document to bring.',
   EMPLOYER_TAX_PLATE:
     'Vergi Levhası. Absent from the Commission Annex III for Türkiye, and asked ' +
     'for by the German mission sheet as well as carried by this pack. Retained in ' +
@@ -1234,8 +1259,14 @@ describe('country packs — the jurisdiction evidence gap is bounded', () => {
     // Not an arbitrary cap: the point of recording gaps is that somebody reads
     // them. A list that grows without anyone noticing has stopped being a
     // record and become a backlog.
+    // Raised from five to seven in E5c, and the reason matters: the four
+    // sponsor requirements were *moved into* a jurisdiction layer, so four real
+    // gaps became recordable that were previously invisible in the common
+    // layer. ADR-052a forbids raising the cap to avoid recording a gap; this
+    // raises it in order to record four. It remains review hygiene, not a
+    // domain rule, and the next raise should be argued the same way.
     expect(Object.keys(JURISDICTION_EVIDENCE_GAPS).length).toBeLessThanOrEqual(
-      5
+      7
     )
   })
 })

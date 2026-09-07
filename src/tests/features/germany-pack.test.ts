@@ -42,10 +42,6 @@ const GERMANY_ORDER = [
   'BANK_STATEMENTS',
   'PAYSLIPS',
   'PENSIONER_BOOKLET',
-  'SPONSOR_LETTER',
-  'SPONSOR_BANK_STATEMENTS',
-  'SPONSOR_INCOME_PROOF',
-  'RELATIONSHIP_PROOF',
   'PROPERTY_DEED',
   'EMPLOYMENT_LETTER',
   'APPROVED_LEAVE',
@@ -90,13 +86,13 @@ describe('Germany pack — composition', () => {
     )
   })
 
-  it('owns two requirements and inherits the other twenty-four', () => {
+  it('owns two requirements and inherits the other twenty', () => {
     const tally = new Map<string, number>()
     for (const [, layerId] of germany.ownership) {
       tally.set(layerId, (tally.get(layerId) ?? 0) + 1)
     }
     expect(Object.fromEntries(tally)).toEqual({
-      'schengen-short-stay': 12,
+      'schengen-short-stay': 8,
       'tr-filing': 12,
       'de-tr-mission': 2,
       // 'germany' owns none, the same finding Greece produced — now with a
@@ -110,24 +106,24 @@ describe('Germany pack — composition', () => {
       germanyConfig,
       germany.template
     )
-    expect(coverage).toEqual({ total: 26, verified: 22, isComplete: false })
+    // Complete after E5c: the four uncited rows were the sponsor block, which
+    // this pack no longer composes. Completeness by subtraction, and the
+    // envelope says `verified` because that is the only status the arithmetic
+    // now supports.
+    expect(coverage).toEqual({ total: 22, verified: 22, isComplete: true })
     expect(
       isReviewStatusSupported(germany.template.reviewStatus, coverage)
     ).toBe(true)
   })
 
-  it('leaves exactly the four requirements no pack has ever cited', () => {
-    // The sponsor block. Naming them keeps the coverage number above from
-    // being a bare figure nobody can check.
+  it('leaves no requirement uncited', () => {
+    // It used to leave four — the sponsor block, which E5c moved to the layer
+    // only Greece composes. Naming the empty set keeps the coverage figure
+    // above from being a bare number nobody can check.
     const uncited = germany.template.documentRequirements
       .filter((r) => (r.sourceRefs ?? []).length === 0)
       .map((r) => r.code)
-    expect(uncited).toEqual([
-      'SPONSOR_LETTER',
-      'SPONSOR_BANK_STATEMENTS',
-      'SPONSOR_INCOME_PROOF',
-      'RELATIONSHIP_PROOF',
-    ])
+    expect(uncited).toEqual([])
   })
 })
 
@@ -307,7 +303,10 @@ describe('Germany pack — refinement adds citations and nothing else', () => {
     const shared = germany.template.documentRequirements.filter((r) =>
       greece.template.documentRequirements.some((g) => g.code === r.code)
     )
-    expect(shared.length).toBeGreaterThan(20)
+    // Twenty codes are common to both packs after E5c — the number moves
+    // whenever ownership does, so the guard is that there is a substantial
+    // shared set to compare, not a pinned count.
+    expect(shared.length).toBeGreaterThan(15)
     const diverged = shared
       .filter((requirement) => {
         const counterpart = codeOf(greece, requirement.code)
