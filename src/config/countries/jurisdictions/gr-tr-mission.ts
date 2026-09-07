@@ -20,56 +20,33 @@ import type { RequirementLayer } from '../../types'
  * placed after `tr-filing` refines in the stated direction and names its
  * authority accurately.
  *
- * IT ALSO OWNS FOUR REQUIREMENTS, AND NONE IS A FINDING. All four were
- * inherited from before the layer split and none has a resolvable official
- * source. They are held here as **quarantine**, not endorsement: scoped to the
- * one pack that carries them so a second destination cannot inherit an
- * unverified ask. Nothing about this placement says Greece currently requires
- * any of them.
+ * IT ALSO OWNS ONE REQUIREMENT, AND THAT IS NOT A FINDING. It was inherited
+ * from before the layer split and has no resolvable official source. It is held
+ * here as **quarantine**, not endorsement: scoped to the one pack that carries
+ * it so a second destination cannot inherit an unverified ask. Nothing about
+ * this placement says Greece currently requires it.
  *
- * They are not retired instead, because the operative applicant-facing checklist
- * for this filing context — published by the visa centre the mission names —
- * cannot be read from this environment, and an unreachable source is not
- * evidence that a requirement is gone. The mission's own pages have since been
- * retrieved first-hand and are silent on them, which is what the E1 audit
- * classified per requirement. Retiring on that basis would strip documents from Greek
- * applicants' checklists on the strength of a network failure. All four are
- * listed in the evidence-gap allowlist in `country-pack-provenance.test.ts`,
- * which bounds the set and demands a written reason for each.
+ * It is not retired, because the operative applicant-facing checklist for this
+ * filing context — published by the visa centre the mission names — cannot be
+ * read from this environment, and an unreachable source is not evidence that a
+ * requirement is gone. That page answers a question about this exact document,
+ * which is the requirement-specific signal the audit needed; retiring on the
+ * strength of a network failure would strip a document from Greek applicants'
+ * checklists on no evidence at all. It is listed in the evidence-gap allowlist
+ * in `country-pack-provenance.test.ts`, which bounds the set and demands a
+ * written reason for each entry.
  *
- * Two arrived with the composition split (ADR-052a); two more followed when
- * the German mission's sheet gave a second destination's answer to the same
- * question and it turned out to be no.
+ * THREE OTHERS SAT HERE UNTIL E5c. `ID_CARD_COPY`, `PASSPORT_PREVIOUS` and
+ * `PREVIOUS_VISAS` were retired once the fidelity audit had read the Visa Code,
+ * Annex III and the Greek mission's own pages first-hand and found no support
+ * for any of them, with no requirement-specific signal on the one unreachable
+ * channel. Quarantine is for evidence we cannot reach; it is not a place to
+ * keep asks we have looked for and not found.
  */
 export const grTrMissionLayer: RequirementLayer = {
   id: 'gr-tr-mission',
   kind: 'jurisdiction',
   add: [
-    /**
-     * Moved out of the common layer, where it never belonged.
-     *
-     * There is no Annex II basis for it, and Visa Code Article 21(2) requires
-     * the consulate to consult the VIS for each application — so prior
-     * *Schengen* visas are retrieved electronically rather than collected from
-     * the applicant.
-     *
-     * An earlier version of this comment added that Germany scopes its own
-     * version to the UK, USA and Canada "because those are the visas the VIS
-     * cannot see". The German mission's sheet says otherwise: it asks for
-     * Schengen, EU, UK, US and Canadian visas alike. The tidy explanation was
-     * mine, not the source's, and it is withdrawn rather than left standing.
-     *
-     * Uncited, and held here rather than retired for the reason above.
-     */
-    {
-      code: 'PREVIOUS_VISAS',
-      nameKey: 'visa-domain:requirements.PREVIOUS_VISAS.name',
-      descriptionKey: 'visa-domain:requirements.PREVIOUS_VISAS.description',
-      category: 'previous_travel',
-      ownerType: 'applicant',
-      required: false,
-      revision: 1,
-    },
     /**
      * No current official source at any level: absent from Visa Code Annex II,
      * absent from the Commission's Annex III for Türkiye, and absent from the
@@ -92,56 +69,6 @@ export const grTrMissionLayer: RequirementLayer = {
         operator: 'equals',
         value: 'employed',
       },
-      revision: 1,
-    },
-    /**
-     * Left the common layer in the same movement, and for the same reason:
-     * no authority at any level asks for it of Schengen applicants generally.
-     *
-     * Absent from Visa Code Annex II (sections A, B and C read in full),
-     * absent from the Commission's Annex III for Türkiye, and absent from the
-     * German mission's sheet — which asks instead for a copy of the passport
-     * that carries the visas it wants to see, a different and narrower thing
-     * that Germany's own requirement states.
-     *
-     * `required: false` did not make its place in Common harmless: a second
-     * destination would have inherited a vague travel-document ask alongside
-     * its own specific one.
-     */
-    {
-      code: 'PASSPORT_PREVIOUS',
-      nameKey: 'visa-domain:requirements.PASSPORT_PREVIOUS.name',
-      descriptionKey: 'visa-domain:requirements.PASSPORT_PREVIOUS.description',
-      category: 'passport',
-      ownerType: 'applicant',
-      required: false,
-      revision: 1,
-    },
-    /**
-     * The strongest of the four: **mandatory and cited by nothing at all.**
-     *
-     * Absent from Annex II, from Annex III and from the German mission's
-     * sheet, which asks for the barcoded civil-registry extract and no
-     * identity card. A `required: true` requirement resting on no authority is
-     * the worst thing the common layer can hold, because every future pack
-     * inherits it silently.
-     *
-     * ADR-052 recorded the opposite decision as a known limitation — that
-     * moving it would leave a second destination asking for no ID copy at all,
-     * and that the Turkish translation naming nüfus cüzdanı was a translator
-     * being helpful rather than a jurisdictional claim. The second half still
-     * stands; the first is now answered by evidence rather than by worry, and
-     * the answer is that the second destination does not ask for one. The
-     * locale-gloss allowlist that limitation justified is deleted with this
-     * move.
-     */
-    {
-      code: 'ID_CARD_COPY',
-      nameKey: 'visa-domain:requirements.ID_CARD_COPY.name',
-      descriptionKey: 'visa-domain:requirements.ID_CARD_COPY.description',
-      category: 'identity',
-      ownerType: 'applicant',
-      required: true,
       revision: 1,
     },
   ],

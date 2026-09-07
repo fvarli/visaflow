@@ -91,7 +91,10 @@ const MIXED_DOCS: Document[] = [
   doc('APPLICATION_FORM', 'ready', 'application_form'),
   doc('PASSPORT_CURRENT', 'ready', 'passport'),
   doc('PHOTOS', 'ready', 'identity'),
-  doc('ID_CARD_COPY', 'ready', 'identity'),
+  // Was `ID_CARD_COPY` until E5c retired that code. A retired record is
+  // historical rather than current work, so it stopped being usable as one of
+  // the ready documents this partition is measuring.
+  doc('CIVIL_REGISTRY_EXTRACT', 'ready', 'civil_registry'),
   doc('BANK_STATEMENTS', 'needs_update', 'financial'),
   doc('EMPLOYMENT_LETTER', 'requested', 'employment'),
   doc('PAYSLIPS', 'received', 'employment'),
@@ -385,12 +388,16 @@ describe('buildDashboardModel', () => {
       NOW
     )
     expect(populated.active.validation.totalRules).toBeGreaterThan(0)
-    // 4 ready of 9 applicable. This fixture's applicant has no employment
+    // 4 ready of 8 applicable. This fixture's applicant has no employment
     // status, so EMPLOYMENT_LETTER and PAYSLIPS do not apply to it — before
     // ADR-049 they were counted anyway, because readiness trusted the
     // `required: true` frozen into each record instead of asking the template
     // whether the requirement still applied.
-    expect(populated.active.documents.percent).toBe(44)
+    //
+    // It was 4 of 9 → 44% until E5c retired `ID_CARD_COPY`. The same records
+    // now sit against a smaller required set, which is what removing an ask no
+    // authority makes is supposed to do.
+    expect(populated.active.documents.percent).toBe(50)
 
     // Given-name greeting only; null (→ neutral) when there is no applicant.
     expect(populated.active.greetingName).toBe('Demo')
@@ -411,12 +418,12 @@ describe('buildDashboardModel', () => {
       obtained: d.obtained,
       notStarted: d.notStarted,
     }).toEqual({
-      applicable: 9,
+      applicable: 8,
       ready: 4,
       needsUpdate: 1,
       inProgress: 0,
       obtained: 0,
-      notStarted: 4,
+      notStarted: 3,
     })
     expect(
       d.ready + d.needsUpdate + d.inProgress + d.obtained + d.notStarted

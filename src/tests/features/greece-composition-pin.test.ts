@@ -45,9 +45,7 @@ if (!template) throw new Error('Greece tourism template is not registered')
 const PINNED_ORDER = [
   'APPLICATION_FORM',
   'PASSPORT_CURRENT',
-  'PASSPORT_PREVIOUS',
   'PHOTOS',
-  'ID_CARD_COPY',
   'TRAVEL_INSURANCE',
   'TRANSPORT_RESERVATION',
   'ACCOMMODATION',
@@ -61,7 +59,6 @@ const PINNED_ORDER = [
   'SPONSOR_BANK_STATEMENTS',
   'SPONSOR_INCOME_PROOF',
   'RELATIONSHIP_PROOF',
-  'PREVIOUS_VISAS',
   'CIVIL_REGISTRY_EXTRACT',
   'EMPLOYER_TAX_PLATE',
   'EMPLOYER_TRADE_REGISTRY',
@@ -97,15 +94,6 @@ const PINNED_REQUIREMENTS: Record<string, DocumentRequirement> = {
     sourceRefs: ['eu-visa-code-art12', 'gr-mfa-tr-visa-page'],
     revision: 2,
   },
-  PASSPORT_PREVIOUS: {
-    code: 'PASSPORT_PREVIOUS',
-    nameKey: 'visa-domain:requirements.PASSPORT_PREVIOUS.name',
-    descriptionKey: 'visa-domain:requirements.PASSPORT_PREVIOUS.description',
-    category: 'passport',
-    ownerType: 'applicant',
-    required: false,
-    revision: 1,
-  },
   PHOTOS: {
     code: 'PHOTOS',
     nameKey: 'visa-domain:requirements.PHOTOS.name',
@@ -119,15 +107,6 @@ const PINNED_REQUIREMENTS: Record<string, DocumentRequirement> = {
     // citation is invisible here by design — the pin holds the contract, and
     // what the contract now says is "ICAO 9303" and nothing more.
     sourceRefs: ['eu-visa-code-art13'],
-    revision: 1,
-  },
-  ID_CARD_COPY: {
-    code: 'ID_CARD_COPY',
-    nameKey: 'visa-domain:requirements.ID_CARD_COPY.name',
-    descriptionKey: 'visa-domain:requirements.ID_CARD_COPY.description',
-    category: 'identity',
-    ownerType: 'applicant',
-    required: true,
     revision: 1,
   },
   TRAVEL_INSURANCE: {
@@ -328,15 +307,6 @@ const PINNED_REQUIREMENTS: Record<string, DocumentRequirement> = {
     },
     revision: 1,
   },
-  PREVIOUS_VISAS: {
-    code: 'PREVIOUS_VISAS',
-    nameKey: 'visa-domain:requirements.PREVIOUS_VISAS.name',
-    descriptionKey: 'visa-domain:requirements.PREVIOUS_VISAS.description',
-    category: 'previous_travel',
-    ownerType: 'applicant',
-    required: false,
-    revision: 1,
-  },
   CIVIL_REGISTRY_EXTRACT: {
     code: 'CIVIL_REGISTRY_EXTRACT',
     nameKey: 'visa-domain:requirements.CIVIL_REGISTRY_EXTRACT.name',
@@ -534,7 +504,7 @@ const PINNED_ENVELOPE = {
   id: 'schengen-short-stay-tourism',
   visaType: 'short_stay_tourism',
   nameKey: 'visa-domain:visaTypes.schengen-short-stay-tourism',
-  templateVersion: '1.5.0',
+  templateVersion: '1.6.0',
   lastReviewedAt: '2026-09-07',
   reviewStatus: 'partially_verified',
   sourceIds: ['gr-mfa-general'],

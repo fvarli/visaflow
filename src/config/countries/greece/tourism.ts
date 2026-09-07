@@ -48,9 +48,7 @@ export const greeceDestinationLayer: RequirementLayer = {
 const GREECE_TOURISM_ORDER = [
   'APPLICATION_FORM',
   'PASSPORT_CURRENT',
-  'PASSPORT_PREVIOUS',
   'PHOTOS',
-  'ID_CARD_COPY',
   'TRAVEL_INSURANCE',
   'TRANSPORT_RESERVATION',
   'ACCOMMODATION',
@@ -64,7 +62,6 @@ const GREECE_TOURISM_ORDER = [
   'SPONSOR_BANK_STATEMENTS',
   'SPONSOR_INCOME_PROOF',
   'RELATIONSHIP_PROOF',
-  'PREVIOUS_VISAS',
   'CIVIL_REGISTRY_EXTRACT',
   'EMPLOYER_TAX_PLATE',
   'EMPLOYER_TRADE_REGISTRY',
@@ -128,7 +125,7 @@ export const greeceTourismComposition = composeVisaTemplate({
      * change what the pack asks for — four contracts render stricter criteria
      * their authorities always stated — so it moves now.
      */
-    templateVersion: '1.5.0',
+    templateVersion: '1.6.0',
     lastReviewedAt: '2026-09-07',
     /**
      * Still derived from evidence rather than chosen: 19 of the 28 requirements

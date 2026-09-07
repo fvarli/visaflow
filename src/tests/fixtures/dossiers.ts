@@ -221,12 +221,14 @@ export const allApplicableReady: DossierFixture = {
       READY_APPLICATION
     ).map((code, index) => doc({ code, status: 'ready' }, index)),
     // One optional document, deliberately not started: it must never move the
-    // percentage in either direction.
+    // percentage in either direction. It was `PREVIOUS_VISAS` until E5c retired
+    // that code — a retired record is *historical*, not optional, so it stopped
+    // demonstrating what this fixture exists to demonstrate.
     doc(
       {
-        code: 'PREVIOUS_VISAS',
+        code: 'ITINERARY',
         status: 'not_started',
-        category: 'previous_travel',
+        category: 'travel',
         required: false,
       },
       900

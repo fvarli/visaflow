@@ -398,10 +398,10 @@ describe('Germany pack — refinement adds citations and nothing else', () => {
 })
 
 describe('Germany pack — Greece is untouched by its arrival', () => {
-  it('still composes twenty-eight requirements with the same coverage', () => {
-    expect(greece.template.documentRequirements).toHaveLength(28)
+  it('still composes its own requirements with its own coverage', () => {
+    expect(greece.template.documentRequirements).toHaveLength(25)
     expect(computeVerificationCoverage(greeceConfig, greece.template)).toEqual({
-      total: 28,
+      total: 25,
       verified: 19,
       isComplete: false,
     })

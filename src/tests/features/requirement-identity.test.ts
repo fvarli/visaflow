@@ -140,11 +140,34 @@ describe('requirement identity — retirement is not reuse', () => {
     }
   })
 
-  it('retires exactly the three ADR-048 replacements', () => {
+  it('retires exactly the codes two evidence sprints have withdrawn', () => {
+    // Three from ADR-048, where a wrongly-named requirement was replaced by a
+    // correctly-named one, and three from the E1 fidelity audit, where no
+    // authority at any level could be found for the ask at all. The two groups
+    // are different in kind — the first has `replacedBy`, the second does not,
+    // because nothing replaces a requirement that should never have been made.
     expect(RETIRED_REQUIREMENTS.map((r) => r.code).sort()).toEqual([
+      'BUSINESS_LICENSE',
+      'ID_CARD_COPY',
+      'PASSPORT_PREVIOUS',
+      'PENSION_STATEMENT',
+      'PREVIOUS_VISAS',
+      'TAX_RETURNS',
+    ])
+  })
+
+  it('replaces only what was actually replaced', () => {
+    const withReplacement = RETIRED_REQUIREMENTS.filter((r) => r.replacedBy)
+    const without = RETIRED_REQUIREMENTS.filter((r) => !r.replacedBy)
+    expect(withReplacement.map((r) => r.code).sort()).toEqual([
       'BUSINESS_LICENSE',
       'PENSION_STATEMENT',
       'TAX_RETURNS',
+    ])
+    expect(without.map((r) => r.code).sort()).toEqual([
+      'ID_CARD_COPY',
+      'PASSPORT_PREVIOUS',
+      'PREVIOUS_VISAS',
     ])
   })
 })

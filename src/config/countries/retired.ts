@@ -37,6 +37,54 @@ export interface RetiredRequirement {
 }
 
 export const RETIRED_REQUIREMENTS: RetiredRequirement[] = [
+  /**
+   * The three the E1 fidelity audit found no authority for, at any level.
+   *
+   * They are retired rather than quarantined, and the difference is the point.
+   * Quarantine holds a requirement whose evidence we cannot reach — the Greek
+   * mission's own pages were unreachable for weeks, and while that was true
+   * removing anything would have been a deletion on the strength of a network
+   * failure. Those pages were then retrieved first-hand: the Visa Code,
+   * Commission Annex III and the mission's own published requirements are all
+   * silent on these three, and the one channel still blocked carries no
+   * requirement-specific signal for any of them.
+   *
+   * No `replacedBy`: nothing replaces them. They were asks this project made
+   * and could not support. `ID_CARD_COPY` mattered most — it was `required`,
+   * so every Greek applicant was told to obtain a national identity card copy
+   * that no authority in the file asks for, and readiness withheld completion
+   * until they did.
+   */
+  {
+    code: 'ID_CARD_COPY',
+    retiredIn: '1.6.0',
+    reason:
+      'Mandatory and cited by nothing. Absent from Visa Code Annex II sections ' +
+      'A, B and C, from Commission Annex III for Türkiye, and from the Greek ' +
+      "mission's own published requirements — all read first-hand. The German " +
+      'mission asks for the barcoded civil-registry extract and no identity ' +
+      'card, which is what settled the question ADR-052 had left open.',
+  },
+  {
+    code: 'PASSPORT_PREVIOUS',
+    retiredIn: '1.6.0',
+    reason:
+      'Old passports as such appear in no instrument this project holds. The ' +
+      'German mission asks for a copy of the passport carrying the visas it ' +
+      'wants to see — a narrower ask it states as its own requirement — and the ' +
+      'Greek mission asks for nothing of the kind.',
+  },
+  {
+    code: 'PREVIOUS_VISAS',
+    retiredIn: '1.6.0',
+    reason:
+      'No Annex II basis, absent from Annex III, and absent from the Greek ' +
+      "mission's own list. Article 21(2) has the consulate consult the VIS for " +
+      'each application, so prior Schengen history is retrieved rather than ' +
+      'collected — though that alone was never the argument, since the German ' +
+      'mission does ask for copies and states so.',
+  },
+
   {
     code: 'TAX_RETURNS',
     retiredIn: '1.2.0',

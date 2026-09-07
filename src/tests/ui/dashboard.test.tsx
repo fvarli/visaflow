@@ -138,14 +138,18 @@ describe('Dashboard — seeded command center', () => {
 
       // Readiness is the single dominant indicator: the ring exposes the
       // percentage via its label. The example applicant is employed, so the
-      // Greece pack makes 13 required documents applicable while the dossier
-      // carries 10 records (no APPROVED_LEAVE) — 7 of 13 ready → 54%.
+      // Greece pack makes 12 required documents applicable while the dossier
+      // carries its records — 6 of 12 ready → 50%.
       //
-      // Was 7 of 11 → 64% before ADR-048, which added the civil registry
-      // extract for every applicant and made the SGK documents required of
-      // employed ones. The denominator grew; nothing regressed.
+      // It has moved twice for opposite reasons, and both are worth keeping.
+      // ADR-048 took it from 7 of 11 (64%) to 7 of 13 (54%) by *adding* the
+      // civil registry extract and the SGK documents. E5c takes it to 50% by
+      // *removing* `ID_CARD_COPY`, which was required of every applicant and
+      // which no authority in the file asks for. A denominator that grows when
+      // evidence is found and shrinks when evidence is not is the pack telling
+      // the truth in both directions.
       const ring = screen.getByRole('img')
-      expect(ring.getAttribute('aria-label')).toContain('54')
+      expect(ring.getAttribute('aria-label')).toContain('50')
 
       // The single next action offers exactly one CTA.
       expect(

@@ -438,7 +438,7 @@ describe('country packs — Greece composition and citations', () => {
   const greece = PACKS.find((p) => p.countryCode === 'GR')
   const tourism = greece?.visaTypes[0]
 
-  it('composes 28 requirements from three ownership layers', () => {
+  it('composes 25 requirements from three ownership layers', () => {
     // Pins the composition the coverage denominator depends on. It used to
     // assert that the first nineteen codes were the shared array, which held
     // only while the pack was two concatenated arrays — the Türkiye-owned
@@ -448,7 +448,7 @@ describe('country packs — Greece composition and citations', () => {
     // What it says instead is where the twenty-eight come from, which is the
     // fact the coverage arithmetic actually depends on.
     const codes = requirementsOf(tourism!).map((r) => r.code)
-    expect(codes.length).toBe(28)
+    expect(codes.length).toBe(25)
 
     const byLayer = new Map<string, number>()
     for (const [, layerId] of greeceTourismComposition.ownership) {
@@ -464,7 +464,7 @@ describe('country packs — Greece composition and citations', () => {
       // and cited by nothing at all) and EMPLOYER_SIGNATURE_CIRCULAR (no
       // source at any level). Placement here is containment, not a finding
       // that Greece requires any of them.
-      'gr-tr-mission': 4,
+      'gr-tr-mission': 1,
       // 'greece' owns none: nothing in this pack is true *because* the
       // destination is Greece. Absent from the map rather than zero, since a
       // layer that declares nothing never reaches the ownership tally.
@@ -501,7 +501,7 @@ describe('country packs — Greece composition and citations', () => {
     // requirements stay uncited, three of them because a nearby source exists
     // but does not state what VisaFlow claims (ADR-048).
     expect(computeVerificationCoverage(greece!, tourism!)).toEqual({
-      total: 28,
+      total: 25,
       verified: 19,
       isComplete: false,
     })
@@ -1146,34 +1146,13 @@ const JURISDICTION_EVIDENCE_GAPS: Record<string, string> = {
     'of saying so honestly rather than promoting it.',
   EMPLOYER_SIGNATURE_CIRCULAR:
     'İmza Sirküleri. No current official source at any level — absent from Visa ' +
-    'Code Annex II, from Annex III, and from the German mission sheet, and ' +
-    'unverifiable against the Greek mission because mfa.gr returns HTTP 403 to ' +
-    'this environment. Held in the Greek mission layer as quarantine so it cannot ' +
-    'reach a second destination. Retention is a hold pending a reachable source, ' +
-    'not a finding that Greece requires it.',
-  PREVIOUS_VISAS:
-    'Legacy and uncited. No Visa Code Annex II basis, and Article 21(2) requires ' +
-    'the consulate to consult the VIS for each application — so prior Schengen ' +
-    'visas are retrieved electronically rather than collected. Moved out of the ' +
-    'common layer because it is not common; quarantined rather than retired ' +
-    'because the Greek mission is unreachable and absence of a reachable source ' +
-    'is not proof the requirement is gone.',
-  ID_CARD_COPY:
-    'Mandatory and cited by nothing at all, which is the worst thing the common ' +
-    'layer can hold — every future pack inherits it in silence. Absent from ' +
-    'Annex II, from Annex III, and from the German mission sheet, which asks for ' +
-    'the barcoded civil-registry extract and no identity card. ADR-052 recorded ' +
-    'the opposite decision on the worry that a second destination would then ask ' +
-    'for no ID copy; the second destination has now answered, and it does not ' +
-    'ask for one.',
-  PASSPORT_PREVIOUS:
-    'Old passports as such. Absent from Visa Code Annex II (sections A, B and C ' +
-    'read in full), from the Commission Annex III for Türkiye, and from the ' +
-    'German mission sheet — which asks instead for a copy of the passport ' +
-    'carrying the visas it wants, a narrower ask that Germany states as its own ' +
-    'requirement. Optional here, which is not a reason to leave it in the shared ' +
-    'layer: a second destination would inherit a vague travel-document ask ' +
-    'beside its own specific one.',
+    'Code Annex II, from Annex III, and from the German mission sheet. The Greek ' +
+    "mission's own pages have since been read first-hand and are silent on it, " +
+    'but the visa centre checklist those pages direct applicants to answers a ' +
+    'question about this exact document and cannot be reached, which is the ' +
+    'requirement-specific signal that keeps it UNVERIFIED rather than retired ' +
+    'with the three that went in E5c. Held in the Greek mission layer as ' +
+    'quarantine so it cannot reach a second destination.',
 }
 
 describe('country packs — the jurisdiction evidence gap is bounded', () => {
