@@ -2,6 +2,13 @@
 
 Last updated: 2026-08-30 — post-v1.1.0 development
 
+> **This page is a historical snapshot and is out of date as of 2026-09-07.** It predates the
+> country-pack composition work, the second production pack (Germany) and the fidelity-audit phase,
+> so its figures — test counts, coverage, pack list, review statuses — describe the repository as it
+> stood on 2026-08-30 and are kept as written. For the current state and the active phase sequence,
+> read the **latest iteration entry in [session-handoff.md](./session-handoff.md)**; for the phase
+> plan see [roadmap.md](./roadmap.md), and for architecture decisions [decisions.md](./decisions.md).
+
 Application version **1.1.0** (Phase 1 — Foundation shipped; Phase 2 — the saved-dossier workspace
 — shipped in v1.1.0). **Five** version numbers now move independently. Since the release the dossier
 JSON `schemaVersion` has moved to **1.2.0** (`applicant.previousRefusals` in 1.1.0,

@@ -2316,3 +2316,144 @@ declared in configuration as an explicit transitional seam, **not** the claim th
 Türkiye. Known limitations are recorded in ADR-052: `BANK_STATEMENTS` ownership, the `ID_CARD_COPY`
 locale gloss, milestones sitting outside the layer model, `isRequirementApplicable` being unable to
 see a filing jurisdiction, and generic codes monopolised by Türkiye-specific contracts.
+
+---
+
+# Iteration 31 — Country pack #2, and the fidelity question it exposed
+
+Baseline `09ecedd`, clean, CI green, 1233/1233. Iteration 30 left pack #2 "unblocked and needing
+content, not architecture". Building it turned out to need a little architecture after all — not new
+composition machinery, but three corrections the first pack could not have revealed, because a claim
+about what *every* Schengen destination asks for cannot be checked until a second destination exists.
+
+### What shipped, in order
+
+| | commit | what |
+|---|---|---|
+| Slice A | `fa9955f` | The Türkiye layer cites the Commission act, not one mission. Every citation in `tr-filing` was a Hellenic Republic publication, so a German pack composing it would have cited the Greek mission as its authority for SGK documents. Counterfactual measured, not reasoned: ten requirements had rested solely on Greek mission authority. |
+| B0 | `db603b5` | Refinement travels backwards only — the guard the ADR described and the code did not have. |
+| B1 | `fbe3dce` | Publisher is not jurisdiction. Both the Commission act and the Greek mission page carry `jurisdiction: 'TR'`; only a stated publisher tells them apart. A pack must not rest **solely** on another destination's authority. |
+| C1 | `cc24ae0` | `PREVIOUS_VISAS` and `EMPLOYER_SIGNATURE_CIRCULAR` quarantined to the Greek mission layer. |
+| C2 | `d66f96e`, `2b78633` | `PHOTOS` says what Article 13 says: ICAO 9303 and nothing else. Count, 35x45 mm, white background and six-month recency left both locales on no authority. The follow-up made the replacement notes advisory rather than a second sourced claim. |
+| C3 | `9a960d2` | ADR-052a: one code one acceptance bar, mission layers may own requirements, shared practice is not jurisdiction authority. |
+| D1 | `8ecc239` | `ID_CARD_COPY` (mandatory, cited by nothing) and `PASSPORT_PREVIOUS` left Common. |
+| D2 | `0108c69` | Production invariants read each pack's own composition. |
+| D3 | `8d66563` | The Germany pack. |
+| D4 | `e2e6a49` | ADR-052a addendum: what the second pack settled. |
+
+### The decisions worth remembering
+
+**A second pack is an instrument, not just another consumer.** It found two wrong ownership claims in
+the shared layer within a day. `ID_CARD_COPY` was `required: true` and cited by nothing at all;
+Annex II, Annex III and the German mission sheet all omit it. ADR-052 had recorded the opposite
+decision on the worry that moving it would leave a second destination asking for no ID copy — the
+second destination then answered, and it does not ask for one.
+
+**Ownership follows evidence, and the disproof was a third document.** Germany's §54 declaration and
+ten-year visa copies look destination-level — one is German law — but the German mission in India
+requires neither, so the common factor is not Germany alone. Both are owned by `de-tr-mission`.
+
+**One code, one acceptance bar.** `DE_TRAVEL_HISTORY_COPIES` is a new code rather than a reuse of
+`PREVIOUS_VISAS`: five visa families over ten years plus the passport pages, mandatory, versus
+Schengen-only, optional, uncited. Satisfying one would not satisfy the other.
+
+**A guard that only looked like it was working.** `provenance-authority` mapped the registry for each
+pack's identity but evaluated *Greece's* composition on every row. With a German requirement citing
+the Greek mission as its sole authority, the pre-D2 wiring reports **11/11 passing**; post-D2 it
+fails naming the requirement. That was verified by restoring the old wiring, not argued.
+
+### Gates
+
+`format:check` ✓ · `lint` **0 errors / 92 warnings** · `typecheck` ✓ · `test` **1439/1439, 91 files**
+· `build` ✓ · act guard **0** · `diff --check` clean.
+
+`schemaVersion` `1.2.0` and `STORAGE_FORMAT_VERSION` `2` unmoved. `templateVersion`: Greece `1.4.0`,
+Germany `1.0.0` — per pack, unrelated numbers. Greece coverage **19 of 28**, Germany **22 of 26**.
+Greece's resolved output is byte-identical across all of D1–D3 (md5 `1c74e3a4…`, dumped from a clean
+worktree at `9a960d2`), and its pin passed unedited throughout.
+
+### Next — phase E, composition fidelity
+
+The architecture question is closed. The open question is different: **how faithfully does each
+composed requirement represent the acceptance bar the applicant actually has to satisfy?** Germany
+`PHOTOS` is the first confirmed instance where it does not — the mission states one photograph,
+35 x 45 mm, not older than six months, and citation-only refinement can carry the citation but not
+the detail.
+
+```
+E0  define + calibrate the fidelity-audit contract        ← done
+E1  audit the full Greece composition
+E2  audit the full Germany composition
+E3  consolidated fidelity-gap matrix, quantified
+E4  architecture decision: citation-only is sufficient /
+    a smaller targeted capability / contract-bearing composition
+E5  implement only what E1–E4 justify, if anything
+E6  browser + product QA against the authoritative evidence
+--- then country pack #3
+```
+
+**Country #3 is deferred, not abandoned.** The delay exists so a third country's differences are not
+encoded into an architecture whose remaining fidelity limits have not been measured. When it starts
+it is a **consumer of the authoring pipeline** — a validation case for the guide and the invariants —
+not another occasion to redesign composition without evidence.
+
+#### The E0 contract, compactly — E1 needs this
+
+Audit unit is **(composition, code)**, never code alone: `TRAVEL_INSURANCE` is one contract and two
+bars. Rows exist only for pairs that compose, so `NOT_APPLICABLE` is unused by construction.
+
+| | official evidence | VisaFlow renders | |
+|---|---|---|---|
+| equivalent | ✓ | ✓ | **EXACT** |
+| compatible, thinner | ✓ | ✓ detail omitted | **PARTIAL** |
+| divergent | ✓ | ✓ different | **CONFLICTING** |
+| pack silent | ✓ | — | **MISSING** |
+| evidence silent | — | ✓ | **UNSUPPORTED** |
+| unknowable | ? | ✓ | **UNVERIFIED** |
+
+Evidence hierarchy: L1 Visa Code articles · L2 Commission Implementing Decision C(2021) 5156 Annex III
+for Türkiye · L3 the destination mission's checklist for that jurisdiction · L4 national law or legal
+basis relevant to the requirement — which alone does not establish a document to submit. Annex II
+supports but never bounds; it is explicitly non-exhaustive. The bar is the **union** of reachable
+levels, and a mission may add but not subtract.
+
+**Blocked authority.** EXACT may not rest on reachable evidence alone when an operative channel is
+inaccessible and could materially augment the bar. The rule is **cited or precedented**: a blocked
+channel blocks a row when the row cites it, or when concrete requirement-specific evidence shows
+mission-level augmentation is materially plausible for it. The abstract possibility under Article
+14(3) is not enough — applied universally it would make every harmonised requirement permanently
+unverifiable whenever one page is briefly unreachable. Every such row records *why that channel
+matters to that row*. A retrieval failure justifies UNVERIFIED; it can never establish absence, so it
+can never produce UNSUPPORTED or MISSING.
+
+**Two contracts, both audited.** The *communicated* contract is label, description, requirement notes
+and the required/conditional presentation. The *enforced* contract is validation rules, readiness and
+currentness semantics, and next-document and checklist behaviour — wherever a rule decides whether a
+document is treated as acceptable, complete, current or required. Each row carries
+`communicationFidelity`, `behaviorFidelity` and `enforcedCriteria`; the overall verdict is the more
+severe, so correct prose cannot rescue behaviour that contradicts the evidence. Behaviour is judged
+on what it asserts, not on what it declines to enforce. Pure config→presentation bugs stay in a
+separate render-defect register; acceptance-enforcing validation does not.
+
+Two measurements stay on separate denominators: fidelity of what the packs render, and authoritative
+obligations they cannot represent at all. Before calling one of the latter MISSING, confirm the clause
+applies to the tourism composition under audit — Annex III has no tourism clause in section II, so a
+tourism application draws on section I only, and the German tourism sheet enumerates its own applicant
+categories.
+
+#### Unresolved capabilities — not forgotten work
+
+- No dossier-level `filingJurisdiction` selector. The Türkiye filing context is **config-declared** in
+  both packs, an explicit transitional seam.
+- **Never** derive filing jurisdiction from `countryOfResidence`. Residence is not where an
+  application is lodged.
+- Citation-only refinement **cannot change rendered acceptance-bar fields**. It carries citations.
+- There is **no general contract-bearing override or suppress mechanism**, deliberately.
+- Germany `PHOTOS` is the **first confirmed fidelity example**; correctly sourced, incompletely
+  rendered.
+- Conditional and applicant-profile expressiveness may itself prove to be a fidelity gap:
+  `isRequirementApplicable` sees only `{employment, financing}`, so farmers, minors travelling with
+  one parent and non-Turkish nationals cannot be expressed at all.
+- Evidence gaps and quarantined legacy requirements are **evidence work**, not automatically
+  architecture defects. mfa.gr returns HTTP 403 to this environment; E1 opens with a time-boxed
+  real-browser retrieval attempt before anything is called unverifiable.

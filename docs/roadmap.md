@@ -165,7 +165,22 @@ process problem, best tackled once the workspace is worth filling with more coun
   mission evidence separate. Greece is unchanged at 19 of 28 and its resolved output did not move.
   Building it corrected the shared layer twice: `ID_CARD_COPY` and `PASSPORT_PREVIOUS` had no
   Common-level authority in the evidence checked, and a second destination is what demonstrated it
-  ([ADR-052a]). Further countries need content and sources, not architecture. *In progress.*
+  ([ADR-052a]). *In progress.*
+- **Composition fidelity — how faithfully a composed requirement states the real acceptance bar.**
+  The architecture question is closed; this one is not, and the second pack is what exposed it.
+  Germany's photograph requirement cites a mission page stating one photograph, 35 x 45 mm, not older
+  than six months, and renders only the EU-level ICAO rule, because citation-only refinement carries
+  the citation and not the detail. Sequence: **E0** define and calibrate a fidelity-audit contract
+  (done) → **E1** audit Greece → **E2** audit Germany → **E3** consolidated gap matrix → **E4** an
+  evidence-driven decision on whether citation-only composition remains sufficient, a smaller
+  targeted capability is enough, or contract-bearing composition is justified → **E5** implement only
+  what that justifies → **E6** browser and product QA against the authoritative evidence. *In
+  progress.*
+- **Country pack #3 — deferred, not abandoned.** It waits behind the fidelity audit so a third
+  country's differences are not encoded into an architecture whose remaining limits have not been
+  measured. When it starts it is a **consumer** of the authoring pipeline — a validation case for the
+  guide and the invariants — rather than another occasion to redesign composition without evidence.
+  *Next.*
 - **Source verification workflow** — a repeatable, honest process to move packs from
   `unverified` toward `verified` with recorded evidence. The mechanism now exists and has been used
   once end to end: evidence attaches per requirement, coverage is computed rather than declared, and
