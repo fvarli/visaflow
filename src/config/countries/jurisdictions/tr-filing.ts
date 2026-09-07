@@ -169,7 +169,19 @@ const trFilingDocuments: DocumentRequirement[] = [
      * document the authority asks of business owners.
      */
     ownerType: 'applicant',
-    required: false,
+    /**
+     * Required, not optional. Annex III I.5(c) lists the chamber registration
+     * and trade-register bulletin for company owners without qualification, and
+     * the German mission's sheet lists them the same way — so both production
+     * compositions want the same answer and neither is made wrong by it.
+     *
+     * It sat at `false`, which meant readiness left it out of the denominator
+     * entirely: a self-employed applicant could reach 100% ready while missing
+     * a document the jurisdiction instrument requires of them. No revision bump
+     * — requiredness is not the acceptance contract, and ADR-051 excludes
+     * applicability-shaped changes.
+     */
+    required: true,
     conditionalOn: {
       field: 'employment.employmentStatus',
       operator: 'equals',

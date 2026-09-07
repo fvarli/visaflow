@@ -193,17 +193,28 @@ describe('an applicability change strands a record without losing it', () => {
       template,
       application: selfEmployed,
     })
-    // The template marks this requirement optional, so once it applies again
-    // the record is counted as optional work rather than outstanding — and
-    // exactly once, because it satisfies its own code and the template-side
-    // backstop must not add a second entry for it.
+    // E5b made this requirement `required: true`, so once it applies again the
+    // record counts as ready rather than as optional work. The property being
+    // pinned is unchanged and is the one that matters: it is counted **once**.
+    // The template-side backstop adds a `notStarted` for any required code with
+    // no record, and this code now *is* required — so the record it already has
+    // must absorb it rather than sit beside a phantom second entry.
+    // The fixture carries one record against a template with many required
+    // codes, so the backstop legitimately reports the rest as not started. The
+    // non-duplication property is therefore relational: every required code is
+    // accounted for exactly once, so the buckets sum to the code count rather
+    // than exceeding it by the record that already exists.
     expect({
-      countedOnce: readiness.optional,
-      // The backstop adds a `notStarted` for any required code without a
-      // record. This one is optional, so it must not appear there at all —
-      // that is what would double-count the record it already has.
-      alsoOwedAsMissing: codes.includes('EMPLOYER_TRADE_REGISTRY'),
-    }).toEqual({ countedOnce: 1, alsoOwedAsMissing: false })
+      countedOnce: readiness.ready,
+      accountedExactlyOnce: readiness.ready + readiness.notStarted,
+      requiredCodes: codes.length,
+      nowRequired: codes.includes('EMPLOYER_TRADE_REGISTRY'),
+    }).toEqual({
+      countedOnce: 1,
+      accountedExactlyOnce: codes.length,
+      requiredCodes: codes.length,
+      nowRequired: true,
+    })
     expect(stranded.notes).toBe('Collected from the chamber in March')
   })
 })

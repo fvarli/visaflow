@@ -121,7 +121,7 @@
     "accommodationNameMismatch": {
       "title": "Accommodation guest name may not match",
       "description": "Guest name \"{{guestName}}\" on {{reservationName}} does not clearly match applicant name \"{{applicantName}}\".",
-      "action": "Verify the guest name matches the applicant's passport name."
+      "action": "If the booking is in someone else’s name — a host, a family member or a company — check whether the consulate handling your application accepts that."
     },
     "requiredDocSkipped": {
       "title": "Required document marked as not applicable",

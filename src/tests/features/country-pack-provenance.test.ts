@@ -998,6 +998,48 @@ const DESTINATION_ONLY_TOKENS = [
   'uzatma kabul',
 ]
 
+describe('country packs — requiredness matches the authority in both packs', () => {
+  /**
+   * The one requiredness correction E5b could make safely.
+   *
+   * A shared requirement's `required` flag is a single answer for every pack
+   * that composes it, so it may only be corrected when every composition wants
+   * the same answer. Annex III I.5(c) lists the chamber registration for
+   * company owners without qualification and the German mission's sheet does
+   * the same, so this one is safe. Where two compositions would want different
+   * answers the correction is *not* made — that is capability pressure, not a
+   * config fix, and encoding one country's semantics globally is the failure
+   * this test exists to prevent.
+   */
+  it.each(PRODUCTION_COMPOSITIONS.map((p) => [p.countryCode, p] as const))(
+    '%s marks the chamber registration required, as its authority does',
+    (_code, pack) => {
+      const row = pack.composition.template.documentRequirements.find(
+        (r) => r.code === 'EMPLOYER_TRADE_REGISTRY'
+      )
+      expect({ found: Boolean(row), required: row?.required }).toEqual({
+        found: true,
+        required: true,
+      })
+    }
+  )
+
+  it('counts it toward readiness now that it is required', () => {
+    // The defect was not the flag alone: `required: false` kept it out of the
+    // readiness denominator, so a self-employed applicant could read "100%
+    // ready" while missing it.
+    for (const pack of PRODUCTION_COMPOSITIONS) {
+      const required = pack.composition.template.documentRequirements.filter(
+        (r) => r.required
+      ).length
+      expect({ pack: pack.countryCode, hasRequired: required > 0 }).toEqual({
+        pack: pack.countryCode,
+        hasRequired: true,
+      })
+    }
+  })
+})
+
 describe('country packs — the E5a corrections render, and stay inside their layer', () => {
   async function renderedFor(code: string, locale: 'en' | 'tr') {
     await i18n.changeLanguage(locale)

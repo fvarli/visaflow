@@ -372,7 +372,7 @@ const PINNED_REQUIREMENTS: Record<string, DocumentRequirement> = {
     notesKey: 'visa-domain:requirements.EMPLOYER_TRADE_REGISTRY.notes',
     category: 'employment',
     ownerType: 'applicant',
-    required: false,
+    required: true,
     conditionalOn: {
       field: 'employment.employmentStatus',
       operator: 'equals',

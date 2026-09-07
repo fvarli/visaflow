@@ -121,7 +121,7 @@
     "accommodationNameMismatch": {
       "title": "Konaklamadaki misafir adı eşleşmiyor olabilir",
       "description": "{{reservationName}} rezervasyonundaki \"{{guestName}}\" misafir adı, başvuru sahibinin adıyla (\"{{applicantName}}\") tam olarak eşleşmiyor.",
-      "action": "Misafir adının pasaporttaki adla aynı olduğunu doğrulayın."
+      "action": "Rezervasyon başkasının adınaysa — ev sahibi, aile üyesi veya şirket — başvurunuzu işleme alan konsolosluğun bunu kabul edip etmediğini kontrol edin."
     },
     "requiredDocSkipped": {
       "title": "Zorunlu belge uygulanamaz olarak işaretlendi",
