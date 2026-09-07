@@ -2485,3 +2485,97 @@ production changes this amendment records shipped in `fa9955f` (neutral instrume
 (publishing authority), `cc24ae0` (mission-layer quarantine), `d66f96e` and `2b78633` (the
 photograph contract). The refinement-direction guard shipped in `db603b5` and is recorded in
 ADR-052's own text, which that commit amended; it is not restated here.
+
+### Addendum — what the second production pack settled (2026-09-07)
+
+Recorded after Germany short-stay tourism, filed from Türkiye, shipped as the second production pack
+(`8ecc239`, `0108c69`, `8d66563`). The five findings below are the ones that change how the model is
+described; everything above this line was written when Greece was the only pack and stands as
+written.
+
+**Current state, as of this addendum.** Production packs: **Greece and Germany**. Greece coverage
+remains **19 of 28** and its resolved output was unchanged by everything below — the pin passed
+unedited and the resolved template dumped from a clean worktree at `9a960d2` was byte-identical.
+Germany coverage is **22 of 26** under the coverage computation as it currently stands.
+
+**1. The second real pack is what corrected Common ownership.** `ID_CARD_COPY` and
+`PASSPORT_PREVIOUS` left the common layer and are quarantined in `gr-tr-mission`; Greece renders
+exactly what it rendered before, and Germany inherits neither.
+
+The reason is narrow and worth keeping narrow. **No Common-level submission authority was found in
+the evidence this repository holds** — Visa Code Annex II sections A, B and C, the Commission's
+Annex III for Türkiye, and the German mission's own tourism sheet — and a second production
+destination then demonstrated the concrete consequence: leaving them in Common would have handed a
+German applicant a mandatory, uncited identity-card copy and a second, vaguer travel-document ask
+beside Germany's own specific one.
+
+That is a statement about **ownership**, not about what any consulate may lawfully request. Annex II
+is explicitly non-exhaustive and Article 14(3) leaves missions free to ask for more; its silence is
+therefore evidence that a requirement is not *common*, and it is not evidence that a consulate can
+never request the document. A mission that does ask for one belongs in that mission's layer, which is
+exactly where these two now sit.
+
+**2. Evidence presence and evidence authority are two invariants, not one.** A requirement owned by a
+jurisdiction- or mission-scoped layer must either **carry evidence or carry an explicit, reasoned,
+bounded evidence-gap record**. Whether that evidence is *authoritative for the composition it appears
+in* is a different question, answered by the publisher/provenance rule: a pack must not rest solely
+on another destination's authority.
+
+The gap test used to require the Commission's Türkiye instrument specifically. That was right while
+every jurisdiction-owned requirement in the repository was a Turkish document the act either covered
+or did not, and it became wrong when a mission layer began owning requirements the act was never
+going to mention — a declaration under German law is not an item in a harmonised list of Turkish
+supporting documents. Keeping the narrow form would have pushed a maintainer to record an evidence
+gap where there is none, which corrupts the record the allowlist exists to keep.
+
+**This widening is not "a citation makes a requirement verified".** The gap test asks only whether
+something is being asserted with no evidence at all and no written reason. Verification is computed
+separately from dated sources; whose authority a citation carries is checked separately again; and
+the Türkiye layer's own citations remain pinned clause by clause to the Annex III provisions that
+support them. Three questions, three guards — collapsing any two of them is what produced the defect
+in finding 3.
+
+**3. Two real packs, and one guard that only looked like it was working.** Greece and Germany share
+the common Visa Code requirements and the Türkiye filing evidence while each keeps its own mission
+evidence; the shared source set is exactly the five Visa Code records and the Commission act, and
+neither pack composes a single record belonging to the other's mission.
+
+The production invariants now evaluate **each production composition**, rather than reading one
+pack's composed output for every row of the registry. That projection was live: with it in place, a
+German requirement whose only authority was the Greek mission's harmonised list passed the authority
+invariant green, because the row labelled `DE` was evaluating Greece's requirements against the code
+`DE`. It was found and corrected before the pack that would have hidden behind it, and the
+correction was verified by restoring the old wiring and watching the same leak pass.
+
+The domain rule that survives this is only the first sentence of the paragraph above: **an invariant
+stated over "every pack" must read every pack.** How the test suite holds a list of compositions is
+an implementation detail and is deliberately not elevated here.
+
+**4. Citation-only refinement has a fidelity boundary, and Germany's photograph requirement is where
+it shows.** The common layer renders the ICAO-based contract — the photograph must meet ICAO 9303
+Part 1, 6th edition — and that is what an applicant reads in **both** packs. The German mission's
+general page additionally states one photograph, 35 x 45 mm, not older than six months. Refinement
+carries citations and only citations, so those details are preserved in **provenance** and are not
+promoted into a Germany-specific rendered contract.
+
+The honest consequence, stated so nothing downstream overclaims: **Germany does not render every
+mission-specific acceptance detail.** Its photograph requirement is correctly sourced and
+incompletely rendered.
+
+This is a **capability limitation**, recorded as one. It is not a reason to retrofit a
+contract-bearing override or a suppression mechanism — both were considered and declined in ADR-052
+for reasons that have not changed, and a second code carrying different prose for the same document
+would be the two-codes-one-document failure named above. When a real case justifies promoting
+mission detail into a rendered contract, it arrives with its own ADR and its own invariants.
+
+**5. Mission ownership is now demonstrated by two destinations rather than described.**
+`gr-tr-mission` and `de-tr-mission` are composition and provenance scopes: they hold what one
+destination's mission asks of applicants filing in one jurisdiction, and nothing they own or cite
+reaches another destination. Germany's two requirements are owned there rather than at destination
+level because the German mission in India requires neither — the common factor is not Germany alone.
+
+Ownership in a mission layer still says nothing about verification. `de-tr-mission`'s requirements
+are cited and `gr-tr-mission`'s are held precisely because they are not; both are mission-owned. What
+the layer decides is scope, and what the citations decide is evidence.
+
+**Implementation:** documentation only — `docs/decisions.md`, `docs/country-pack-guide.md`.

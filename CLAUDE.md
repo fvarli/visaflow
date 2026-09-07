@@ -19,8 +19,9 @@ pnpm format       # Format code with Prettier
 
 VisaFlow is the open-source, privacy-first application workspace for international visa
 preparation — a structured dossier, validation engine, timeline, and country-specific
-requirements. Greece (Schengen short-stay tourism) is the first implemented country pack; the
-architecture is built to add more. See `docs/vision.md`.
+requirements. Greece and Germany (Schengen short-stay tourism, composed for applications lodged in
+Türkiye) are the implemented country packs; the architecture is built to add more. See
+`docs/vision.md`.
 
 **Key principle:** All personal data stays on the user's device. Dossiers persist in IndexedDB
 via the repository port; no personal data in localStorage, no external APIs,
@@ -124,8 +125,9 @@ src/
   built once at module load (so the reference is stable across renders)
 - Support conditional requirements (e.g., "required if employed")
 - Source metadata is honest: no scraping, no invented dates; unverified stays
-  `unverified` (ADR-015). Greece Schengen tourism is the first implemented pack;
-  add more via `docs/country-pack-guide.md`.
+  `unverified` (ADR-015). Greece was the first implemented pack and Germany the second;
+  add more via `docs/country-pack-guide.md`. Every pack must join the production
+  invariant set, not only the registry — see the guide's Register step.
 
 ## Testing
 
@@ -144,6 +146,7 @@ src/
 | `src/domain/rules/runner.ts` | Validation rule composition |
 | `src/domain/schemas/dossier.schema.ts` | Combined schema for import/export |
 | `src/config/countries/greece/` | Greece country pack (first implemented) |
+| `src/config/countries/germany/` | Germany country pack (second; proves the layer model) |
 | `src/features/dashboard/dashboard-model.ts` | Dashboard presentation adapter |
 | `src/data/examples/example-dossier.json` | Sample data for testing |
 

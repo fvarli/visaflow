@@ -61,8 +61,9 @@ zorunlu belgeler, güncellenmesi gereken belgeler, tutarlılık bulguları*.
 - **Current** — a saved-dossier workspace: several dossiers kept side by side in this browser,
   each with a structured dossier, validation engine, timeline, widget-based dashboard, rename,
   cross-tab safety, backup tracking, and a session-only mode for shared computers — plus the
-  design system + playground, TR/EN internationalization, JSON import/export, and one production
-  country pack (Greece — Schengen short-stay tourism).
+  design system + playground, TR/EN internationalization, JSON import/export, and two production
+  country packs (Greece and Germany — Schengen short-stay tourism, composed for applications lodged
+  in Türkiye).
 - **Next** — a richer core workspace, more visa types, and additional country packs.
 - **Future** — a country-pack ecosystem with verified sources, optional self-hosting, reviewer
   collaboration, and organizational (never predictive) AI assistance.
