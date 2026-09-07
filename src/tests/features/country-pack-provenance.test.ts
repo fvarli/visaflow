@@ -427,15 +427,16 @@ describe('country packs — Greece composition and citations', () => {
       byLayer.set(layerId, (byLayer.get(layerId) ?? 0) + 1)
     }
     expect(Object.fromEntries(byLayer)).toEqual({
-      'schengen-short-stay': 14,
+      'schengen-short-stay': 12,
       'tr-filing': 12,
-      // Two legacy requirements with no resolvable source, quarantined to the
+      // Four legacy requirements with no resolvable source, quarantined to the
       // pack that carries them so a second destination cannot inherit them:
-      // PREVIOUS_VISAS (no Annex II basis; Article 21(2) has the consulate
-      // consult the VIS instead) and EMPLOYER_SIGNATURE_CIRCULAR (no source at
-      // any level). Placement here is containment, not a finding that Greece
-      // requires either.
-      'gr-tr-mission': 2,
+      // PREVIOUS_VISAS and PASSPORT_PREVIOUS (no Annex II basis; Article 21(2)
+      // has the consulate consult the VIS instead), ID_CARD_COPY (mandatory
+      // and cited by nothing at all) and EMPLOYER_SIGNATURE_CIRCULAR (no
+      // source at any level). Placement here is containment, not a finding
+      // that Greece requires any of them.
+      'gr-tr-mission': 4,
       // 'greece' owns none: nothing in this pack is true *because* the
       // destination is Greece. Absent from the map rather than zero, since a
       // layer that declares nothing never reaches the ownership tally.
@@ -666,30 +667,6 @@ describe('country packs — jurisdiction evidence stays with its jurisdiction', 
   )
 })
 
-/**
- * Requirements whose *translation* names a local document, without that making
- * the requirement itself jurisdictional.
- *
- * The token scan cannot tell these apart, and this is where that limitation is
- * written down rather than silently tolerated. `ID_CARD_COPY` asks for a copy
- * of a national identity card: the English prose is entirely generic, it cites
- * nothing, and any Schengen destination might reasonably ask for it. What trips
- * the scan is the Turkish translation glossing the local document by name
- * ("nüfus cüzdanının veya kimlik kartının") — a translator being helpful, not a
- * pack making a jurisdictional claim.
- *
- * Moving it to the Türkiye layer would be the wrong fix: a second destination
- * would then not ask for an ID copy at all. Rewriting the translation is
- * content work with its own review. Both are real options and neither is a
- * refactor, so the limitation is quarantined precisely instead: a *new* token
- * offender fails, this one does not.
- */
-const KNOWN_LOCALE_GLOSSES: Record<string, string> = {
-  ID_CARD_COPY:
-    'Generic English prose and no citation; only the Turkish translation names ' +
-    'the local document (nüfus cüzdanı). A translation gloss, not jurisdictional evidence.',
-}
-
 describe('country packs — institution names in shared prose (heuristic)', () => {
   /**
    * A heuristic, and deliberately never the authority.
@@ -737,33 +714,30 @@ describe('country packs — institution names in shared prose (heuristic)', () =
     return [...offenders].sort()
   }
 
-  it('flags only requirements already recorded as locale glosses', async () => {
-    // Not `toEqual([])`: that would require either moving a requirement or
-    // editing a translation to stay green, and both are decisions rather than
-    // cleanups. Not `toBeGreaterThan(0)` either, since the honest outcome is
-    // that this list shrinks to nothing one day. A subset check keeps the guard
-    // live — a new offender fails — while letting the known one stay recorded.
+  it('finds no institution name in a shared layer at all', async () => {
+    // This used to be a subset check against a one-entry allowlist, because
+    // `ID_CARD_COPY` sat in the common layer with generic English prose and a
+    // Turkish translation that named nüfus cüzdanı. ADR-052 recorded the
+    // allowlist as the honest compromise: moving the requirement would leave a
+    // second destination asking for no ID copy at all, and rewriting a
+    // translation is content work.
+    //
+    // The German mission's sheet answered the worry — it asks for the barcoded
+    // civil-registry extract and no identity card — so the requirement moved to
+    // the mission layer that actually carries it and the exemption went with
+    // it. The check is now the plain one, which is strictly stronger: **no**
+    // requirement in a shared layer names a local institution in either locale.
     const offenders = await tokenOffendersInSharedLayers()
-    expect(offenders).toEqual(
-      offenders.filter((code) => code in KNOWN_LOCALE_GLOSSES)
+    expect(offenders).toEqual([])
+  })
+
+  it('would still notice one, so the empty result means something', () => {
+    // An empty list from a scan that cannot match is worthless. This runs the
+    // same token list over prose that does contain one.
+    const planted = 'SGK işe giriş bildirgesi ve hizmet dökümü'
+    expect(JURISDICTION_TOKENS.some((token) => planted.includes(token))).toBe(
+      true
     )
-  })
-
-  it('still names the one it knows about, so the entry cannot rot', async () => {
-    // If `ID_CARD_COPY` stops tripping the scan — because the gloss was
-    // reworded or the requirement moved — the allowlist entry is stale and
-    // should be deleted rather than left implying a limitation that is gone.
-    const offenders = await tokenOffendersInSharedLayers()
-    expect(offenders).toEqual(['ID_CARD_COPY'])
-  })
-
-  it('every recorded gloss explains itself', () => {
-    for (const [code, reason] of Object.entries(KNOWN_LOCALE_GLOSSES)) {
-      expect({ code, explained: reason.trim().length > 40 }).toEqual({
-        code,
-        explained: true,
-      })
-    }
   })
 })
 
@@ -968,6 +942,22 @@ const JURISDICTION_EVIDENCE_GAPS: Record<string, string> = {
     'common layer because it is not common; quarantined rather than retired ' +
     'because the Greek mission is unreachable and absence of a reachable source ' +
     'is not proof the requirement is gone.',
+  ID_CARD_COPY:
+    'Mandatory and cited by nothing at all, which is the worst thing the common ' +
+    'layer can hold — every future pack inherits it in silence. Absent from ' +
+    'Annex II, from Annex III, and from the German mission sheet, which asks for ' +
+    'the barcoded civil-registry extract and no identity card. ADR-052 recorded ' +
+    'the opposite decision on the worry that a second destination would then ask ' +
+    'for no ID copy; the second destination has now answered, and it does not ' +
+    'ask for one.',
+  PASSPORT_PREVIOUS:
+    'Old passports as such. Absent from Visa Code Annex II (sections A, B and C ' +
+    'read in full), from the Commission Annex III for Türkiye, and from the ' +
+    'German mission sheet — which asks instead for a copy of the passport ' +
+    'carrying the visas it wants, a narrower ask that Germany states as its own ' +
+    'requirement. Optional here, which is not a reason to leave it in the shared ' +
+    'layer: a second destination would inherit a vague travel-document ask ' +
+    'beside its own specific one.',
 }
 
 describe('country packs — the jurisdiction evidence gap is bounded', () => {

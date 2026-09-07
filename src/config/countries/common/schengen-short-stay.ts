@@ -66,15 +66,6 @@ export const commonSchengenDocuments: DocumentRequirement[] = [
     revision: 2,
   },
   {
-    code: 'PASSPORT_PREVIOUS',
-    nameKey: 'visa-domain:requirements.PASSPORT_PREVIOUS.name',
-    descriptionKey: 'visa-domain:requirements.PASSPORT_PREVIOUS.description',
-    category: 'passport',
-    ownerType: 'applicant',
-    required: false,
-    revision: 1,
-  },
-  {
     code: 'PHOTOS',
     nameKey: 'visa-domain:requirements.PHOTOS.name',
     descriptionKey: 'visa-domain:requirements.PHOTOS.description',
@@ -92,15 +83,6 @@ export const commonSchengenDocuments: DocumentRequirement[] = [
     sourceRefs: ['eu-visa-code-art13'],
     // Unchanged at 1. Every removal above is a loosening and a citation is not
     // a contract change, so neither bumps (ADR-051, ADR-052).
-    revision: 1,
-  },
-  {
-    code: 'ID_CARD_COPY',
-    nameKey: 'visa-domain:requirements.ID_CARD_COPY.name',
-    descriptionKey: 'visa-domain:requirements.ID_CARD_COPY.description',
-    category: 'identity',
-    ownerType: 'applicant',
-    required: true,
     revision: 1,
   },
   {
