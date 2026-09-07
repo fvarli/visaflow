@@ -908,6 +908,150 @@ describe('country packs — the photograph contract states only ICAO conformance
 })
 
 /**
+ * The E5a corrections, and the boundary they must not cross.
+ *
+ * Four contracts gained criteria their own authorities always stated. Each
+ * pattern below is asserted twice: against the text as it now renders, and
+ * against the exact string it replaced — because a regex that silently matches
+ * nothing would report a correction as present while it had been reverted.
+ */
+const E5A_ADDED_CRITERIA: {
+  code: string
+  locale: 'en' | 'tr'
+  pattern: RegExp
+  absentFromOldText: string
+}[] = [
+  {
+    code: 'APPLICATION_FORM',
+    locale: 'en',
+    pattern: /separate form/i,
+    absentFromOldText:
+      'Must be completed and signed; a minor’s form is signed by a parent or legal guardian',
+  },
+  {
+    code: 'APPLICATION_FORM',
+    locale: 'tr',
+    pattern: /ayrı formunu/i,
+    absentFromOldText:
+      'Eksiksiz doldurulmalı ve imzalanmalıdır; reşit olmayanların formu ebeveyn veya yasal vasi tarafından imzalanır',
+  },
+  {
+    code: 'TRAVEL_INSURANCE',
+    locale: 'en',
+    pattern: /in case of death/i,
+    absentFromOldText:
+      'Must cover medical expenses, hospitalization, and repatriation, be valid throughout the Schengen area, and cover your entire stay',
+  },
+  {
+    code: 'TRAVEL_INSURANCE',
+    locale: 'tr',
+    pattern: /vefat hâlinde/i,
+    absentFromOldText:
+      'Tedavi, hastane masrafları ve ülkeye geri gönderimi kapsamalı, tüm Schengen bölgesinde geçerli olmalı ve konaklamanızın tamamını kapsamalıdır',
+  },
+  {
+    code: 'EMPLOYMENT_LETTER',
+    locale: 'en',
+    pattern: /addressed to the consulate/i,
+    absentFromOldText:
+      'Letter from your employer stating your name and passport number, start date and role, and the employer’s contact details',
+  },
+  {
+    code: 'EMPLOYMENT_LETTER',
+    locale: 'en',
+    pattern: /name and position of the person/i,
+    absentFromOldText:
+      'Letter from your employer stating your name and passport number, start date and role, and the employer’s contact details',
+  },
+  {
+    code: 'APPROVED_LEAVE',
+    locale: 'en',
+    pattern: /addressed to the consulate/i,
+    absentFromOldText:
+      'Approval of leave stating its length and whether it is paid or unpaid',
+  },
+  {
+    code: 'APPROVED_LEAVE',
+    locale: 'tr',
+    pattern: /hitaben/i,
+    absentFromOldText:
+      'İzin süresini ve ücretli mi ücretsiz mi olduğunu belirten izin onayı',
+  },
+]
+
+/**
+ * Details that belong to one destination and must never reach shared prose.
+ *
+ * E5a deliberately corrected only criteria that both production packs' own
+ * authorities state. The German mission publishes a great deal more — photo
+ * dimensions, an e-Devlet barcode, an AT11 exclusion, a passport-extension
+ * prohibition — and writing any of it into a Common or Türkiye-layer contract
+ * would assert it to every pack composing that layer, which is the defect C2
+ * removed from `PHOTOS` and the reason those rows are held as evidence for a
+ * later capability decision rather than "fixed" here.
+ */
+const DESTINATION_ONLY_TOKENS = [
+  '35 x 45',
+  '35x45',
+  'e-Devlet',
+  'AT11',
+  'uzatma kabul',
+]
+
+describe('country packs — the E5a corrections render, and stay inside their layer', () => {
+  async function renderedFor(code: string, locale: 'en' | 'tr') {
+    await i18n.changeLanguage(locale)
+    const td = dynamicT(i18n.t.bind(i18n))
+    const text = [
+      `visa-domain:requirements.${code}.description`,
+      `visa-domain:requirements.${code}.notes`,
+    ]
+      .map((k) => td(k, { defaultValue: '' }))
+      .join(' ')
+    await i18n.changeLanguage('tr')
+    return text
+  }
+
+  it.each(
+    E5A_ADDED_CRITERIA.map((c) => [`${c.code} (${c.locale})`, c] as const)
+  )('%s renders the criterion its authority states', async (_label, c) => {
+    expect(c.pattern.test(await renderedFor(c.code, c.locale))).toBe(true)
+  })
+
+  it.each(
+    E5A_ADDED_CRITERIA.map((c) => [`${c.code} (${c.locale})`, c] as const)
+  )('%s — the pattern did not match the text it replaced', (_label, c) => {
+    // Non-vacuity: without this a broken regex would report every correction as
+    // present, including after a revert.
+    expect(c.pattern.test(c.absentFromOldText)).toBe(false)
+  })
+
+  it.each(['tr', 'en'] as const)(
+    'keeps destination-only detail out of shared prose in %s',
+    async (locale) => {
+      await i18n.changeLanguage(locale)
+      const td = dynamicT(i18n.t.bind(i18n))
+      const shared = ALL_REQUIREMENT_LAYERS.filter(
+        (l) => l.id === 'schengen-short-stay' || l.id === 'tr-filing'
+      ).flatMap((l) => l.add ?? [])
+      const offenders = shared
+        .filter((r) => {
+          const text = [r.nameKey, r.descriptionKey, r.notesKey]
+            .filter((k): k is string => Boolean(k))
+            .map((k) => td(k, { defaultValue: '' }))
+            .join(' ')
+          return DESTINATION_ONLY_TOKENS.some((t) => text.includes(t))
+        })
+        .map((r) => r.code)
+      await i18n.changeLanguage('tr')
+
+      expect(offenders).toEqual([])
+      expect(shared.length).toBeGreaterThan(0)
+    }
+  )
+})
+
+/**
  * WHY THERE IS NO DUPLICATE-RENDERED-LABEL INVARIANT HERE.
  *
  * An earlier version of this file failed the build when two composed

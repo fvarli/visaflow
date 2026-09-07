@@ -17,9 +17,9 @@ import type { RequirementSource } from '../types'
  * defect one layer up. The Greek renderings now live in
  * `gr-tr-mission.sources.ts`.
  *
- * The Commission act is also the stronger citation. The Greek mission page
- * records an HTTP 403 and a proxied read; this instrument was retrieved and
- * read directly.
+ * The Commission act is also the stronger citation, and the E5 fidelity work
+ * confirmed why: the Greek mission's own published list, retrieved first-hand
+ * on 7 September 2026, is this instrument's text verbatim.
  *
  * HONESTY RULES (ADR-015) unchanged: entered by hand from a document a
  * maintainer actually read, and `url` points at where it was genuinely

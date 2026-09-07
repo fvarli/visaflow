@@ -127,7 +127,7 @@
     "APPLICATION_FORM": {
       "name": "Vize Başvuru Formu",
       "description": "Eksiksiz doldurulmuş ve imzalanmış Schengen vize başvuru formu",
-      "notes": "Eksiksiz doldurulmalı ve imzalanmalıdır; reşit olmayanların formu ebeveyn veya yasal vasi tarafından imzalanır"
+      "notes": "Eksiksiz doldurulmalı ve imzalanmalıdır; reşit olmayanların formu ebeveyn veya yasal vasi tarafından imzalanır. Seyahat belgenizde kayıtlı olan her kişi kendi ayrı formunu verir."
     },
     "PASSPORT_CURRENT": {
       "name": "Güncel Pasaport",
@@ -150,7 +150,7 @@
     "TRAVEL_INSURANCE": {
       "name": "Seyahat Sağlık Sigortası",
       "description": "En az 30.000 EUR teminatlı seyahat sağlık sigortası",
-      "notes": "Tedavi, hastane masrafları ve ülkeye geri gönderimi kapsamalı, tüm Schengen bölgesinde geçerli olmalı ve konaklamanızın tamamını kapsamalıdır"
+      "notes": "Tedavi, hastane masrafları ve ülkeye geri gönderimi — vefat hâlinde geri gönderim dâhil — kapsamalı, tüm Schengen bölgesinde geçerli olmalı ve konaklamanızın tamamını kapsamalıdır"
     },
     "TRANSPORT_RESERVATION": {
       "name": "Gidiş Dönüş Ulaşım Rezervasyonu",
@@ -167,11 +167,11 @@
     },
     "EMPLOYMENT_LETTER": {
       "name": "İşveren yazısı",
-      "description": "Adınızı ve pasaport numaranızı, işe giriş tarihinizi ve görevinizi, ayrıca işverenin iletişim bilgilerini belirten işveren yazısı"
+      "description": "Başvurduğunuz konsolosluğa hitaben yazılmış; adınızı ve pasaport numaranızı, işe giriş tarihinizi ve görevinizi, işverenin iletişim bilgilerini ve yazıyı imzalayan kişinin adı ile görevini belirten işveren yazısı"
     },
     "APPROVED_LEAVE": {
       "name": "İzin Yazısı",
-      "description": "İzin süresini ve ücretli mi ücretsiz mi olduğunu belirten izin onayı"
+      "description": "Başvurduğunuz konsolosluğa hitaben yazılmış; izin süresini, ücretli mi ücretsiz mi olduğunu ve yazıyı imzalayan kişinin adı ile görevini belirten izin onayı"
     },
     "PAYSLIPS": {
       "name": "Maaş Bordroları",
@@ -330,11 +330,11 @@
     },
     "gr-tr-harmonised-list": {
       "title": "Türkiye’de kısa süreli vize başvuruları için destekleyici belge listesi",
-      "notes": "Yunan temsilciliğinin, Türkiye için uyumlaştırılmış listeyi kendi yayımı. Dayandığı belge — Komisyon Uygulama Kararı C(2021) 5156, EK III — artık doğrudan ve birinci elden kaynak gösteriliyor; bu sayfa ise tek bir temsilciliğin yayımı olarak duruyor, bu nedenle yalnızca Yunanistan’a bağlanır. Resmî kaynak daha önce bu ortama HTTP 403 döndürmüş ve içerik aynı kaynak adresine karşı bir metin çıkarma vekili aracılığıyla incelenmişti."
+      "notes": "Yunan misyonunun Türkiye için uyumlaştırılmış listeyi yayımı; 7 Eylül 2026'da doğrudan alındı. Metni, bu paketin ayrıca doğrudan atıf yaptığı Komisyon Uygulama Kararı C(2021) 5156 Ek III ile aynıdır — dolayısıyla misyon bu belge üzerinden enstrümana bir şey eklememektedir."
     },
     "gr-mfa-tr-visa-page": {
       "title": "Yunanistan Ankara Büyükelçiliği — vize bilgileri",
-      "notes": "Türkiye’de yapılan başvurular için konsolosluk sayfası. Resmî kaynak bu ortama HTTP 403 döndürdü; içerik aynı resmî adres üzerinden bir metin çıkarma vekili aracılığıyla incelendi."
+      "notes": "Türkiye'de yapılan başvurulara ilişkin konsolosluk sayfası; daha önce HTTP 403 ile reddedildikten sonra 7 Eylül 2026'da doğrudan alındı. Sunulacakları belirtir: eksiksiz doldurulmuş ve imzalanmış başvuru formu, en az iki boş sayfası olan, son on yıl içinde düzenlenmiş ve çıkıştan sonra üç ay geçerli pasaport, ICAO standartlarına uygun güncel bir fotoğraf, son 59 ayda VIS'te kaydı yoksa parmak izi ve vize ücreti — ardından destekleyici belge listesine bağlantı verir. Sigorta paragrafı acil tıbbi bakım, hastane tedavisi ve vefat hâli dâhil ülkeye geri gönderimi, asgari 30.000 EUR teminatı ve tüm Schengen alanında konaklama boyunca geçerlilik ekler."
     },
     "eu-c2021-5156-turkey-annex3": {
       "title": "Komisyon Uygulama Kararı C(2021) 5156 — Türkiye’de kısa süreli vize başvuruları için destekleyici belgeler",
@@ -342,11 +342,11 @@
     },
     "de-tr-tourism-checklist": {
       "title": "Türkiye’deki Alman misyonları — turistik amaçlı vize kontrol listesi",
-      "notes": "Her başvuru sahibinin vereceği belgeleri, ardından başvuru sahibi kategorisine göre ek belgeleri listeler: çalışanlar, çiftçiler, şirket sahipleri, öğrenciler, reşit olmayanlar ve Türk vatandaşı olmayanlar."
+      "notes": "Her başvuru sahibinin vereceği belgeleri, ardından başvuru sahibi kategorisine göre ek belgeleri listeler: çalışanlar ve memurlar, çiftçiler, firma sahipleri ve serbest meslek sahipleri, öğrenciler, 18 yaş altı reşit olmayanlar ve Türk vatandaşı olmayanlar. 7 Eylül 2026'da birebir alındı. Sayfanın belirttiği ancak bu paketin henüz göstermediği ayrıntılar: işveren yazısı Türkiye'deki işveren tarafından hazırlanmış asıl nüsha olmalı; nüfus kayıt örneği e-Devlet barkod/QR kodlu olmalı; oda sicil kayıt sureti 6 aydan eski olmamalı; resmi taahhütname sunulduysa konaklama belgesi istenmiyor; emeklilik söz konusuysa son 3 aya ait emekli maaşı ödeme belgeleri isteniyor."
     },
     "de-tr-schengen-general": {
       "title": "Türkiye’deki Alman misyonları — genel Schengen vizesi bilgileri",
-      "notes": "Kontrol listesinin pasaport, fotoğraf ve sigorta için bağlantı verdiği sayfa. 35 x 45 mm ölçüsünde, 6 aydan eski olmayan 1 adet fotoğraf; son on yıl içinde düzenlenmiş, dönüş tarihinden sonra üç ay geçerli ve iki boş sayfası olan pasaport; 30.000 EUR teminatlı sigorta belirtir."
+      "notes": "Kontrol listesinin pasaport, fotoğraf ve sigorta için bağlantı verdiği sayfa. 35 x 45 mm ölçüsünde, 6 aydan eski olmayan, tam karşıdan çekilmiş, başı ve gözleri kapatmayan 1 adet fotoğraf; son on yıl içinde düzenlenmiş (uzatma kabul edilmez), dönüşten sonra üç ay geçerli ve iki boş sayfası olan pasaport; ilk kalışı kapsayan, asgari 30.000 EUR teminatlı, aslı ve fotokopisi sunulan, geriye dönük olmayan, yaşa bağlı teminat sınırı içermeyen ve AT11 belgesinin yeterli sayılmadığı sigorta belirtir. Sayfa ayrıca, kural olarak yalnızca bilgi formlarında listelenen belgelerin gerektiğini söyler."
     },
     "de-aufenthg-54": {
       "title": "İkamet Kanunu, 54. madde — Sınır dışı etme menfaati",

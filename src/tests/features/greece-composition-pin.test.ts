@@ -83,7 +83,7 @@ const PINNED_REQUIREMENTS: Record<string, DocumentRequirement> = {
     ownerType: 'applicant',
     required: true,
     sourceRefs: ['eu-visa-code-art11', 'gr-mfa-tr-visa-page'],
-    revision: 1,
+    revision: 2,
   },
   PASSPORT_CURRENT: {
     code: 'PASSPORT_CURRENT',
@@ -139,7 +139,7 @@ const PINNED_REQUIREMENTS: Record<string, DocumentRequirement> = {
     ownerType: 'applicant',
     required: true,
     sourceRefs: ['eu-visa-code-art15', 'gr-mfa-tr-visa-page'],
-    revision: 2,
+    revision: 3,
   },
   TRANSPORT_RESERVATION: {
     code: 'TRANSPORT_RESERVATION',
@@ -199,7 +199,7 @@ const PINNED_REQUIREMENTS: Record<string, DocumentRequirement> = {
     },
     validityPeriodDays: 30,
     sourceRefs: ['eu-c2021-5156-turkey-annex3', 'gr-tr-harmonised-list'],
-    revision: 1,
+    revision: 2,
   },
   APPROVED_LEAVE: {
     code: 'APPROVED_LEAVE',
@@ -215,7 +215,7 @@ const PINNED_REQUIREMENTS: Record<string, DocumentRequirement> = {
     },
     validityPeriodDays: 30,
     sourceRefs: ['eu-c2021-5156-turkey-annex3', 'gr-tr-harmonised-list'],
-    revision: 1,
+    revision: 2,
   },
   PAYSLIPS: {
     code: 'PAYSLIPS',
@@ -534,8 +534,8 @@ const PINNED_ENVELOPE = {
   id: 'schengen-short-stay-tourism',
   visaType: 'short_stay_tourism',
   nameKey: 'visa-domain:visaTypes.schengen-short-stay-tourism',
-  templateVersion: '1.4.0',
-  lastReviewedAt: '2026-08-29',
+  templateVersion: '1.5.0',
+  lastReviewedAt: '2026-09-07',
   reviewStatus: 'partially_verified',
   sourceIds: ['gr-mfa-general'],
   notesKeys: [
@@ -558,6 +558,22 @@ const PINNED_SOURCE_IDS = [
   'gr-mfa-tr-visa-page',
 ]
 
+/**
+ * MOVED DELIBERATELY IN E5a, AND THIS IS THE ONE PLACE THAT SHOULD RECORD WHY.
+ *
+ * The pin held byte-unchanged through the layer split, the Slice A citations,
+ * the C1 quarantine and the C2 photograph correction. E5a is the first change
+ * that moves it, because it is the first change to what the pack *asks an
+ * applicant for*: four contracts now render criteria their own authorities
+ * always stated — Article 11(1)'s separate form for anyone on the applicant's
+ * travel document, Article 15(1)'s repatriation in case of death, and the two
+ * Annex III I.5(a) elements the employer letter and the leave approval were
+ * missing.
+ *
+ * Every one is a tightening, so each carries a revision bump and a ledger
+ * entry, and `templateVersion` moves with them. The copy itself stays invisible
+ * here by construction: the pin stores translation keys.
+ */
 describe('Greece composition — pinned before the layer split', () => {
   it('resolves exactly these requirements, in exactly this order', () => {
     expect(template.documentRequirements.map((r) => r.code)).toEqual(

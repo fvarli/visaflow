@@ -123,14 +123,13 @@ export const greeceTourismComposition = composeVisaTemplate({
     ],
 
     /**
-     * Unchanged by the layer split, deliberately. `templateVersion` versions
-     * what the pack *asks an applicant for*, and the composed output is
-     * identical to what the concatenated arrays produced — same codes, same
-     * order, same revisions, same citations. Bumping it would assert a change
-     * to the requirements that did not happen.
+     * `1.5.0`. It held at `1.4.0` through the layer split, deliberately, because
+     * the composed output was identical then. The E5a fidelity corrections do
+     * change what the pack asks for — four contracts render stricter criteria
+     * their authorities always stated — so it moves now.
      */
-    templateVersion: '1.4.0',
-    lastReviewedAt: '2026-08-29',
+    templateVersion: '1.5.0',
+    lastReviewedAt: '2026-09-07',
     /**
      * Still derived from evidence rather than chosen: 19 of the 28 requirements
      * carry their own resolvable, dated source. A test recomputes it rather

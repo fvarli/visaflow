@@ -38,7 +38,9 @@ const trFilingDocuments: DocumentRequirement[] = [
     // Harmonised list I.5.a spells out what the letter must contain. Notably
     // it does *not* ask for salary, which the description used to require.
     sourceRefs: ['eu-c2021-5156-turkey-annex3'],
-    revision: 1,
+    // Gained the two I.5.a elements the description had dropped: the consulate
+    // the letter is addressed to, and the signatory's name and position.
+    revision: 2,
   },
   {
     code: 'APPROVED_LEAVE',
@@ -55,7 +57,9 @@ const trFilingDocuments: DocumentRequirement[] = [
     validityPeriodDays: 30,
     // Same clause: "letter from employer and/or approval for leave".
     sourceRefs: ['eu-c2021-5156-turkey-annex3'],
-    revision: 1,
+    // Same two I.5.a elements as the employer letter — the clause's content
+    // bullets attach to whichever of the two documents is submitted.
+    revision: 2,
   },
   {
     code: 'PAYSLIPS',

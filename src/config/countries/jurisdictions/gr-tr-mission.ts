@@ -27,9 +27,12 @@ import type { RequirementLayer } from '../../types'
  * unverified ask. Nothing about this placement says Greece currently requires
  * any of them.
  *
- * They are not retired instead, because the Greek mission page returns HTTP 403
- * to this environment, and an unreachable source is not evidence that the
- * requirement is gone. Retiring on that basis would strip documents from Greek
+ * They are not retired instead, because the operative applicant-facing checklist
+ * for this filing context — published by the visa centre the mission names —
+ * cannot be read from this environment, and an unreachable source is not
+ * evidence that a requirement is gone. The mission's own pages have since been
+ * retrieved first-hand and are silent on them, which is what the E1 audit
+ * classified per requirement. Retiring on that basis would strip documents from Greek
  * applicants' checklists on the strength of a network failure. All four are
  * listed in the evidence-gap allowlist in `country-pack-provenance.test.ts`,
  * which bounds the set and demands a written reason for each.

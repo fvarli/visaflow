@@ -127,7 +127,7 @@
     "APPLICATION_FORM": {
       "name": "Visa Application Form",
       "description": "Completed and signed Schengen visa application form",
-      "notes": "Must be completed and signed; a minor’s form is signed by a parent or legal guardian"
+      "notes": "Must be completed and signed; a minor’s form is signed by a parent or legal guardian. Anyone included in your travel document submits their own separate form."
     },
     "PASSPORT_CURRENT": {
       "name": "Current Passport",
@@ -150,7 +150,7 @@
     "TRAVEL_INSURANCE": {
       "name": "Travel Medical Insurance",
       "description": "Travel insurance with minimum 30,000 EUR coverage",
-      "notes": "Must cover medical expenses, hospitalization, and repatriation, be valid throughout the Schengen area, and cover your entire stay"
+      "notes": "Must cover medical expenses, hospitalization and repatriation — including repatriation in case of death — be valid throughout the Schengen area, and cover your entire stay"
     },
     "TRANSPORT_RESERVATION": {
       "name": "Round-trip Transport Reservation",
@@ -167,11 +167,11 @@
     },
     "EMPLOYMENT_LETTER": {
       "name": "Employment Letter",
-      "description": "Letter from your employer stating your name and passport number, start date and role, and the employer’s contact details"
+      "description": "Letter from your employer, addressed to the consulate you are applying to, stating your name and passport number, start date and role, the employer’s contact details, and the name and position of the person who signs it"
     },
     "APPROVED_LEAVE": {
       "name": "Approved Leave Letter",
-      "description": "Approval of leave stating its length and whether it is paid or unpaid"
+      "description": "Approval of leave, addressed to the consulate you are applying to, stating its length and whether it is paid or unpaid, and the name and position of the person who signs it"
     },
     "PAYSLIPS": {
       "name": "Recent Payslips",
@@ -330,11 +330,11 @@
     },
     "gr-tr-harmonised-list": {
       "title": "List of supporting documents for short stay visas in Turkey",
-      "notes": "The Greek mission’s rendering of the harmonised list for Türkiye. The underlying instrument — Commission Implementing Decision C(2021) 5156, Annex III — is now cited directly and first-hand; this page stands as one mission’s publication of it, which is why it attaches to Greece alone. The official origin previously refused this environment with HTTP 403 and the content was inspected via a text-extraction proxy against that same origin URL."
+      "notes": "The Greek mission's publication of the harmonised list for Türkiye, retrieved first-hand on 7 September 2026. Its text is identical to Commission Implementing Decision C(2021) 5156, Annex III, which this pack also cites directly — so the mission adds nothing to the instrument through this document, and anything a Greek applicant faces beyond it comes from elsewhere."
     },
     "gr-mfa-tr-visa-page": {
       "title": "Greek Embassy in Ankara — visa information",
-      "notes": "The consular page for applications lodged in Türkiye. The official origin refused this environment with HTTP 403; the content was inspected via a text-extraction proxy against that same origin URL."
+      "notes": "The consular page for applications lodged in Türkiye, retrieved first-hand on 7 September 2026 after earlier attempts were refused with HTTP 403. It states what to submit: a completed and signed application form, a passport with at least two blank pages issued within the previous ten years and valid three months beyond departure, a recent photograph conforming to ICAO standards, fingerprints where the VIS holds none from the previous 59 months, and the visa fee — then links the supporting-document list. Its insurance paragraph adds emergency medical care, hospitalisation and repatriation including in case of death, EUR 30,000 minimum, valid across the Schengen area for the whole stay."
     },
     "eu-c2021-5156-turkey-annex3": {
       "title": "Commission Implementing Decision C(2021) 5156 — supporting documents for short stay visas in Turkey",
@@ -342,11 +342,11 @@
     },
     "de-tr-tourism-checklist": {
       "title": "German missions in Türkiye — tourist visa checklist",
-      "notes": "Lists the documents every applicant submits and then the additional documents by applicant category: employees, farmers, business owners, students, minors and non-Turkish citizens."
+      "notes": "Lists the documents every applicant submits and then the additional documents by applicant category: employees and civil servants, farmers, company owners and self-employed, students, minors under 18, and non-Turkish nationals. Retrieved verbatim on 7 September 2026. Details it states that this pack does not yet render: the employer letter must be the original prepared by the employer in Türkiye; the civil-registry extract must carry an e-Devlet barcode or QR code; the chamber registry copy must be no older than six months; accommodation proof is not required if an official undertaking is filed; and where a pension is relevant it asks for the last three months of pension payment records."
     },
     "de-tr-schengen-general": {
       "title": "German missions in Türkiye — general Schengen visa information",
-      "notes": "The page the checklist links for the passport, the photograph and the insurance. It states one photograph of 35 x 45 mm, not older than six months; a passport issued within the previous ten years, valid three months beyond the return and with two blank pages; and insurance covering EUR 30,000."
+      "notes": "The page the checklist links for the passport, the photograph and the insurance. It states one photograph of 35 x 45 mm, not older than six months, full-face with nothing covering the head or eyes; a passport issued within the previous ten years with extensions not accepted, valid three months beyond the return and with two blank pages; and insurance of at least EUR 30,000 covering the first intended stay, submitted as the original plus a copy, not retroactive-only, with no age-based coverage limit, for which an AT11 form is not sufficient. The mission also states that in principle only the documents listed in its information sheets are required."
     },
     "de-aufenthg-54": {
       "title": "Residence Act, § 54 — Interest in expulsion",

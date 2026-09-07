@@ -46,7 +46,8 @@ export const commonSchengenDocuments: DocumentRequirement[] = [
     // places", which Annex I contradicts: the form carries one applicant
     // signature plus a guardian signature for minors (ADR-048).
     sourceRefs: ['eu-visa-code-art11'],
-    revision: 1,
+    // Gained Article 11(1)'s separate-form rule — see REQUIREMENT_REVISIONS.
+    revision: 2,
   },
   {
     code: 'PASSPORT_CURRENT',
@@ -97,8 +98,9 @@ export const commonSchengenDocuments: DocumentRequirement[] = [
     // cover this requirement names — repatriation, urgent medical attention,
     // emergency hospital treatment.
     sourceRefs: ['eu-visa-code-art15'],
-    // Gained Article 15(3) territorial validity and duration.
-    revision: 2,
+    // Gained Article 15(3) territorial validity and duration (2), then the
+    // "or death" cover Article 15(1) names and the notes had dropped (3).
+    revision: 3,
   },
   {
     code: 'TRANSPORT_RESERVATION',

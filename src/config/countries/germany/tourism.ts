@@ -114,11 +114,12 @@ export const germanyTourismComposition = composeVisaTemplate({
      */
     preparationMilestones: commonPreparationMilestones,
     /**
-     * `1.0.0`: a first published version of what this pack asks an applicant
-     * for. Greece's `1.4.0` counts its own history and the two are unrelated —
-     * `templateVersion` is per pack, not a repository-wide number.
+     * `1.1.0`: `1.0.0` was the first published version; the E5a fidelity
+     * corrections moved four shared contracts, which changes what this pack
+     * asks for too. Greece's number counts its own history and the two are
+     * unrelated — `templateVersion` is per pack, not repository-wide.
      */
-    templateVersion: '1.0.0',
+    templateVersion: '1.1.0',
     lastReviewedAt: '2026-09-07',
     /**
      * Derived, not chosen: 22 of the 26 requirements carry their own

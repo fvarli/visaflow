@@ -135,6 +135,47 @@ export const REQUIREMENT_REVISIONS: RequirementRevision[] = [
       'satisfy the rendered revision 2 and fail this. The first bump in this ' +
       'ledger that is not retrospective.',
   },
+  {
+    code: 'APPLICATION_FORM',
+    revision: 2,
+    bumpedIn: '1.5.0',
+    reason:
+      'Article 11(1) also requires that "persons included in the applicant\'s ' +
+      'travel document shall submit a separate application form". A family ' +
+      'travelling on one passport satisfied the earlier wording with a single ' +
+      'form and fails this. Found by the E1/E2 fidelity audit against the ' +
+      'official consolidated text, not against a paraphrase.',
+  },
+  {
+    code: 'TRAVEL_INSURANCE',
+    revision: 3,
+    bumpedIn: '1.5.0',
+    reason:
+      'Article 15(1) names cover for "repatriation for medical reasons, urgent ' +
+      'medical attention and/or emergency hospital treatment or death". The ' +
+      'notes said only "repatriation", and insurers price medical repatriation ' +
+      'and repatriation of remains separately — so a policy that satisfied the ' +
+      'earlier wording can fail this one.',
+  },
+  {
+    code: 'EMPLOYMENT_LETTER',
+    revision: 2,
+    bumpedIn: '1.5.0',
+    reason:
+      'Annex III I.5(a) requires the letter to state which consulate it is ' +
+      'addressed to and the name and position of the person signing it. Both ' +
+      'were missing from the rendered contract; a letter without them satisfied ' +
+      'the old description and is refused at the counter.',
+  },
+  {
+    code: 'APPROVED_LEAVE',
+    revision: 2,
+    bumpedIn: '1.5.0',
+    reason:
+      'The same two I.5(a) elements. The clause lists its content bullets once ' +
+      'for "letter from employer and/or approval for leave", so they attach to ' +
+      'whichever document the applicant submits.',
+  },
 ]
 
 /**

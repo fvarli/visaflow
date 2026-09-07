@@ -30,8 +30,8 @@ export const grTrMissionSources: RequirementSource[] = [
     sourceType: 'government',
     jurisdiction: 'TR',
     language: 'en',
-    lastVerifiedAt: '2026-08-29',
-    retrievedAt: '2026-08-29',
+    lastVerifiedAt: '2026-09-07',
+    retrievedAt: '2026-09-07',
     notesKey: 'visa-domain:sources.gr-tr-harmonised-list.notes',
   },
   {
@@ -49,8 +49,8 @@ export const grTrMissionSources: RequirementSource[] = [
     sourceType: 'embassy',
     jurisdiction: 'TR',
     language: 'en',
-    lastVerifiedAt: '2026-08-29',
-    retrievedAt: '2026-08-29',
+    lastVerifiedAt: '2026-09-07',
+    retrievedAt: '2026-09-07',
     notesKey: 'visa-domain:sources.gr-mfa-tr-visa-page.notes',
   },
 ]
