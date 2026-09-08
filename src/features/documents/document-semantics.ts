@@ -168,6 +168,21 @@ export function requirementRevision(
 }
 
 /**
+ * The identity of the acceptance contract this composition renders for a code.
+ *
+ * Derived by the composer, so it is present on every requirement a resolved
+ * template carries. `undefined` here means the same thing as a missing revision:
+ * no active requirement, nothing to claim against.
+ */
+export function requirementContractKey(
+  code: string,
+  template: VisaTypeTemplate | undefined
+): string | undefined {
+  return template?.documentRequirements.find((r) => r.code === code)
+    ?.contractKey
+}
+
+/**
  * Apply a document edit, keeping the completion stamp honest.
  *
  * The stamp records which requirement definition the user is claiming to
@@ -195,15 +210,26 @@ export function applyDocumentUpdate(
 
   if (next.status === 'ready') {
     const revision = requirementRevision(next.code, template)
-    return revision === undefined
-      ? next
-      : { ...next, satisfiedRevision: revision }
+    if (revision === undefined) return next
+    const contractKey = requirementContractKey(next.code, template)
+    // Both, together. The number says how far the contract had tightened; the
+    // key says which contract it was. Stamping only the number is what let a
+    // Greek claim read as satisfied under Germany's bar.
+    return {
+      ...next,
+      satisfiedRevision: revision,
+      ...(contractKey ? { satisfiedContract: contractKey } : {}),
+    }
   }
 
   // The claim no longer stands, so neither does its provenance. Leaving it
   // would make the field a record of the past contradicting the status beside
   // it — a different concept, and not this one.
-  const { satisfiedRevision: _released, ...withoutClaim } = next
+  const {
+    satisfiedRevision: _released,
+    satisfiedContract: _releasedKey,
+    ...withoutClaim
+  } = next
   return withoutClaim
 }
 
@@ -253,5 +279,37 @@ export function completionStanding(
   const revision = requirementRevision(document.code, template)
   if (revision === undefined) return 'current'
   if (document.satisfiedRevision === undefined) return 'unrecorded'
-  return document.satisfiedRevision < revision ? 'superseded' : 'current'
+
+  /**
+   * A claim from before contract keys existed. Judged on the number alone,
+   * which is exactly what this function did then — absence of a key is not
+   * evidence about the evidence, and demoting every stored completion on the
+   * day the field shipped would be the ADR-051 mistake in a new place.
+   */
+  if (document.satisfiedContract === undefined) {
+    return document.satisfiedRevision < revision ? 'superseded' : 'current'
+  }
+
+  /**
+   * Otherwise the key decides, and the numeric comparison is not consulted
+   * because it cannot help: the key already contains the owner's revision and
+   * every fragment's, so an equal key is an identical contract.
+   *
+   * WHY EQUALITY RATHER THAN AN ORDERING. `<` presumes the contracts for one
+   * code form a chain. Since a mission layer may attach its own acceptance
+   * detail they form a tree — one branch per composition — and two branches are
+   * generally incomparable: Germany's photograph bar is not a later version of
+   * Greece's, it is a different one. Asking "is this the contract you claimed
+   * against?" is answerable; "is it newer?" is not.
+   *
+   * The cost, stated: a genuine *loosening* also changes the key, so removing a
+   * criterion asks the applicant to re-check something they already satisfy.
+   * That is the harmless direction of being wrong, and it is the direction
+   * chosen deliberately — the other one tells somebody a photograph is accepted
+   * when it will be refused at the counter.
+   */
+  return document.satisfiedContract ===
+    requirementContractKey(document.code, template)
+    ? 'current'
+    : 'superseded'
 }

@@ -189,16 +189,22 @@ export const REQUIREMENT_REVISIONS: RequirementRevision[] = [
   },
 
   /**
-   * C1 entries. Each is a composition-scoped move: an acceptance-detail
-   * fragment tightened what one pack renders, so `viaLayer` names the layer
-   * that attached it and `bumpedIn` names that pack's version. Both `PHOTOS`
-   * entries are revision 2 and neither supersedes the other's applicants —
-   * the two compositions reach the same number by different routes, which is
-   * why the number is only compared within a composition.
+   * C1 entries — fragment revisions, not composed numbers.
+   *
+   * `viaLayer` names the layer that attached an acceptance-detail fragment, and
+   * `revision` is **that fragment's** version. The owner's number is unchanged
+   * and means the same thing in every composition again; what a fragment moves
+   * is the composed `contractKey`.
+   *
+   * These recorded composed numbers when C1 first shipped, which is how a real
+   * collision got past review: `PHOTOS` was 1 + 1 = 2 in both packs, for two
+   * different bars. Fragments are recorded from revision **1**, unlike
+   * requirements, because a fragment's first version already adds criteria to a
+   * contract that was published without them.
    */
   {
     code: 'PHOTOS',
-    revision: 2,
+    revision: 1,
     bumpedIn: 'GR 1.9.0',
     viaLayer: 'gr-tr-mission',
     reason:
@@ -208,74 +214,75 @@ export const REQUIREMENT_REVISIONS: RequirementRevision[] = [
   },
   {
     code: 'PHOTOS',
-    revision: 2,
+    revision: 1,
     bumpedIn: 'DE 1.5.0',
     viaLayer: 'de-tr-mission',
     reason:
-      'The mission states 35 x 45 mm, not older than six months, full-face ' +
-      'with nothing covering the head or eyes. A conforming ICAO photograph of ' +
-      'another size or age satisfied the shared contract and fails this one.',
+      'The mission states 35 x 45 mm, and full-face with nothing covering the ' +
+      'head or eyes. A conforming ICAO photograph of another size satisfied ' +
+      'the shared contract and fails this one.',
   },
   {
     code: 'PHOTOS',
-    revision: 3,
+    revision: 2,
     bumpedIn: 'DE 1.6.0',
     viaLayer: 'de-tr-mission',
     reason:
       'The tourism checklist asks for one photograph — "1 adet biyometrik ' +
       'vesikalık" — which the general page the other criteria come from does ' +
-      'not state. Somebody who brought two met revision 2.',
+      'not state. Somebody who brought two met revision 1.',
   },
   {
     code: 'PASSPORT_CURRENT',
-    revision: 3,
+    revision: 1,
     bumpedIn: 'DE 1.5.0',
     viaLayer: 'de-tr-mission',
     reason:
       'Extensions are not accepted. A passport issued within ten years whose ' +
-      'validity was extended rather than reissued met revision 2 and does not ' +
-      'meet this one.',
+      'validity was extended rather than reissued met the shared contract and ' +
+      'does not meet this one.',
   },
   {
     code: 'TRAVEL_INSURANCE',
-    revision: 4,
+    revision: 1,
     bumpedIn: 'DE 1.5.0',
     viaLayer: 'de-tr-mission',
     reason:
       'The original policy plus a copy, not retroactive-only, with no ' +
       'age-based limit below the minimum, and an AT11 form is not sufficient. ' +
-      'An AT11 policy satisfied every earlier revision.',
+      'An AT11 policy satisfied the shared contract.',
   },
   {
     code: 'CIVIL_REGISTRY_EXTRACT',
-    revision: 2,
+    revision: 1,
     bumpedIn: 'DE 1.5.0',
     viaLayer: 'de-tr-mission',
     reason:
       'It must carry an e-Devlet barcode or QR code. A counter-issued extract ' +
-      'satisfied revision 1 and is refused here.',
+      'satisfied the shared contract and is refused here.',
   },
   {
     code: 'SOCIAL_SECURITY',
-    revision: 4,
+    revision: 1,
     bumpedIn: 'DE 1.5.0',
     viaLayer: 'de-tr-mission',
     reason:
       'Both documents, obtained through e-Devlet with its barcode or QR code. ' +
-      'Revision 3 asked for a readable QR but not for the issuing channel.',
+      'The shared contract asks for a readable QR but not for the issuing ' +
+      'channel.',
   },
   {
     code: 'EMPLOYMENT_LETTER',
-    revision: 3,
+    revision: 1,
     bumpedIn: 'DE 1.5.0',
     viaLayer: 'de-tr-mission',
     reason:
-      'The original, prepared by the employer in Türkiye. A scan or a letter ' +
-      'from an employer abroad met revision 2.',
+      'The original, prepared by the employer in Türkiye. A scan, or a letter ' +
+      'from an employer abroad, met the shared contract.',
   },
   {
     code: 'APPROVED_LEAVE',
-    revision: 3,
+    revision: 1,
     bumpedIn: 'DE 1.5.0',
     viaLayer: 'de-tr-mission',
     reason:
@@ -284,12 +291,13 @@ export const REQUIREMENT_REVISIONS: RequirementRevision[] = [
   },
   {
     code: 'EMPLOYER_TRADE_REGISTRY',
-    revision: 3,
+    revision: 1,
     bumpedIn: 'DE 1.5.0',
     viaLayer: 'de-tr-mission',
     reason:
-      'The chamber copy must be no older than six months. An older registry ' +
-      'extract satisfied revision 2.',
+      'The chamber copy must be no older than six months, and may come from ' +
+      'the chamber of commerce or of industry. The shared contract states ' +
+      'neither.',
   },
 ]
 

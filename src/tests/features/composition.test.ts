@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest'
+import { resolveVisaTemplate } from '@/config/countries'
 import {
   CompositionError,
   composeVisaTemplate,
@@ -170,9 +171,13 @@ describe('composeVisaTemplate — refinement is citations and nothing else', () 
     // Field-wise rather than "it has the right sourceRefs": if the refinement
     // contract is ever widened, this is what notices the extra field moving.
     const refined = composed().find((r) => r.code === 'TEST_A')
-    const { sourceRefs: _a, ...refinedRest } = refined ?? {}
+    const { sourceRefs: _a, contractKey: _key, ...refinedRest } = refined ?? {}
     const { sourceRefs: _b, ...ownerRest } = TEST_A
     expect(refinedRest).toEqual(ownerRest)
+    // The key is set aside above because only the composer can write it — and
+    // it must be exactly the owner's contract when nothing was attached, since
+    // this refinement adds citations only.
+    expect(refined?.contractKey).toBe(`TEST_A@${TEST_A.revision}`)
   })
 
   it('cannot change a revision — the owner keeps it', () => {
@@ -207,12 +212,31 @@ describe('composeVisaTemplate — refinement is citations and nothing else', () 
     ).toEqual(['src-eu'])
   })
 
-  it('returns an unrefined requirement by identity', () => {
-    // Composition should create the minimum number of new object references,
-    // because the resolver's output feeds a dozen useMemo dependency arrays.
+  it('copies an unrefined requirement faithfully, adding only its contract key', () => {
+    // This used to assert referential identity with the authored object, on the
+    // grounds that the resolver's output feeds a dozen useMemo dependency
+    // arrays. That reason survives; the assertion could not. Every composed
+    // requirement now carries a `contractKey` naming the acceptance contract
+    // *this* composition renders, and a layer author cannot write it — only the
+    // composer knows which fragments applied.
+    //
+    // What protects the useMemo consumers is that production resolves through
+    // compositions built once at module load, so `resolveVisaTemplate` hands
+    // back the same objects on every call. That is asserted directly below,
+    // rather than inferred from this one.
     const { template } = composeVisaTemplate({ base: BASE, layers: ALL_LAYERS })
     const b = template.documentRequirements.find((r) => r.code === 'TEST_B')
-    expect(b).toBe(TEST_B)
+    expect(b).not.toBe(TEST_B)
+    expect(b).toEqual({ ...TEST_B, contractKey: `TEST_B@${TEST_B.revision}` })
+  })
+
+  it('hands the same references back on every resolve', () => {
+    // The property the memoized consumers actually depend on. A composition is
+    // built once at module load, so repeated resolution is free and stable.
+    const a = resolveVisaTemplate('GR', 'short_stay_tourism')
+    const b = resolveVisaTemplate('GR', 'short_stay_tourism')
+    expect(a).toBe(b)
+    expect(a?.documentRequirements[0]).toBe(b?.documentRequirements[0])
   })
 
   it('gives a requirement with no citations an array when refined', () => {

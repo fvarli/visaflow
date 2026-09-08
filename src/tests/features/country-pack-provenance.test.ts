@@ -916,28 +916,29 @@ describe('country packs — the photograph contract states only ICAO conformance
     }).toEqual({ jurisdiction: 'EU', sourceType: 'regulation' })
   })
 
-  it('moves the revision for the detail, and not for the loosening', () => {
+  it('leaves the revision alone and moves the contract key instead', () => {
     // Two separate facts, and keeping them apart is the point.
     //
     // C2 removed four assertions. That is a loosening, and adding a citation is
-    // not a contract change, so neither moved the number (ADR-051, ADR-052) —
-    // the owner's revision is still 1, and Germany, which attaches its own
-    // fragment to the same code, does not disturb it.
+    // not a contract change, so neither moved anything (ADR-051, ADR-052).
     //
     // C1 then added "a recent photograph", which *is* stricter: a photo taken
-    // years ago satisfied the old rendering and fails this one. So the composed
-    // revision is 2 — the owner's 1 plus the Greek fragment's 1 — and a Greek
-    // applicant who ticked `ready` at revision 1 is correctly asked to look
-    // again.
-    expect(photos?.revision).toBe(2)
+    // years ago satisfied the old rendering and fails this one. F1 recorded
+    // that by adding the fragment's revision into the requirement's — and that
+    // was the mistake, because Germany's fragment did the same to the same code
+    // and both landed on 2 for different photographs. The tightening is now in
+    // the key, which cannot collide, and the number stays the owner's.
+    expect(photos?.revision).toBe(1)
+    expect(photos?.contractKey).toBe('PHOTOS@1+gr-tr-mission:1')
 
-    // The owner's own declaration is untouched, which is what makes the
-    // composed number safe: a fragment adds, it does not rewrite.
+    // The owner's own declaration is untouched, which is what makes any of this
+    // safe: a fragment adds, it does not rewrite.
     const declared = ALL_REQUIREMENT_LAYERS.flatMap((l) => l.add ?? []).find(
       (r) => r.code === 'PHOTOS'
     )
     expect(declared?.revision).toBe(1)
     expect(declared?.detailKeys).toBeUndefined()
+    expect(declared?.contractKey).toBeUndefined()
   })
 })
 

@@ -81,6 +81,7 @@ const PINNED_REQUIREMENTS: Record<string, DocumentRequirement> = {
     required: true,
     sourceRefs: ['eu-visa-code-art11', 'gr-mfa-tr-visa-page'],
     revision: 2,
+    contractKey: 'APPLICATION_FORM@2',
   },
   PASSPORT_CURRENT: {
     code: 'PASSPORT_CURRENT',
@@ -93,6 +94,7 @@ const PINNED_REQUIREMENTS: Record<string, DocumentRequirement> = {
     validityPeriodDays: 90,
     sourceRefs: ['eu-visa-code-art12', 'gr-mfa-tr-visa-page'],
     revision: 2,
+    contractKey: 'PASSPORT_CURRENT@2',
   },
   PHOTOS: {
     code: 'PHOTOS',
@@ -115,7 +117,10 @@ const PINNED_REQUIREMENTS: Record<string, DocumentRequirement> = {
     // declaration is still 1.
     sourceRefs: ['eu-visa-code-art13', 'gr-mfa-tr-visa-page'],
     detailKeys: ['visa-domain:detail.gr-tr-mission.PHOTOS.recent'],
-    revision: 2,
+    // The owner's revision, unchanged — F1b took the fragment back out of this
+    // number and put it in the key, where two different bars cannot collide.
+    revision: 1,
+    contractKey: 'PHOTOS@1+gr-tr-mission:1',
   },
   TRAVEL_INSURANCE: {
     code: 'TRAVEL_INSURANCE',
@@ -127,6 +132,7 @@ const PINNED_REQUIREMENTS: Record<string, DocumentRequirement> = {
     required: true,
     sourceRefs: ['eu-visa-code-art15', 'gr-mfa-tr-visa-page'],
     revision: 3,
+    contractKey: 'TRAVEL_INSURANCE@3',
   },
   TRANSPORT_RESERVATION: {
     code: 'TRANSPORT_RESERVATION',
@@ -143,6 +149,7 @@ const PINNED_REQUIREMENTS: Record<string, DocumentRequirement> = {
       'gr-tr-harmonised-list',
     ],
     revision: 1,
+    contractKey: 'TRANSPORT_RESERVATION@1',
   },
   TRANSPORT_MEANS_PROOF: {
     code: 'TRANSPORT_MEANS_PROOF',
@@ -155,6 +162,7 @@ const PINNED_REQUIREMENTS: Record<string, DocumentRequirement> = {
     required: false,
     sourceRefs: ['eu-c2021-5156-turkey-annex3', 'gr-tr-harmonised-list'],
     revision: 1,
+    contractKey: 'TRANSPORT_MEANS_PROOF@1',
   },
   ACCOMMODATION: {
     code: 'ACCOMMODATION',
@@ -169,6 +177,7 @@ const PINNED_REQUIREMENTS: Record<string, DocumentRequirement> = {
       'gr-tr-harmonised-list',
     ],
     revision: 1,
+    contractKey: 'ACCOMMODATION@1',
   },
   ITINERARY: {
     code: 'ITINERARY',
@@ -183,6 +192,7 @@ const PINNED_REQUIREMENTS: Record<string, DocumentRequirement> = {
       'gr-tr-harmonised-list',
     ],
     revision: 1,
+    contractKey: 'ITINERARY@1',
   },
   EMPLOYMENT_LETTER: {
     code: 'EMPLOYMENT_LETTER',
@@ -199,6 +209,7 @@ const PINNED_REQUIREMENTS: Record<string, DocumentRequirement> = {
     validityPeriodDays: 30,
     sourceRefs: ['eu-c2021-5156-turkey-annex3', 'gr-tr-harmonised-list'],
     revision: 2,
+    contractKey: 'EMPLOYMENT_LETTER@2',
   },
   APPROVED_LEAVE: {
     code: 'APPROVED_LEAVE',
@@ -215,6 +226,7 @@ const PINNED_REQUIREMENTS: Record<string, DocumentRequirement> = {
     validityPeriodDays: 30,
     sourceRefs: ['eu-c2021-5156-turkey-annex3', 'gr-tr-harmonised-list'],
     revision: 2,
+    contractKey: 'APPROVED_LEAVE@2',
   },
   PAYSLIPS: {
     code: 'PAYSLIPS',
@@ -232,6 +244,7 @@ const PINNED_REQUIREMENTS: Record<string, DocumentRequirement> = {
     validityPeriodDays: 30,
     sourceRefs: ['eu-c2021-5156-turkey-annex3', 'gr-tr-harmonised-list'],
     revision: 1,
+    contractKey: 'PAYSLIPS@1',
   },
   SOCIAL_SECURITY: {
     code: 'SOCIAL_SECURITY',
@@ -249,6 +262,7 @@ const PINNED_REQUIREMENTS: Record<string, DocumentRequirement> = {
     validityPeriodDays: 30,
     sourceRefs: ['eu-c2021-5156-turkey-annex3', 'gr-tr-harmonised-list'],
     revision: 3,
+    contractKey: 'SOCIAL_SECURITY@3',
   },
   BANK_STATEMENTS: {
     code: 'BANK_STATEMENTS',
@@ -265,6 +279,7 @@ const PINNED_REQUIREMENTS: Record<string, DocumentRequirement> = {
       'gr-tr-harmonised-list',
     ],
     revision: 2,
+    contractKey: 'BANK_STATEMENTS@2',
   },
   SPONSOR_LETTER: {
     code: 'SPONSOR_LETTER',
@@ -280,6 +295,7 @@ const PINNED_REQUIREMENTS: Record<string, DocumentRequirement> = {
     },
     validityPeriodDays: 30,
     revision: 1,
+    contractKey: 'SPONSOR_LETTER@1',
   },
   SPONSOR_BANK_STATEMENTS: {
     code: 'SPONSOR_BANK_STATEMENTS',
@@ -296,6 +312,7 @@ const PINNED_REQUIREMENTS: Record<string, DocumentRequirement> = {
     },
     validityPeriodDays: 30,
     revision: 1,
+    contractKey: 'SPONSOR_BANK_STATEMENTS@1',
   },
   SPONSOR_INCOME_PROOF: {
     code: 'SPONSOR_INCOME_PROOF',
@@ -311,6 +328,7 @@ const PINNED_REQUIREMENTS: Record<string, DocumentRequirement> = {
     },
     validityPeriodDays: 30,
     revision: 1,
+    contractKey: 'SPONSOR_INCOME_PROOF@1',
   },
   RELATIONSHIP_PROOF: {
     code: 'RELATIONSHIP_PROOF',
@@ -326,6 +344,7 @@ const PINNED_REQUIREMENTS: Record<string, DocumentRequirement> = {
       value: 'sponsor',
     },
     revision: 1,
+    contractKey: 'RELATIONSHIP_PROOF@1',
   },
   CIVIL_REGISTRY_EXTRACT: {
     code: 'CIVIL_REGISTRY_EXTRACT',
@@ -338,6 +357,7 @@ const PINNED_REQUIREMENTS: Record<string, DocumentRequirement> = {
     required: true,
     sourceRefs: ['eu-c2021-5156-turkey-annex3', 'gr-tr-harmonised-list'],
     revision: 1,
+    contractKey: 'CIVIL_REGISTRY_EXTRACT@1',
   },
   EMPLOYER_TRADE_REGISTRY: {
     code: 'EMPLOYER_TRADE_REGISTRY',
@@ -355,6 +375,7 @@ const PINNED_REQUIREMENTS: Record<string, DocumentRequirement> = {
     },
     sourceRefs: ['eu-c2021-5156-turkey-annex3', 'gr-tr-harmonised-list'],
     revision: 2,
+    contractKey: 'EMPLOYER_TRADE_REGISTRY@2',
   },
   EMPLOYER_SIGNATURE_CIRCULAR: {
     code: 'EMPLOYER_SIGNATURE_CIRCULAR',
@@ -371,6 +392,7 @@ const PINNED_REQUIREMENTS: Record<string, DocumentRequirement> = {
       value: 'employed',
     },
     revision: 1,
+    contractKey: 'EMPLOYER_SIGNATURE_CIRCULAR@1',
   },
   PROPERTY_DEED: {
     code: 'PROPERTY_DEED',
@@ -382,6 +404,7 @@ const PINNED_REQUIREMENTS: Record<string, DocumentRequirement> = {
     required: false,
     sourceRefs: ['eu-visa-code-annex2'],
     revision: 1,
+    contractKey: 'PROPERTY_DEED@1',
   },
   COMPANY_ACTIVITY_CERTIFICATE: {
     code: 'COMPANY_ACTIVITY_CERTIFICATE',
@@ -398,6 +421,7 @@ const PINNED_REQUIREMENTS: Record<string, DocumentRequirement> = {
     },
     sourceRefs: ['eu-c2021-5156-turkey-annex3', 'gr-tr-harmonised-list'],
     revision: 1,
+    contractKey: 'COMPANY_ACTIVITY_CERTIFICATE@1',
   },
   TAX_PAYMENT_STATEMENT: {
     code: 'TAX_PAYMENT_STATEMENT',
@@ -414,6 +438,7 @@ const PINNED_REQUIREMENTS: Record<string, DocumentRequirement> = {
     },
     sourceRefs: ['eu-c2021-5156-turkey-annex3', 'gr-tr-harmonised-list'],
     revision: 1,
+    contractKey: 'TAX_PAYMENT_STATEMENT@1',
   },
   STUDENT_CERTIFICATE: {
     code: 'STUDENT_CERTIFICATE',
@@ -429,6 +454,7 @@ const PINNED_REQUIREMENTS: Record<string, DocumentRequirement> = {
     },
     sourceRefs: ['eu-c2021-5156-turkey-annex3', 'gr-tr-harmonised-list'],
     revision: 1,
+    contractKey: 'STUDENT_CERTIFICATE@1',
   },
   PENSIONER_BOOKLET: {
     code: 'PENSIONER_BOOKLET',
@@ -444,6 +470,7 @@ const PINNED_REQUIREMENTS: Record<string, DocumentRequirement> = {
     },
     sourceRefs: ['eu-c2021-5156-turkey-annex3', 'gr-tr-harmonised-list'],
     revision: 1,
+    contractKey: 'PENSIONER_BOOKLET@1',
   },
 }
 

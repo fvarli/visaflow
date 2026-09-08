@@ -199,14 +199,18 @@ describe('composition — refinement changes citations and nothing else', () => 
     expect(strip(passportIn('A+JX'))).toEqual(strip(passportIn('A+JY')))
   })
 
-  it('leaves the same field set as the owning layer declared', () => {
+  it('adds a contract key to the owner’s field set and nothing else', () => {
     const owner = testCommonLayer.add?.find((r) => r.code === 'TEST_PASSPORT')
     const composedPassport = passportIn('A+JX')
     // Two empty key lists would otherwise compare equal and prove nothing.
     expect(owner).toBeDefined()
     expect(composedPassport).toBeDefined()
+    // `contractKey` is the one field composition contributes that no layer
+    // author writes — it names which acceptance contract this composition
+    // renders, which only the composer knows. Everything else must match the
+    // declaration exactly.
     expect(Object.keys(composedPassport ?? {}).sort()).toEqual(
-      Object.keys(owner ?? {}).sort()
+      [...Object.keys(owner ?? {}), 'contractKey'].sort()
     )
   })
 })

@@ -146,6 +146,7 @@ describe('Germany pack — the two requirements it owns', () => {
       // here, the statute is what it refers to. Order is declaration order.
       sourceRefs: ['de-tr-tourism-checklist', 'de-aufenthg-54'],
       revision: 1,
+      contractKey: 'DE_S54_DECLARATION@1',
     })
   })
 
@@ -161,6 +162,7 @@ describe('Germany pack — the two requirements it owns', () => {
       required: true,
       sourceRefs: ['de-tr-tourism-checklist'],
       revision: 1,
+      contractKey: 'DE_TRAVEL_HISTORY_COPIES@1',
     })
   })
 
@@ -307,12 +309,13 @@ describe('Germany pack — refinement adds citations and detail, and nothing els
     // this measures.
     //
     // `sourceRefs` and `detailKeys` are the additions a refinement may make,
-    // and `revision` moves with the detail by construction. Everything else is
-    // the identity of the requirement and must match exactly.
+    // and `contractKey` names which of them applied. Everything else — the
+    // owner's `revision` now included, since F1b gave it back — is the identity
+    // of the requirement and must match exactly.
     const strip = ({
       sourceRefs: _refs,
       detailKeys: _detail,
-      revision: _revision,
+      contractKey: _key,
       ...rest
     }: DocumentRequirement) => JSON.stringify(rest)
     const shared = germany.template.documentRequirements.filter((r) =>
@@ -331,21 +334,32 @@ describe('Germany pack — refinement adds citations and detail, and nothing els
     expect(diverged).toEqual([])
   })
 
-  it('lets the revision diverge only where a fragment explains it', () => {
-    // The guard the strip above gives up, restored on its own terms. A shared
-    // code may carry different revisions in the two packs *only* if their
-    // detail differs; identical detail with different numbers would mean an
-    // owner declared one code twice, which is the aliasing ADR-049 forbids.
-    const unexplained = germany.template.documentRequirements
+  it('gives two different bars two different keys, and never one key', () => {
+    // THE GUARD THAT WAS MISSING WHEN C1 SHIPPED, in both directions.
+    //
+    // The version here at F1 checked only that identical detail implied an
+    // identical number. The dangerous direction is the other one — *different*
+    // detail sharing a number — and it went unasserted while `PHOTOS` really
+    // did carry revision 2 in both packs for two different photographs.
+    const mismatched = germany.template.documentRequirements
       .map((de) => [de, codeOf(greece, de.code)] as const)
       .filter(([, gr]) => gr !== undefined)
-      .filter(
-        ([de, gr]) =>
+      .filter(([de, gr]) => {
+        const sameDetail =
           JSON.stringify(de.detailKeys ?? []) ===
-            JSON.stringify(gr!.detailKeys ?? []) && de.revision !== gr!.revision
-      )
+          JSON.stringify(gr!.detailKeys ?? [])
+        return sameDetail !== (de.contractKey === gr!.contractKey)
+      })
       .map(([de]) => de.code)
-    expect(unexplained).toEqual([])
+    expect(mismatched).toEqual([])
+
+    // And the owner's revision is identical everywhere, which is the property
+    // F1b restored: `satisfiedRevision: N` means one thing again.
+    const divergedRevisions = germany.template.documentRequirements
+      .map((de) => [de, codeOf(greece, de.code)] as const)
+      .filter(([de, gr]) => gr !== undefined && de.revision !== gr.revision)
+      .map(([de]) => de.code)
+    expect(divergedRevisions).toEqual([])
   })
 
   it('pins which requirements the mission’s pages vouch for', () => {
@@ -431,11 +445,13 @@ describe('Germany pack — refinement adds citations and detail, and nothing els
     expect(gr?.detailKeys).toEqual([
       'visa-domain:detail.gr-tr-mission.PHOTOS.recent',
     ])
-    // Germany's fragment is at revision 2 and Greece's at 1, over the same
-    // owner revision of 1 — so 3 and 2. The numbers were briefly equal and that
-    // was a coincidence, not a property: they are only ever compared within a
-    // composition, never across.
-    expect([de?.revision, gr?.revision]).toEqual([3, 2])
+    // The owner's revision is 1 in both — a fragment no longer touches it. What
+    // separates the two bars is the key, and it must separate them: under the
+    // additive scheme both packs sat at revision 2 with different photographs,
+    // and this assertion said `[2, 2]` as though that were fine.
+    expect([de?.revision, gr?.revision]).toEqual([1, 1])
+    expect(de?.contractKey).toBe('PHOTOS@1+de-tr-mission:2')
+    expect(gr?.contractKey).toBe('PHOTOS@1+gr-tr-mission:1')
     expect(de?.sourceRefs).toEqual([
       'eu-visa-code-art13',
       'de-tr-schengen-general',

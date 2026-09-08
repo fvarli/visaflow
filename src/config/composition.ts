@@ -190,21 +190,43 @@ function assertCitationRefinementShape(
   }
 }
 
+/** A fragment, plus the layer that attached it — the key needs both. */
+interface AttachedFragment {
+  layerId: string
+  fragment: AcceptanceDetailFragment
+}
+
 /**
- * The composed acceptance-contract version.
+ * The identity of the acceptance contract a composition actually renders.
  *
- * The owner's revision plus every fragment this composition attached. Summing
- * is not arithmetic for its own sake — it is the cheapest function with the two
- * properties that matter: it equals the owner's revision exactly when no
- * fragment applies, so no existing claim in any composition moves; and it
- * strictly increases when a fragment is added or bumped, so a tightened bar can
- * never fail to supersede.
+ * THIS REPLACED AN ADDITIVE REVISION, AND THE FAILURE IS WORTH KEEPING. C1
+ * first expressed the composed contract by *summing* the owner's revision and
+ * its fragments' — monotonic, so a tightened bar always superseded, which was
+ * the property being aimed at. Addition is not injective, and that is the
+ * property that mattered: `1 + 1` is `2` whether the fragment is the Greek
+ * consulate asking for a recent photograph or the German mission asking for
+ * 35 x 45 mm. Both packs shipped `PHOTOS` at revision 2 with different bars, and
+ * a claim carried across a destination change read as satisfied.
+ *
+ * The root cause was representational, not arithmetical: `satisfiedRevision <
+ * revision` presumes a total order — one contract tightening over time — and C1
+ * turned the contract space into a tree, one branch per composition. No integer
+ * can encode a tree, so no cleverer sum would have worked.
+ *
+ * The key is that tree's address. It moves when, and only when, something
+ * contract-bearing moves: the owner's revision, or which fragments apply, or a
+ * fragment's own revision. Copy edits, translations and added citations leave it
+ * alone, which is exactly the ADR-051a boundary.
  */
-function composedRevision(
+function contractKeyFor(
+  code: string,
   base: number,
-  fragments: AcceptanceDetailFragment[]
-): number {
-  return fragments.reduce((total, f) => total + f.revision, base)
+  fragments: AttachedFragment[]
+): string {
+  const attached = fragments
+    .map(({ layerId, fragment }) => `+${layerId}:${fragment.revision}`)
+    .join('')
+  return `${code}@${base}${attached}`
 }
 
 /** Same id must mean the same record; differing ones are a real conflict. */
@@ -343,14 +365,8 @@ export function composeVisaTemplate(
   /** Composition order, by code. The requirements themselves live in `byCode`. */
   const layerOrder: string[] = []
   const byCode = new Map<string, DocumentRequirement>()
-  /**
-   * The owner's revision, kept separately because `byCode` is rewritten as
-   * fragments attach — recomputing from a value that already includes a
-   * fragment would count it twice.
-   */
-  const baseRevision = new Map<string, number>()
   /** Detail fragments attached to each code, in the order layers composed. */
-  const fragmentsFor = new Map<string, AcceptanceDetailFragment[]>()
+  const fragmentsFor = new Map<string, AttachedFragment[]>()
 
   // Pass 1 — ownership. Every code is claimed exactly once, and a code's owner
   // owns everything about it including its `revision`.
@@ -367,7 +383,6 @@ export function composeVisaTemplate(
       }
       ownership.set(requirement.code, layer.id)
       declaredAt.set(requirement.code, index)
-      baseRevision.set(requirement.code, requirement.revision)
       layerOrder.push(requirement.code)
       byCode.set(requirement.code, requirement)
     }
@@ -429,37 +444,53 @@ export function composeVisaTemplate(
       // append-only: a second refining layer can add to what the first
       // attached, and neither can take anything away.
       if (refinement.addDetail) {
-        const fragments = [
+        fragmentsFor.set(refinement.code, [
           ...(fragmentsFor.get(refinement.code) ?? []),
-          refinement.addDetail,
-        ]
-        fragmentsFor.set(refinement.code, fragments)
-        byCode.set(refinement.code, {
-          ...current,
-          sourceRefs: appendRefs(current.sourceRefs, refinement.addSourceRefs),
-          detailKeys: appendRefs(
-            current.detailKeys,
-            refinement.addDetail.detailKeys
-          ),
-          revision: composedRevision(
-            baseRevision.get(refinement.code)!,
-            fragments
-          ),
-        })
-        continue
+          { layerId: layer.id, fragment: refinement.addDetail },
+        ])
       }
 
+      // `revision` is untouched here, and that is the correction: it belongs to
+      // the owner and means the same thing in every composition (ADR-051
+      // Decision 4). What varies by composition is the contract *key*, applied
+      // to every requirement in one pass below.
       byCode.set(refinement.code, {
         ...current,
         sourceRefs: appendRefs(current.sourceRefs, refinement.addSourceRefs),
+        ...(refinement.addDetail
+          ? {
+              detailKeys: appendRefs(
+                current.detailKeys,
+                refinement.addDetail.detailKeys
+              ),
+            }
+          : {}),
       })
     }
   }
 
+  /**
+   * Every requirement gets a key, including the ones no layer refined.
+   *
+   * Deliberately not "only where fragments apply". A stored claim carrying no
+   * key at all means *legacy* — written before keys existed — and that has to
+   * stay distinguishable from a claim made against a base-only contract. If
+   * unrefined requirements had no key, the two would be identical on disk and
+   * every pre-existing claim would read as made under whichever composition
+   * happens to be resolved now.
+   */
   const composed: DocumentRequirement[] = []
   for (const code of layerOrder) {
     const requirement = byCode.get(code)
-    if (requirement) composed.push(requirement)
+    if (!requirement) continue
+    composed.push({
+      ...requirement,
+      contractKey: contractKeyFor(
+        code,
+        requirement.revision,
+        fragmentsFor.get(code) ?? []
+      ),
+    })
   }
 
   const sources = mergeSources(layers)

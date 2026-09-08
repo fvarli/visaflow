@@ -46,6 +46,24 @@ export const DocumentSchema = z.object({
    * user whose completion we simply cannot assess (ADR-051).
    */
   satisfiedRevision: z.number().int().positive().optional(),
+  /**
+   * *Which* requirement definition the claim was made against, as opposed to
+   * how far that definition had tightened.
+   *
+   * `satisfiedRevision` alone cannot answer it. Since a mission layer may add
+   * composition-scoped acceptance detail, one code carries a different bar in
+   * each pack, and two of those bars can hold the same number — Greece and
+   * Germany both rendered `PHOTOS` at revision 2 while asking for different
+   * photographs. A dossier whose destination is changed in Settings keeps its
+   * documents, so the claim would have been read against the other pack's bar
+   * and found satisfied.
+   *
+   * Written and cleared exactly like `satisfiedRevision`. **Absent means the
+   * claim predates this field**, and is then judged on the number alone, which
+   * is what the product did before: absence must not demote work whose
+   * provenance we simply do not have.
+   */
+  satisfiedContract: z.string().min(1).optional(),
 })
 
 export type Document = z.infer<typeof DocumentSchema>

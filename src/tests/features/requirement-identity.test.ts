@@ -200,27 +200,28 @@ function buildActiveRequirements(): Map<string, DocumentRequirement> {
         }
         // Composition may append citations and, since C1, composition-scoped
         // acceptance detail — so two compositions of one code can differ in
-        // `sourceRefs`, `detailKeys` and the `revision` the detail moves, and
-        // still be the same requirement. Everything else is identity and must
-        // be identical.
+        // `sourceRefs`, `detailKeys` and the `contractKey` that names which
+        // detail applied. Everything else is identity and must be identical,
+        // `revision` included: F1b gave it back to the owner, so a code that
+        // carries two different numbers is two declarations of one code.
         const strip = ({
           sourceRefs: _refs,
           detailKeys: _detail,
-          revision: _revision,
+          contractKey: _key,
           ...rest
         }: DocumentRequirement) => JSON.stringify(rest)
         if (strip(seen) !== strip(requirement)) {
           conflicts.push(requirement.code)
         }
-        // The revision is only allowed to diverge *because* the detail does.
-        // Identical detail with different numbers means two declarations of one
-        // code, which is the aliasing this whole file exists to prevent — and
-        // stripping `revision` above would otherwise have stopped catching it.
-        if (
+        // The key is only allowed to diverge *because* the detail does, and it
+        // must diverge whenever the detail does. Both directions, because the
+        // failure that shipped was the second one: two different bars sharing a
+        // number, indistinguishable to a stored claim.
+        const sameDetail =
           JSON.stringify(seen.detailKeys ?? []) ===
-            JSON.stringify(requirement.detailKeys ?? []) &&
-          seen.revision !== requirement.revision
-        ) {
+          JSON.stringify(requirement.detailKeys ?? [])
+        const sameKey = seen.contractKey === requirement.contractKey
+        if (sameDetail !== sameKey) {
           conflicts.push(requirement.code)
         }
       }
@@ -278,43 +279,81 @@ describe('the acceptance-contract ledger', () => {
     )
 
   /**
-   * The ledger is checked per composition, not per code, because since C1 one
-   * code can sit at different revisions in different packs. `PASSPORT_CURRENT`
-   * is revision 2 in Greece and 3 in Germany, and both must be fully explained
-   * — by the shared entry alone in Greece, and by the shared entry plus the
-   * German fragment's entry in Germany.
+   * A fragment's revision, read back out of the composed contract key.
+   *
+   * The key is `CODE@ownerRevision+layer:fragmentRevision…`, and it is the only
+   * place the composed requirement records what each fragment's version was —
+   * which is exactly why it is the thing a stored claim is stamped against.
    */
-  const COMPOSED_ROWS = PRODUCTION_COMPOSITIONS.flatMap(
-    ({ countryCode, composition }) =>
-      composition.template.documentRequirements.map(
-        (requirement) =>
-          [
-            `${countryCode} ${requirement.code}`,
-            countryCode,
-            requirement,
-          ] as const
-      )
-  )
+  const fragmentRevision = (
+    requirement: DocumentRequirement,
+    layer: string
+  ): number => {
+    const part = (requirement.contractKey ?? '')
+      .split('+')
+      .find((segment) => segment.startsWith(`${layer}:`))
+    return Number(part?.split(':')[1] ?? 0)
+  }
 
-  it.each(COMPOSED_ROWS)(
-    '%s has a complete ledger history for every revision above 1',
-    (_label, _countryCode, requirement) => {
-      const viaLayers = layersInDetail(requirement)
+  /**
+   * Owner revisions and fragment revisions are two ledgers in one file, and the
+   * contiguity rule differs by one because their revision 1 means different
+   * things.
+   *
+   * A requirement's revision 1 is its birth, so history starts at 2. A
+   * fragment's revision 1 already adds criteria to a contract that was
+   * published without them, so its history starts at 1.
+   *
+   * This is checked per code rather than per composition again, which is the
+   * F1b correction: `revision` is the owner's and identical everywhere, so
+   * there is nothing composition-specific left in the number to check. What
+   * varies by composition is `contractKey`, and that has its own invariants.
+   */
+  it.each([...activeRequirements.keys()])(
+    '%s has a complete owner-revision history above 1',
+    (code) => {
+      const revision = activeRequirements.get(code)!.revision
       const recorded = REQUIREMENT_REVISIONS.filter(
-        (e) =>
-          e.code === requirement.code &&
-          (e.viaLayer === undefined || viaLayers.has(e.viaLayer))
+        (e) => e.code === code && e.viaLayer === undefined
       )
         .map((e) => e.revision)
         .sort((a, b) => a - b)
-      // 1 means no history; N means one entry for each of 2..N, contiguous.
-      // A gap would mean a bump nobody explained.
-      const expected = Array.from(
-        { length: requirement.revision - 1 },
-        (_, i) => i + 2
+      const expected = Array.from({ length: revision - 1 }, (_, i) => i + 2)
+      expect({ code, recorded }).toEqual({ code, recorded: expected })
+    }
+  )
+
+  /** Every fragment any production composition attaches, by layer and code. */
+  const FRAGMENT_ROWS = [
+    ...new Map(
+      PRODUCTION_COMPOSITIONS.flatMap(({ composition }) =>
+        composition.template.documentRequirements.flatMap((r) =>
+          [...layersInDetail(r)].map(
+            (layer) =>
+              [
+                `${layer} ${r.code}`,
+                layer,
+                r.code,
+                fragmentRevision(r, layer),
+              ] as const
+          )
+        )
+      ).map((row) => [row[0], row] as const)
+    ).values(),
+  ]
+
+  it.each(FRAGMENT_ROWS)(
+    '%s has a complete fragment history from 1',
+    (_label, layer, code, revision) => {
+      const recorded = REQUIREMENT_REVISIONS.filter(
+        (e) => e.code === code && e.viaLayer === layer
       )
-      expect({ code: requirement.code, recorded }).toEqual({
-        code: requirement.code,
+        .map((e) => e.revision)
+        .sort((a, b) => a - b)
+      const expected = Array.from({ length: revision }, (_, i) => i + 1)
+      expect({ layer, code, recorded }).toEqual({
+        layer,
+        code,
         recorded: expected,
       })
     }
@@ -399,7 +438,12 @@ describe('the acceptance-contract ledger', () => {
         hasVersion: entry.viaLayer
           ? /^[A-Z]{2} \d+\.\d+\.\d+$/.test(entry.bumpedIn)
           : /^\d+\.\d+\.\d+$/.test(entry.bumpedIn),
-        startsAboveOne: entry.revision > 1,
+        // A requirement's revision 1 is its birth and needs no entry; a
+        // fragment's revision 1 already adds criteria to a published contract,
+        // so it does.
+        startsAboveOne: entry.viaLayer
+          ? entry.revision >= 1
+          : entry.revision > 1,
       }).toEqual({
         row: ledgerKey(entry),
         hasReason: true,

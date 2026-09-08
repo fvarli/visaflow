@@ -41,8 +41,8 @@ const V1_0 = JSON.parse(JSON.stringify(legacyDossier)) as Record<
 >
 
 describe('the version contract', () => {
-  it('writes 1.2.0 and reads every version it claims to', () => {
-    expect(SCHEMA_VERSION).toBe('1.2.0')
+  it('writes 1.3.0 and reads every version it claims to', () => {
+    expect(SCHEMA_VERSION).toBe('1.3.0')
     expect(SUPPORTED_SCHEMA_VERSIONS).toContain('1.0.0')
     expect(SUPPORTED_SCHEMA_VERSIONS).toContain('1.1.0')
     expect(SUPPORTED_SCHEMA_VERSIONS).toContain(SCHEMA_VERSION)
@@ -52,7 +52,7 @@ describe('the version contract', () => {
   it('never drops a version it once wrote', () => {
     // Every version this project has shipped stays readable. Removing one
     // would turn a file already on somebody's disk into an unopenable file.
-    for (const version of ['1.0.0', '1.1.0', '1.2.0']) {
+    for (const version of ['1.0.0', '1.1.0', '1.2.0', '1.3.0']) {
       expect(isSupportedSchemaVersion(version)).toBe(true)
     }
   })

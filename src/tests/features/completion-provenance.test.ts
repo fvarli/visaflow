@@ -52,12 +52,23 @@ function doc(over: Partial<Document> = {}): Document {
 }
 
 /** A pack whose SOCIAL_SECURITY sits at an arbitrary revision. */
+/**
+ * The pack as it would be if `SOCIAL_SECURITY` sat at this revision.
+ *
+ * `contractKey` moves with the number, because the composer derives one from
+ * the other and a fixture that changed only the revision would be modelling a
+ * pack no composition can produce. It also happens to be the point: the key is
+ * what a claim is compared against, so a fixture that left it fixed would
+ * assert supersession through a path production does not use.
+ */
 function packAtRevision(revision: number): VisaTypeTemplate {
   return {
     ...template,
     documentRequirements: template.documentRequirements.map(
       (r): DocumentRequirement =>
-        r.code === 'SOCIAL_SECURITY' ? { ...r, revision } : r
+        r.code === 'SOCIAL_SECURITY'
+          ? { ...r, revision, contractKey: `SOCIAL_SECURITY@${revision}` }
+          : r
     ),
   }
 }
@@ -318,9 +329,15 @@ describe('version axes', () => {
   it('announces the new field without breaking older files', () => {
     // The bump is about meaning, not parsing: an older build strips the key and
     // a re-export would lose the provenance with nothing said (ADR-043).
-    expect(SCHEMA_VERSION).toBe('1.2.0')
+    //
+    // 1.3.0 adds `satisfiedContract` for the same reason 1.2.0 added
+    // `satisfiedRevision`, and the reason is sharper: the number alone cannot
+    // say *which* acceptance contract a claim was made against once a mission
+    // layer can attach its own criteria to a shared requirement.
+    expect(SCHEMA_VERSION).toBe('1.3.0')
     expect(SUPPORTED_SCHEMA_VERSIONS).toContain('1.0.0')
     expect(SUPPORTED_SCHEMA_VERSIONS).toContain('1.1.0')
+    expect(SUPPORTED_SCHEMA_VERSIONS).toContain('1.2.0')
   })
 
   it('leaves the storage envelope alone', () => {

@@ -120,13 +120,34 @@ describe('acceptance detail is scoped to the composition that declares it', () =
   it('accumulates rather than replaces when two layers both refine', () => {
     const both = only(compose([common, missionA, missionB]))
     expect(both.detailKeys).toEqual(['test:detail.a', 'test:detail.b'])
-    // 1 + 1 + 1: the owner's revision plus both fragments.
-    expect(both.revision).toBe(3)
+    // Both fragments are in the key, in layer order, and the owner's revision
+    // is untouched by either.
+    expect(both.contractKey).toBe(
+      'SHARED_DOC@1+test-mission-a:1+test-mission-b:1'
+    )
+    expect(both.revision).toBe(1)
   })
 
-  it('moves the composed revision only for the composition that got the detail', () => {
-    expect(only(compose([common])).revision).toBe(1)
-    expect(only(compose([common, missionA])).revision).toBe(2)
+  it('leaves the revision to the owner and moves the key instead', () => {
+    // The correction that closed the collision. The revision means the same
+    // thing in every composition again (ADR-051 Decision 4); what varies is the
+    // contract key, and it varies by construction rather than by arithmetic.
+    const bare = only(compose([common]))
+    const withDetail = only(compose([common, missionA]))
+    expect([bare.revision, withDetail.revision]).toEqual([1, 1])
+    expect(bare.contractKey).toBe('SHARED_DOC@1')
+    expect(withDetail.contractKey).toBe('SHARED_DOC@1+test-mission-a:1')
+  })
+
+  it('gives two different fragments two different keys over one owner revision', () => {
+    // THE REGRESSION THAT SHIPPED. Under the additive scheme these two composed
+    // to the same number — 1 + 1 — and both packs really did carry `PHOTOS` at
+    // revision 2 while asking for different photographs. Equal numbers, unequal
+    // bars, and a claim carried across a destination change read as satisfied.
+    const a = only(compose([common, missionA]))
+    const b = only(compose([common, missionB]))
+    expect(a.revision).toBe(b.revision)
+    expect(a.contractKey).not.toBe(b.contractKey)
   })
 })
 

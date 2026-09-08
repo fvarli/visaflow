@@ -111,6 +111,21 @@ export interface DocumentRequirement {
    */
   detailKeys?: string[]
   /**
+   * The identity of the acceptance contract *this composition* renders — set by
+   * the composer, never authored in a layer.
+   *
+   * `revision` says how far one contract has tightened over time; this says
+   * *which* contract, and the two are different questions the moment a
+   * requirement can carry composition-scoped detail. It is what a completion
+   * claim is stamped against, so that a claim made under Greece cannot read as
+   * current under Germany merely because two numbers happen to match.
+   *
+   * Optional on the type because a hand-built `DocumentRequirement` in a test
+   * has no composer to derive it; every requirement reaching production through
+   * `composeVisaTemplate` has one.
+   */
+  contractKey?: string
+  /**
    * The **acceptance contract** version — the criteria this pack *renders to
    * the applicant*, not what the authority has always required.
    *
@@ -287,8 +302,15 @@ export interface AcceptanceDetailFragment {
   /**
    * This fragment's own contract version, starting at 1.
    *
-   * Moves when the *detail* tightens. The owner's `revision` is untouched — a
-   * German fragment must never supersede a Greek applicant's claim.
+   * Moves when the *detail* tightens, and it is part of the composed
+   * `contractKey` rather than being added into `revision`. The owner's revision
+   * is untouched — a German fragment must never supersede a Greek applicant's
+   * claim, and summing the two numbers was how it once could.
+   *
+   * A fragment's revision 1 is itself a contract change, unlike a requirement's:
+   * the requirement is being born, while the fragment is adding criteria to
+   * something already published. So the ledger records fragments from 1, not
+   * from 2.
    */
   revision: number
 }
@@ -313,17 +335,21 @@ export interface AcceptanceDetailFragment {
  * replaces prose or `required`, and that stays rejected — this is strictly
  * additive and cannot express replacement or suppression.
  *
- * THE PORTABILITY CONSEQUENCE, STATED RATHER THAN HIDDEN. Because a fragment
- * moves the composed revision, the same code can carry a different revision in
- * two compositions, and a dossier exported from Greece and imported for Germany
- * may find a `ready` claim superseded. Earlier notes here called that the
- * aliasing ADR-049 forbids. It is not: ADR-049 forbids one code meaning two
- * different *requirements*, and this is one requirement whose composed bar
- * genuinely differs by destination. Being asked to re-check a photograph
- * against Germany's stated size and age is the correct answer, not a defect.
- * What is *not* solved is the reverse ambiguity — two compositions can arrive
- * at the same composed number by different routes — and that is why the number
- * is only ever compared within one composition.
+ * THE PORTABILITY CONSEQUENCE, AND HOW IT IS CARRIED. The same code renders a
+ * different acceptance bar in two compositions, so a claim made under Greece
+ * must not read as satisfied under Germany. That is not the aliasing ADR-049
+ * forbids — ADR-049 forbids one code meaning two different *requirements*, and
+ * this is one requirement whose bar genuinely differs by destination. Being
+ * asked to re-check a photograph against Germany's stated size is the correct
+ * answer, not a defect.
+ *
+ * It is carried by `DocumentRequirement.contractKey`, not by the revision. An
+ * earlier version of this note claimed the composed revision was enough because
+ * it increased monotonically; it was wrong, because monotonic is not unique,
+ * and both packs shipped `PHOTOS` at revision 2 with different bars. The
+ * comparison `satisfiedRevision < revision` assumes a total order, and a
+ * requirement with per-composition detail has a tree of contracts rather than a
+ * chain.
  */
 export interface CitationRefinement {
   code: string

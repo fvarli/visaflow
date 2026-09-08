@@ -8,9 +8,11 @@ import { SponsorSchema } from './sponsor.schema'
  * The version this build **writes**. Independent of the application version and
  * of `STORAGE_FORMAT_VERSION` — see the note at the top of `CHANGELOG.md`.
  *
- * 1.1.0 added `applicant.previousRefusals`. 1.2.0 adds
- * `document.satisfiedRevision` — which requirement definition a completion
- * claim was made against.
+ * 1.1.0 added `applicant.previousRefusals`. 1.2.0 added
+ * `document.satisfiedRevision` — how far the requirement had tightened when a
+ * completion claim was made. 1.3.0 adds `document.satisfiedContract`, which
+ * says *which* definition it was, because one code can now render a different
+ * acceptance bar in each pack and two of those bars can share a number.
  *
  * The rule is unchanged and it is about meaning, not parsing: no field changed
  * meaning and none was removed, so every older document is already valid here.
@@ -20,13 +22,18 @@ import { SponsorSchema } from './sponsor.schema'
  * nothing said. The version mismatch is what warns them first (ADR-043,
  * ADR-051).
  */
-export const SCHEMA_VERSION = '1.2.0' as const
+export const SCHEMA_VERSION = '1.3.0' as const
 
 /**
  * Every version this build can **read**. Import accepts all of them unchanged;
  * only a version outside this list is worth warning about.
  */
-export const SUPPORTED_SCHEMA_VERSIONS = ['1.0.0', '1.1.0', '1.2.0'] as const
+export const SUPPORTED_SCHEMA_VERSIONS = [
+  '1.0.0',
+  '1.1.0',
+  '1.2.0',
+  '1.3.0',
+] as const
 
 export type SupportedSchemaVersion = (typeof SUPPORTED_SCHEMA_VERSIONS)[number]
 
