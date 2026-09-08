@@ -63,6 +63,7 @@ const GERMANY_TOURISM_ORDER = [
   'ITINERARY',
   'CIVIL_REGISTRY_EXTRACT',
   'ACCOMMODATION',
+  'DE_OFFICIAL_UNDERTAKING',
   'BANK_STATEMENTS',
   'PAYSLIPS',
   'PENSIONER_BOOKLET',
@@ -119,6 +120,9 @@ export const germanyTourismComposition = composeVisaTemplate({
      * makes the tax plate a German-owned requirement that is mandatory for the
      * self-employed rather than an optional Türkiye-wide one; `1.4.0` names the
      * third travel-arrangement alternative the mission's own sheet offers;
+     * `1.7.0` names the official undertaking the sheet accepts in place of an
+     * accommodation document, so the pack stops demanding a booking from
+     * applicants it does not ask one of;
      * `1.5.0` renders eight acceptance bars the mission publishes on
      * requirements this pack inherits rather than owns; `1.6.0` adds the
      * photograph count, which sits on the tourism checklist rather than the
@@ -127,7 +131,7 @@ export const germanyTourismComposition = composeVisaTemplate({
      * Greece's number counts its own history and the two are unrelated —
      * `templateVersion` is per pack, not repository-wide.
      */
-    templateVersion: '1.6.0',
+    templateVersion: '1.7.0',
     lastReviewedAt: '2026-09-07',
     /**
      * `verified`, and the word means exactly one thing here: **every** composed

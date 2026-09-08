@@ -40,6 +40,7 @@ const GERMANY_ORDER = [
   'ITINERARY',
   'CIVIL_REGISTRY_EXTRACT',
   'ACCOMMODATION',
+  'DE_OFFICIAL_UNDERTAKING',
   'BANK_STATEMENTS',
   'PAYSLIPS',
   'PENSIONER_BOOKLET',
@@ -87,7 +88,7 @@ describe('Germany pack — composition', () => {
     )
   })
 
-  it('owns three requirements and inherits the other twenty', () => {
+  it('owns four requirements and inherits the other twenty', () => {
     const tally = new Map<string, number>()
     for (const [, layerId] of germany.ownership) {
       tally.set(layerId, (tally.get(layerId) ?? 0) + 1)
@@ -97,7 +98,9 @@ describe('Germany pack — composition', () => {
       // Twelve since F0 — `TRANSPORT_MEANS_PROOF` is Annex III's, so this pack
       // inherits it for the same reason Greece does: both file in Türkiye.
       'tr-filing': 12,
-      'de-tr-mission': 3,
+      // Four since H3: the official undertaking is this mission's own
+      // evidence, accepted in place of an accommodation document.
+      'de-tr-mission': 4,
       // 'germany' owns none, the same finding Greece produced — now with a
       // second pack behind it. It contributes Germany's statute and nothing
       // else, so it never reaches the ownership tally.
@@ -115,7 +118,7 @@ describe('Germany pack — composition', () => {
     // now supports. F0 moved both sides by one and completeness held, which is
     // the property worth pinning: a requirement may not join this pack without
     // its own source.
-    expect(coverage).toEqual({ total: 23, verified: 23, isComplete: true })
+    expect(coverage).toEqual({ total: 24, verified: 24, isComplete: true })
     expect(
       isReviewStatusSupported(germany.template.reviewStatus, coverage)
     ).toBe(true)
@@ -385,6 +388,7 @@ describe('Germany pack — refinement adds citations and detail, and nothing els
       'ITINERARY',
       'CIVIL_REGISTRY_EXTRACT',
       'ACCOMMODATION',
+      'DE_OFFICIAL_UNDERTAKING',
       'BANK_STATEMENTS',
       'PAYSLIPS',
       'EMPLOYMENT_LETTER',

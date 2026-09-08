@@ -5,6 +5,7 @@ import { requiredRequirementCodes } from '@/features/readiness/requirement-readi
 import { deriveNextDocument } from '@/features/documents/documents-model'
 import { resolveGroupSlots } from '@/features/readiness/satisfaction-groups'
 import { resolveVisaTemplate } from '@/config/countries'
+import { runValidation } from '@/domain/rules/runner'
 import { PRODUCTION_COMPOSITIONS } from '@/tests/support/production-compositions'
 import { applyDocumentUpdate } from '@/features/documents/document-semantics'
 import { greeceTourismComposition } from '@/config/countries/greece/tourism'
@@ -176,7 +177,9 @@ describe('unrelated requirements are untouched', () => {
     const ids = (
       germanyTourismComposition.template.satisfactionGroups ?? []
     ).map((g) => g.id)
-    expect(ids).toEqual(['tr-travel-arrangements'])
+    // Germany's own accommodation choice joined in H3; the employment one is
+    // still Greece's alone, which is what this test is about.
+    expect(ids).toEqual(['tr-travel-arrangements', 'de-accommodation-evidence'])
     const grIds = (
       greeceTourismComposition.template.satisfactionGroups ?? []
     ).map((g) => g.id)
@@ -452,8 +455,181 @@ describe('a group may not let an obligation disappear', () => {
         groups: (composition.template.satisfactionGroups ?? []).length,
       }).toEqual({
         countryCode,
-        groups: countryCode === 'GR' ? 2 : 1,
+        groups: 2,
       })
     }
+  })
+})
+
+describe('Germany accepts an official undertaking instead of an accommodation document', () => {
+  /**
+   * The checklist states it inside the accommodation item and nowhere else:
+   * "Otel rezervasyonu / otel ödemesi veya başka bir konaklama imkanını
+   * kanıtlayan belge (resmi bir taahhütname ile ibraz edilmediyse)". Either
+   * document answers the obligation; the pack used to demand the booking.
+   */
+  const germany = resolveVisaTemplate('DE', 'short_stay_tourism')!
+  const MEMBERS = ['ACCOMMODATION', 'DE_OFFICIAL_UNDERTAKING']
+
+  const deApp = {
+    applicationId: 'app1',
+    applicantId: 'a1',
+    destinationCountry: 'DE',
+    visaType: 'short_stay_tourism',
+    status: 'draft',
+    createdAt: '2026-09-08T00:00:00.000Z',
+    sponsorIds: [],
+    documentIds: [],
+    notes: [],
+    employment: { employmentStatus: 'employed' },
+  } as unknown as Application
+
+  const deDoc = (code: string, status: DocumentStatus): Document => {
+    const record = {
+      id: `doc-${code}`,
+      code,
+      name: code,
+      category: 'accommodation',
+      ownerType: 'applicant',
+      ownerId: 'a1',
+      required: true,
+      status,
+    } as unknown as Document
+    return status === 'ready'
+      ? applyDocumentUpdate(
+          { ...record, status: 'not_started' },
+          { status },
+          germany
+        )
+      : record
+  }
+
+  const accommodationSlot = (documents: Document[]) =>
+    resolveGroupSlots(germany, documents, deApp).find(
+      (s) => s.group.id === 'de-accommodation-evidence'
+    )
+
+  const readinessOf = (documents: Document[]) =>
+    buildDocumentReadiness({
+      documents,
+      requiredRequirementCodes: requiredRequirementCodes(germany, deApp),
+      template: germany,
+      application: deApp,
+    })
+
+  it('composes the undertaking, and Greece does not', () => {
+    const de = germany.documentRequirements.find(
+      (r) => r.code === 'DE_OFFICIAL_UNDERTAKING'
+    )
+    expect(de).toBeDefined()
+    expect(
+      germanyTourismComposition.ownership.get('DE_OFFICIAL_UNDERTAKING')
+    ).toBe('de-tr-mission')
+    expect(greece.documentRequirements.map((r) => r.code)).not.toContain(
+      'DE_OFFICIAL_UNDERTAKING'
+    )
+  })
+
+  it('states no condition on either member', () => {
+    // The sheet attaches none, so neither does the pack. Which route an
+    // applicant takes is a choice, not a property of the applicant.
+    for (const code of MEMBERS) {
+      expect(
+        germany.documentRequirements.find((r) => r.code === code)?.conditionalOn
+      ).toBeUndefined()
+    }
+  })
+
+  it('pairs exactly the two documents the sheet names', () => {
+    expect(accommodationSlot([])?.group.anyOf).toEqual(MEMBERS)
+  })
+
+  it('is one obligation, not two', () => {
+    const empty = readinessOf([])
+    const bothHeld = readinessOf(MEMBERS.map((c) => deDoc(c, 'ready')))
+    // Holding both is one obligation met, not two.
+    expect(bothHeld.applicable).toBe(empty.applicable)
+    expect(bothHeld.ready - empty.ready).toBe(1)
+  })
+
+  it('is satisfied by the accommodation document alone', () => {
+    expect(accommodationSlot([deDoc('ACCOMMODATION', 'ready')])?.status).toBe(
+      'ready'
+    )
+  })
+
+  it('is satisfied by the undertaking alone', () => {
+    // The correction. Before H3 this applicant was still told to produce a
+    // hotel booking the mission does not ask them for.
+    const slot = accommodationSlot([deDoc('DE_OFFICIAL_UNDERTAKING', 'ready')])
+    expect({ status: slot?.status, by: slot?.satisfiedBy }).toEqual({
+      status: 'ready',
+      by: 'DE_OFFICIAL_UNDERTAKING',
+    })
+  })
+
+  it('does not call the accommodation document missing or skipped', () => {
+    const documents = [
+      deDoc('DE_OFFICIAL_UNDERTAKING', 'ready'),
+      deDoc('ACCOMMODATION', 'not_applicable'),
+    ]
+    const findings = runValidation({
+      dossier: {
+        schemaVersion: '1.0.0',
+        exportedAt: '2026-09-08T00:00:00.000Z',
+        applicant: {
+          id: 'a1',
+          firstName: 'A',
+          lastName: 'B',
+          dateOfBirth: '1990-01-01',
+          nationality: 'TR',
+          passport: {
+            number: 'X',
+            issueDate: '2022-01-01',
+            expiryDate: '2032-01-01',
+            issuingCountry: 'TR',
+            passportType: 'ordinary',
+          },
+          previousPassports: [],
+          previousVisas: [],
+          previousRefusals: [],
+          travelHistory: [],
+        },
+        application: deApp,
+        documents,
+        sponsors: [],
+      } as never,
+      template: germany,
+    }).findings
+
+    expect(
+      findings
+        .filter((f) => f.ruleId === 'document.requiredNotStarted')
+        .flatMap((f) => f.messageParams?.documentCodes?.documents ?? [])
+    ).not.toContain('ACCOMMODATION')
+    expect(
+      findings
+        .filter((f) => f.ruleId === 'document.requiredNotSkipped')
+        .flatMap((f) => f.messageParams?.documentCodes?.document ?? [])
+    ).not.toContain('ACCOMMODATION')
+    expect(findings.map((f) => f.id)).not.toContain(
+      'missing-obligation-de-accommodation-evidence'
+    )
+  })
+
+  it('reports one group-level obligation when neither is held', () => {
+    expect(accommodationSlot([])?.status).toBe('notStarted')
+  })
+
+  it('leaves the transport group and Greece alone', () => {
+    expect(
+      (germany.satisfactionGroups ?? []).find(
+        (g) => g.id === 'tr-travel-arrangements'
+      )?.anyOf
+    ).toEqual(TRANSPORT)
+    expect((greece.satisfactionGroups ?? []).map((g) => g.id)).toEqual([
+      'tr-travel-arrangements',
+      'gr-employment-evidence',
+    ])
   })
 })

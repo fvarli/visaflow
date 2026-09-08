@@ -166,6 +166,10 @@
       "name": "Accommodation Reservation",
       "description": "Hotel booking or other proof of accommodation"
     },
+    "DE_OFFICIAL_UNDERTAKING": {
+      "name": "Official Undertaking",
+      "description": "An official undertaking submitted in place of accommodation evidence"
+    },
     "ITINERARY": {
       "name": "Travel Itinerary",
       "description": "Proof of your travel itinerary"
@@ -405,6 +409,7 @@
   },
   "groups": {
     "tr-travel-arrangements": "Travel arrangements — any one of these",
-    "gr-employment-evidence": "Employment evidence — either of these"
+    "gr-employment-evidence": "Employment evidence — either of these",
+    "de-accommodation-evidence": "Accommodation evidence — any one of these"
   }
 }

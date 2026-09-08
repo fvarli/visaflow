@@ -126,6 +126,71 @@ export const deTrMissionLayer: RequirementLayer = {
       sourceRefs: ['de-tr-tourism-checklist'],
       revision: 1,
     },
+    /**
+     * The other way to answer the accommodation question.
+     *
+     * The checklist states it inside the accommodation item and nowhere else:
+     * "Konaklamanın nerede yapılacağını gösteren belge: Otel rezervasyonu /
+     * otel ödemesi veya başka bir konaklama imkanını kanıtlayan belge
+     * **(resmi bir taahhütname ile ibraz edilmediyse)**" — a hotel booking or
+     * other proof of accommodation, *if it is not submitted with an official
+     * undertaking*. So the mission accepts either, and the pack demanded a
+     * booking from applicants the sheet does not ask one of.
+     *
+     * WHY A CODE AND NOT ACCEPTANCE DETAIL. An undertaking is not a stricter
+     * kind of hotel booking; it is a different instrument that answers the same
+     * question. C1 fragments are additive, so attaching this to `ACCOMMODATION`
+     * would compose to "a booking **and** an undertaking", which is the reverse
+     * of what the sheet says. Two evidence identities, two codes (ADR-052b) —
+     * related by a satisfaction group rather than by a fragment.
+     *
+     * WHAT IT IS NOT CALLED. The retrieved pages say only "resmi bir
+     * taahhütname". The word `Verpflichtungserklärung` appears nowhere in any of
+     * them, so naming this after that instrument would assert an identity the
+     * evidence does not carry — however likely it is to be the same document.
+     * "Official" is the one qualifier the sheet does state, and it is the one
+     * the contract renders.
+     *
+     * NO CONDITION, DELIBERATELY. The sheet attaches none: it does not say the
+     * undertaking is for sponsored or hosted applicants, and inventing a
+     * profile condition to explain *why* somebody chose this route would model
+     * a fact no source states. Which alternative an applicant takes is a choice,
+     * not a property of the applicant — which is exactly what a satisfaction
+     * group is for. Optional rather than required for the same reason: the
+     * obligation is carried by the group, and `ACCOMMODATION` is the member
+     * that keeps it owed.
+     */
+    {
+      code: 'DE_OFFICIAL_UNDERTAKING',
+      nameKey: 'visa-domain:requirements.DE_OFFICIAL_UNDERTAKING.name',
+      descriptionKey:
+        'visa-domain:requirements.DE_OFFICIAL_UNDERTAKING.description',
+      category: 'accommodation',
+      ownerType: 'applicant',
+      required: false,
+      sourceRefs: ['de-tr-tourism-checklist'],
+      revision: 1,
+    },
+  ],
+  /**
+   * The accommodation obligation, and the two documents that answer it.
+   *
+   * Declared here because the choice is this mission's: Annex III I.3 asks for
+   * proof of accommodation and says nothing about an undertaking, so Greece
+   * composes `ACCOMMODATION` alone and is untouched by this.
+   *
+   * The members' applicability is deliberately identical — both unconditional —
+   * because the sheet states no condition on either. `ACCOMMODATION` is the
+   * required member and covers every applicant, so the group satisfies the
+   * coverage invariant with room to spare.
+   */
+  groups: [
+    {
+      id: 'de-accommodation-evidence',
+      anyOf: ['ACCOMMODATION', 'DE_OFFICIAL_UNDERTAKING'],
+      labelKey: 'visa-domain:groups.de-accommodation-evidence',
+      sourceRefs: ['de-tr-tourism-checklist'],
+    },
   ],
   /**
    * Citations, and — since C1 — the mission's own acceptance detail.

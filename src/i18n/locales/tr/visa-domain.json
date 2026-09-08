@@ -166,6 +166,10 @@
       "name": "Konaklama Rezervasyonu",
       "description": "Otel rezervasyonu veya başka bir konaklama belgesi"
     },
+    "DE_OFFICIAL_UNDERTAKING": {
+      "name": "Resmî Taahhütname",
+      "description": "Konaklama belgesi yerine sunulan resmî taahhütname"
+    },
     "ITINERARY": {
       "name": "Seyahat planı",
       "description": "Seyahat planınızı gösteren belge"
@@ -405,6 +409,7 @@
   },
   "groups": {
     "tr-travel-arrangements": "Seyahat düzenlemeleri — bunlardan herhangi biri",
-    "gr-employment-evidence": "İstihdam kanıtı — bunlardan biri"
+    "gr-employment-evidence": "İstihdam kanıtı — bunlardan biri",
+    "de-accommodation-evidence": "Konaklama kanıtı — bunlardan herhangi biri"
   }
 }
