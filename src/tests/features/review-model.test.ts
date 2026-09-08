@@ -3,6 +3,7 @@ import { buildFinalReviewModel } from '@/features/review/review-model'
 import { buildDocumentReadiness } from '@/features/readiness/document-readiness'
 import { requiredRequirementCodes } from '@/features/readiness/requirement-readiness'
 import { resolveVisaTemplate } from '@/config/countries'
+import { applyDocumentUpdate } from '@/features/documents/document-semantics'
 import {
   deriveNextActions,
   deriveReadinessState,
@@ -53,17 +54,36 @@ const application = (over: Partial<Application> = {}): Application => ({
   ...over,
 })
 
+/**
+ * A `ready` record is stamped the way production stamps it.
+ *
+ * Since C1, an unstamped `ready` claim on a requirement carrying
+ * composition-scoped acceptance detail is treated as needing re-check, because
+ * such a claim provably predates the mission's criteria. A test that builds
+ * "everything ready" by hand was writing legacy-shaped records and then
+ * asserting they read as current, which is the one thing they must not do.
+ */
 const doc = (
   over: Partial<Document> & Pick<Document, 'id' | 'code'>
-): Document => ({
-  category: 'financial',
-  ownerType: 'applicant',
-  ownerId: 'a1',
-  required: true,
-  status: 'not_started',
-  verified: false,
-  ...over,
-})
+): Document => {
+  const record: Document = {
+    category: 'financial',
+    ownerType: 'applicant',
+    ownerId: 'a1',
+    required: true,
+    status: 'not_started',
+    verified: false,
+    ...over,
+  }
+  if (record.status !== 'ready' || record.satisfiedRevision !== undefined) {
+    return record
+  }
+  return applyDocumentUpdate(
+    { ...record, status: 'not_started' },
+    { status: 'ready' },
+    resolveVisaTemplate('GR', 'short_stay_tourism')
+  )
+}
 
 const DOCUMENTS: Document[] = [
   doc({ id: 'd1', code: 'BANK_STATEMENTS', status: 'ready' }),

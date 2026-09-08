@@ -144,33 +144,105 @@ describe('a claim made under one composition does not survive into another', () 
   })
 })
 
-describe('claims written before contract keys existed are not demoted', () => {
-  const greekish = compose([common, mission('gr-ish', 'test:recent')])
+/**
+ * The legacy hole F1b left open, and the rule that closes it.
+ *
+ * F1b judged any claim carrying no contract key on the number alone, "exactly as
+ * before". That is safe on a requirement whose contract is still the one its
+ * owner published. It is not safe on one a mission layer has added criteria to,
+ * because such a claim provably predates those criteria — and the arithmetic
+ * happened to agree with it in both shapes:
+ *
+ *  - a pre-C1 claim stamped at the owner's revision compares equal, so `<` is
+ *    false and the claim stood;
+ *  - a claim from the window when C1 stamped the *composed additive* number
+ *    carries something larger than the owner's revision, so `<` could never be
+ *    true again.
+ *
+ * The fix discriminates on the requirement, not on the claim: composition-scoped
+ * detail present means a keyless claim is asked to be re-checked. Everything
+ * else keeps ADR-051's behaviour untouched.
+ */
+describe('legacy claims are demoted only where the bar became composition-specific', () => {
+  const withDetail = compose([common, mission('gr-ish', 'test:recent')])
+  const baseOnly = compose([common])
 
-  it('judges a keyless claim on the number alone', () => {
-    // Every completion already on somebody's disk carries a revision and no
-    // key. Treating absence as a mismatch would supersede all of them on the
-    // day this shipped — the ADR-051 mistake in a new place.
-    const legacy = {
-      ...record(),
-      status: 'ready',
-      satisfiedRevision: 1,
-    } as Document
-    expect(legacy.satisfiedContract).toBeUndefined()
-    expect(completionStanding(legacy, greekish)).toBe('current')
+  const legacy = (satisfiedRevision?: number): Document => {
+    const claim = { ...record(), status: 'ready' } as Document
+    return satisfiedRevision === undefined
+      ? claim
+      : { ...claim, satisfiedRevision }
+  }
+
+  it('supersedes a numeric-only claim whose number matches the owner revision', () => {
+    // Case A. `1 < 1` is false, so F1b called this current — under Greece and
+    // under Germany alike, against detail the claim never saw.
+    const claim = legacy(1)
+    expect(claim.satisfiedContract).toBeUndefined()
+    expect(completionStanding(claim, withDetail)).toBe('superseded')
+    expect(effectiveStatus(claim, withDetail)).toBe('needs_update')
   })
 
-  it('still supersedes a keyless claim when the owner’s revision rises', () => {
-    const legacy = {
-      ...record(),
-      status: 'ready',
-      satisfiedRevision: 1,
-    } as Document
-    const bumped = compose([
-      { ...common, add: [{ ...shared, revision: 2 }] },
-      mission('gr-ish', 'test:recent'),
-    ])
-    expect(completionStanding(legacy, bumped)).toBe('superseded')
+  it('supersedes a claim carrying an F1-era composed number', () => {
+    // Case B, and worse: F1 stamped owner + fragments, so restoring the owner's
+    // revision left these permanently larger than anything they meet. `3 < 1`
+    // is false forever.
+    expect(completionStanding(legacy(3), withDetail)).toBe('superseded')
+  })
+
+  it('supersedes a claim with no stamp at all', () => {
+    // A pre-1.2.0 dossier. ADR-051 Decision 3 says an unrecorded claim counts
+    // as ready, and it still does — everywhere the contract is the one the
+    // owner published. Here it cannot: "no evidence about their evidence" is
+    // not neutral when the criteria postdate the claim outright.
+    expect(completionStanding(legacy(), withDetail)).toBe('superseded')
+  })
+
+  it('leaves an unrecorded claim alone on a base-only requirement', () => {
+    // The narrowing, asserted from the other side. This is the ADR-051 rule,
+    // unchanged, and it must stay unchanged.
+    expect(completionStanding(legacy(), baseOnly)).toBe('unrecorded')
+    expect(effectiveStatus(legacy(), baseOnly)).toBe('ready')
+  })
+
+  it('keeps the numeric comparison on a base-only requirement', () => {
+    expect(completionStanding(legacy(1), baseOnly)).toBe('current')
+
+    const bumped = compose([{ ...common, add: [{ ...shared, revision: 2 }] }])
+    expect(completionStanding(legacy(1), bumped)).toBe('superseded')
+  })
+
+  it('clears the demotion as soon as the claim is re-confirmed', () => {
+    // The way out, and it is one click: re-asserting `ready` stamps both fields
+    // against the contract now in force.
+    const reconfirmed = applyDocumentUpdate(
+      legacy(1),
+      { status: 'ready' },
+      withDetail
+    )
+    expect(reconfirmed.satisfiedContract).toBe('SHARED_DOC@1+gr-ish:1')
+    expect(completionStanding(reconfirmed, withDetail)).toBe('current')
+  })
+})
+
+describe('the discriminator cannot drift from the key format', () => {
+  it('agrees with the key in every production composition', () => {
+    // `hasCompositionDetail` reads `detailKeys`; the key encodes the same fact
+    // as a `+` segment. They are equivalent by construction in the composer, and
+    // if they ever stop being, the standing rule silently changes meaning.
+    for (const { countryCode, composition } of PRODUCTION_COMPOSITIONS) {
+      const disagreeing = composition.template.documentRequirements
+        .filter(
+          (r) =>
+            (r.detailKeys?.length ?? 0) > 0 !==
+            (r.contractKey ?? '').includes('+')
+        )
+        .map((r) => r.code)
+      expect({ countryCode, disagreeing }).toEqual({
+        countryCode,
+        disagreeing: [],
+      })
+    }
   })
 })
 
@@ -207,6 +279,28 @@ describe('the production packs cannot collide', () => {
         .map((r) => r.code)
       expect({ countryCode, missing }).toEqual({ countryCode, missing: [] })
     }
+  })
+
+  it('demotes a pre-1.2.0 photograph claim in both packs, and only the C1 rows', () => {
+    // The production shape of the legacy hole: a dossier from before completion
+    // provenance existed, opened today. Its photograph claim cannot show it met
+    // Greece's "recent" or Germany's 35 x 45 mm, because neither existed when it
+    // was made — and it is asked to be re-checked in both.
+    const greece = resolveVisaTemplate('GR', 'short_stay_tourism')!
+    const germany = resolveVisaTemplate('DE', 'short_stay_tourism')!
+    const stale = { ...record(), code: 'PHOTOS', status: 'ready' } as Document
+    expect(stale.satisfiedRevision).toBeUndefined()
+    expect(completionStanding(stale, greece)).toBe('superseded')
+    expect(completionStanding(stale, germany)).toBe('superseded')
+
+    // And nothing else moves. Greece's other requirements carry no fragment, so
+    // the same stamp-less claim against them stays exactly where ADR-051 put it.
+    const untouched = greece.documentRequirements
+      .filter((r) => (r.detailKeys?.length ?? 0) === 0)
+      .map((r) => ({ ...record(), code: r.code, status: 'ready' as const }))
+      .filter((d) => completionStanding(d, greece) !== 'unrecorded')
+      .map((d) => d.code)
+    expect(untouched).toEqual([])
   })
 
   it('supersedes a real Greek photograph claim carried into Germany', () => {

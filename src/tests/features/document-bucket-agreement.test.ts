@@ -60,8 +60,16 @@ describe('effectiveStatus', () => {
     expect(effectiveStatus(passport, template)).toBe('needs_update')
   })
 
-  it('leaves a claim stamped at the current revision alone', () => {
-    const current = { ...passport, satisfiedRevision: 2 }
+  it('leaves a claim stamped at the current contract alone', () => {
+    // Both fields, because the key is what decides now. Moving the number on
+    // its own would leave the stale key in place, and the claim would still
+    // read as superseded — which is the correct answer to the record as
+    // written, and the wrong test.
+    const current = {
+      ...passport,
+      satisfiedRevision: 2,
+      satisfiedContract: 'PASSPORT_CURRENT@2',
+    }
     expect(effectiveStatus(current, template)).toBe('ready')
   })
 

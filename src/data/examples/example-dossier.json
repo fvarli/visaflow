@@ -1,5 +1,5 @@
 {
-  "schemaVersion": "1.1.0",
+  "schemaVersion": "1.3.0",
   "exportedAt": "2025-01-15T10:00:00.000Z",
   "applicant": {
     "id": "applicant-001",
@@ -199,7 +199,9 @@
       "ownerId": "applicant-001",
       "required": true,
       "status": "ready",
-      "verified": true
+      "verified": true,
+      "satisfiedRevision": 2,
+      "satisfiedContract": "APPLICATION_FORM@2"
     },
     {
       "id": "doc-002",
@@ -211,7 +213,9 @@
       "required": true,
       "status": "ready",
       "validUntil": "2030-03-09",
-      "verified": true
+      "verified": true,
+      "satisfiedRevision": 2,
+      "satisfiedContract": "PASSPORT_CURRENT@2"
     },
     {
       "id": "doc-003",
@@ -223,7 +227,9 @@
       "required": true,
       "status": "ready",
       "issuedAt": "2026-07-08",
-      "verified": true
+      "verified": true,
+      "satisfiedRevision": 1,
+      "satisfiedContract": "PHOTOS@1+gr-tr-mission:1"
     },
     {
       "id": "doc-004",
@@ -235,7 +241,9 @@
       "required": true,
       "status": "ready",
       "validUntil": "2027-04-10",
-      "verified": true
+      "verified": true,
+      "satisfiedRevision": 3,
+      "satisfiedContract": "TRAVEL_INSURANCE@3"
     },
     {
       "id": "doc-005",
@@ -246,7 +254,9 @@
       "ownerId": "applicant-001",
       "required": true,
       "status": "ready",
-      "verified": true
+      "verified": true,
+      "satisfiedRevision": 1,
+      "satisfiedContract": "TRANSPORT_RESERVATION@1"
     },
     {
       "id": "doc-006",
@@ -257,7 +267,9 @@
       "ownerId": "applicant-001",
       "required": true,
       "status": "ready",
-      "verified": true
+      "verified": true,
+      "satisfiedRevision": 1,
+      "satisfiedContract": "ACCOMMODATION@1"
     },
     {
       "id": "doc-007",

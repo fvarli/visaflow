@@ -165,7 +165,15 @@ const SUPERSEDED_SEED: Dossier = {
   ...SEED,
   documents: SEED.documents.map((d) =>
     d.code === 'PASSPORT_CURRENT'
-      ? { ...d, status: 'ready' as const, satisfiedRevision: 1 }
+      ? {
+          ...d,
+          status: 'ready' as const,
+          satisfiedRevision: 1,
+          // The key too: it is what decides now, so a stale number beside the
+          // current key would leave this claim standing and the fixture would
+          // quietly stop being superseded at all.
+          satisfiedContract: 'PASSPORT_CURRENT@1',
+        }
       : d
   ),
 }
@@ -375,7 +383,12 @@ describe('Documents workspace — a superseded claim', () => {
     ...SEED,
     documents: SEED.documents.map((d) =>
       d.code === 'PASSPORT_CURRENT'
-        ? { ...d, status: 'ready' as const, satisfiedRevision: 1 }
+        ? {
+            ...d,
+            status: 'ready' as const,
+            satisfiedRevision: 1,
+            satisfiedContract: 'PASSPORT_CURRENT@1',
+          }
         : d
     ),
   }

@@ -1,4 +1,6 @@
 import { describe, it, expect } from 'vitest'
+import { resolveVisaTemplate } from '@/config/countries'
+import { applyDocumentUpdate } from '@/features/documents/document-semantics'
 import {
   buildDashboardModel,
   buildDossierSnapshot,
@@ -22,13 +24,22 @@ import type { DocumentCategory, DocumentStatus } from '@/domain/types/common'
  * with deterministic inputs.
  */
 
+/**
+ * A `ready` record is stamped the way production stamps it.
+ *
+ * Since C1, an unstamped `ready` claim on a requirement carrying
+ * composition-scoped acceptance detail is treated as needing re-check, because
+ * such a claim provably predates the mission's criteria. A test that builds
+ * "everything ready" by hand was writing legacy-shaped records and then
+ * asserting they read as current, which is the one thing they must not do.
+ */
 function doc(
   code: string,
   status: DocumentStatus,
   category: DocumentCategory = 'supporting',
   required = true
 ): Document {
-  return {
+  const record: Document = {
     id: `d-${code}`,
     code,
     category,
@@ -38,6 +49,12 @@ function doc(
     status,
     verified: status === 'ready',
   }
+  if (status !== 'ready') return record
+  return applyDocumentUpdate(
+    { ...record, status: 'not_started' },
+    { status: 'ready' },
+    resolveVisaTemplate('GR', 'short_stay_tourism')
+  )
 }
 
 function app(over: Partial<Application> = {}): Application {

@@ -183,6 +183,28 @@ export function requirementContractKey(
 }
 
 /**
+ * Does this composition's contract for the code include criteria a mission layer
+ * added, rather than only what the owner published?
+ *
+ * The discriminator for how a claim carrying no contract key is judged, and it
+ * deliberately reads `detailKeys` rather than the key. *Every* composed
+ * requirement carries a key — that is what keeps "no key on the record" meaning
+ * `legacy` — so key presence cannot separate a base-only contract from one a
+ * mission has added to. `detailKeys` can: non-empty means somebody appended
+ * criteria the base contract does not state. An invariant test pins the two
+ * against each other so the discriminator cannot drift from the key format.
+ */
+export function hasCompositionDetail(
+  code: string,
+  template: VisaTypeTemplate | undefined
+): boolean {
+  const requirement = template?.documentRequirements.find(
+    (r) => r.code === code
+  )
+  return (requirement?.detailKeys?.length ?? 0) > 0
+}
+
+/**
  * Apply a document edit, keeping the completion stamp honest.
  *
  * The stamp records which requirement definition the user is claiming to
@@ -240,7 +262,9 @@ export function applyDocumentUpdate(
  * - `current` — claimed against the definition in force.
  * - `superseded` — the bar rose after the claim was made.
  * - `unrecorded` — a claim from before provenance existed. **Not** superseded:
- *   absence of a stamp is not evidence about the evidence.
+ *   absence of a stamp is not evidence about the evidence — except on a
+ *   requirement whose contract now carries composition-scoped detail, where the
+ *   claim provably predates criteria it therefore cannot have met.
  */
 export type CompletionStanding =
   'none' | 'current' | 'superseded' | 'unrecorded'
@@ -278,17 +302,43 @@ export function completionStanding(
   if (document.status !== 'ready') return 'none'
   const revision = requirementRevision(document.code, template)
   if (revision === undefined) return 'current'
-  if (document.satisfiedRevision === undefined) return 'unrecorded'
 
   /**
-   * A claim from before contract keys existed. Judged on the number alone,
-   * which is exactly what this function did then — absence of a key is not
-   * evidence about the evidence, and demoting every stored completion on the
-   * day the field shipped would be the ADR-051 mistake in a new place.
+   * A claim carrying no contract key was made before keys existed, and on a
+   * requirement a mission layer has since added criteria to, there is no way to
+   * read it as satisfied.
+   *
+   * Two shapes reach here and both are unsafe on such a requirement:
+   *
+   *  - **No stamp at all** — a pre-1.2.0 claim. ADR-051 Decision 3 says an
+   *    unrecorded claim counts as ready, and that stands wherever the contract
+   *    is still the one the owner published. It cannot stand here: the claim
+   *    provably predates the mission's criteria, so "we have no evidence about
+   *    their evidence" is not neutral, it is evidence that they never saw this
+   *    bar.
+   *  - **A number and no key** — either a pre-C1 claim, or one from the window
+   *    when C1 stamped the *composed additive* revision. The second is the
+   *    worse of the two: those numbers were the owner's revision plus its
+   *    fragments', so restoring the owner's revision left them permanently
+   *    larger than anything they will be compared against. A German photograph
+   *    claim stamped `3` against a requirement now at `1` could never supersede.
+   *
+   * Neither can be repaired by inferring a historical key. The contract those
+   * claims were made against is not recoverable, and guessing it is the failure
+   * this branch exists to prevent — so they are asked to be re-checked, and
+   * re-confirming stamps both fields properly.
+   *
+   * This is a narrowing of ADR-051 Decision 3, not a reversal: it reaches only
+   * requirements whose current composed contract carries composition-scoped
+   * detail. Every other stored claim is judged exactly as it was before.
    */
   if (document.satisfiedContract === undefined) {
+    if (hasCompositionDetail(document.code, template)) return 'superseded'
+    if (document.satisfiedRevision === undefined) return 'unrecorded'
     return document.satisfiedRevision < revision ? 'superseded' : 'current'
   }
+
+  if (document.satisfiedRevision === undefined) return 'unrecorded'
 
   /**
    * Otherwise the key decides, and the numeric comparison is not consulted

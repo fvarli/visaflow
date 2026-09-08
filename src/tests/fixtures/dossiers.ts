@@ -5,6 +5,7 @@ import type { Dossier } from '@/domain/schemas/dossier.schema'
 import type { Sponsor } from '@/domain/schemas/sponsor.schema'
 import type { DocumentCategory, DocumentStatus } from '@/domain/types/common'
 import { resolveVisaTemplate } from '@/config/countries'
+import { applyDocumentUpdate } from '@/features/documents/document-semantics'
 import { requiredRequirementCodes } from '@/features/readiness/requirement-readiness'
 import { buildDocumentReadiness } from '@/features/readiness/document-readiness'
 import type { DocumentReadiness } from '@/features/readiness/readiness-types'
@@ -89,7 +90,7 @@ interface DocSpec {
 }
 
 function doc(spec: DocSpec, index: number): Document {
-  return {
+  const record: Document = {
     id: `fixture-doc-${index}`,
     code: spec.code,
     category: spec.category ?? 'supporting',
@@ -103,6 +104,29 @@ function doc(spec: DocSpec, index: number): Document {
       ? { satisfiedRevision: spec.satisfiedRevision }
       : {}),
   }
+
+  /**
+   * A `ready` fixture is stamped the way production stamps, through the same
+   * function, so these dossiers model a current user rather than a legacy file.
+   *
+   * It matters since C1: a requirement carrying composition-scoped acceptance
+   * detail treats an unstamped `ready` claim as needing re-check, because such a
+   * claim provably predates the mission's criteria. Hand-built fixtures had no
+   * stamp at all, so `PHOTOS` — the one Greek row with detail — quietly
+   * superseded across half the readiness suite. The records were wrong, not the
+   * rule.
+   *
+   * A spec that sets `satisfiedRevision` itself is left alone: those exist to
+   * exercise the legacy and superseded paths deliberately.
+   */
+  if (spec.status !== 'ready' || spec.satisfiedRevision !== undefined) {
+    return record
+  }
+  return applyDocumentUpdate(
+    { ...record, status: 'not_started' },
+    { status: 'ready' },
+    resolveVisaTemplate('GR', 'short_stay_tourism')
+  )
 }
 
 function documents(specs: DocSpec[]): Document[] {
@@ -341,7 +365,17 @@ export const withSupersededClaim: DossierFixture = {
   applicant: APPLICANT,
   application: READY_APPLICATION,
   documents: allApplicableReady.documents.map((d) =>
-    d.code === 'PASSPORT_CURRENT' ? { ...d, satisfiedRevision: 1 } : d
+    d.code === 'PASSPORT_CURRENT'
+      ? // Both stamps, together, because the claim is what it says it is: made
+        // against revision 1 of this requirement's contract. Setting only the
+        // number would leave the current key beside it and the key is what
+        // decides, so the fixture would quietly stop being superseded at all.
+        {
+          ...d,
+          satisfiedRevision: 1,
+          satisfiedContract: 'PASSPORT_CURRENT@1',
+        }
+      : d
   ),
   sponsors: [],
 }

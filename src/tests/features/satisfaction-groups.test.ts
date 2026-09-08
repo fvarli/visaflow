@@ -5,6 +5,7 @@ import { requiredRequirementCodes } from '@/features/readiness/requirement-readi
 import { deriveNextDocument } from '@/features/documents/documents-model'
 import { resolveGroupSlots } from '@/features/readiness/satisfaction-groups'
 import { resolveVisaTemplate } from '@/config/countries'
+import { applyDocumentUpdate } from '@/features/documents/document-semantics'
 import { greeceTourismComposition } from '@/config/countries/greece/tourism'
 import { germanyTourismComposition } from '@/config/countries/germany/tourism'
 import type { Application } from '@/domain/schemas/application.schema'
@@ -41,8 +42,8 @@ const application = (status = 'employed'): Application =>
     employment: { employmentStatus: status },
   }) as unknown as Application
 
-const doc = (code: string, status: DocumentStatus): Document =>
-  ({
+const doc = (code: string, status: DocumentStatus): Document => {
+  const record = {
     id: `doc-${code}`,
     code,
     name: code,
@@ -51,7 +52,19 @@ const doc = (code: string, status: DocumentStatus): Document =>
     ownerId: 'a1',
     required: true,
     status,
-  }) as unknown as Document
+  } as unknown as Document
+  // A `ready` record is stamped the way production stamps it. Unstamped ready
+  // claims are treated as needing re-check on requirements carrying
+  // composition-scoped detail, and `PHOTOS` is one — so a hand-built "all
+  // ready" dossier would fail for a reason that has nothing to do with groups.
+  return status === 'ready'
+    ? applyDocumentUpdate(
+        { ...record, status: 'not_started' },
+        { status },
+        greece
+      )
+    : record
+}
 
 const greece = resolveVisaTemplate('GR', 'short_stay_tourism')!
 const TRANSPORT = [
