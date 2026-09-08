@@ -1,5 +1,9 @@
 import { trFilingSources } from '../../sources/tr-filing.sources'
-import type { DocumentRequirement, RequirementLayer } from '../../types'
+import type {
+  DocumentRequirement,
+  RequirementLayer,
+  SatisfactionGroup,
+} from '../../types'
 
 /** The jurisdiction-level instrument every requirement below is measured against. */
 const COMMISSION_ANNEX_III = 'eu-c2021-5156-turkey-annex3'
@@ -329,10 +333,35 @@ const trFilingDocuments: DocumentRequirement[] = [
  * criteria has to own the requirement outright. That is what keeps
  * `satisfiedRevision: N` meaning one thing in every composition (ADR-051).
  */
+/**
+ * Annex III I.1 offers a choice, and this is where the pack finally says so.
+ *
+ * "Travel arrangements: flight reservations, other proof of intended means of
+ * transport, **or** proof of travel itinerary." Three routes, one obligation.
+ * VisaFlow rendered the first as mandatory and the other two as optional extras,
+ * which demanded a booking the binding list does not — the defect E1 and E2 both
+ * scored as UNSUPPORTED on `TRANSPORT_RESERVATION`, in both packs.
+ *
+ * DECLARED HERE, THOUGH TWO MEMBERS BELONG TO THE COMMON LAYER. The choice is
+ * Annex III's, and Annex III is this layer's instrument — so every composition
+ * that files in Türkiye inherits the group, and a future pack filing elsewhere
+ * gets whatever its own jurisdiction offers instead. A group reaches backwards
+ * to requirements already declared, exactly as a citation refinement does.
+ */
+const trFilingGroups: SatisfactionGroup[] = [
+  {
+    id: 'tr-travel-arrangements',
+    anyOf: ['TRANSPORT_RESERVATION', 'TRANSPORT_MEANS_PROOF', 'ITINERARY'],
+    labelKey: 'visa-domain:groups.tr-travel-arrangements',
+    sourceRefs: ['eu-c2021-5156-turkey-annex3'],
+  },
+]
+
 export const trFilingLayer: RequirementLayer = {
   id: 'tr-filing',
   kind: 'jurisdiction',
   add: trFilingDocuments,
+  groups: trFilingGroups,
   refine: [
     // Annex III I.1 — "Travel arrangements: flight reservations, other proof
     // of intended means of transport, or proof of travel itinerary."

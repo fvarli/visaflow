@@ -5,6 +5,7 @@ import type {
   LayerKind,
   RequirementLayer,
   RequirementSource,
+  SatisfactionGroup,
   VisaTypeTemplate,
 } from './types'
 
@@ -54,6 +55,7 @@ export type CompositionErrorKind =
   | 'invalid-refinement'
   | 'dangling-source-ref'
   | 'order-mismatch'
+  | 'invalid-group'
 
 /**
  * A layer set that cannot be composed.
@@ -479,9 +481,96 @@ export function composeVisaTemplate(
     ? applyOrder(composed, requirementOrder)
     : composed
 
+  const satisfactionGroups = collectGroups(layers, byCode, sourceIds)
+
   return {
-    template: { ...base, documentRequirements },
+    template: {
+      ...base,
+      documentRequirements,
+      // Absent rather than empty when a pack declares none, so a composition
+      // without groups is byte-identical to one composed before they existed.
+      ...(satisfactionGroups.length > 0 ? { satisfactionGroups } : {}),
+    },
     ownership,
     sources,
   }
+}
+
+/**
+ * Gather and validate the alternative-satisfaction groups.
+ *
+ * Three things have to hold, and each has its own failure because each calls
+ * for a different fix:
+ *
+ *  - every member must be composed, or the group promises the applicant a route
+ *    the pack does not carry;
+ *  - a code belongs to at most one group, because "one of these" stops meaning
+ *    anything if a document counts toward two obligations at once;
+ *  - a group needs at least two members, since a group of one is a requirement
+ *    with extra machinery around it.
+ */
+function collectGroups(
+  layers: RequirementLayer[],
+  byCode: Map<string, DocumentRequirement>,
+  sourceIds: Set<string>
+): SatisfactionGroup[] {
+  const groups: SatisfactionGroup[] = []
+  const claimedBy = new Map<string, string>()
+  const ids = new Set<string>()
+
+  for (const layer of layers) {
+    for (const group of layer.groups ?? []) {
+      if (ids.has(group.id)) {
+        throw new CompositionError(
+          'invalid-group',
+          `Group "${group.id}" is declared twice in this composition.`
+        )
+      }
+      ids.add(group.id)
+
+      if (group.anyOf.length < 2) {
+        throw new CompositionError(
+          'invalid-group',
+          `Group "${group.id}" lists ${group.anyOf.length} requirement(s). A ` +
+            'choice needs at least two, and a group of one is just a ' +
+            'requirement.'
+        )
+      }
+
+      for (const code of group.anyOf) {
+        if (!byCode.has(code)) {
+          throw new CompositionError(
+            'invalid-group',
+            `Group "${group.id}" (layer "${layer.id}") lists "${code}", which ` +
+              'no layer in this composition declares. A group may only offer ' +
+              'routes the pack actually carries.'
+          )
+        }
+        const owner = claimedBy.get(code)
+        if (owner !== undefined) {
+          throw new CompositionError(
+            'invalid-group',
+            `Requirement "${code}" is in both group "${owner}" and group ` +
+              `"${group.id}". One document may satisfy one obligation, or ` +
+              '"any one of these" stops being a countable thing.'
+          )
+        }
+        claimedBy.set(code, group.id)
+      }
+
+      for (const ref of group.sourceRefs ?? []) {
+        if (!sourceIds.has(ref)) {
+          throw new CompositionError(
+            'dangling-source-ref',
+            `Group "${group.id}" cites source "${ref}", which no composed ` +
+              'layer provides.'
+          )
+        }
+      }
+
+      groups.push(group)
+    }
+  }
+
+  return groups
 }

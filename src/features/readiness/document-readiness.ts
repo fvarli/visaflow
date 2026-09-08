@@ -11,6 +11,7 @@ import {
   type DocumentReadiness,
   type ReadinessClass,
 } from './readiness-types'
+import { groupedCodes, resolveGroupSlots } from './satisfaction-groups'
 
 /**
  * The canonical document-readiness derivation — the single place VisaFlow
@@ -129,6 +130,18 @@ export function buildDocumentReadiness(
   let historical = 0
   const present = new Set<string>()
 
+  /**
+   * Members of an alternative-satisfaction group are counted as their group,
+   * once, further down — never here (C3a).
+   *
+   * Counting them individually is what made a dossier holding a perfectly
+   * acceptable travel itinerary read as missing a flight booking: the authority
+   * asks for one of three and readiness asked for the one that happened to be
+   * flagged `required`. Their records still exist and still show their own
+   * status on screen; what changes is what the arithmetic owes.
+   */
+  const grouped = groupedCodes(template)
+
   for (const doc of documents) {
     present.add(doc.code)
     const semantics = resolveDocumentSemantics(doc, template, application)
@@ -170,9 +183,14 @@ export function buildDocumentReadiness(
     if (!semantics.isApplicable) continue
 
     if (!semantics.required) {
-      optional += 1
+      // A grouped member is not "optional" either — its group carries the
+      // obligation, and calling it optional here would count it in a bucket the
+      // applicant reads as "nice to have".
+      if (!grouped.has(doc.code)) optional += 1
       continue
     }
+
+    if (grouped.has(doc.code)) continue
 
     /**
      * A claim made against an older, laxer definition is not a satisfied
@@ -190,7 +208,30 @@ export function buildDocumentReadiness(
   // A requirement with no record at all is work that has not been started.
   for (const code of requiredRequirementCodes) {
     if (present.has(code)) continue
+    if (grouped.has(code)) continue
     counts.notStarted += 1
+  }
+
+  /**
+   * One slot per applicable group, whatever its size.
+   *
+   * This is the whole of C3a's arithmetic. The slot takes the best status any
+   * member reached, so a booking marked `ready` satisfies the obligation and the
+   * other two routes are neither missing nor extra — they are simply not the
+   * road this applicant took.
+   *
+   * A group enters on exactly the terms an ungrouped requirement does: some
+   * member has a record, or some member is in the caller's
+   * `requiredRequirementCodes`. Callers that pass an empty list are counting the
+   * records in front of them rather than the obligations a pack imposes, and a
+   * group must not be the one thing that ignores them.
+   */
+  const countable = new Set(requiredRequirementCodes)
+  for (const slot of resolveGroupSlots(template, documents, application)) {
+    const entersCount = slot.applicableCodes.some(
+      (code) => present.has(code) || countable.has(code)
+    )
+    if (entersCount) counts[slot.status] += 1
   }
 
   const applicable =

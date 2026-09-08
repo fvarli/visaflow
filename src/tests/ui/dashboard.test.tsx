@@ -138,18 +138,24 @@ describe('Dashboard — seeded command center', () => {
 
       // Readiness is the single dominant indicator: the ring exposes the
       // percentage via its label. The example applicant is employed, so the
-      // Greece pack makes 12 required documents applicable while the dossier
-      // carries its records — 6 of 12 ready → 50%.
+      // Greece pack makes 11 obligations applicable while the dossier carries
+      // its records — 6 of 11 ready → 55%.
       //
-      // It has moved twice for opposite reasons, and both are worth keeping.
-      // ADR-048 took it from 7 of 11 (64%) to 7 of 13 (54%) by *adding* the
-      // civil registry extract and the SGK documents. E5c takes it to 50% by
-      // *removing* `ID_CARD_COPY`, which was required of every applicant and
-      // which no authority in the file asks for. A denominator that grows when
-      // evidence is found and shrinks when evidence is not is the pack telling
-      // the truth in both directions.
+      // It has now moved three times, for three different reasons, and all
+      // three are worth keeping. ADR-048 took it from 7 of 11 (64%) to 7 of 13
+      // (54%) by *adding* the civil registry extract and the SGK documents.
+      // E5c took it to 50% by *removing* `ID_CARD_COPY`, which was required of
+      // every applicant and which no authority in the file asks for. C3a takes
+      // it to 55% by counting an obligation once instead of twice: Annex III
+      // I.5(a) accepts an employer letter *and/or* a leave approval, so an
+      // employed Greek applicant owes one of them, not both.
+      //
+      // The denominator has grown when evidence was found, shrunk when it was
+      // not, and shrunk again when the authority turned out to offer a choice.
+      // That is the pack telling the truth in all three directions, which is
+      // why none of these numbers is pinned as a target.
       const ring = screen.getByRole('img')
-      expect(ring.getAttribute('aria-label')).toContain('50')
+      expect(ring.getAttribute('aria-label')).toContain('55')
 
       // The single next action offers exactly one CTA.
       expect(

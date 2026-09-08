@@ -402,5 +402,9 @@
         "recent": "Yakın tarihli bir fotoğraf"
       }
     }
+  },
+  "groups": {
+    "tr-travel-arrangements": "Seyahat düzenlemeleri — bunlardan herhangi biri",
+    "gr-employment-evidence": "İstihdam kanıtı — bunlardan biri"
   }
 }

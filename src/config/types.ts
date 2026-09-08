@@ -152,12 +152,55 @@ export interface VisaTypeTemplate {
   documentRequirements: DocumentRequirement[]
   preparationMilestones: PreparationMilestone[]
   notesKeys?: string[]
+  /**
+   * Obligations an authority lets the applicant satisfy in more than one way.
+   *
+   * Absent when the pack has none, so a template composed before C3a is
+   * unchanged. See `SatisfactionGroup`.
+   */
+  satisfactionGroups?: SatisfactionGroup[]
 
   /** Template maintenance metadata. */
   templateVersion: string
   lastReviewedAt?: string
   reviewStatus: ReviewStatus
   sourceIds?: string[]
+}
+
+/**
+ * One obligation, several accepted documents — "any one of these will do".
+ *
+ * Annex III I.1 is the case that forced it: "Travel arrangements: flight
+ * reservations, other proof of intended means of transport, **or** proof of
+ * travel itinerary." VisaFlow rendered that as one mandatory requirement and two
+ * optional ones, which is stricter than the binding list — an applicant holding
+ * a perfectly acceptable itinerary was told they were missing a booking, and
+ * readiness agreed with the demand rather than the authority.
+ *
+ * WHY IT IS NOT REQUIREDNESS. Marking all three optional removes the obligation
+ * from readiness entirely, so somebody with none of them reads as complete.
+ * Marking one required keeps the false demand. The obligation is real and the
+ * *choice* is real, and neither flag can say both — which is why this is a
+ * group rather than a flag.
+ *
+ * WHAT IT IS NOT. It cannot suppress a requirement, replace one, or change what
+ * any member asks for; members keep their own contracts and revisions. A group
+ * only says how many of them the applicant owes: one.
+ */
+export interface SatisfactionGroup {
+  /** Stable within a composition. Used in tests and diagnostics, never stored. */
+  id: string
+  /**
+   * The codes, in the order the authority lists them.
+   *
+   * Order is load-bearing in one place: when nothing in the group is satisfied,
+   * the first *applicable* member is what the workspace recommends next.
+   */
+  anyOf: string[]
+  /** i18n key naming the obligation the members share. */
+  labelKey: string
+  /** The clause that offers the choice. */
+  sourceRefs?: string[]
 }
 
 export interface CountryConfig {
@@ -210,6 +253,15 @@ export interface RequirementLayer {
    */
   add?: DocumentRequirement[]
   refine?: CitationRefinement[]
+  /**
+   * Alternative-satisfaction groups this layer declares.
+   *
+   * Declared by the layer whose instrument offers the choice, which is not
+   * necessarily the layer that owns the members: Annex III offers the travel
+   * alternatives and two of the three codes belong to the common layer. Like a
+   * refinement, a group may only reach requirements already declared.
+   */
+  groups?: SatisfactionGroup[]
   /** Source records this layer contributes to the composed pool. */
   sources?: RequirementSource[]
 }

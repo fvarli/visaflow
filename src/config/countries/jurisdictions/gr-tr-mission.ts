@@ -227,5 +227,29 @@ export const grTrMissionLayer: RequirementLayer = {
     // absent entirely. Attaching a citation to either would be inventing
     // evidence to make a requirement look verified.
   ],
+  /**
+   * Annex III I.5(a) says "letter from employer **and/or** approval for leave",
+   * and for a Greek application that "or" is real: either document, carrying the
+   * clause's content bullets, satisfies the obligation.
+   *
+   * WHY GREECE AND NOT GERMANY, WHEN THE CLAUSE IS THE SHARED INSTRUMENT'S. The
+   * German mission narrows it. Its sheet asks for one original letter carrying
+   * the employment details *and* the leave information together, so a German
+   * applicant who brought only a leave approval would be short — the choice
+   * Annex III offers is not one that mission accepts. Declaring the group on
+   * `tr-filing` would hand Germany a route its own authority closed, which is
+   * the mirror image of the leak C1 exists to prevent.
+   *
+   * So it lives here, on the layer that composes for Greece alone, and Germany
+   * keeps both requirements as the two documents its sheet expects.
+   */
+  groups: [
+    {
+      id: 'gr-employment-evidence',
+      anyOf: ['EMPLOYMENT_LETTER', 'APPROVED_LEAVE'],
+      labelKey: 'visa-domain:groups.gr-employment-evidence',
+      sourceRefs: ['gr-tr-harmonised-list'],
+    },
+  ],
   sources: grTrMissionSources,
 }

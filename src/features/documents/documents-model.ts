@@ -10,6 +10,7 @@ import type { Sponsor } from '@/domain/schemas/sponsor.schema'
 import type { DocumentCategory, DocumentStatus } from '@/domain/types/common'
 import type { VisaTypeTemplate } from '@/config/types'
 import type { ValidationFinding } from '@/domain/rules/types'
+import { satisfiedGroupMembers } from '@/features/readiness/satisfaction-groups'
 import { buildDocumentReadiness } from '@/features/readiness/document-readiness'
 import type { DocumentReadiness } from '@/features/readiness/readiness-types'
 import { requiredRequirementCodes } from '@/features/readiness/requirement-readiness'
@@ -185,8 +186,22 @@ export function deriveNextDocument(
    * one screen whose whole job is to say what to do next was sending people
    * after a document nobody asks for.
    */
-  const required = documents.filter((d) =>
-    template ? countsTowardReadiness(d, template, application) : d.required
+  /**
+   * An obligation already met by one of its alternatives is not outstanding
+   * work (C3a).
+   *
+   * Without this, an applicant who marked their flight booking ready was sent
+   * straight to "obtain a travel itinerary" — the same false demand C3a removed
+   * from the percentage, arriving one screen later. Members of an *unsatisfied*
+   * group stay in the running, so the first applicable route is still what gets
+   * recommended.
+   */
+  const settled = satisfiedGroupMembers(template, documents, application)
+
+  const required = documents.filter(
+    (d) =>
+      !settled.has(d.code) &&
+      (template ? countsTowardReadiness(d, template, application) : d.required)
   )
   const present = new Set(documents.map((d) => d.code))
 
@@ -206,7 +221,7 @@ export function deriveNextDocument(
   if (notStarted) return notStarted
 
   const uninstantiated = requiredRequirementCodes.find(
-    (code) => !present.has(code)
+    (code) => !present.has(code) && !settled.has(code)
   )
   if (uninstantiated) {
     return { code: uninstantiated, document: null, action: 'obtain' }

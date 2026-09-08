@@ -402,5 +402,9 @@
         "recent": "A recent photograph"
       }
     }
+  },
+  "groups": {
+    "tr-travel-arrangements": "Travel arrangements — any one of these",
+    "gr-employment-evidence": "Employment evidence — either of these"
   }
 }

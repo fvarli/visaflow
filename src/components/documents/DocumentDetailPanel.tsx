@@ -46,6 +46,7 @@ import {
 import { documentLabel } from '@/lib/document-label'
 import { useFindingText } from '@/lib/finding-text'
 import { dynamicT } from '@/lib/i18n-dynamic'
+import { groupFor } from '@/features/readiness/satisfaction-groups'
 import {
   DOCUMENT_STATUS_TONE,
   SEVERITY_TONE,
@@ -120,6 +121,7 @@ export function DocumentDetailPanel({
     ? template?.documentRequirements.find((r) => r.code === document.code)
     : undefined
   const kind = document ? classifyDoc(document, template) : 'custom'
+  const satisfactionGroup = groupFor(document?.code ?? '', template)
   /**
    * The requirement's acceptance contract moved after this document was marked
    * ready (ADR-051). Nothing is wrong with the document the applicant filed —
@@ -190,6 +192,19 @@ export function DocumentDetailPanel({
                         {requirement.descriptionKey && (
                           <p className="text-body text-foreground text-pretty">
                             {td(requirement.descriptionKey)}
+                          </p>
+                        )}
+                        {/*
+                          The obligation this document shares with its
+                          alternatives (C3a). Readiness already counts the group
+                          once, so without this line the panel would show a
+                          "Required" document beside a percentage that does not
+                          demand it — the product contradicting itself in the
+                          one place an applicant goes to find out what to bring.
+                        */}
+                        {satisfactionGroup && (
+                          <p className="text-caption text-muted-foreground text-pretty">
+                            {td(satisfactionGroup.labelKey)}
                           </p>
                         )}
                         {requirement.notesKey && (
