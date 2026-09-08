@@ -286,8 +286,21 @@ export function buildValidationModel(
   const { applicant, application, documents, sponsors } = input
   const hasData = applicant !== null && application !== null
 
+  /**
+   * Resolved once, for validation and for readiness alike. It used to be
+   * resolved twice inline below; validation now needs it too, and three
+   * resolutions of one fact in one function is how they start disagreeing.
+   */
+  const template = resolveVisaTemplate(
+    application?.destinationCountry,
+    application?.visaType
+  )
+
   const validation = hasData
-    ? runValidation(toDossier(applicant, application, documents, sponsors))
+    ? runValidation({
+        dossier: toDossier(applicant, application, documents, sponsors),
+        template,
+      })
     : EMPTY_VALIDATION
 
   // The canonical readiness — byte-identical to the Dashboard's, the Documents
@@ -296,17 +309,8 @@ export function buildValidationModel(
   // how one dossier could read 45% here and 36% there (ADR-033).
   const readiness = buildDocumentReadiness({
     documents,
-    requiredRequirementCodes: requiredRequirementCodes(
-      resolveVisaTemplate(
-        application?.destinationCountry,
-        application?.visaType
-      ),
-      application
-    ),
-    template: resolveVisaTemplate(
-      application?.destinationCountry,
-      application?.visaType
-    ),
+    requiredRequirementCodes: requiredRequirementCodes(template, application),
+    template,
     application,
   })
 

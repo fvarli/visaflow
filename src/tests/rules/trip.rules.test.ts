@@ -74,7 +74,7 @@ describe('tripDatesValid', () => {
       },
     })
 
-    const findings = tripDatesValid(dossier)
+    const findings = tripDatesValid({ dossier, template: undefined })
     expect(findings).toHaveLength(0)
   })
 
@@ -103,7 +103,7 @@ describe('tripDatesValid', () => {
       },
     })
 
-    const findings = tripDatesValid(dossier)
+    const findings = tripDatesValid({ dossier, template: undefined })
     expect(findings).toHaveLength(1)
     expect(findings[0]?.severity).toBe('error')
     expect(findings[0]?.id).toBe('trip-dates-invalid')
@@ -111,7 +111,7 @@ describe('tripDatesValid', () => {
 
   it('returns no findings when trip dates are missing', () => {
     const dossier = createTestDossier()
-    const findings = tripDatesValid(dossier)
+    const findings = tripDatesValid({ dossier, template: undefined })
     expect(findings).toHaveLength(0)
   })
 })
@@ -145,7 +145,7 @@ describe('appointmentBeforeTrip', () => {
       },
     })
 
-    const findings = appointmentBeforeTrip(dossier)
+    const findings = appointmentBeforeTrip({ dossier, template: undefined })
     expect(findings).toHaveLength(0)
   })
 
@@ -177,7 +177,7 @@ describe('appointmentBeforeTrip', () => {
       },
     })
 
-    const findings = appointmentBeforeTrip(dossier)
+    const findings = appointmentBeforeTrip({ dossier, template: undefined })
     expect(findings).toHaveLength(1)
     expect(findings[0]?.severity).toBe('error')
     expect(findings[0]?.id).toBe('appointment-after-trip')
@@ -211,7 +211,7 @@ describe('tripNotInPast', () => {
       },
     })
 
-    const findings = tripNotInPast(dossier)
+    const findings = tripNotInPast({ dossier, template: undefined })
     expect(findings).toHaveLength(0)
   })
 
@@ -240,7 +240,7 @@ describe('tripNotInPast', () => {
       },
     })
 
-    const findings = tripNotInPast(dossier)
+    const findings = tripNotInPast({ dossier, template: undefined })
     expect(findings).toHaveLength(1)
     expect(findings[0]?.severity).toBe('error')
     expect(findings[0]?.id).toBe('trip-in-past')
@@ -288,7 +288,7 @@ describe('routeNightsMatchTotal', () => {
       },
     })
 
-    const findings = routeNightsMatchTotal(dossier)
+    const findings = routeNightsMatchTotal({ dossier, template: undefined })
     expect(findings).toHaveLength(0)
   })
 
@@ -325,7 +325,7 @@ describe('routeNightsMatchTotal', () => {
       },
     })
 
-    const findings = routeNightsMatchTotal(dossier)
+    const findings = routeNightsMatchTotal({ dossier, template: undefined })
     expect(findings).toHaveLength(1)
     expect(findings[0]?.severity).toBe('warning')
     expect(findings[0]?.id).toBe('route-nights-mismatch')

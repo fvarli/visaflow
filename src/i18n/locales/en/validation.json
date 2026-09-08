@@ -185,11 +185,6 @@
       "description": "Passport expires on {{expiryDate}}, but must be valid for at least 3 months after the trip ends ({{tripEnd}}).",
       "action": "Renew your passport before applying for the visa."
     },
-    "passportBlankPages": {
-      "title": "Blank passport pages required",
-      "description": "Most visa applications require at least 2 blank pages in your passport.",
-      "action": "Ensure your passport has at least 2 blank visa pages."
-    },
     "sponsorNoDocuments": {
       "title": "Sponsor has no documents linked",
       "description": "Sponsor \"{{sponsorName}}\" has financial information but no supporting documents linked.",

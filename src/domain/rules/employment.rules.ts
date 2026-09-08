@@ -1,13 +1,16 @@
 import { parseISO, isBefore, isAfter } from 'date-fns'
-import type { Dossier } from '../schemas/dossier.schema'
-import type { ValidationFinding, ValidationRule } from './types'
+import type {
+  ValidationContext,
+  ValidationFinding,
+  ValidationRule,
+} from './types'
 
 /**
  * Rule 6: Approved employment leave must cover the trip
  */
-export const leaveCoversTrip: ValidationRule = (
-  dossier: Dossier
-): ValidationFinding[] => {
+export const leaveCoversTrip: ValidationRule = ({
+  dossier,
+}: ValidationContext): ValidationFinding[] => {
   const employment = dossier.application.employment
   const trip = dossier.application.trip
 

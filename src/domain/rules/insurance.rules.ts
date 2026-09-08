@@ -1,6 +1,9 @@
 import { parseISO, isBefore, isAfter } from 'date-fns'
-import type { Dossier } from '../schemas/dossier.schema'
-import type { ValidationFinding, ValidationRule } from './types'
+import type {
+  ValidationContext,
+  ValidationFinding,
+  ValidationRule,
+} from './types'
 
 /** Schengen minimum travel medical insurance coverage, in EUR. */
 const SCHENGEN_MINIMUM_COVERAGE = 30000
@@ -8,9 +11,9 @@ const SCHENGEN_MINIMUM_COVERAGE = 30000
 /**
  * Rule 5: Insurance must cover the complete trip
  */
-export const insuranceCoversTrip: ValidationRule = (
-  dossier: Dossier
-): ValidationFinding[] => {
+export const insuranceCoversTrip: ValidationRule = ({
+  dossier,
+}: ValidationContext): ValidationFinding[] => {
   const trip = dossier.application.trip
   const insurance = trip?.insurance
 

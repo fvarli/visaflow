@@ -185,11 +185,6 @@
       "description": "Pasaportunuzun geçerliliği {{expiryDate}} tarihinde doluyor; seyahat bitiminden ({{tripEnd}}) sonra en az 3 ay geçerli olmalıdır.",
       "action": "Vize başvurusundan önce pasaportunuzu yenileyin."
     },
-    "passportBlankPages": {
-      "title": "Boş pasaport sayfası gerekiyor",
-      "description": "Çoğu vize başvurusu pasaportunuzda en az 2 boş sayfa bulunmasını gerektirir.",
-      "action": "Pasaportunuzda en az 2 boş vize sayfası bulunduğundan emin olun."
-    },
     "sponsorNoDocuments": {
       "title": "Sponsora bağlı belge yok",
       "description": "\"{{sponsorName}}\" adlı sponsorun mali bilgileri girilmiş ancak destekleyici belge eklenmemiş.",

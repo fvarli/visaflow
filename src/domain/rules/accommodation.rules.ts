@@ -1,13 +1,16 @@
 import { parseISO, eachDayOfInterval, format } from 'date-fns'
-import type { Dossier } from '../schemas/dossier.schema'
-import type { ValidationFinding, ValidationRule } from './types'
+import type {
+  ValidationContext,
+  ValidationFinding,
+  ValidationRule,
+} from './types'
 
 /**
  * Rule 4: Accommodation must cover every night of the trip
  */
-export const accommodationCoversTrip: ValidationRule = (
-  dossier: Dossier
-): ValidationFinding[] => {
+export const accommodationCoversTrip: ValidationRule = ({
+  dossier,
+}: ValidationContext): ValidationFinding[] => {
   const trip = dossier.application.trip
   if (!trip?.entryDate || !trip?.exitDate) return []
   if (!trip.accommodationReservations?.length) {

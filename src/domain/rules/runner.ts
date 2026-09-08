@@ -1,5 +1,5 @@
-import type { Dossier } from '../schemas/dossier.schema'
 import type {
+  ValidationContext,
   ValidationRule,
   ValidationResult,
   ValidationFinding,
@@ -24,15 +24,19 @@ const allRules: ValidationRule[] = [
 ]
 
 /**
- * Run all validation rules against a dossier
+ * Run all validation rules against a dossier.
+ *
+ * Takes the resolved template alongside it, because requiredness and completion
+ * standing are template facts. The caller resolves once and passes it down —
+ * see `ValidationContext`.
  */
-export function runValidation(dossier: Dossier): ValidationResult {
+export function runValidation(context: ValidationContext): ValidationResult {
   const findings: ValidationFinding[] = []
   let passedRules = 0
 
   for (const rule of allRules) {
     try {
-      const ruleFindings = rule(dossier)
+      const ruleFindings = rule(context)
       if (ruleFindings.length === 0) {
         passedRules++
       }
@@ -61,13 +65,13 @@ export function runValidation(dossier: Dossier): ValidationResult {
  * Run specific rules by their IDs
  */
 export function runSpecificRules(
-  dossier: Dossier,
+  context: ValidationContext,
   ruleIds: string[]
 ): ValidationFinding[] {
   const findings: ValidationFinding[] = []
 
   for (const rule of allRules) {
-    const ruleFindings = rule(dossier)
+    const ruleFindings = rule(context)
     const matchingFindings = ruleFindings.filter((f) => ruleIds.includes(f.id))
     findings.push(...matchingFindings)
   }
@@ -78,30 +82,32 @@ export function runSpecificRules(
 /**
  * Get only errors from validation
  */
-export function getValidationErrors(dossier: Dossier): ValidationFinding[] {
-  const result = runValidation(dossier)
+export function getValidationErrors(
+  context: ValidationContext
+): ValidationFinding[] {
+  const result = runValidation(context)
   return result.findings.filter((f) => f.severity === 'error')
 }
 
 /**
  * Check if dossier has any validation errors
  */
-export function hasValidationErrors(dossier: Dossier): boolean {
-  const result = runValidation(dossier)
+export function hasValidationErrors(context: ValidationContext): boolean {
+  const result = runValidation(context)
   return result.errorCount > 0
 }
 
 /**
  * Get validation summary for display
  */
-export function getValidationSummary(dossier: Dossier): {
+export function getValidationSummary(context: ValidationContext): {
   isValid: boolean
   errors: number
   warnings: number
   info: number
   totalFindings: number
 } {
-  const result = runValidation(dossier)
+  const result = runValidation(context)
   return {
     isValid: result.errorCount === 0,
     errors: result.errorCount,

@@ -1,12 +1,15 @@
-import type { Dossier } from '../schemas/dossier.schema'
-import type { ValidationFinding, ValidationRule } from './types'
+import type {
+  ValidationContext,
+  ValidationFinding,
+  ValidationRule,
+} from './types'
 
 /**
  * Rule 8: A sponsor marked as active must have financial documents
  */
-export const sponsorHasDocuments: ValidationRule = (
-  dossier: Dossier
-): ValidationFinding[] => {
+export const sponsorHasDocuments: ValidationRule = ({
+  dossier,
+}: ValidationContext): ValidationFinding[] => {
   const findings: ValidationFinding[] = []
 
   for (const sponsor of dossier.sponsors) {
@@ -41,9 +44,9 @@ export const sponsorHasDocuments: ValidationRule = (
 /**
  * Rule 15: If financing is sponsor-funded, at least one sponsor must exist
  */
-export const sponsorFundingRequiresSponsor: ValidationRule = (
-  dossier: Dossier
-): ValidationFinding[] => {
+export const sponsorFundingRequiresSponsor: ValidationRule = ({
+  dossier,
+}: ValidationContext): ValidationFinding[] => {
   const financing = dossier.application.financing
 
   if (!financing) return []
@@ -91,9 +94,9 @@ export const sponsorFundingRequiresSponsor: ValidationRule = (
 /**
  * Check sponsor relationship documentation
  */
-export const sponsorRelationshipProof: ValidationRule = (
-  dossier: Dossier
-): ValidationFinding[] => {
+export const sponsorRelationshipProof: ValidationRule = ({
+  dossier,
+}: ValidationContext): ValidationFinding[] => {
   const findings: ValidationFinding[] = []
 
   for (const sponsor of dossier.sponsors) {

@@ -161,9 +161,10 @@ export function buildEmploymentModel(
 
   const leaveFindings =
     applicant && application
-      ? runValidation(
-          toDossier(applicant, application, documents, sponsors)
-        ).findings.filter((f) => f.ruleId.startsWith('employment.'))
+      ? runValidation({
+          dossier: toDossier(applicant, application, documents, sponsors),
+          template,
+        }).findings.filter((f) => f.ruleId.startsWith('employment.'))
       : []
 
   const trip = application?.trip

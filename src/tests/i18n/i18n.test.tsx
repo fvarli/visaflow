@@ -290,7 +290,6 @@ describe('validation findings', () => {
       'findings.mainDestinationMismatch',
       'findings.firstEntryTransportMismatch',
       'findings.passportValidityInsufficient',
-      'findings.passportBlankPages',
       'findings.noInsurance',
       'findings.insuranceDatesMissing',
       'findings.insuranceStartsLate',

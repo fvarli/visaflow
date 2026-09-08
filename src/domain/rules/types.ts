@@ -1,4 +1,5 @@
 import type { Dossier } from '../schemas/dossier.schema'
+import type { VisaTypeTemplate } from '@/config/types'
 
 export type ValidationSeverity = 'error' | 'warning' | 'info'
 
@@ -52,7 +53,36 @@ export interface ValidationFinding {
   relatedFields: string[]
 }
 
-export type ValidationRule = (dossier: Dossier) => ValidationFinding[]
+/**
+ * Everything a rule is allowed to read, resolved once by the caller.
+ *
+ * `template` is here because requiredness and completion standing are template
+ * facts, not record facts. Two rules used to decide requiredness from
+ * `Document.required` — the flag written when the record was seeded — so a pack
+ * that later made a document mandatory left the readiness ring and the findings
+ * list disagreeing about the same dossier.
+ *
+ * A rule must **not** resolve the template itself. One caller resolving it and
+ * passing it down is what keeps every surface answering from the same
+ * composition; a resolver call per rule is how the same semantics start drifting
+ * between consumers.
+ *
+ * It is a context rather than a second positional argument so the next thing
+ * validation genuinely needs does not widen every signature again. It is
+ * deliberately *not* a general rule-engine context: it holds what the rules
+ * read today and nothing speculative.
+ */
+export interface ValidationContext {
+  dossier: Dossier
+  /**
+   * Required, and nullable. A dossier with no destination has no template, and
+   * making the field optional would let a caller forget it and silently get the
+   * old record-only semantics back.
+   */
+  template: VisaTypeTemplate | undefined
+}
+
+export type ValidationRule = (context: ValidationContext) => ValidationFinding[]
 
 export interface ValidationRuleDefinition {
   id: string

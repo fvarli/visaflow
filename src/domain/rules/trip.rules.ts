@@ -1,13 +1,16 @@
 import { parseISO, isBefore, differenceInDays } from 'date-fns'
-import type { Dossier } from '../schemas/dossier.schema'
-import type { ValidationFinding, ValidationRule } from './types'
+import type {
+  ValidationContext,
+  ValidationFinding,
+  ValidationRule,
+} from './types'
 
 /**
  * Rule 1: Trip entry date must be before exit date
  */
-export const tripDatesValid: ValidationRule = (
-  dossier: Dossier
-): ValidationFinding[] => {
+export const tripDatesValid: ValidationRule = ({
+  dossier,
+}: ValidationContext): ValidationFinding[] => {
   const trip = dossier.application.trip
   if (!trip?.entryDate || !trip?.exitDate) return []
 
@@ -35,9 +38,9 @@ export const tripDatesValid: ValidationRule = (
 /**
  * Rule 2: Appointment date must be before trip entry date
  */
-export const appointmentBeforeTrip: ValidationRule = (
-  dossier: Dossier
-): ValidationFinding[] => {
+export const appointmentBeforeTrip: ValidationRule = ({
+  dossier,
+}: ValidationContext): ValidationFinding[] => {
   const appointment = dossier.application.appointment
   const trip = dossier.application.trip
 
@@ -70,9 +73,9 @@ export const appointmentBeforeTrip: ValidationRule = (
 /**
  * Rule 11: Past trip date must produce an error
  */
-export const tripNotInPast: ValidationRule = (
-  dossier: Dossier
-): ValidationFinding[] => {
+export const tripNotInPast: ValidationRule = ({
+  dossier,
+}: ValidationContext): ValidationFinding[] => {
   const trip = dossier.application.trip
   if (!trip?.entryDate) return []
 
@@ -99,9 +102,9 @@ export const tripNotInPast: ValidationRule = (
 /**
  * Rule 13: Route nights must equal total trip nights
  */
-export const routeNightsMatchTotal: ValidationRule = (
-  dossier: Dossier
-): ValidationFinding[] => {
+export const routeNightsMatchTotal: ValidationRule = ({
+  dossier,
+}: ValidationContext): ValidationFinding[] => {
   const trip = dossier.application.trip
   if (!trip?.entryDate || !trip?.exitDate || !trip?.route?.length) return []
 
@@ -130,9 +133,9 @@ export const routeNightsMatchTotal: ValidationRule = (
 /**
  * Rule 7: Main destination must match the longest stay
  */
-export const mainDestinationMatchesLongestStay: ValidationRule = (
-  dossier: Dossier
-): ValidationFinding[] => {
+export const mainDestinationMatchesLongestStay: ValidationRule = ({
+  dossier,
+}: ValidationContext): ValidationFinding[] => {
   const trip = dossier.application.trip
   if (!trip?.route?.length || !trip?.mainDestinationCountry) return []
 
@@ -183,9 +186,9 @@ export const mainDestinationMatchesLongestStay: ValidationRule = (
 /**
  * Rule 14: First entry country and transport itinerary should not conflict
  */
-export const firstEntryMatchesRoute: ValidationRule = (
-  dossier: Dossier
-): ValidationFinding[] => {
+export const firstEntryMatchesRoute: ValidationRule = ({
+  dossier,
+}: ValidationContext): ValidationFinding[] => {
   const trip = dossier.application.trip
   if (!trip?.firstEntryCountry || !trip?.transportReservations?.length)
     return []

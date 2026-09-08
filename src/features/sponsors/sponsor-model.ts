@@ -186,9 +186,10 @@ export function buildSponsorsModel(input: SponsorsInput): SponsorsModel {
 
   const sponsorFindings =
     applicant && application
-      ? runValidation(
-          toDossier(applicant, application, documents, sponsors)
-        ).findings.filter((f) => f.ruleId.startsWith('sponsor.'))
+      ? runValidation({
+          dossier: toDossier(applicant, application, documents, sponsors),
+          template,
+        }).findings.filter((f) => f.ruleId.startsWith('sponsor.'))
       : []
 
   const cards: SponsorCardView[] = sponsors.map((sponsor) => {

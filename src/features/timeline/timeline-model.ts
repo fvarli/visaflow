@@ -161,7 +161,10 @@ export function buildTimelineModel(
 
   const validation =
     applicant && application
-      ? runValidation(toDossier(applicant, application, documents, sponsors))
+      ? runValidation({
+          dossier: toDossier(applicant, application, documents, sponsors),
+          template,
+        })
       : {
           findings: [],
           errorCount: 0,

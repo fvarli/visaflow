@@ -397,7 +397,7 @@ export function buildDocumentsModel(
       documents,
       sponsors,
     }
-    findings = runValidation(dossier).findings
+    findings = runValidation({ dossier, template }).findings
   }
 
   const requirementCodes = requiredRequirementCodes(template, application)

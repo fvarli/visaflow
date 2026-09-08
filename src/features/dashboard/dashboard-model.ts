@@ -445,15 +445,21 @@ function buildApplicationModel(
   const { applicant, application, documents, sponsors } = input
   const hasData = applicant !== null || application !== null
 
-  const validation =
-    applicant && application
-      ? runValidation(toDossier(applicant, application, documents, sponsors))
-      : EMPTY_VALIDATION
-
+  // Resolved before validation runs, because validation needs it too: two rules
+  // decide requiredness from the template rather than from the record's seeded
+  // flag, which is what kept this ring and the findings list in agreement.
   const template = resolveVisaTemplate(
     application?.destinationCountry,
     application?.visaType
   )
+
+  const validation =
+    applicant && application
+      ? runValidation({
+          dossier: toDossier(applicant, application, documents, sponsors),
+          template,
+        })
+      : EMPTY_VALIDATION
 
   const readiness = buildDocumentReadiness({
     documents,

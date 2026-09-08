@@ -5,6 +5,11 @@ import { buildDashboardModel } from '@/features/dashboard/dashboard-model'
 import type { Dossier } from '@/domain/schemas/dossier.schema'
 import type { AccommodationReservation } from '@/domain/schemas/trip.schema'
 
+import { resolveVisaTemplate } from '@/config/countries'
+
+/** The pack production resolves for these fixtures. */
+const GREECE = resolveVisaTemplate('GR', 'short_stay_tourism')
+
 /**
  * A booking in someone else's name is not a defect, and VisaFlow must not treat
  * it as one.
@@ -106,8 +111,8 @@ function dashboardOf(dossier: Dossier) {
 }
 
 describe('a guest name that is not the applicant changes nothing normative', () => {
-  const a = runValidation(mismatched)
-  const b = runValidation(matched)
+  const a = runValidation({ dossier: mismatched, template: GREECE })
+  const b = runValidation({ dossier: matched, template: GREECE })
 
   it('raises no finding of its own', () => {
     // The rule is gone, so the mismatch produces nothing. Stated as a set
@@ -126,12 +131,12 @@ describe('a guest name that is not the applicant changes nothing normative', () 
       errors: a.errorCount,
       warnings: a.warningCount,
       info: a.infoCount,
-      summary: getValidationSummary(mismatched),
+      summary: getValidationSummary({ dossier: mismatched, template: GREECE }),
     }).toEqual({
       errors: b.errorCount,
       warnings: b.warningCount,
       info: b.infoCount,
-      summary: getValidationSummary(matched),
+      summary: getValidationSummary({ dossier: matched, template: GREECE }),
     })
   })
 

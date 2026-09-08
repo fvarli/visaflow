@@ -10,6 +10,9 @@ import type { Application } from '@/domain/schemas/application.schema'
 import type { Document } from '@/domain/schemas/document.schema'
 import type { Dossier } from '@/domain/schemas/dossier.schema'
 
+/** The pack production resolves for these fixtures. */
+const GREECE = resolveVisaTemplate('GR', 'short_stay_tourism')
+
 const APPLICANT: Applicant = {
   id: 'a1',
   firstName: 'Ada',
@@ -85,7 +88,7 @@ describe('buildTimelineModel — Dashboard priority compatibility', () => {
           app
         ),
       }),
-      runValidation(dossier),
+      runValidation({ dossier, template: GREECE }),
       app
     )[0]
     expect(model.primaryAction).toEqual(expected)

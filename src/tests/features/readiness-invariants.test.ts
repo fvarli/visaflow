@@ -29,6 +29,9 @@ import {
   type DossierFixture,
 } from '@/tests/fixtures/dossiers'
 
+/** The pack production resolves for these fixtures. */
+const GREECE = resolveVisaTemplate('GR', 'short_stay_tourism')
+
 const NOW = new Date('2099-01-15T00:00:00.000Z')
 
 const canonical = canonicalReadiness
@@ -173,7 +176,7 @@ describe('INVARIANT 3 — received has one documented semantic', () => {
     expect(r.inProgress).toBe(0)
     const actions = deriveNextActions(
       r,
-      runValidation(toDossier(receivedHeavy)!),
+      runValidation({ dossier: toDossier(receivedHeavy)!, template: GREECE }),
       receivedHeavy.application
     )
     const missing = actions.find((a) => a.id === 'completeMissingDocs')
@@ -205,7 +208,7 @@ describe('INVARIANT 3 — received has one documented semantic', () => {
     const receivedIds = receivedHeavy.documents
       .filter((d) => d.status === 'received')
       .map((d) => d.id)
-    const findings = runValidation(dossier).findings
+    const findings = runValidation({ dossier, template: GREECE }).findings
     for (const id of receivedIds) {
       expect(
         findings.some((f) =>

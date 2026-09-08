@@ -15,6 +15,9 @@ import type { Application } from '@/domain/schemas/application.schema'
 import type { Document } from '@/domain/schemas/document.schema'
 import type { Dossier } from '@/domain/schemas/dossier.schema'
 
+/** The pack production resolves for these fixtures. */
+const GREECE = resolveVisaTemplate('GR', 'short_stay_tourism')
+
 const NOW = new Date('2026-08-15T00:00:00.000Z')
 
 const APPLICANT: Applicant = {
@@ -137,7 +140,10 @@ describe('review-model', () => {
       const app = application()
       const model = buildFinalReviewModel(input({ application: app }), NOW)
       const readiness = canonicalReadiness(app)
-      const validation = runValidation(dossierOf(app))
+      const validation = runValidation({
+        dossier: dossierOf(app),
+        template: GREECE,
+      })
 
       expect(model.readiness.percent).toBe(readiness.percent)
       expect(model.readiness.outstanding).toBe(readiness.outstanding)
@@ -152,7 +158,7 @@ describe('review-model', () => {
       const model = buildFinalReviewModel(input({ application: app }), NOW)
       const expected = deriveNextActions(
         canonicalReadiness(app),
-        runValidation(dossierOf(app)),
+        runValidation({ dossier: dossierOf(app), template: GREECE }),
         app
       )[0]
 

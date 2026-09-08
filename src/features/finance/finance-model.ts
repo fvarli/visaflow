@@ -215,9 +215,10 @@ export function buildFinanceModel(input: FinanceInput): FinanceModel {
 
   const moneyFindings =
     applicant && application
-      ? runValidation(
-          toDossier(applicant, application, documents, sponsors)
-        ).findings.filter((f) => f.ruleId.startsWith('sponsor.'))
+      ? runValidation({
+          dossier: toDossier(applicant, application, documents, sponsors),
+          template,
+        }).findings.filter((f) => f.ruleId.startsWith('sponsor.'))
       : []
 
   const sponsorList: SponsorSummaryView[] = sponsors.map((sponsor) => ({

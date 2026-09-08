@@ -2,6 +2,7 @@ import { useMemo } from 'react'
 import { differenceInCalendarDays, parseISO } from 'date-fns'
 import { useDossier } from '@/app/providers/DossierProvider'
 import { runValidation } from '@/domain/rules/runner'
+import { resolveVisaTemplate } from '@/config/countries'
 import {
   maxStopNights,
   stopNights,
@@ -130,7 +131,16 @@ export function buildTripModel(input: TripModelInput, now: Date): TripModel {
       documents,
       sponsors,
     }
-    findings = runValidation(dossier).findings.filter(isTripFinding)
+    findings = runValidation({
+      dossier,
+      // The only model that had no template of its own. Validation needs one to
+      // read requiredness from the pack instead of from each record's seeded
+      // flag, so it is resolved here rather than inside a rule.
+      template: resolveVisaTemplate(
+        application.destinationCountry,
+        application.visaType
+      ),
+    }).findings.filter(isTripFinding)
   }
 
   const insurance = trip?.insurance ?? null
