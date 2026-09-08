@@ -118,12 +118,14 @@ export const germanyTourismComposition = composeVisaTemplate({
      * `1.2.0` lost the sponsor block, which no German sheet lists; `1.3.0`
      * makes the tax plate a German-owned requirement that is mandatory for the
      * self-employed rather than an optional Türkiye-wide one; `1.4.0` names the
-     * third travel-arrangement alternative the mission's own sheet offers.
+     * third travel-arrangement alternative the mission's own sheet offers;
+     * `1.5.0` renders eight acceptance bars the mission publishes on
+     * requirements this pack inherits rather than owns.
      *
      * Greece's number counts its own history and the two are unrelated —
      * `templateVersion` is per pack, not repository-wide.
      */
-    templateVersion: '1.4.0',
+    templateVersion: '1.5.0',
     lastReviewedAt: '2026-09-07',
     /**
      * `verified`, and the word means exactly one thing here: **every** composed

@@ -96,6 +96,21 @@ export interface DocumentRequirement {
   /** Zero or more RequirementSource ids. Empty means unverified. */
   sourceRefs?: string[]
   /**
+   * Composition-scoped acceptance detail, appended by a later layer.
+   *
+   * Never declared by the owner — an owner's criteria belong in its own
+   * `descriptionKey`/`notesKey`. These are i18n keys a *refining* layer
+   * attached because the destination or filing jurisdiction publishes a bar the
+   * shared requirement cannot state: Germany's civil-registry extract must
+   * carry an e-Devlet barcode, and Greece's must not be told so.
+   *
+   * Additive by construction. The base contract is untouched, so an applicant
+   * still sees the shared name, description and notes; this is extra detail
+   * beneath them, in the order the layers composed. Absent when no layer
+   * attached any, which is every requirement in a single-layer composition.
+   */
+  detailKeys?: string[]
+  /**
    * The **acceptance contract** version — the criteria this pack *renders to
    * the applicant*, not what the authority has always required.
    *
@@ -200,25 +215,68 @@ export interface RequirementLayer {
 }
 
 /**
- * The only override a layer has: append citations to somebody else's
- * requirement.
+ * Acceptance detail a refining layer attaches to an inherited requirement.
  *
- * Deliberately **not** a partial `DocumentRequirement`. Composition may not
- * change an acceptance contract, because `satisfiedRevision: N` on a stored
- * document has to mean the same thing in every composition — otherwise a
- * dossier stops being portable and the aliasing ADR-049 forbids arrives through
- * the revision axis instead of the label axis. ADR-051 already establishes that
- * attaching a source is not a contract change, which is exactly why appending
- * citations is safe and replacing prose or `required` would not be.
+ * The detail is *additional* criteria the applicant must meet in this
+ * composition, so by the ADR-051 directional test it tightens the bar: evidence
+ * that satisfied the shared contract can fail the composed one. It therefore
+ * carries its own `revision`, and the composed requirement's revision moves
+ * with it. Attaching detail without versioning it would be the under-
+ * specification ADR-051a forbids, wearing a new hat.
+ */
+export interface AcceptanceDetailFragment {
+  /**
+   * i18n keys, rendered beneath the inherited contract in declaration order.
+   *
+   * Keys rather than prose for the same reason every other contract string is a
+   * key: the pack must not carry language, and both locales must stay in step.
+   */
+  detailKeys: string[]
+  /**
+   * This fragment's own contract version, starting at 1.
+   *
+   * Moves when the *detail* tightens. The owner's `revision` is untouched — a
+   * German fragment must never supersede a Greek applicant's claim.
+   */
+  revision: number
+}
+
+/**
+ * What a layer may do to a requirement it does not own: append citations, and
+ * append composition-scoped acceptance detail.
  *
- * A jurisdiction that genuinely needs different acceptance criteria must
- * **own** the requirement outright. If contract-bearing override is ever really
- * needed it arrives as its own capability, with its own ADR and its own
- * invariants — not by widening this interface.
+ * Deliberately **not** a partial `DocumentRequirement`, and the distinction is
+ * the whole design. A refinement cannot change identity, requiredness,
+ * applicability, category, ownership or the base contract's own prose. It can
+ * only *add* — a citation, or detail rendered beneath what the owner wrote.
+ *
+ * WHY `addDetail` EXISTS, HAVING BEEN REFUSED BEFORE. Both production packs
+ * inherit `CIVIL_REGISTRY_EXTRACT`, `TRAVEL_INSURANCE` and `PHOTOS` from layers
+ * they share, and the German mission publishes acceptance bars on all three
+ * that the Greek one does not. Every current-model route was tried and each is
+ * wrong in a different way: putting the German bar in the shared contract
+ * asserts it to Greek applicants and to every future pack; a second code breaks
+ * one-code-one-bar; moving ownership deletes the requirement from the other
+ * pack. The rejected alternative was a *contract-bearing override* that
+ * replaces prose or `required`, and that stays rejected — this is strictly
+ * additive and cannot express replacement or suppression.
+ *
+ * THE PORTABILITY CONSEQUENCE, STATED RATHER THAN HIDDEN. Because a fragment
+ * moves the composed revision, the same code can carry a different revision in
+ * two compositions, and a dossier exported from Greece and imported for Germany
+ * may find a `ready` claim superseded. Earlier notes here called that the
+ * aliasing ADR-049 forbids. It is not: ADR-049 forbids one code meaning two
+ * different *requirements*, and this is one requirement whose composed bar
+ * genuinely differs by destination. Being asked to re-check a photograph
+ * against Germany's stated size and age is the correct answer, not a defect.
+ * What is *not* solved is the reverse ambiguity — two compositions can arrive
+ * at the same composed number by different routes — and that is why the number
+ * is only ever compared within one composition.
  */
 export interface CitationRefinement {
   code: string
-  addSourceRefs: string[]
+  addSourceRefs?: string[]
+  addDetail?: AcceptanceDetailFragment
 }
 
 /**

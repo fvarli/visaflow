@@ -165,6 +165,29 @@ export const grTrMissionLayer: RequirementLayer = {
     { code: 'APPLICATION_FORM', addSourceRefs: ['gr-mfa-tr-visa-page'] },
     { code: 'PASSPORT_CURRENT', addSourceRefs: ['gr-mfa-tr-visa-page'] },
     { code: 'TRAVEL_INSURANCE', addSourceRefs: ['gr-mfa-tr-visa-page'] },
+    {
+      /**
+       * The one Greek acceptance detail, and the reason it is here rather than
+       * in the common contract.
+       *
+       * The Ankara page asks for "a recent photograph conforming to ICAO
+       * standards". Article 13 states the ICAO conformance and says nothing
+       * about age, so "recent" is the consulate's, not the Regulation's.
+       * Writing it into the shared requirement would assert a mission's word to
+       * every future Schengen pack — the C2 defect, and ADR-052a Rule 3.
+       *
+       * It sat in the E5a plan as a shared-copy fix and was pulled out for
+       * exactly that reason, which is what moved it into C1's row set. Germany
+       * attaches its own, sharper detail to the same requirement; neither
+       * composition sees the other's.
+       */
+      code: 'PHOTOS',
+      addSourceRefs: ['gr-mfa-tr-visa-page'],
+      addDetail: {
+        detailKeys: ['visa-domain:detail.gr-tr-mission.PHOTOS.recent'],
+        revision: 1,
+      },
+    },
 
     // The mission's rendering of Annex III, appended after the instrument
     // itself so the composed citation reads authority-first.

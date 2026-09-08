@@ -1,4 +1,5 @@
 import type {
+  AcceptanceDetailFragment,
   CitationRefinement,
   DocumentRequirement,
   LayerKind,
@@ -121,8 +122,33 @@ const KIND_RANK: Record<LayerKind, number> = {
  * to the interface would silently start changing acceptance contracts through
  * composition; with this here, it also has to get past a runtime assertion that
  * says why that is not allowed.
+ *
+ * `addDetail` was added deliberately and is the *only* widening since. It is
+ * additive — it appends rendered criteria and moves the composed revision — and
+ * it still cannot touch identity, requiredness, applicability or the owner's
+ * own prose. The nested guard below keeps it that way: a fragment carrying
+ * `required` or `descriptionKey` is refused with the same message, because the
+ * cheapest way to smuggle an override in would be through the fragment rather
+ * than past this set.
  */
-const ALLOWED_REFINEMENT_KEYS = new Set(['code', 'addSourceRefs'])
+const ALLOWED_REFINEMENT_KEYS = new Set(['code', 'addSourceRefs', 'addDetail'])
+const ALLOWED_DETAIL_KEYS = new Set(['detailKeys', 'revision'])
+
+function refuseRefinement(
+  layerId: string,
+  code: string,
+  extra: string[],
+  where: string
+): never {
+  throw new CompositionError(
+    'invalid-refinement',
+    `Layer "${layerId}" refines "${code}" with ${extra
+      .map((k) => `"${k}"`)
+      .join(', ')}${where}. A refinement may only append citations and ` +
+      'acceptance detail — a layer that needs different requiredness, ' +
+      'applicability or base prose must own the requirement instead.'
+  )
+}
 
 function assertCitationRefinementShape(
   layerId: string,
@@ -131,15 +157,52 @@ function assertCitationRefinementShape(
   const extra = Object.keys(refinement).filter(
     (key) => !ALLOWED_REFINEMENT_KEYS.has(key)
   )
-  if (extra.length > 0) {
+  if (extra.length > 0) refuseRefinement(layerId, refinement.code, extra, '')
+
+  const detail = refinement.addDetail
+  if (detail === undefined) return
+
+  const detailExtra = Object.keys(detail).filter(
+    (key) => !ALLOWED_DETAIL_KEYS.has(key)
+  )
+  if (detailExtra.length > 0)
+    refuseRefinement(layerId, refinement.code, detailExtra, ' in `addDetail`')
+
+  // A fragment that renders nothing but still moves the revision would
+  // supersede live claims for no applicant-visible reason.
+  if (detail.detailKeys.length === 0) {
     throw new CompositionError(
       'invalid-refinement',
-      `Layer "${layerId}" refines "${refinement.code}" with ${extra
-        .map((k) => `"${k}"`)
-        .join(', ')}. A refinement may only append citations — a layer that ` +
-        'needs different acceptance criteria must own the requirement instead.'
+      `Layer "${layerId}" attaches an empty detail fragment to ` +
+        `"${refinement.code}". A fragment that renders nothing still moves ` +
+        'the composed revision, which would supersede claims over nothing.'
     )
   }
+  if (!Number.isInteger(detail.revision) || detail.revision < 1) {
+    throw new CompositionError(
+      'invalid-refinement',
+      `Layer "${layerId}" attaches detail to "${refinement.code}" with ` +
+        `revision ${detail.revision}. Fragments start at 1, for the same ` +
+        'reason requirements do (ADR-051a).'
+    )
+  }
+}
+
+/**
+ * The composed acceptance-contract version.
+ *
+ * The owner's revision plus every fragment this composition attached. Summing
+ * is not arithmetic for its own sake — it is the cheapest function with the two
+ * properties that matter: it equals the owner's revision exactly when no
+ * fragment applies, so no existing claim in any composition moves; and it
+ * strictly increases when a fragment is added or bumped, so a tightened bar can
+ * never fail to supersede.
+ */
+function composedRevision(
+  base: number,
+  fragments: AcceptanceDetailFragment[]
+): number {
+  return fragments.reduce((total, f) => total + f.revision, base)
 }
 
 /** Same id must mean the same record; differing ones are a real conflict. */
@@ -187,10 +250,18 @@ function assertLayerOrder(layers: RequirementLayer[]): void {
   }
 }
 
-/** Append, order-stable, no duplicates. */
-function appendRefs(existing: string[] | undefined, added: string[]): string[] {
+/**
+ * Append, order-stable, no duplicates.
+ *
+ * `added` is optional because a refinement may now carry detail without
+ * citations, or citations without detail.
+ */
+function appendRefs(
+  existing: string[] | undefined,
+  added: string[] | undefined
+): string[] {
   const out = [...(existing ?? [])]
-  for (const ref of added) {
+  for (const ref of added ?? []) {
     if (!out.includes(ref)) out.push(ref)
   }
   return out
@@ -270,6 +341,14 @@ export function composeVisaTemplate(
   /** Composition order, by code. The requirements themselves live in `byCode`. */
   const layerOrder: string[] = []
   const byCode = new Map<string, DocumentRequirement>()
+  /**
+   * The owner's revision, kept separately because `byCode` is rewritten as
+   * fragments attach — recomputing from a value that already includes a
+   * fragment would count it twice.
+   */
+  const baseRevision = new Map<string, number>()
+  /** Detail fragments attached to each code, in the order layers composed. */
+  const fragmentsFor = new Map<string, AcceptanceDetailFragment[]>()
 
   // Pass 1 — ownership. Every code is claimed exactly once, and a code's owner
   // owns everything about it including its `revision`.
@@ -286,6 +365,7 @@ export function composeVisaTemplate(
       }
       ownership.set(requirement.code, layer.id)
       declaredAt.set(requirement.code, index)
+      baseRevision.set(requirement.code, requirement.revision)
       layerOrder.push(requirement.code)
       byCode.set(requirement.code, requirement)
     }
@@ -341,6 +421,32 @@ export function composeVisaTemplate(
       // Only a refined requirement is rebuilt. Everything else is returned by
       // identity, so composition creates the minimum number of new references —
       // which is what keeps the memoized resolver's output stable downstream.
+      //
+      // Fragments accumulate rather than replace, and the composed revision is
+      // recomputed from the owner's number and every fragment so far. Both are
+      // append-only: a second refining layer can add to what the first
+      // attached, and neither can take anything away.
+      if (refinement.addDetail) {
+        const fragments = [
+          ...(fragmentsFor.get(refinement.code) ?? []),
+          refinement.addDetail,
+        ]
+        fragmentsFor.set(refinement.code, fragments)
+        byCode.set(refinement.code, {
+          ...current,
+          sourceRefs: appendRefs(current.sourceRefs, refinement.addSourceRefs),
+          detailKeys: appendRefs(
+            current.detailKeys,
+            refinement.addDetail.detailKeys
+          ),
+          revision: composedRevision(
+            baseRevision.get(refinement.code)!,
+            fragments
+          ),
+        })
+        continue
+      }
+
       byCode.set(refinement.code, {
         ...current,
         sourceRefs: appendRefs(current.sourceRefs, refinement.addSourceRefs),

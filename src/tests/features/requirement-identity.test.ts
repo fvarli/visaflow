@@ -198,12 +198,29 @@ function buildActiveRequirements(): Map<string, DocumentRequirement> {
           byCode.set(requirement.code, requirement)
           continue
         }
-        // Composition may append citations, so two compositions of one code can
-        // differ in `sourceRefs` and still be the same requirement. Everything
-        // else is the acceptance contract and must be identical.
-        const strip = ({ sourceRefs: _refs, ...rest }: DocumentRequirement) =>
-          JSON.stringify(rest)
+        // Composition may append citations and, since C1, composition-scoped
+        // acceptance detail — so two compositions of one code can differ in
+        // `sourceRefs`, `detailKeys` and the `revision` the detail moves, and
+        // still be the same requirement. Everything else is identity and must
+        // be identical.
+        const strip = ({
+          sourceRefs: _refs,
+          detailKeys: _detail,
+          revision: _revision,
+          ...rest
+        }: DocumentRequirement) => JSON.stringify(rest)
         if (strip(seen) !== strip(requirement)) {
+          conflicts.push(requirement.code)
+        }
+        // The revision is only allowed to diverge *because* the detail does.
+        // Identical detail with different numbers means two declarations of one
+        // code, which is the aliasing this whole file exists to prevent — and
+        // stripping `revision` above would otherwise have stopped catching it.
+        if (
+          JSON.stringify(seen.detailKeys ?? []) ===
+            JSON.stringify(requirement.detailKeys ?? []) &&
+          seen.revision !== requirement.revision
+        ) {
           conflicts.push(requirement.code)
         }
       }
@@ -247,19 +264,79 @@ describe('the acceptance-contract ledger', () => {
     }
   )
 
-  it.each([...activeRequirements.keys()])(
+  /**
+   * Which refining layers contributed detail to a composed requirement.
+   *
+   * Read back out of the keys rather than tracked separately, because the keys
+   * are what an applicant actually reads — a ledger entry for a fragment that
+   * has been deleted stops being counted here, and the contiguity check below
+   * then fails, which is the behaviour we want.
+   */
+  const layersInDetail = (requirement: DocumentRequirement): Set<string> =>
+    new Set(
+      (requirement.detailKeys ?? []).map((key) => key.split('.')[1] ?? '')
+    )
+
+  /**
+   * The ledger is checked per composition, not per code, because since C1 one
+   * code can sit at different revisions in different packs. `PASSPORT_CURRENT`
+   * is revision 2 in Greece and 3 in Germany, and both must be fully explained
+   * — by the shared entry alone in Greece, and by the shared entry plus the
+   * German fragment's entry in Germany.
+   */
+  const COMPOSED_ROWS = PRODUCTION_COMPOSITIONS.flatMap(
+    ({ countryCode, composition }) =>
+      composition.template.documentRequirements.map(
+        (requirement) =>
+          [
+            `${countryCode} ${requirement.code}`,
+            countryCode,
+            requirement,
+          ] as const
+      )
+  )
+
+  it.each(COMPOSED_ROWS)(
     '%s has a complete ledger history for every revision above 1',
-    (code) => {
-      const revision = activeRequirements.get(code)!.revision
-      const recorded = REQUIREMENT_REVISIONS.filter((e) => e.code === code)
+    (_label, _countryCode, requirement) => {
+      const viaLayers = layersInDetail(requirement)
+      const recorded = REQUIREMENT_REVISIONS.filter(
+        (e) =>
+          e.code === requirement.code &&
+          (e.viaLayer === undefined || viaLayers.has(e.viaLayer))
+      )
         .map((e) => e.revision)
         .sort((a, b) => a - b)
       // 1 means no history; N means one entry for each of 2..N, contiguous.
       // A gap would mean a bump nobody explained.
-      const expected = Array.from({ length: revision - 1 }, (_, i) => i + 2)
-      expect({ code, recorded }).toEqual({ code, recorded: expected })
+      const expected = Array.from(
+        { length: requirement.revision - 1 },
+        (_, i) => i + 2
+      )
+      expect({ code: requirement.code, recorded }).toEqual({
+        code: requirement.code,
+        recorded: expected,
+      })
     }
   )
+
+  it('records no composition-scoped move for a layer that attaches no detail', () => {
+    // The other direction: a `viaLayer` naming a layer whose fragment was
+    // removed, or misspelled, would silently stop applying to anything and the
+    // entry would become decoration.
+    const attaching = new Set(
+      PRODUCTION_COMPOSITIONS.flatMap(({ composition }) =>
+        composition.template.documentRequirements.flatMap((r) =>
+          [...layersInDetail(r)].map((layer) => `${layer}:${r.code}`)
+        )
+      )
+    )
+    const orphans = REQUIREMENT_REVISIONS.filter(
+      (e) =>
+        e.viaLayer !== undefined && !attaching.has(`${e.viaLayer}:${e.code}`)
+    ).map((e) => `${e.viaLayer}:${e.code}`)
+    expect(orphans).toEqual([])
+  })
 
   it('records no revision for a code no pack declares', () => {
     // Catches a typo, and catches bumping an identity that has been withdrawn:
@@ -295,20 +372,36 @@ describe('the acceptance-contract ledger', () => {
     }
   })
 
+  /**
+   * A row's identity includes the layer that caused it.
+   *
+   * `PHOTOS@2` happens twice — once because the Greek consulate asks for a
+   * recent photograph, once because the German mission states its dimensions —
+   * and those are two different bumps in two different compositions, not a
+   * duplicate. Keying on the code and number alone stopped being enough the
+   * moment a revision could move for one pack and not the other.
+   */
+  const ledgerKey = (e: (typeof REQUIREMENT_REVISIONS)[number]) =>
+    `${e.code}@${e.revision}${e.viaLayer ? ` via ${e.viaLayer}` : ''}`
+
   it('has no duplicate rows', () => {
-    const keys = REQUIREMENT_REVISIONS.map((e) => `${e.code}@${e.revision}`)
+    const keys = REQUIREMENT_REVISIONS.map(ledgerKey)
     expect(keys).toEqual([...new Set(keys)])
   })
 
   it('explains every bump it records', () => {
     for (const entry of REQUIREMENT_REVISIONS) {
       expect({
-        row: `${entry.code}@${entry.revision}`,
+        row: ledgerKey(entry),
         hasReason: entry.reason.trim().length > 30,
-        hasVersion: /^\d+\.\d+\.\d+$/.test(entry.bumpedIn),
+        // A composition-scoped move names the pack it shipped in, because two
+        // packs version independently and a bare number would not say which.
+        hasVersion: entry.viaLayer
+          ? /^[A-Z]{2} \d+\.\d+\.\d+$/.test(entry.bumpedIn)
+          : /^\d+\.\d+\.\d+$/.test(entry.bumpedIn),
         startsAboveOne: entry.revision > 1,
       }).toEqual({
-        row: `${entry.code}@${entry.revision}`,
+        row: ledgerKey(entry),
         hasReason: true,
         hasVersion: true,
         startsAboveOne: true,

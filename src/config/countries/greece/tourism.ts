@@ -128,12 +128,14 @@ export const greeceTourismComposition = composeVisaTemplate({
      * real change to what the pack asks for: `1.5.0` for the E5a corrections,
      * where four contracts render stricter criteria their authorities always
      * stated; `1.6.0` for the three retirements; `1.7.0` for the tax plate
-     * leaving; `1.8.0` for the third travel-arrangement alternative arriving.
+     * leaving; `1.8.0` for the third travel-arrangement alternative arriving;
+     * `1.9.0` for the consulate's "recent photograph" finally being rendered
+     * rather than only cited.
      * The E5c sponsor move is absent from this list on purpose — it changed
      * which layer owns those four requirements, not what Greece asks for, so
      * the composed output was identical and the number held.
      */
-    templateVersion: '1.8.0',
+    templateVersion: '1.9.0',
     lastReviewedAt: '2026-09-07',
     /**
      * Still derived from evidence rather than chosen: 19 of the 24 requirements

@@ -82,6 +82,7 @@
   "panel": {
     "requirementContext": "Bu belge hakkında",
     "why": "Neden istenebilir",
+    "missionDetail": "Bu temsilciliğin istedikleri",
     "yourDocument": "Belgeniz",
     "relatedFindings": "Tutarlılık",
     "noFindings": "İlgili sorun bulunamadı.",

@@ -82,6 +82,7 @@
   "panel": {
     "requirementContext": "About this document",
     "why": "Why it may be requested",
+    "missionDetail": "What this mission asks for",
     "yourDocument": "Your document",
     "relatedFindings": "Consistency",
     "noFindings": "No related issues found.",

@@ -230,7 +230,7 @@ describe('Germany pack — no Greek evidence reaches it', () => {
       .filter((layer) =>
         [
           ...(layer.add ?? []).flatMap((r) => r.sourceRefs ?? []),
-          ...(layer.refine ?? []).flatMap((r) => r.addSourceRefs),
+          ...(layer.refine ?? []).flatMap((r) => r.addSourceRefs ?? []),
           ...(layer.sources ?? []).map((s) => s.id),
         ].some((id) => id.startsWith('de-') && id !== 'de-aufenthg-54')
       )
@@ -297,18 +297,28 @@ describe('Germany pack — what the two packs share is only neutral evidence', (
   })
 })
 
-describe('Germany pack — refinement adds citations and nothing else', () => {
-  it('changes no shared requirement except its citations', () => {
+describe('Germany pack — refinement adds citations and detail, and nothing else', () => {
+  it('changes no shared requirement except its citations and its detail', () => {
     // The composer's contract, checked where it matters most: every code both
-    // packs carry must be identical field for field once `sourceRefs` is set
-    // aside. A destination that could reword a shared requirement would make
-    // `satisfiedRevision` mean two things.
-    const strip = ({ sourceRefs: _refs, ...rest }: DocumentRequirement) =>
-      JSON.stringify(rest)
+    // packs carry must be identical field for field once the three additive
+    // fields are set aside. A destination that could reword a shared
+    // requirement, or move its requiredness or applicability, would make one
+    // code mean two different things — which is still forbidden, and is what
+    // this measures.
+    //
+    // `sourceRefs` and `detailKeys` are the additions a refinement may make,
+    // and `revision` moves with the detail by construction. Everything else is
+    // the identity of the requirement and must match exactly.
+    const strip = ({
+      sourceRefs: _refs,
+      detailKeys: _detail,
+      revision: _revision,
+      ...rest
+    }: DocumentRequirement) => JSON.stringify(rest)
     const shared = germany.template.documentRequirements.filter((r) =>
       greece.template.documentRequirements.some((g) => g.code === r.code)
     )
-    // Twenty codes are common to both packs after E5c — the number moves
+    // Twenty-one codes are common to both packs after F0 — the number moves
     // whenever ownership does, so the guard is that there is a substantial
     // shared set to compare, not a pinned count.
     expect(shared.length).toBeGreaterThan(15)
@@ -319,6 +329,23 @@ describe('Germany pack — refinement adds citations and nothing else', () => {
       })
       .map((r) => r.code)
     expect(diverged).toEqual([])
+  })
+
+  it('lets the revision diverge only where a fragment explains it', () => {
+    // The guard the strip above gives up, restored on its own terms. A shared
+    // code may carry different revisions in the two packs *only* if their
+    // detail differs; identical detail with different numbers would mean an
+    // owner declared one code twice, which is the aliasing ADR-049 forbids.
+    const unexplained = germany.template.documentRequirements
+      .map((de) => [de, codeOf(greece, de.code)] as const)
+      .filter(([, gr]) => gr !== undefined)
+      .filter(
+        ([de, gr]) =>
+          JSON.stringify(de.detailKeys ?? []) ===
+            JSON.stringify(gr!.detailKeys ?? []) && de.revision !== gr!.revision
+      )
+      .map(([de]) => de.code)
+    expect(unexplained).toEqual([])
   })
 
   it('pins which requirements the mission’s pages vouch for', () => {
@@ -373,32 +400,51 @@ describe('Germany pack — refinement adds citations and nothing else', () => {
     expect(misattributed).toEqual([])
   })
 
-  it('leaves the photograph contract identical in both packs', () => {
-    // THE RECORDED LIMITATION, PINNED SO IT CANNOT BE QUIETLY CROSSED. The
-    // German mission states one photograph, 35 x 45 mm, not older than six
-    // months. Citation-only refinement carries the citation and not the
-    // detail, so what an applicant reads is the Common ICAO contract in both
-    // packs. Germany's photograph requirement is correctly sourced and not
-    // fully rendered; promoting the detail needs a contract-bearing override
-    // that ADR-052 deliberately did not build.
+  it('keeps the shared photograph contract identical and the detail apart', () => {
+    // THE LIMITATION THIS USED TO PIN IS GONE, AND THE BOUNDARY REPLACING IT IS
+    // NARROWER. The German mission states 35 x 45 mm, not older than six
+    // months, full-face; the Greek one says only "recent". Both are now
+    // rendered, each in its own composition, and the *base* contract is still
+    // byte-identical — an applicant in either pack reads the same ICAO 9303
+    // requirement, with different detail beneath it.
+    //
+    // What must never happen is the German measurements reaching Greece. That
+    // is asserted here by inspection and again, from the other side, by the
+    // C2 claim scan in the provenance suite, which now reads Greece's
+    // `detailKeys` as well as its prose.
     const de = codeOf(germany, 'PHOTOS')
     const gr = codeOf(greece, 'PHOTOS')
     expect({
       nameKey: de?.nameKey,
       descriptionKey: de?.descriptionKey,
       notesKey: de?.notesKey,
-      revision: de?.revision,
     }).toEqual({
       nameKey: gr?.nameKey,
       descriptionKey: gr?.descriptionKey,
       notesKey: gr?.notesKey,
-      revision: gr?.revision,
     })
+    expect(de?.detailKeys).toEqual([
+      'visa-domain:detail.de-tr-mission.PHOTOS.size',
+      'visa-domain:detail.de-tr-mission.PHOTOS.pose',
+    ])
+    expect(gr?.detailKeys).toEqual([
+      'visa-domain:detail.gr-tr-mission.PHOTOS.recent',
+    ])
+    // Both compositions attached exactly one fragment at revision 1, so both
+    // land on 2 — from different fragments. Same number, different bar, which
+    // is why the composed revision is only ever compared within a composition.
+    expect([de?.revision, gr?.revision]).toEqual([2, 2])
     expect(de?.sourceRefs).toEqual([
       'eu-visa-code-art13',
       'de-tr-schengen-general',
     ])
-    expect(gr?.sourceRefs).toEqual(['eu-visa-code-art13'])
+    // Greece now cites its consulate page here too, for the same reason
+    // Germany cites its general sheet: each mission is the authority for the
+    // detail it added, and for nothing else.
+    expect(gr?.sourceRefs).toEqual([
+      'eu-visa-code-art13',
+      'gr-mfa-tr-visa-page',
+    ])
   })
 })
 

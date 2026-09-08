@@ -56,6 +56,17 @@ export interface RequirementRevision {
   bumpedIn: string
   /** What a previously-sufficient claim would now be missing. */
   reason: string
+  /**
+   * The refining layer whose acceptance-detail fragment moved this number, for
+   * a move that happens in some compositions and not others.
+   *
+   * Absent means the owner's own declaration moved, so every composition of the
+   * code sees it — that is every entry written before C1. Present means only
+   * the compositions that include this layer are affected: Germany's mission
+   * adds an e-Devlet bar to the civil-registry extract, and a Greek applicant's
+   * claim must not be superseded by it.
+   */
+  viaLayer?: string
 }
 
 /**
@@ -175,6 +186,100 @@ export const REQUIREMENT_REVISIONS: RequirementRevision[] = [
       'The same two I.5(a) elements. The clause lists its content bullets once ' +
       'for "letter from employer and/or approval for leave", so they attach to ' +
       'whichever document the applicant submits.',
+  },
+
+  /**
+   * C1 entries. Each is a composition-scoped move: an acceptance-detail
+   * fragment tightened what one pack renders, so `viaLayer` names the layer
+   * that attached it and `bumpedIn` names that pack's version. Both `PHOTOS`
+   * entries are revision 2 and neither supersedes the other's applicants —
+   * the two compositions reach the same number by different routes, which is
+   * why the number is only compared within a composition.
+   */
+  {
+    code: 'PHOTOS',
+    revision: 2,
+    bumpedIn: 'GR 1.9.0',
+    viaLayer: 'gr-tr-mission',
+    reason:
+      'The consulate asks for a *recent* photograph. Article 13 sets no age at ' +
+      'all, so a photograph taken years ago satisfied the shared contract and ' +
+      'fails this one.',
+  },
+  {
+    code: 'PHOTOS',
+    revision: 2,
+    bumpedIn: 'DE 1.5.0',
+    viaLayer: 'de-tr-mission',
+    reason:
+      'The mission states 35 x 45 mm, not older than six months, full-face ' +
+      'with nothing covering the head or eyes. A conforming ICAO photograph of ' +
+      'another size or age satisfied the shared contract and fails this one.',
+  },
+  {
+    code: 'PASSPORT_CURRENT',
+    revision: 3,
+    bumpedIn: 'DE 1.5.0',
+    viaLayer: 'de-tr-mission',
+    reason:
+      'Extensions are not accepted. A passport issued within ten years whose ' +
+      'validity was extended rather than reissued met revision 2 and does not ' +
+      'meet this one.',
+  },
+  {
+    code: 'TRAVEL_INSURANCE',
+    revision: 4,
+    bumpedIn: 'DE 1.5.0',
+    viaLayer: 'de-tr-mission',
+    reason:
+      'The original policy plus a copy, not retroactive-only, with no ' +
+      'age-based limit below the minimum, and an AT11 form is not sufficient. ' +
+      'An AT11 policy satisfied every earlier revision.',
+  },
+  {
+    code: 'CIVIL_REGISTRY_EXTRACT',
+    revision: 2,
+    bumpedIn: 'DE 1.5.0',
+    viaLayer: 'de-tr-mission',
+    reason:
+      'It must carry an e-Devlet barcode or QR code. A counter-issued extract ' +
+      'satisfied revision 1 and is refused here.',
+  },
+  {
+    code: 'SOCIAL_SECURITY',
+    revision: 4,
+    bumpedIn: 'DE 1.5.0',
+    viaLayer: 'de-tr-mission',
+    reason:
+      'Both documents, obtained through e-Devlet with its barcode or QR code. ' +
+      'Revision 3 asked for a readable QR but not for the issuing channel.',
+  },
+  {
+    code: 'EMPLOYMENT_LETTER',
+    revision: 3,
+    bumpedIn: 'DE 1.5.0',
+    viaLayer: 'de-tr-mission',
+    reason:
+      'The original, prepared by the employer in Türkiye. A scan or a letter ' +
+      'from an employer abroad met revision 2.',
+  },
+  {
+    code: 'APPROVED_LEAVE',
+    revision: 3,
+    bumpedIn: 'DE 1.5.0',
+    viaLayer: 'de-tr-mission',
+    reason:
+      'The original, from the employer in Türkiye, and the mission asks for ' +
+      'one letter carrying both this and the employment details.',
+  },
+  {
+    code: 'EMPLOYER_TRADE_REGISTRY',
+    revision: 3,
+    bumpedIn: 'DE 1.5.0',
+    viaLayer: 'de-tr-mission',
+    reason:
+      'The chamber copy must be no older than six months. An older registry ' +
+      'extract satisfied revision 2.',
   },
 ]
 

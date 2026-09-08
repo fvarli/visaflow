@@ -363,5 +363,43 @@
       "visaCentre": "Yunanistan başvuruları birçok ülkede yetkili bir vize merkezi tarafından alınmaktadır.",
       "peakSeason": "Yoğun seyahat dönemlerinde randevu kontenjanları sınırlı olabilir."
     }
+  },
+  "detail": {
+    "de-tr-mission": {
+      "PHOTOS": {
+        "size": "35 x 45 mm ölçüsünde ve 6 aydan eski olmamalı",
+        "pose": "Tam karşıdan çekilmiş; başı örten ya da gözleri kapatan bir şey olmamalı. Dini gerekçelerle istisna yapılabilir, ancak gözlerin önü yine de kapatılmamalı"
+      },
+      "PASSPORT_CURRENT": {
+        "extension": "Son on yıl içinde düzenlenmiş olmalı; uzatma kabul edilmiyor"
+      },
+      "TRAVEL_INSURANCE": {
+        "originalAndCopy": "Poliçenin aslı (size iade edilir) ve bir kopyası birlikte verilmeli",
+        "notRetroactive": "Masrafları yalnızca ülkenize döndükten sonra geriye dönük karşılayan bir poliçe yeterli değil",
+        "noAgeLimit": "Teminatı asgari tutarın altına düşüren yaşa bağlı bir sınır içermemeli; bu sınır çoğunlukla 65 yaşından itibaren uygulanıyor",
+        "at11": "AT11 belgesi yeterli değil"
+      },
+      "CIVIL_REGISTRY_EXTRACT": {
+        "edevlet": "E-Devlet üzerinden alınmış, barkod veya QR kodlu olmalı"
+      },
+      "SOCIAL_SECURITY": {
+        "edevlet": "E-Devlet üzerinden alınmış, barkod veya QR kodlu olmalı",
+        "bothDocuments": "İki belge birden isteniyor: işe giriş bildirgesi ve hizmet dökümü"
+      },
+      "EMPLOYMENT_LETTER": {
+        "original": "Türkiye’deki işvereniniz tarafından hazırlanmış asıl nüsha"
+      },
+      "APPROVED_LEAVE": {
+        "original": "Türkiye’deki işvereniniz tarafından hazırlanmış asıl nüsha; temsilcilik hem bu bilgiyi hem istihdam bilgilerini taşıyan tek bir yazı istiyor"
+      },
+      "EMPLOYER_TRADE_REGISTRY": {
+        "chamberAndAge": "Ticaret veya Sanayi Odasından alınmış, 6 aydan eski olmayan sicil kayıt sureti fotokopisi"
+      }
+    },
+    "gr-tr-mission": {
+      "PHOTOS": {
+        "recent": "Yakın tarihli bir fotoğraf"
+      }
+    }
   }
 }

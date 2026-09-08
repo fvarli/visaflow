@@ -363,5 +363,43 @@
       "visaCentre": "Applications for Greece are handled by an authorized visa centre in many countries.",
       "peakSeason": "Appointment slots may be limited during peak travel seasons."
     }
+  },
+  "detail": {
+    "de-tr-mission": {
+      "PHOTOS": {
+        "size": "35 x 45 mm, and not older than six months",
+        "pose": "Full-face, with nothing covering the head or the eyes. Exceptions are possible on religious grounds, but the eyes must stay uncovered"
+      },
+      "PASSPORT_CURRENT": {
+        "extension": "Issued within the previous ten years — an extended passport is not accepted"
+      },
+      "TRAVEL_INSURANCE": {
+        "originalAndCopy": "Submit the original policy, which is returned to you, together with a copy",
+        "notRetroactive": "A policy that only reimburses costs after you return home is not sufficient",
+        "noAgeLimit": "It must carry no age-based limit that drops cover below the minimum — often applied from age 65",
+        "at11": "An AT11 form is not sufficient"
+      },
+      "CIVIL_REGISTRY_EXTRACT": {
+        "edevlet": "Obtained through e-Devlet, carrying its barcode or QR code"
+      },
+      "SOCIAL_SECURITY": {
+        "edevlet": "Obtained through e-Devlet, carrying its barcode or QR code",
+        "bothDocuments": "Both documents are asked for: the employment declaration and the service record"
+      },
+      "EMPLOYMENT_LETTER": {
+        "original": "The original letter, prepared by your employer in Türkiye"
+      },
+      "APPROVED_LEAVE": {
+        "original": "The original letter, prepared by your employer in Türkiye — the mission asks for one letter carrying both this and the employment details"
+      },
+      "EMPLOYER_TRADE_REGISTRY": {
+        "chamberAndAge": "A copy from the chamber of commerce or of industry, no older than six months"
+      }
+    },
+    "gr-tr-mission": {
+      "PHOTOS": {
+        "recent": "A recent photograph"
+      }
+    }
   }
 }

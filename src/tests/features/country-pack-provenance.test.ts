@@ -851,10 +851,14 @@ describe('country packs — the photograph contract states only ICAO conformance
     for (const locale of ['tr', 'en'] as const) {
       await i18n.changeLanguage(locale)
       const td = dynamicT(i18n.t.bind(i18n))
+      // `detailKeys` is in the scan deliberately. C1 gave a mission layer a way
+      // to render prose on an inherited requirement, which is exactly where a
+      // restored "35x45 mm" would now hide — and Greece has no source for one.
       for (const key of [
         photos?.nameKey,
         photos?.descriptionKey,
         photos?.notesKey,
+        ...(photos?.detailKeys ?? []),
       ]) {
         if (key) parts.push(td(key, { defaultValue: '' }))
       }
@@ -885,8 +889,19 @@ describe('country packs — the photograph contract states only ICAO conformance
     expect(text).toContain('ICAO 9303')
   })
 
-  it('cites Article 13, and nothing else', () => {
-    expect(photos?.sourceRefs).toEqual(['eu-visa-code-art13'])
+  it('cites Article 13 for the shared contract, and the consulate only for what it adds', () => {
+    // It used to cite Article 13 and nothing else, which was the right shape
+    // while the requirement said only what the Regulation says. C1 lets the
+    // Greek mission add "a recent photograph" — its own words, not the
+    // Regulation's — so its page is cited alongside. The order is the
+    // invariant that matters: authority first, mission rendering after.
+    expect(photos?.sourceRefs).toEqual([
+      'eu-visa-code-art13',
+      'gr-mfa-tr-visa-page',
+    ])
+    expect(photos?.detailKeys).toEqual([
+      'visa-domain:detail.gr-tr-mission.PHOTOS.recent',
+    ])
   })
 
   it('cites an EU-level source for it', () => {
@@ -901,15 +916,28 @@ describe('country packs — the photograph contract states only ICAO conformance
     }).toEqual({ jurisdiction: 'EU', sourceType: 'regulation' })
   })
 
-  it('does not bump the revision for a loosening', () => {
-    // Removing four assertions is a loosening and adding a citation is not a
-    // contract change, so the revision does not move (ADR-051, ADR-052).
+  it('moves the revision for the detail, and not for the loosening', () => {
+    // Two separate facts, and keeping them apart is the point.
     //
-    // Every other field — `validityPeriodDays: 180` included — is left to the
-    // pin, which compares the whole requirement object. Re-asserting them here
-    // would duplicate that and, for the validity window, mean a second
-    // deprecated read of a field nothing is supposed to consume.
-    expect(photos?.revision).toBe(1)
+    // C2 removed four assertions. That is a loosening, and adding a citation is
+    // not a contract change, so neither moved the number (ADR-051, ADR-052) —
+    // the owner's revision is still 1, and Germany, which attaches its own
+    // fragment to the same code, does not disturb it.
+    //
+    // C1 then added "a recent photograph", which *is* stricter: a photo taken
+    // years ago satisfied the old rendering and fails this one. So the composed
+    // revision is 2 — the owner's 1 plus the Greek fragment's 1 — and a Greek
+    // applicant who ticked `ready` at revision 1 is correctly asked to look
+    // again.
+    expect(photos?.revision).toBe(2)
+
+    // The owner's own declaration is untouched, which is what makes the
+    // composed number safe: a fragment adds, it does not rewrite.
+    const declared = ALL_REQUIREMENT_LAYERS.flatMap((l) => l.add ?? []).find(
+      (r) => r.code === 'PHOTOS'
+    )
+    expect(declared?.revision).toBe(1)
+    expect(declared?.detailKeys).toBeUndefined()
   })
 })
 

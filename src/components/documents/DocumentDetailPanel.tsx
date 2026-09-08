@@ -202,6 +202,29 @@ export function DocumentDetailPanel({
                             </p>
                           </div>
                         )}
+                        {/*
+                          Acceptance detail the destination or filing
+                          jurisdiction adds to a requirement it does not own
+                          (C1). It renders beneath the shared contract rather
+                          than replacing it, because that is exactly what it is:
+                          the same document, with this mission's extra bar. A
+                          criterion the pack holds but never shows an applicant
+                          is not part of any contract (ADR-051a), so if this
+                          block ever stops rendering, the fragments must go too.
+                        */}
+                        {requirement.detailKeys &&
+                          requirement.detailKeys.length > 0 && (
+                            <div className="space-y-1">
+                              <p className="text-caption text-muted-foreground font-medium">
+                                {t('documents:panel.missionDetail')}
+                              </p>
+                              <ul className="text-caption text-muted-foreground list-disc space-y-1 ps-4 text-pretty">
+                                {requirement.detailKeys.map((key) => (
+                                  <li key={key}>{td(key)}</li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
                         <SourceNote
                           sources={sources}
                           reviewStatus={template?.reviewStatus}

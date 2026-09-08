@@ -128,36 +128,85 @@ export const deTrMissionLayer: RequirementLayer = {
     },
   ],
   /**
-   * Citations only, appended after the instrument each requirement already
-   * cites, so the composed order reads authority-first: the Regulation or the
-   * Commission act, then the mission's rendering of it.
+   * Citations, and — since C1 — the mission's own acceptance detail.
    *
-   * Every entry below corresponds to a numbered item on the checklist. Nothing
-   * is refined because it seemed likely.
+   * Citations are appended after the instrument each requirement already cites,
+   * so the composed order reads authority-first: the Regulation or the
+   * Commission act, then the mission's rendering of it. Every entry below
+   * corresponds to a numbered item on one of the two sheets. Nothing is refined
+   * because it seemed likely.
+   *
+   * `addDetail` is the second thing a refinement may now do, and eight entries
+   * use it. Each carries criteria this mission publishes on a requirement it
+   * does not own — an e-Devlet barcode, a policy original, a six-month chamber
+   * copy. They are additive: the shared name, description and notes are
+   * untouched and identical in Greece, and nothing here can change requiredness
+   * or applicability. Each fragment is versioned, so the composed revision
+   * moves for German applicants and not for Greek ones.
    */
   refine: [
     // The mission's restatement of the Visa Code criteria (general page).
-    { code: 'PASSPORT_CURRENT', addSourceRefs: ['de-tr-schengen-general'] },
+    {
+      // "Son on yıl içinde düzenlenmiş olmalıdır (uzatma kabul edilmemektedir)"
+      // — a passport whose validity was extended rather than reissued is
+      // refused, which the Visa Code does not say and Greece does not state.
+      code: 'PASSPORT_CURRENT',
+      addSourceRefs: ['de-tr-schengen-general'],
+      addDetail: {
+        detailKeys: [
+          'visa-domain:detail.de-tr-mission.PASSPORT_CURRENT.extension',
+        ],
+        revision: 1,
+      },
+    },
     /**
-     * PHOTOS, and a limitation worth stating rather than working around.
+     * PHOTOS — the case that argued for C1, now rendered rather than only
+     * sourced.
      *
-     * The general page asks for one photograph, 35 x 45 mm, not older than six
-     * months. Those are precisely the assertions that left the common contract
-     * in C2 for having no authority — and here they *do* have one, but only for
-     * this destination in this jurisdiction. Refinement is citation-only, so
-     * the citation is all that can travel: the requirement an applicant reads
-     * still says ICAO 9303 conformance and nothing more, identically in both
-     * packs, while the mission's specifics live in the source record.
+     * The general page asks for 35 x 45 mm, not older than six months,
+     * full-face with nothing covering the head or eyes. Those are precisely the
+     * assertions that left the *common* contract in C2 for having no authority
+     * — and here they do have one, but only for this destination in this
+     * jurisdiction. For three phases the citation was all that could travel, so
+     * the requirement an applicant read said ICAO 9303 conformance and nothing
+     * more while the specifics sat in a source record nobody opens.
      *
-     * So Germany's photograph requirement is correctly **sourced** and not
-     * fully **rendered**, and this pack does not claim otherwise. Fixing it
-     * needs a contract-bearing override, which ADR-052 deliberately did not
-     * build; inventing a second `DE_PHOTOS` code to carry different prose would
-     * be two codes for one document, the failure ADR-052a names in the other
-     * direction.
+     * The note that used to sit here said fixing it needed a contract-bearing
+     * override. That was the wrong conclusion, and this is the correction: what
+     * it needed was an *additive* fragment. The shared contract still says ICAO
+     * 9303, identically in both packs; Germany's page adds its measurements
+     * beneath it, and Greece sees none of them.
      */
-    { code: 'PHOTOS', addSourceRefs: ['de-tr-schengen-general'] },
-    { code: 'TRAVEL_INSURANCE', addSourceRefs: ['de-tr-schengen-general'] },
+    {
+      code: 'PHOTOS',
+      addSourceRefs: ['de-tr-schengen-general'],
+      addDetail: {
+        detailKeys: [
+          'visa-domain:detail.de-tr-mission.PHOTOS.size',
+          'visa-domain:detail.de-tr-mission.PHOTOS.pose',
+        ],
+        revision: 1,
+      },
+    },
+    {
+      /**
+       * Five axes, of which one — repatriation in case of death — was Article
+       * 15(1)'s and went into the shared contract in E5a. The four here are the
+       * mission's own and cannot: an AT11 policy is a common Turkish product
+       * that satisfies the Visa Code and is refused at this counter.
+       */
+      code: 'TRAVEL_INSURANCE',
+      addSourceRefs: ['de-tr-schengen-general'],
+      addDetail: {
+        detailKeys: [
+          'visa-domain:detail.de-tr-mission.TRAVEL_INSURANCE.originalAndCopy',
+          'visa-domain:detail.de-tr-mission.TRAVEL_INSURANCE.notRetroactive',
+          'visa-domain:detail.de-tr-mission.TRAVEL_INSURANCE.noAgeLimit',
+          'visa-domain:detail.de-tr-mission.TRAVEL_INSURANCE.at11',
+        ],
+        revision: 1,
+      },
+    },
 
     // Items 1, 7, 8, 9 and 10 of the checklist: the documents every applicant
     // brings.
@@ -176,19 +225,68 @@ export const deTrMissionLayer: RequirementLayer = {
     { code: 'ITINERARY', addSourceRefs: ['de-tr-tourism-checklist'] },
     { code: 'ACCOMMODATION', addSourceRefs: ['de-tr-tourism-checklist'] },
     {
+      // The row E2 ranked highest for avoidable harm: an extract without the
+      // e-Devlet barcode is refused at the counter, and obtaining the right one
+      // costs nothing if you know in advance.
       code: 'CIVIL_REGISTRY_EXTRACT',
       addSourceRefs: ['de-tr-tourism-checklist'],
+      addDetail: {
+        detailKeys: [
+          'visa-domain:detail.de-tr-mission.CIVIL_REGISTRY_EXTRACT.edevlet',
+        ],
+        revision: 1,
+      },
     },
     { code: 'BANK_STATEMENTS', addSourceRefs: ['de-tr-tourism-checklist'] },
     { code: 'PAYSLIPS', addSourceRefs: ['de-tr-tourism-checklist'] },
 
     // Section 4 of the checklist, by applicant category.
-    { code: 'EMPLOYMENT_LETTER', addSourceRefs: ['de-tr-tourism-checklist'] },
-    { code: 'APPROVED_LEAVE', addSourceRefs: ['de-tr-tourism-checklist'] },
-    { code: 'SOCIAL_SECURITY', addSourceRefs: ['de-tr-tourism-checklist'] },
     {
+      code: 'EMPLOYMENT_LETTER',
+      addSourceRefs: ['de-tr-tourism-checklist'],
+      addDetail: {
+        detailKeys: [
+          'visa-domain:detail.de-tr-mission.EMPLOYMENT_LETTER.original',
+        ],
+        revision: 1,
+      },
+    },
+    {
+      // Germany asks for one original letter carrying both this and the
+      // employment details. The detail says so; it does not merge the two rows,
+      // which would be a structural change a refinement may not make.
+      code: 'APPROVED_LEAVE',
+      addSourceRefs: ['de-tr-tourism-checklist'],
+      addDetail: {
+        detailKeys: [
+          'visa-domain:detail.de-tr-mission.APPROVED_LEAVE.original',
+        ],
+        revision: 1,
+      },
+    },
+    {
+      code: 'SOCIAL_SECURITY',
+      addSourceRefs: ['de-tr-tourism-checklist'],
+      addDetail: {
+        detailKeys: [
+          'visa-domain:detail.de-tr-mission.SOCIAL_SECURITY.edevlet',
+          'visa-domain:detail.de-tr-mission.SOCIAL_SECURITY.bothDocuments',
+        ],
+        revision: 1,
+      },
+    },
+    {
+      // "Ticaret veya Sanayi Odası ... (6 aydan eski olmamalı)" — a wider set of
+      // acceptable issuers than the shared contract implies, and a recency bar
+      // it does not state at all.
       code: 'EMPLOYER_TRADE_REGISTRY',
       addSourceRefs: ['de-tr-tourism-checklist'],
+      addDetail: {
+        detailKeys: [
+          'visa-domain:detail.de-tr-mission.EMPLOYER_TRADE_REGISTRY.chamberAndAge',
+        ],
+        revision: 1,
+      },
     },
     { code: 'STUDENT_CERTIFICATE', addSourceRefs: ['de-tr-tourism-checklist'] },
 

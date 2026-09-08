@@ -105,9 +105,17 @@ const PINNED_REQUIREMENTS: Record<string, DocumentRequirement> = {
     validityPeriodDays: 180,
     // Gained in C2. The keys are unchanged, so the copy correction behind this
     // citation is invisible here by design — the pin holds the contract, and
-    // what the contract now says is "ICAO 9303" and nothing more.
-    sourceRefs: ['eu-visa-code-art13'],
-    revision: 1,
+    // what the *base* contract says is "ICAO 9303" and nothing more.
+    //
+    // The consulate page and the detail key beneath it arrived with C1: the
+    // Ankara page asks for a *recent* photograph, which Article 13 does not,
+    // so it is rendered as Greek detail on the shared requirement rather than
+    // written into prose every future Schengen pack would inherit. Adding a
+    // criterion is a tightening, so the composed revision is 2 — the owner's
+    // declaration is still 1.
+    sourceRefs: ['eu-visa-code-art13', 'gr-mfa-tr-visa-page'],
+    detailKeys: ['visa-domain:detail.gr-tr-mission.PHOTOS.recent'],
+    revision: 2,
   },
   TRAVEL_INSURANCE: {
     code: 'TRAVEL_INSURANCE',
@@ -500,7 +508,7 @@ const PINNED_ENVELOPE = {
   id: 'schengen-short-stay-tourism',
   visaType: 'short_stay_tourism',
   nameKey: 'visa-domain:visaTypes.schengen-short-stay-tourism',
-  templateVersion: '1.8.0',
+  templateVersion: '1.9.0',
   lastReviewedAt: '2026-09-07',
   reviewStatus: 'partially_verified',
   sourceIds: ['gr-mfa-general'],
@@ -552,6 +560,13 @@ const PINNED_SOURCE_IDS = [
  * or other proof". That was rejected: it would put two acceptance bars on one
  * code, and a `ready` tick could no longer say which one it was claimed
  * against. One code, one bar — so the second bar got its own code.
+ *
+ * MOVED IN F1 FOR THE FIRST TIME BY SOMETHING OTHER THAN THIS PACK. `PHOTOS`
+ * now carries a `detailKeys` entry and revision 2, and neither came from the
+ * requirement's owner: the Greek mission layer attached them. That is the C1
+ * capability working, and the pin is the right place to notice it, because a
+ * fragment leaking from the *German* layer into this composition would show up
+ * here as an extra key in this same object.
  */
 describe('Greece composition — pinned before the layer split', () => {
   it('resolves exactly these requirements, in exactly this order', () => {
