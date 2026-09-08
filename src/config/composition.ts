@@ -589,6 +589,53 @@ function collectGroups(
         claimedBy.set(code, group.id)
       }
 
+      /**
+       * Whenever an optional member applies, some required member must apply
+       * too — otherwise the obligation can vanish for a whole class of
+       * applicant, silently.
+       *
+       * `resolveGroupSlots` drops a group when none of its *applicable* members
+       * is required, which is right when nothing is owed and wrong when
+       * something is. A group of {required-if-employed, optional-always} owes
+       * nothing to a student by that rule, while its optional member is still
+       * on the pack — and grouped codes are excluded from the optional tally, so
+       * that member would then be counted nowhere at all.
+       *
+       * The test is coverage, not sameness: a required member is unconditional,
+       * or carries the same condition. Deliberately not "every member shares one
+       * condition", which would forbid the shape the German accommodation
+       * obligation needs — a required unconditional document plus an optional
+       * alternative that only a sponsored applicant can produce. That is safe
+       * precisely because the required member covers everyone.
+       *
+       * Conservative by construction: a condition this cannot prove equal is
+       * treated as not covering. Refusing a composition is recoverable; a
+       * requirement that quietly stops being owed is not.
+       */
+      const members = group.anyOf.map((code) => byCode.get(code)!)
+      const requiredMembers = members.filter((r) => r.required)
+      const covers = (member: DocumentRequirement) =>
+        requiredMembers.some(
+          (req) =>
+            req.conditionalOn === undefined ||
+            JSON.stringify(req.conditionalOn) ===
+              JSON.stringify(member.conditionalOn)
+        )
+      const uncovered = members
+        .filter((member) => !member.required && !covers(member))
+        .map((member) => member.code)
+      if (uncovered.length > 0) {
+        throw new CompositionError(
+          'invalid-group',
+          `Group "${group.id}" has optional member(s) ` +
+            `${uncovered.map((c) => `"${c}"`).join(', ')} that can apply when no ` +
+            'required member does. The obligation would disappear for those ' +
+            'applicants, and the member would be counted neither in the group ' +
+            'nor as optional. Give the group a required member that is ' +
+            'unconditional, or that carries the same condition.'
+        )
+      }
+
       for (const ref of group.sourceRefs ?? []) {
         if (!sourceIds.has(ref)) {
           throw new CompositionError(

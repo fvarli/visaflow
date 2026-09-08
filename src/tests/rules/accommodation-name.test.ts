@@ -6,6 +6,8 @@ import type { Dossier } from '@/domain/schemas/dossier.schema'
 import type { AccommodationReservation } from '@/domain/schemas/trip.schema'
 
 import { resolveVisaTemplate } from '@/config/countries'
+import { requiredRequirementCodes } from '@/features/readiness/requirement-readiness'
+import { applyDocumentUpdate } from '@/features/documents/document-semantics'
 
 /** The pack production resolves for these fixtures. */
 const GREECE = resolveVisaTemplate('GR', 'short_stay_tourism')
@@ -44,6 +46,33 @@ const HOST_BOOKING: AccommodationReservation = {
 const OWN_BOOKING: AccommodationReservation = {
   ...HOST_BOOKING,
   guestName: 'Ayşe Demir',
+}
+
+const GREECE_APPLICATION = {
+  applicationId: 'app1',
+  applicantId: 'a1',
+  destinationCountry: 'GR',
+  visaType: 'short_stay_tourism',
+} as unknown as Parameters<typeof requiredRequirementCodes>[1]
+
+/** Every required requirement of the resolved pack, marked ready. */
+function allRequiredReady() {
+  return requiredRequirementCodes(GREECE, GREECE_APPLICATION).map((code, i) =>
+    applyDocumentUpdate(
+      {
+        id: `ready-${i}`,
+        code,
+        name: code,
+        category: 'supporting',
+        ownerType: 'applicant',
+        ownerId: 'a1',
+        required: true,
+        status: 'not_started',
+      } as unknown as Dossier['documents'][number],
+      { status: 'ready' },
+      GREECE
+    )
+  )
 }
 
 function dossierWith(reservation: AccommodationReservation): Dossier {
@@ -89,7 +118,14 @@ function dossierWith(reservation: AccommodationReservation): Dossier {
         budgetCurrency: 'EUR',
       },
     },
-    documents: [],
+    /**
+     * Seeded ready, so the dossier is genuinely clean.
+     *
+     * Left empty, every required document of the Greek pack is unstarted, and
+     * the warning-toned action that produces would mask the thing this file
+     * exists to detect: a warning caused by the guest name.
+     */
+    documents: allRequiredReady(),
     sponsors: [],
   }
 }

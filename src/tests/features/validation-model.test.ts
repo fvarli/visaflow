@@ -12,6 +12,10 @@ import type {
 } from '@/domain/rules/types'
 import type { Applicant } from '@/domain/schemas/applicant.schema'
 import type { Application } from '@/domain/schemas/application.schema'
+import { resolveVisaTemplate } from '@/config/countries'
+import { requiredRequirementCodes } from '@/features/readiness/requirement-readiness'
+import { applyDocumentUpdate } from '@/features/documents/document-semantics'
+import type { Document } from '@/domain/schemas/document.schema'
 
 const finding = (
   ruleId: string,
@@ -173,6 +177,33 @@ const baseApplication = (trip?: Application['trip']): Application => ({
   ...(trip ? { trip } : {}),
 })
 
+/**
+ * Every required, applicable requirement of the resolved pack, marked ready and
+ * stamped the way production stamps it.
+ */
+function allRequiredReady(application: Application): Document[] {
+  const template = resolveVisaTemplate(
+    application.destinationCountry,
+    application.visaType
+  )
+  return requiredRequirementCodes(template, application).map((code, i) =>
+    applyDocumentUpdate(
+      {
+        id: `ready-${i}`,
+        code,
+        name: code,
+        category: 'supporting',
+        ownerType: 'applicant',
+        ownerId: 'a1',
+        required: true,
+        status: 'not_started',
+      } as unknown as Document,
+      { status: 'ready' },
+      template
+    )
+  )
+}
+
 describe('buildValidationModel — empty & no-data', () => {
   it('reports no data when applicant or application is missing', () => {
     const model = buildValidationModel({
@@ -188,10 +219,16 @@ describe('buildValidationModel — empty & no-data', () => {
 
   it('is all-clear for a consistent dossier with nothing outstanding', () => {
     // No trip → the trip/insurance/accommodation rules have nothing to flag.
+    //
+    // The documents are seeded ready rather than left empty, because "nothing
+    // outstanding" has to be true of the dossier for this assertion to mean
+    // anything. An empty document list against a Greek application is not a
+    // clean dossier — every required document is unstarted, which is exactly
+    // what validation now reports and readiness always did.
     const model = buildValidationModel({
       applicant: APPLICANT,
       application: baseApplication(),
-      documents: [],
+      documents: allRequiredReady(baseApplication()),
       sponsors: [],
     })
     expect(model.hasData).toBe(true)

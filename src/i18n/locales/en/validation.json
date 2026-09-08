@@ -134,6 +134,11 @@
       "description_other": "{{count}} required documents have not been started: {{documents}}",
       "action": "Begin collecting the required documents."
     },
+    "missingRequiredObligation": {
+      "title": "Required evidence not started",
+      "description": "No document has been started for: {{obligation}}",
+      "action": "Begin collecting one of the accepted documents."
+    },
     "docsNeedUpdate": {
       "title": "Documents need updating",
       "description_one": "{{count}} document needs updating: {{documents}}",

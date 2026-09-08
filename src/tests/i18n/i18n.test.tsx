@@ -300,6 +300,7 @@ describe('validation findings', () => {
       'findings.requiredDocSkipped',
       'findings.docExpiresBeforeAppointment',
       'findings.missingRequiredDocs',
+      'findings.missingRequiredObligation',
       'findings.docsNeedUpdate',
       'findings.noApprovedLeave',
       'findings.leaveStartsLate',

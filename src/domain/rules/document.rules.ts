@@ -3,6 +3,11 @@ import {
   countsTowardReadiness,
   effectiveStatus,
 } from '@/features/documents/document-semantics'
+import { requiredRequirementCodes } from '@/features/readiness/requirement-readiness'
+import {
+  groupedCodes,
+  resolveGroupSlots,
+} from '@/features/readiness/satisfaction-groups'
 import type {
   ValidationContext,
   ValidationFinding,
@@ -17,8 +22,20 @@ export const requiredDocumentsNotSkipped: ValidationRule = ({
   template,
 }: ValidationContext): ValidationFinding[] => {
   const findings: ValidationFinding[] = []
+  const grouped = groupedCodes(template)
 
   for (const doc of dossier.documents) {
+    /**
+     * A member of a satisfaction group is never "skipped".
+     *
+     * Setting one aside is how an applicant says which route they are taking —
+     * marking the flight reservation not-applicable because they are bringing an
+     * itinerary is the correct thing to do, not an obligation abandoned. The
+     * obligation is reported once, at group level, by
+     * `missingRequiredObligations`.
+     */
+    if (grouped.has(doc.code)) continue
+
     /**
      * Requiredness comes from the pack, not from the flag stored on the record.
      *
@@ -107,33 +124,110 @@ export const missingRequiredDocuments: ValidationRule = ({
 }: ValidationContext): ValidationFinding[] => {
   const findings: ValidationFinding[] = []
 
-  // Same correction as `requiredDocumentsNotSkipped`, and the one that made the
-  // disagreement visible: `EMPLOYER_TRADE_REGISTRY` and `EMPLOYER_TAX_PLATE`
-  // both became required after dossiers had already been seeded with them
-  // optional, so this rule reported nothing missing while the ring counted them.
-  const notStartedRequired = dossier.documents.filter(
+  /**
+   * Obligations, not records.
+   *
+   * Two things this rule used to miss, both of which readiness has always
+   * counted. A requirement the pack requires but the dossier has **no record
+   * for** is work that has not been started — the ring said so and this rule
+   * said nothing. And a requirement that became required after the record was
+   * seeded was read from the record's stale flag (`EMPLOYER_TRADE_REGISTRY` in
+   * E5b, `EMPLOYER_TAX_PLATE` in E5c-3).
+   *
+   * Grouped codes are excluded because a group is one obligation however many
+   * documents can satisfy it; `missingRequiredObligations` reports those. Left
+   * in, an applicant with a ready itinerary was told the flight reservation was
+   * missing.
+   */
+  const grouped = groupedCodes(template)
+  const present = new Set(dossier.documents.map((doc) => doc.code))
+
+  const notStartedRecords = dossier.documents.filter(
     (doc) =>
+      !grouped.has(doc.code) &&
       countsTowardReadiness(doc, template, dossier.application) &&
       doc.status === 'not_started'
   )
+  const uninstantiated = requiredRequirementCodes(
+    template,
+    dossier.application
+  ).filter((code) => !grouped.has(code) && !present.has(code))
 
-  if (notStartedRequired.length > 0) {
+  const outstanding = [
+    ...notStartedRecords.map((doc) => doc.code),
+    ...uninstantiated,
+  ]
+
+  if (outstanding.length > 0) {
     findings.push({
       id: 'missing-required-docs',
       ruleId: 'document.requiredNotStarted',
       severity: 'warning',
       messageKey: 'findings.missingRequiredDocs',
       messageParams: {
-        values: { count: notStartedRequired.length },
-        documentCodes: {
-          documents: notStartedRequired.map((d) => d.code),
-        },
+        values: { count: outstanding.length },
+        documentCodes: { documents: outstanding },
       },
-      relatedFields: notStartedRequired.map((d) => `documents.${d.id}`),
+      relatedFields: [
+        ...notStartedRecords.map((doc) => `documents.${doc.id}`),
+        ...(uninstantiated.length > 0 ? ['documents'] : []),
+      ],
     })
   }
 
   return findings
+}
+
+/**
+ * An obligation the authority lets the applicant meet in more than one way, with
+ * nothing started for it.
+ *
+ * Reported once per group, and named by the group rather than by a member. The
+ * member name would be false: if a travel itinerary satisfies the obligation,
+ * telling somebody that a *flight reservation* has not been started asserts a
+ * requirement the authority does not make. `SatisfactionGroup.labelKey` is the
+ * applicant-facing name of the obligation itself, already rendered on the
+ * document detail panel, so nothing new is invented here and no member names are
+ * concatenated at runtime.
+ *
+ * One finding per group rather than one aggregate finding for all of them: that
+ * keeps each finding's id stable and lets it carry its own label through the
+ * existing `enumKeys` channel, which translates one key.
+ */
+export const missingRequiredObligations: ValidationRule = ({
+  dossier,
+  template,
+}: ValidationContext): ValidationFinding[] => {
+  const slots = resolveGroupSlots(
+    template,
+    dossier.documents,
+    dossier.application
+  )
+  const present = new Set(dossier.documents.map((doc) => doc.code))
+  const required = new Set(
+    requiredRequirementCodes(template, dossier.application)
+  )
+
+  return (
+    slots
+      .filter((slot) => slot.status === 'notStarted')
+      // A group enters on the same terms an ungrouped requirement does: some
+      // member has a record, or some member is a required requirement of this
+      // pack. The same gate readiness applies, so the two agree.
+      .filter((slot) =>
+        slot.applicableCodes.some(
+          (code) => present.has(code) || required.has(code)
+        )
+      )
+      .map((slot) => ({
+        id: `missing-obligation-${slot.group.id}`,
+        ruleId: 'document.requiredObligationNotStarted',
+        severity: 'warning' as const,
+        messageKey: 'findings.missingRequiredObligation',
+        messageParams: { enumKeys: { obligation: slot.group.labelKey } },
+        relatedFields: ['documents'],
+      }))
+  )
 }
 
 /**
@@ -183,5 +277,6 @@ export const documentRules: ValidationRule[] = [
   requiredDocumentsNotSkipped,
   documentsNotExpiredBeforeAppointment,
   missingRequiredDocuments,
+  missingRequiredObligations,
   documentsNeedingUpdate,
 ]

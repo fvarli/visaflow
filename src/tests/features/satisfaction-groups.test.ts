@@ -5,13 +5,14 @@ import { requiredRequirementCodes } from '@/features/readiness/requirement-readi
 import { deriveNextDocument } from '@/features/documents/documents-model'
 import { resolveGroupSlots } from '@/features/readiness/satisfaction-groups'
 import { resolveVisaTemplate } from '@/config/countries'
+import { PRODUCTION_COMPOSITIONS } from '@/tests/support/production-compositions'
 import { applyDocumentUpdate } from '@/features/documents/document-semantics'
 import { greeceTourismComposition } from '@/config/countries/greece/tourism'
 import { germanyTourismComposition } from '@/config/countries/germany/tourism'
 import type { Application } from '@/domain/schemas/application.schema'
 import type { Document } from '@/domain/schemas/document.schema'
 import type { DocumentStatus } from '@/domain/types/common'
-import type { RequirementLayer } from '@/config/types'
+import type { DocumentRequirement, RequirementLayer } from '@/config/types'
 
 /**
  * C3a — one obligation, several accepted documents.
@@ -333,5 +334,126 @@ describe('a group cannot promise a route the pack does not carry', () => {
   it('composes no `satisfactionGroups` field at all when a pack declares none', () => {
     const composed = composeVisaTemplate({ base, layers: [common] })
     expect(composed.template.satisfactionGroups).toBeUndefined()
+  })
+})
+
+describe('a group may not let an obligation disappear', () => {
+  const req = (
+    code: string,
+    over: Partial<DocumentRequirement> = {}
+  ): DocumentRequirement => ({
+    code,
+    nameKey: 'visa-domain:requirements.PHOTOS.name',
+    category: 'identity',
+    ownerType: 'applicant',
+    required: true,
+    revision: 1,
+    ...over,
+  })
+
+  const base = {
+    id: 'test-template',
+    visaType: 'short_stay_tourism' as const,
+    nameKey: 'visa-domain:visaTypes.schengen-short-stay-tourism',
+    templateVersion: '1.0.0',
+    reviewStatus: 'unverified' as const,
+    preparationMilestones: [],
+  }
+
+  const composeWith = (
+    members: DocumentRequirement[],
+    anyOf = members.map((m) => m.code)
+  ) =>
+    composeVisaTemplate({
+      base,
+      layers: [
+        { id: 't-common', kind: 'common', add: members },
+        {
+          id: 't-mission',
+          kind: 'jurisdiction',
+          groups: [{ id: 'g', anyOf, labelKey: 'visa-domain:groups.x' }],
+        },
+      ],
+    })
+
+  const employed = {
+    field: 'employment.employmentStatus',
+    operator: 'equals' as const,
+    value: 'employed',
+  }
+
+  it('refuses a group whose optional member can outlive its required one', () => {
+    // THE SILENT DROP. For anyone not employed, the required member does not
+    // apply, so `resolveGroupSlots` drops the group — and the optional member
+    // that *does* apply is excluded from the optional tally too, so it is
+    // counted nowhere at all. The obligation simply vanishes.
+    expect(() =>
+      composeWith([
+        req('A_DOC', { conditionalOn: employed }),
+        req('B_DOC', { required: false }),
+      ])
+    ).toThrow(/would disappear for those applicants/)
+  })
+
+  it('refuses a group with no required member at all', () => {
+    expect(() =>
+      composeWith([
+        req('A_DOC', { required: false }),
+        req('B_DOC', { required: false }),
+      ])
+    ).toThrow(CompositionError)
+  })
+
+  it('allows mixed conditions when a required member covers everyone', () => {
+    // The shape the German accommodation obligation needs: a required
+    // unconditional document plus an optional alternative only a sponsored
+    // applicant can produce. Safe, and the invariant must not forbid it.
+    expect(() =>
+      composeWith([
+        req('A_DOC'),
+        req('B_DOC', {
+          required: false,
+          conditionalOn: {
+            field: 'financing.source',
+            operator: 'equals',
+            value: 'sponsor',
+          },
+        }),
+      ])
+    ).not.toThrow()
+  })
+
+  it('allows required members that share one condition', () => {
+    // Greece's employer letter / leave approval: neither applies to a student,
+    // and nothing is owed then — which is correct, not a drop.
+    expect(() =>
+      composeWith([
+        req('A_DOC', { conditionalOn: employed }),
+        req('B_DOC', { conditionalOn: employed }),
+      ])
+    ).not.toThrow()
+  })
+
+  it('allows an optional member that shares its required member’s condition', () => {
+    expect(() =>
+      composeWith([
+        req('A_DOC', { conditionalOn: employed }),
+        req('B_DOC', { required: false, conditionalOn: employed }),
+      ])
+    ).not.toThrow()
+  })
+
+  it('holds for every production group', () => {
+    // The composer already ran this when the packs were built at module load;
+    // resolving them here is what proves it did.
+    for (const { countryCode, composition } of PRODUCTION_COMPOSITIONS) {
+      expect({
+        countryCode,
+        groups: (composition.template.satisfactionGroups ?? []).length,
+      }).toEqual({
+        countryCode,
+        groups: countryCode === 'GR' ? 2 : 1,
+      })
+    }
   })
 })

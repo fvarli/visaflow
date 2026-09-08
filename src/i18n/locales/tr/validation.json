@@ -134,6 +134,11 @@
       "description_other": "{{count}} zorunlu belgeye henüz başlanmadı: {{documents}}",
       "action": "Zorunlu belgeleri toplamaya başlayın."
     },
+    "missingRequiredObligation": {
+      "title": "Zorunlu belgeye başlanmadı",
+      "description": "Şu yükümlülük için henüz bir belgeye başlanmadı: {{obligation}}",
+      "action": "Kabul edilen belgelerden birini toplamaya başlayın."
+    },
     "docsNeedUpdate": {
       "title": "Güncellenmesi gereken belgeler var",
       "description_one": "{{count}} belge güncellenmeli: {{documents}}",
