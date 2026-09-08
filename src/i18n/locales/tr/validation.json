@@ -118,11 +118,6 @@
       "description": "Şu geceler konaklama ile kapsanmıyor: {{dates}}",
       "action": "Seyahatinizin tüm gecelerini kapsayacak konaklama rezervasyonları ekleyin."
     },
-    "accommodationNameMismatch": {
-      "title": "Konaklamadaki misafir adı eşleşmiyor olabilir",
-      "description": "{{reservationName}} rezervasyonundaki \"{{guestName}}\" misafir adı, başvuru sahibinin adıyla (\"{{applicantName}}\") tam olarak eşleşmiyor.",
-      "action": "Rezervasyon başkasının adınaysa — ev sahibi, aile üyesi veya şirket — başvurunuzu işleme alan konsolosluğun bunu kabul edip etmediğini kontrol edin."
-    },
     "requiredDocSkipped": {
       "title": "Zorunlu belge uygulanamaz olarak işaretlendi",
       "description": "\"{{document}}\" zorunlu olarak tanımlı ancak açıklama girilmeden \"uygulanamaz\" olarak işaretlenmiş.",

@@ -157,6 +157,11 @@
       "description": "Flight or other transport booking showing entry and exit",
       "notes": "A booking confirmation is normally accepted; the consulate may still ask for more"
     },
+    "TRANSPORT_MEANS_PROOF": {
+      "name": "Proof of Intended Means of Transport",
+      "description": "Other evidence of the transport you intend to use",
+      "notes": "The harmonised list accepts this in place of a reservation or a travel itinerary"
+    },
     "ACCOMMODATION": {
       "name": "Accommodation Reservation",
       "description": "Hotel booking or other proof of accommodation"

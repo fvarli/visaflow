@@ -298,7 +298,6 @@ describe('validation findings', () => {
       'findings.insuranceCoverageLow',
       'findings.noAccommodation',
       'findings.accommodationGap',
-      'findings.accommodationNameMismatch',
       'findings.requiredDocSkipped',
       'findings.docExpiresBeforeAppointment',
       'findings.missingRequiredDocs',

@@ -166,6 +166,13 @@ export const deTrMissionLayer: RequirementLayer = {
       code: 'TRANSPORT_RESERVATION',
       addSourceRefs: ['de-tr-tourism-checklist'],
     },
+    {
+      // The sheet offers the same third route in its own words — "diğer
+      // ulaşım tercihleri" — so the German evidence for this requirement is
+      // independent of the harmonised list, not a restatement of it.
+      code: 'TRANSPORT_MEANS_PROOF',
+      addSourceRefs: ['de-tr-tourism-checklist'],
+    },
     { code: 'ITINERARY', addSourceRefs: ['de-tr-tourism-checklist'] },
     { code: 'ACCOMMODATION', addSourceRefs: ['de-tr-tourism-checklist'] },
     {

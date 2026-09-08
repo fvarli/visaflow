@@ -127,6 +127,53 @@ const trFilingDocuments: DocumentRequirement[] = [
     revision: 2,
   },
   {
+    /**
+     * The third thing Annex III I.1 accepts as travel arrangements, and the one
+     * VisaFlow had no way to name.
+     *
+     * I.1 verbatim: "Travel arrangements: flight reservations, **other proof of
+     * intended means of transport**, or proof of travel itinerary." The common
+     * layer carries the first (`TRANSPORT_RESERVATION`) and the third
+     * (`ITINERARY`). The middle one had nowhere to go: an applicant driving
+     * their own car, or travelling by a means they cannot pre-book, was told to
+     * produce a booking that does not exist. The German mission states the same
+     * alternative independently — "diğer ulaşım tercihleri" — so this is not one
+     * pack's reading of one clause.
+     *
+     * WHY IT IS NOT A BROADENING OF `TRANSPORT_RESERVATION`. Widening that
+     * requirement to "a reservation *or* other proof" would put two acceptance
+     * bars on one code, which ADR-052a forbids for exactly the reason it shows
+     * up here: a reader could no longer tell which bar a `ready` tick was
+     * claimed against. One code, one bar — so the second bar gets its own code
+     * and the two are related as alternatives, which is how the authority
+     * writes them.
+     *
+     * WHY IT IS OWNED HERE AND NOT BY THE COMMON LAYER. The phrase is Annex
+     * III's, and Annex III is the harmonised list for Türkiye — this layer's own
+     * instrument. The Visa Code does not state it: Annex II B.1 offers only
+     * "reservation of or return or round ticket", and Article 14(3)'s
+     * non-exhaustiveness lets a consulate ask for *more*, never the applicant
+     * offer less. Writing this into the common layer would assert to every
+     * future Schengen pack something only the Türkiye list says, which is the
+     * defect C2 removed and ADR-052a Rule 3 names.
+     *
+     * Optional, and that is a placeholder rather than a judgement: the authority
+     * treats these three as equivalent routes, which nothing in the model can
+     * yet express. Until it can, marking this required would demand a document
+     * from applicants who correctly hold a reservation instead.
+     */
+    code: 'TRANSPORT_MEANS_PROOF',
+    nameKey: 'visa-domain:requirements.TRANSPORT_MEANS_PROOF.name',
+    descriptionKey:
+      'visa-domain:requirements.TRANSPORT_MEANS_PROOF.description',
+    notesKey: 'visa-domain:requirements.TRANSPORT_MEANS_PROOF.notes',
+    category: 'travel',
+    ownerType: 'applicant',
+    required: false,
+    sourceRefs: ['eu-c2021-5156-turkey-annex3'],
+    revision: 1,
+  },
+  {
     code: 'CIVIL_REGISTRY_EXTRACT',
     nameKey: 'visa-domain:requirements.CIVIL_REGISTRY_EXTRACT.name',
     descriptionKey:

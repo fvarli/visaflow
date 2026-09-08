@@ -157,6 +157,11 @@
       "description": "Giriş ve çıkışı gösteren uçak veya diğer ulaşım rezervasyonu",
       "notes": "Rezervasyon belgesi genellikle kabul edilir; konsolosluk yine de ek belge isteyebilir"
     },
+    "TRANSPORT_MEANS_PROOF": {
+      "name": "Planlanan Ulaşım Aracı Kanıtı",
+      "description": "Kullanmayı planladığınız ulaşımı gösteren diğer belge",
+      "notes": "Uyumlaştırılmış liste bunu rezervasyon veya seyahat planı yerine kabul ediyor"
+    },
     "ACCOMMODATION": {
       "name": "Konaklama Rezervasyonu",
       "description": "Otel rezervasyonu veya başka bir konaklama belgesi"

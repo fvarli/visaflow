@@ -59,6 +59,7 @@ const GERMANY_TOURISM_ORDER = [
   'PHOTOS',
   'TRAVEL_INSURANCE',
   'TRANSPORT_RESERVATION',
+  'TRANSPORT_MEANS_PROOF',
   'ITINERARY',
   'CIVIL_REGISTRY_EXTRACT',
   'ACCOMMODATION',
@@ -111,17 +112,18 @@ export const germanyTourismComposition = composeVisaTemplate({
      */
     preparationMilestones: commonPreparationMilestones,
     /**
-     * `1.3.0`, and every step of it changed what this pack asks for, which is
+     * `1.4.0`, and every step of it changed what this pack asks for, which is
      * the only thing that moves this number. `1.0.0` was the first published
      * version; `1.1.0` took the E5a corrections to four shared contracts;
      * `1.2.0` lost the sponsor block, which no German sheet lists; `1.3.0`
      * makes the tax plate a German-owned requirement that is mandatory for the
-     * self-employed rather than an optional Türkiye-wide one.
+     * self-employed rather than an optional Türkiye-wide one; `1.4.0` names the
+     * third travel-arrangement alternative the mission's own sheet offers.
      *
      * Greece's number counts its own history and the two are unrelated —
      * `templateVersion` is per pack, not repository-wide.
      */
-    templateVersion: '1.3.0',
+    templateVersion: '1.4.0',
     lastReviewedAt: '2026-09-07',
     /**
      * `verified`, and the word means exactly one thing here: **every** composed

@@ -48,6 +48,7 @@ const PINNED_ORDER = [
   'PHOTOS',
   'TRAVEL_INSURANCE',
   'TRANSPORT_RESERVATION',
+  'TRANSPORT_MEANS_PROOF',
   'ACCOMMODATION',
   'ITINERARY',
   'EMPLOYMENT_LETTER',
@@ -133,6 +134,18 @@ const PINNED_REQUIREMENTS: Record<string, DocumentRequirement> = {
       'eu-c2021-5156-turkey-annex3',
       'gr-tr-harmonised-list',
     ],
+    revision: 1,
+  },
+  TRANSPORT_MEANS_PROOF: {
+    code: 'TRANSPORT_MEANS_PROOF',
+    nameKey: 'visa-domain:requirements.TRANSPORT_MEANS_PROOF.name',
+    descriptionKey:
+      'visa-domain:requirements.TRANSPORT_MEANS_PROOF.description',
+    notesKey: 'visa-domain:requirements.TRANSPORT_MEANS_PROOF.notes',
+    category: 'travel',
+    ownerType: 'applicant',
+    required: false,
+    sourceRefs: ['eu-c2021-5156-turkey-annex3', 'gr-tr-harmonised-list'],
     revision: 1,
   },
   ACCOMMODATION: {
@@ -487,7 +500,7 @@ const PINNED_ENVELOPE = {
   id: 'schengen-short-stay-tourism',
   visaType: 'short_stay_tourism',
   nameKey: 'visa-domain:visaTypes.schengen-short-stay-tourism',
-  templateVersion: '1.7.0',
+  templateVersion: '1.8.0',
   lastReviewedAt: '2026-09-07',
   reviewStatus: 'partially_verified',
   sourceIds: ['gr-mfa-general'],
@@ -526,6 +539,19 @@ const PINNED_SOURCE_IDS = [
  * Every one is a tightening, so each carries a revision bump and a ledger
  * entry, and `templateVersion` moves with them. The copy itself stays invisible
  * here by construction: the pin stores translation keys.
+ *
+ * MOVED AGAIN IN F0, and for a different reason worth separating from the
+ * above. `TRANSPORT_MEANS_PROOF` is an *addition*, not a tightening: Annex III
+ * I.1 accepts three routes to proving travel arrangements and this pack could
+ * only name two, so an applicant travelling by a means they cannot pre-book was
+ * told to produce a booking that does not exist. No existing requirement
+ * changed, so no revision moved; `templateVersion` did, because the pack now
+ * asks for something it did not ask for before.
+ *
+ * The alternative was widening `TRANSPORT_RESERVATION` to mean "a reservation
+ * or other proof". That was rejected: it would put two acceptance bars on one
+ * code, and a `ready` tick could no longer say which one it was claimed
+ * against. One code, one bar — so the second bar got its own code.
  */
 describe('Greece composition — pinned before the layer split', () => {
   it('resolves exactly these requirements, in exactly this order', () => {

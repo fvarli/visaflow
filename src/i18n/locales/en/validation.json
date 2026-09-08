@@ -118,11 +118,6 @@
       "description": "The following nights are not covered by accommodation: {{dates}}",
       "action": "Add accommodation reservations to cover all nights of your trip."
     },
-    "accommodationNameMismatch": {
-      "title": "Accommodation guest name may not match",
-      "description": "Guest name \"{{guestName}}\" on {{reservationName}} does not clearly match applicant name \"{{applicantName}}\".",
-      "action": "If the booking is in someone else’s name — a host, a family member or a company — check whether the consulate handling your application accepts that."
-    },
     "requiredDocSkipped": {
       "title": "Required document marked as not applicable",
       "description": "\"{{document}}\" is marked as required but set to \"not applicable\" without an explanation.",

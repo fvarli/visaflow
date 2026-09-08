@@ -169,6 +169,12 @@ export const grTrMissionLayer: RequirementLayer = {
     // The mission's rendering of Annex III, appended after the instrument
     // itself so the composed citation reads authority-first.
     { code: 'TRANSPORT_RESERVATION', addSourceRefs: ['gr-tr-harmonised-list'] },
+    {
+      // The mission's own copy of the harmonised list is where I.1's third
+      // alternative is readable for a Greek application.
+      code: 'TRANSPORT_MEANS_PROOF',
+      addSourceRefs: ['gr-tr-harmonised-list'],
+    },
     { code: 'ACCOMMODATION', addSourceRefs: ['gr-tr-harmonised-list'] },
     { code: 'ITINERARY', addSourceRefs: ['gr-tr-harmonised-list'] },
     { code: 'EMPLOYMENT_LETTER', addSourceRefs: ['gr-tr-harmonised-list'] },

@@ -36,6 +36,7 @@ const GERMANY_ORDER = [
   'PHOTOS',
   'TRAVEL_INSURANCE',
   'TRANSPORT_RESERVATION',
+  'TRANSPORT_MEANS_PROOF',
   'ITINERARY',
   'CIVIL_REGISTRY_EXTRACT',
   'ACCOMMODATION',
@@ -86,14 +87,16 @@ describe('Germany pack — composition', () => {
     )
   })
 
-  it('owns three requirements and inherits the other nineteen', () => {
+  it('owns three requirements and inherits the other twenty', () => {
     const tally = new Map<string, number>()
     for (const [, layerId] of germany.ownership) {
       tally.set(layerId, (tally.get(layerId) ?? 0) + 1)
     }
     expect(Object.fromEntries(tally)).toEqual({
       'schengen-short-stay': 8,
-      'tr-filing': 11,
+      // Twelve since F0 — `TRANSPORT_MEANS_PROOF` is Annex III's, so this pack
+      // inherits it for the same reason Greece does: both file in Türkiye.
+      'tr-filing': 12,
       'de-tr-mission': 3,
       // 'germany' owns none, the same finding Greece produced — now with a
       // second pack behind it. It contributes Germany's statute and nothing
@@ -109,8 +112,10 @@ describe('Germany pack — composition', () => {
     // Complete after E5c: the four uncited rows were the sponsor block, which
     // this pack no longer composes. Completeness by subtraction, and the
     // envelope says `verified` because that is the only status the arithmetic
-    // now supports.
-    expect(coverage).toEqual({ total: 22, verified: 22, isComplete: true })
+    // now supports. F0 moved both sides by one and completeness held, which is
+    // the property worth pinning: a requirement may not join this pack without
+    // its own source.
+    expect(coverage).toEqual({ total: 23, verified: 23, isComplete: true })
     expect(
       isReviewStatusSupported(germany.template.reviewStatus, coverage)
     ).toBe(true)
@@ -335,6 +340,7 @@ describe('Germany pack — refinement adds citations and nothing else', () => {
       'DE_S54_DECLARATION',
       'DE_TRAVEL_HISTORY_COPIES',
       'TRANSPORT_RESERVATION',
+      'TRANSPORT_MEANS_PROOF',
       'ITINERARY',
       'CIVIL_REGISTRY_EXTRACT',
       'ACCOMMODATION',
@@ -398,10 +404,10 @@ describe('Germany pack — refinement adds citations and nothing else', () => {
 
 describe('Germany pack — Greece is untouched by its arrival', () => {
   it('still composes its own requirements with its own coverage', () => {
-    expect(greece.template.documentRequirements).toHaveLength(24)
+    expect(greece.template.documentRequirements).toHaveLength(25)
     expect(computeVerificationCoverage(greeceConfig, greece.template)).toEqual({
-      total: 24,
-      verified: 19,
+      total: 25,
+      verified: 20,
       isComplete: false,
     })
   })
