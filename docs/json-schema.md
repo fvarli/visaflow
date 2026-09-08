@@ -4,16 +4,21 @@ This document describes the JSON format used by VisaFlow for importing and expor
 
 ## Schema Version
 
-Current version: `1.2.0`. VisaFlow **reads** `1.0.0`, `1.1.0` and `1.2.0`, and **writes** `1.2.0`.
+Current version: `1.3.0`. VisaFlow **reads** `1.0.0`, `1.1.0`, `1.2.0` and `1.3.0`, and **writes**
+`1.3.0`.
 No version this project has ever written is dropped: a file already on your disk stays openable.
 
 The schema version is included in every exported file. It is not the application version and not the
 local `STORAGE_FORMAT_VERSION` — see the note at the top of [CHANGELOG.md](../CHANGELOG.md).
 
 **No older file needs migration.** Every bump so far has only *added* an optional field —
-`applicant.previousRefusals` in 1.1.0, `document.satisfiedRevision` in 1.2.0. Nothing changed meaning
-and nothing was removed, so every 1.0.0 and 1.1.0 document is already a valid 1.2.0 document and
-imports with no warning at all.
+`applicant.previousRefusals` in 1.1.0, `document.satisfiedRevision` in 1.2.0,
+`document.satisfiedContract` in 1.3.0. Nothing changed meaning and nothing was removed, so every
+older document is already a valid `1.3.0` document and imports with no warning at all.
+
+Nothing is rewritten on disk, either. An older file is **parsed as it stands**; if you then export,
+the new file is written at the current version with whatever fields this build knows about. Import
+does not upgrade the file you imported.
 
 **So why bump at all?** Because the *reverse* direction is not safe. An **older** VisaFlow strips a
 field it does not know silently, so someone who imported a newer file there and re-exported it would
@@ -24,7 +29,7 @@ is about meaning, not parsing.
 
 ```json
 {
-  "schemaVersion": "1.2.0",
+  "schemaVersion": "1.3.0",
   "exportedAt": "2025-01-15T10:30:00.000Z",
   "applicant": { ... },
   "application": { ... },
@@ -238,7 +243,8 @@ is about meaning, not parsing.
   "fileReference": "passport_scan.pdf",
   "notes": "Original passport",
   "verified": true,
-  "satisfiedRevision": 2
+  "satisfiedRevision": 2,
+  "satisfiedContract": "PASSPORT_CURRENT@2"
 }
 ```
 
@@ -259,7 +265,8 @@ is about meaning, not parsing.
 | fileReference | string | No | Local file reference |
 | notes | string | No | Additional notes |
 | verified | boolean | Yes | Has been verified |
-| satisfiedRevision | integer > 0 | No | Which revision of the requirement this document is currently claimed to satisfy (1.2.0+) |
+| satisfiedRevision | integer > 0 | No | How far the requirement's **base** contract had tightened when this document was claimed (1.2.0+) |
+| satisfiedContract | string | No | **Which** acceptance contract it was claimed against, including any criteria the destination or filing jurisdiction adds (1.3.0+) |
 
 ### Document Status Values
 
@@ -370,7 +377,39 @@ is a separate requirement that starts unsatisfied.
 That change moved neither `schemaVersion` nor `STORAGE_FORMAT_VERSION`; only the country pack's
 `templateVersion` did.
 
-### Version 1.2.0 (Current) — 2026-08-30
+### Version 1.3.0 (Current) — 2026-09-08
+
+Adds `document.satisfiedContract`, an optional string.
+
+**Why a second field.** `satisfiedRevision` answers *how far had this requirement tightened?* — one
+number on one scale. That is enough while a requirement asks the same thing of everybody. It stopped
+being enough when a destination or filing jurisdiction gained the ability to add its own acceptance
+criteria to a shared requirement: Greece asks for a recent photograph, Germany asks for one of
+35 x 45 mm no older than six months, and both are the same requirement `PHOTOS`. Two different bars
+can sit at the same number, and one did.
+
+`satisfiedContract` answers the other question — *which* contract was it? It is an opaque identifier
+of the effective contract in force when you confirmed the document, and it is only ever compared for
+equality. Do not parse it; its shape is free to change.
+
+**When it is written.** Alongside `satisfiedRevision`, when you mark a document ready, and removed
+with it when you set any other status.
+
+**What VisaFlow does with it.** If the identifier still matches, your claim stands. If it does not —
+because the requirement gained criteria, or because you changed the destination of this dossier and
+the other country judges the document differently — the document is shown as needing a check and
+stops counting toward readiness. **Your status is never changed**: the file still says
+`"status": "ready"`, because that is what you asserted.
+
+**A file without it is not simply stale.** Documents exported before 1.3.0 carry no identifier, and
+for a requirement that asks the same thing everywhere they keep counting exactly as before. For a
+requirement that has since gained destination-specific criteria they are shown as needing a check,
+because a claim made before those criteria existed cannot show that they were met. VisaFlow does not
+guess which contract an older claim was made against.
+
+---
+
+### Version 1.2.0 — 2026-08-30
 
 Adds `document.satisfiedRevision`, an optional positive integer.
 

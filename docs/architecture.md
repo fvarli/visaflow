@@ -100,9 +100,18 @@ A template is **composed from three ownership layers** — Common Schengen → D
 jurisdiction — rather than written as one array ([ADR-052]). Each layer answers a different question:
 what is true of Schengen short-stay applications generally, what is true because of the destination,
 and what is true because of where the application is lodged. A requirement `code` is globally unique
-and owned by exactly one layer; a later layer's only power over an earlier one's requirement is to
-**append a citation**. It cannot change wording, requiredness, applicability or `revision`, because
-`satisfiedRevision` on a stored document has to mean the same thing in every composition.
+and owned by exactly one layer.
+
+A later layer has exactly two powers over an earlier one's requirement: **append a citation**, and
+**append versioned acceptance detail** — criteria this destination or jurisdiction publishes that the
+shared contract cannot state, such as the e-Devlet barcode Germany requires on the civil-registry
+extract ([ADR-052b]). It cannot change identity, requiredness, applicability, owner or the base
+contract's own prose, and it can neither suppress nor replace. The composed requirement therefore
+carries an **effective** contract that may differ by composition, named by a composer-derived
+`contractKey`; the owner's `revision` still means the same thing everywhere, which is why a stored
+`satisfiedRevision` is no longer sufficient on its own to identify what a completion claim was made
+against ([ADR-051b]). A composition may also declare **satisfaction groups** — "any one of these
+documents settles this obligation" — which readiness counts once rather than per member.
 
 Composition runs once at module load, so `resolveVisaTemplate` returns the same object on every call
 — which the feature models' `useMemo` dependencies and the `DossierProvider` reducer rely on — and a
@@ -309,3 +318,6 @@ The repository is the **only** thing that touches a storage API; no component re
 [ADR-043]: ./decisions.md
 [ADR-044]: ./decisions.md
 [ADR-045]: ./decisions.md
+[ADR-051b]: ./decisions.md#adr-051b
+[ADR-052]: ./decisions.md#adr-052
+[ADR-052b]: ./decisions.md#adr-052b

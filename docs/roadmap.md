@@ -162,20 +162,32 @@ process problem, best tackled once the workspace is worth filling with more coun
 - **More countries & visa types** authored as packs. **The second pack shipped:** Germany
   short-stay tourism, filed from Türkiye — 22 of 26 requirements carrying their own dated evidence,
   inheriting the common Visa Code requirements and the Türkiye filing evidence while keeping its own
-  mission evidence separate. Greece is unchanged at 19 of 28 and its resolved output did not move.
+  mission evidence separate. Greece was unchanged at 19 of 28 and its resolved output did not move.
+  Both figures moved afterwards, as the fidelity work retired asks no authority made and added ones
+  it does: Germany is now **23 of 23** and Greece **20 of 25**.
   Building it corrected the shared layer twice: `ID_CARD_COPY` and `PASSPORT_PREVIOUS` had no
   Common-level authority in the evidence checked, and a second destination is what demonstrated it
   ([ADR-052a]). *In progress.*
 - **Composition fidelity — how faithfully a composed requirement states the real acceptance bar.**
-  The architecture question is closed; this one is not, and the second pack is what exposed it.
-  Germany's photograph requirement cites a mission page stating one photograph, 35 x 45 mm, not older
-  than six months, and renders only the EU-level ICAO rule, because citation-only refinement carries
-  the citation and not the detail. Sequence: **E0** define and calibrate a fidelity-audit contract
-  (done) → **E1** audit Greece → **E2** audit Germany → **E3** consolidated gap matrix → **E4** an
-  evidence-driven decision on whether citation-only composition remains sufficient, a smaller
-  targeted capability is enough, or contract-bearing composition is justified → **E5** implement only
-  what that justifies → **E6** browser and product QA against the authoritative evidence. *In
-  progress.*
+  The second pack exposed it: Germany's photograph requirement cited a mission page stating one
+  photograph, 35 x 45 mm, not older than six months, and rendered only the EU-level ICAO rule,
+  because refinement carried the citation and not the detail. **E0–E5 and the F slices have landed.**
+  The audit ran over both packs, the ordinary corrections shipped, and the two capabilities the
+  evidence justified shipped with them: **composition-scoped acceptance detail** ([ADR-052b]) and
+  **one-of-N satisfaction groups**. Refinement is no longer citation-only, and both packs now render
+  their own mission's criteria. What remains is measured rather than suspected — a finer occupational
+  vocabulary, waiver-when-present, one document-variant case, five Greek rows behind a blocked
+  provider checklist, and the applicant-profile axes the missing-obligation register needs. **E6**
+  browser and product QA against the authoritative evidence is next. *In progress.*
+- **Fidelity has two levels, and they are audited separately.** *Row fidelity* asks whether one
+  requirement's rendered contract matches its authority. *Satisfaction-group fidelity* asks whether
+  the relation between requirements does — and every member of a group can be individually EXACT
+  while the group is still wrong. Three faithful transport rows say nothing about whether the
+  authority offers a choice between them, whether the group's membership is the one the clause lists,
+  whether one member really suffices, or whether the members apply together. Group membership,
+  cardinality, applicability and readiness semantics therefore need invariants of their own, and an
+  audit that reports only row labels will report a pack as faithful while it demands three documents
+  for one obligation. *Audit-model note; no new capability implied.*
 - **Country pack #3 — deferred, not abandoned.** It waits behind the fidelity audit so a third
   country's differences are not encoded into an architecture whose remaining limits have not been
   measured. When it starts it is a **consumer** of the authoring pipeline — a validation case for the
@@ -279,3 +291,4 @@ Implementation status of the current phase is tracked in [current-status.md](./c
 [ADR-048]: ./decisions.md
 [ADR-052]: ./decisions.md
 [ADR-052a]: ./decisions.md
+[ADR-052b]: ./decisions.md#adr-052b

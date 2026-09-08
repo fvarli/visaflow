@@ -116,9 +116,14 @@ src/
   not prose (`nameKey`/`descriptionKey`/`notesKey`)
 - A template is **composed** from three ownership layers — Common Schengen →
   Destination → Filing jurisdiction (ADR-052). A requirement `code` is globally
-  unique and owned by exactly one layer; a later layer may only **append
-  citations** to an earlier one's requirement, never change its wording,
-  requiredness, applicability or `revision`. Register every layer in
+  unique and owned by exactly one layer. A later layer may **append citations**
+  and **append versioned acceptance detail** (`addDetail`) to an earlier one's
+  requirement — never change its identity, requiredness, applicability, owner or
+  base prose, and never suppress or replace (ADR-052b). The owner's `revision`
+  stays global; the composed `contractKey` names the effective contract, which
+  may differ per composition, and a completion claim is stamped against it
+  (ADR-051b). A composition may also declare **satisfaction groups** — "any one
+  of these" — which readiness counts once. Register every layer in
   `src/config/countries/layers.ts` — the identity invariants walk it
 - Located in `src/config/countries/<country>/`; resolve with
   `resolveVisaTemplate(countryCode, visaType)`, which returns a composition

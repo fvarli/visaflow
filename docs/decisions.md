@@ -1959,6 +1959,11 @@ statement", now names the pensioner booklet.
 
 **Status:** Accepted · 2026-08-30 · completes [ADR-049](#adr-049), extends [ADR-050](#adr-050)
 
+> **Amended by [ADR-051b](#adr-051b) (2026-09-08).** Decisions 1, 2 and 4 stand. Decision 3's last
+> sentence — "An unrecorded claim counts as ready" — is now conditional: it holds where the
+> requirement still carries the contract its owner published, and not where a composition has
+> appended acceptance detail. Decision 5's `schemaVersion` is `1.3.0`. The text is kept as written.
+
 **Decision:**
 
 1. **`DocumentRequirement.revision: number`** — the *acceptance contract* version. Config only, never
@@ -2086,6 +2091,11 @@ is a named gap, not an oversight.
 
 **Status:** Accepted · 2026-08-30 · amends [ADR-051](#adr-051)
 
+> **Extended by [ADR-051b](#adr-051b) (2026-09-08).** The directional test below is unchanged and is
+> what forced fragments to be versioned at all. What it did not anticipate is a requirement whose
+> rendered criteria differ by composition, where a single integer can no longer say *which* contract
+> a claim was made against. The text is kept as written.
+
 A post-implementation audit of ADR-051 found four defects, one behavioural. Two of them exist because
 ADR-051 stated a policy and then did not follow it.
 
@@ -2176,6 +2186,12 @@ country-pack-provenance,workspace-repository}.test.ts`, `docs/country-pack-guide
 
 **Status:** Accepted · 2026-09-06 · pays down [ADR-048](#adr-048), extends
 [ADR-049](#adr-049), [ADR-051](#adr-051)
+
+> **Amended by [ADR-052b](#adr-052b) (2026-09-08).** The layer model, the ownership rule and the
+> backwards-only direction all stand. Decision 3 does not: a later layer may now also append
+> **versioned acceptance detail**, and a composition may declare **satisfaction groups**. What
+> remains forbidden is unchanged — no override of identity, requiredness, applicability, owner or
+> base prose, and no suppression or replacement. The text is kept as written.
 
 **Decision:**
 
@@ -2339,6 +2355,13 @@ requirement-identity}.test.ts`.
 ## ADR-052a: One Code, One Acceptance Bar — Ownership, Quarantine and Observed Practice
 
 **Status:** Accepted · 2026-09-07 · amends [ADR-052](#adr-052)
+
+> **Rule 1 restated by [ADR-052b](#adr-052b) (2026-09-08).** Rules 2 and 3 stand unchanged. Rule 1's
+> *purpose* stands too — a code must never ambiguously represent two obligations — but its premise
+> does not: refinement is no longer citation-only, so a code does not carry identical rendered
+> criteria in every composition. The reuse test moves from substitutability of evidence to identity
+> of the obligation. The text is kept as written, including the premise, because it is the reasoning
+> that was true when the rule was made.
 
 ADR-052 established the composition *mechanism*. Building the evidence base for a second pack —
 Germany short-stay tourism, filed from Türkiye — exercised that mechanism against a destination that
@@ -2579,3 +2602,157 @@ are cited and `gr-tr-mission`'s are held precisely because they are not; both ar
 the layer decides is scope, and what the citations decide is evidence.
 
 **Implementation:** documentation only — `docs/decisions.md`, `docs/country-pack-guide.md`.
+
+---
+
+## ADR-052b: One Code, One Evidence Identity
+
+**Status:** Accepted · 2026-09-08 · restates Rule 1 of [ADR-052a](#adr-052a), amends
+[ADR-052](#adr-052)
+
+ADR-052a Rule 1 exists to stop one requirement `code` from ambiguously representing two different
+obligations, and that purpose is untouched. Its *premise* is gone. It reasoned that "`revision` is
+global per code and refinement is citation-only, so a code carries exactly one contract wherever it
+composes" — and refinement is no longer citation-only. A destination or filing-jurisdiction layer may
+now append acceptance criteria to a requirement it does not own, so the criteria an applicant reads
+can legitimately differ between two packs that share the code.
+
+**Decision:**
+
+1. A requirement **`code` identifies one evidence/document concept** — the thing the applicant is
+   being asked to produce. It is not a version of the criteria for producing it.
+2. The **owner declares the base contract** and its **global `revision`**. That number means the same
+   thing in every composition, as ADR-051 Decision 4 always said.
+3. A later layer may **append versioned acceptance detail** to a requirement it does not own. The
+   **effective acceptance contract is therefore composition-scoped**: base contract ∧ the fragments
+   this composition attached.
+4. Two materially different effective contracts for one code **must** have different `contractKey`s.
+5. **Persisted completion identity is effectively `(code, contractKey)`** — see
+   [ADR-051b](#adr-051b).
+6. A fragment may **only add**. It may not change identity, requiredness, applicability, owner or the
+   base contract's own prose, and it may never suppress or replace another contract. The composer
+   refuses anything else, including a field smuggled inside the fragment object.
+7. Genuinely different evidence instruments still require **separate codes**.
+
+**The reuse rule, restated at the right level.**
+
+The old test was substitutability of evidence:
+
+> if satisfying destination A's evidence bar would not satisfy destination B's, one code may not
+> serve both.
+
+That is too broad now, and by its literal reading C1 breaks it on eight rows. Germany's photograph
+bar is stricter than Greece's, so a Greek-conforming photograph need not satisfy Germany — and they
+are still, obviously, the same document. The test belongs one level up:
+
+> if A and B are **distinct evidence obligations** rather than composition-specific acceptance
+> criteria for the same evidence identity, they require separate codes.
+
+Substitutability remains the *evidence* for that judgement; it is no longer the judgement itself.
+
+**`PHOTOS` — one code, correctly.** Greece's consulate asks for a recent ICAO photograph; Germany's
+mission asks for one photograph, 35 x 45 mm, no older than six months, full-face with nothing
+covering the head or eyes. There is one obligation — *the photograph* — and two renderings of how it
+is judged. Splitting it into `GR_PHOTOS` and `DE_PHOTOS` would be two codes for one document, which
+is the failure ADR-052a names in its other direction, and it multiplies with every country added.
+
+**`TRANSPORT_RESERVATION` vs `TRANSPORT_MEANS_PROOF` — two codes, correctly.** Annex III I.1 lists
+"flight reservations, other proof of intended means of transport, or proof of travel itinerary" as
+three items side by side. A booking and a non-booking proof of intended transport are different
+instruments, not one instrument judged differently, so they are separate codes — related to each
+other by a **satisfaction group** (one of them suffices), never by a fragment. The tell is that no
+composition-scoped criterion could turn one into the other.
+
+**Consequences.**
+
+- The composed requirement carries `detailKeys` and a composer-derived `contractKey`; neither may be
+  authored in a layer.
+- A pack author choosing between "a fragment" and "a second code" is making an identity judgement,
+  and it is not mechanically detectable in either direction. It must be argued in writing when made,
+  exactly as ADR-052a already required.
+- A dossier whose destination changes may find a claim superseded. That is the correct answer, not a
+  defect: the applicant is being asked to check their photograph against a bar they have not met yet.
+
+**Implementation:** documentation only — `docs/decisions.md`, `docs/architecture.md`,
+`docs/country-pack-guide.md`. The behaviour it describes shipped in `1b34f42`, `9c91b57`, `3636eb6`
+and `975a152`.
+
+---
+
+## ADR-051b: Completion Provenance Under Composition-Scoped Contracts
+
+**Status:** Accepted · 2026-09-08 · amends [ADR-051](#adr-051), extends [ADR-051a](#adr-051a)
+
+ADR-051 gave a completion claim a date against the requirement it claimed, as one integer. That works
+while the criteria for a code form a chain — one contract tightening over time. Composition-scoped
+acceptance detail ([ADR-052b](#adr-052b)) turns them into a tree, one branch per composition, and an
+integer cannot address a tree.
+
+**Decision:**
+
+1. **`revision` versions the owner's base contract** and stays global per code.
+2. **Fragment revisions** version composition-scoped additive acceptance detail. A fragment's
+   revision 1 is already a contract change, unlike a requirement's, because it adds criteria to
+   something already published — so the ledger records fragments from 1 and requirements from 2.
+3. **Arithmetic composition of revisions is forbidden.** No summing, no maxing, no derived integer.
+4. **`contractKey` identifies the effective composed contract** — the owner's revision plus each
+   attached fragment's layer and revision, in composition order. Derived by the composer; never
+   authored.
+5. A `ready` claim records **both** `satisfiedRevision` and `satisfiedContract`.
+6. **Equal key ⇒ `current`. Differing key ⇒ `superseded`** (re-check). The numeric comparison is not
+   consulted when a key is present: an equal key already implies an equal number.
+7. **`schemaVersion` → `1.3.0`**, announcing `satisfiedContract`.
+
+**Decision 3 of ADR-051, narrowed.** "An unrecorded claim counts as ready" holds **only where the
+current requirement still carries the base contract**. Where a composition has attached acceptance
+detail, a claim whose provenance cannot identify that contract must be re-checked — the criteria
+postdate the claim outright, so absence of a stamp is not "no evidence about their evidence", it is
+evidence that the applicant never saw this bar.
+
+**Legacy handling, in full.**
+
+| current requirement | stored claim | standing |
+|---|---|---|
+| base-only | no `satisfiedRevision` | `unrecorded` — counts ready |
+| base-only | numeric, no key | existing numeric comparison |
+| carries composition detail | no key (with or without a number) | `superseded` |
+| any | key present | key equality |
+
+**Historical contract keys are never inferred.** The contract a pre-existing claim was made against
+is not recoverable, and reconstructing one would be the unpublished-intent claim ADR-051a forbids.
+
+**Rationale — why arithmetic was rejected, having first been shipped.**
+
+The first implementation expressed the composed contract as the owner's revision plus its fragments'.
+It was monotonic, so a tightened bar always superseded, and that is the property that was aimed at.
+It is not the property that mattered.
+
+- **Addition is not injective.** Different fragment sets collide: `1 + 1` is `2` whether the fragment
+  is "a recent photograph" or "35 x 45 mm, full-face".
+- **The contract space is a tree, not a total order.** Germany's photograph bar is not a later
+  version of Greece's; it is a different one. `satisfiedRevision < revision` asks "is it newer?",
+  which is unanswerable across branches. An equality test asks "is it the one you claimed against?",
+  which is answerable.
+- **The collision shipped.** Both packs carried `PHOTOS` at revision 2 with materially different
+  bars, and the test written at the time asserted that as the intended outcome.
+- **Portability is a live runtime path, not a thought experiment.** The destination of an existing
+  dossier is editable in Settings and template sync never deletes records, so the collision was
+  reachable by an ordinary user: confirm the photograph for Greece, switch to Germany, and the claim
+  read as satisfied.
+
+**Consequences.**
+
+- One optional persisted string, and a schema bump to announce it. No migration: older files parse
+  unchanged.
+- Claims demoted by the narrowing are exactly those on requirements carrying composition detail —
+  nine rows across the two packs, and no others. Re-confirming is one click and stamps both fields.
+- A genuine **loosening** also changes the key, so removing a criterion asks for a re-check the
+  applicant does not strictly need. That is the harmless direction of being wrong, and it was chosen
+  deliberately over the alternative, which tells somebody a document is accepted when it will be
+  refused at the counter.
+- The key is built from fragment *revisions*, not from a hash of the rendered text. Editing what a
+  fragment says without moving its revision is therefore invisible to it — which is why the fragment
+  ledger, not the key, is what holds an author to declaring that change.
+
+**Implementation:** documentation only — `docs/decisions.md`, `docs/json-schema.md`,
+`docs/architecture.md`. The behaviour it describes shipped in `3636eb6` and `975a152`.

@@ -168,10 +168,22 @@ export const xxFilingLayer: RequirementLayer = {
   id: 'xx-filing',
   kind: 'jurisdiction',
   add: documentRequirements,
-  // The only override a layer has: append a citation to somebody else's
-  // requirement. You cannot change its wording, requiredness, applicability or
-  // revision — a layer needing different criteria must own it outright.
-  refine: [{ code: 'APPLICATION_FORM', addSourceRefs: ['xx-consulate-doc-list'] }],
+  // Two powers over somebody else's requirement, both additive: append a
+  // citation, and append versioned acceptance detail. You cannot change its
+  // identity, requiredness, applicability, owner or base prose, and you can
+  // neither suppress nor replace — a layer needing a different obligation must
+  // own its own code.
+  refine: [
+    { code: 'APPLICATION_FORM', addSourceRefs: ['xx-consulate-doc-list'] },
+    {
+      code: 'CIVIL_REGISTRY_EXTRACT',
+      addSourceRefs: ['xx-consulate-doc-list'],
+      addDetail: {
+        detailKeys: ['visa-domain:detail.xx-mission.CIVIL_REGISTRY_EXTRACT.channel'],
+        revision: 1,
+      },
+    },
+  ],
   sources: xxSources,
 }
 ```
@@ -204,23 +216,83 @@ composed — so a mis-edited order fails at import rather than silently reorderi
 Composition happens once at module load, so a malformed pack fails at import rather than on whichever
 screen resolves first, and `resolveVisaTemplate` keeps returning the same object every call.
 
-### Citation-only refinement, and what it cannot carry
+### Refinement — citations, and composition-scoped acceptance detail
 
-Refinement appends citations. It cannot change wording, requiredness, applicability or `revision` —
-so when your mission's page states an acceptance detail the shared requirement does not render, the
-**citation travels and the detail does not**.
+A refinement is **additive, always**. It may append citations, and it may append acceptance criteria
+your mission publishes that the shared requirement does not state. It may not change identity,
+requiredness, applicability, owner or the base contract's own prose, and it may never suppress or
+replace. The composer refuses anything else, including a field hidden inside the detail fragment.
 
-The shipped example is `PHOTOS`. The common contract says the photograph must meet ICAO 9303 Part 1,
-6th edition, which is all the Visa Code states, and that is what an applicant reads in both packs.
-The German mission's page additionally states one photograph, 35 x 45 mm, not older than six months.
-Germany cites that page, so the detail is preserved in **provenance** — it is one click away, on the
-source — but it is not promoted into a Germany-specific rendered contract.
+```typescript
+{
+  code: 'PHOTOS',
+  addSourceRefs: ['de-tr-schengen-general'],
+  addDetail: {
+    detailKeys: ['visa-domain:detail.de-tr-mission.PHOTOS.size'],
+    revision: 1,
+  },
+}
+```
 
-Two things follow. Do not describe such a pack as rendering every mission-specific acceptance detail;
-it is correctly *sourced* and incompletely *rendered*. And do not route around the limit: a second
-code carrying different prose for the same real document is two codes for one document, which breaks
-identity (ADR-049, ADR-052a). Promoting mission detail into a rendered contract needs a
-contract-bearing override, which does not exist and would arrive with its own ADR.
+The applicant reads the shared contract, then your detail beneath it. Greece sees none of Germany's
+and Germany sees none of Greece's.
+
+**Version your fragment.** `revision` on a fragment is yours to maintain, exactly as a requirement's
+is, and the rule is the same directional test: move it when the detail starts excluding evidence it
+used to accept. A fragment's revision **1** already needs a ledger entry, unlike a requirement's,
+because it adds criteria to a contract that was published without them. Record it in
+`requirement-revisions.ts` with `viaLayer` naming your layer.
+
+**What the key does.** The composer derives a `contractKey` for every requirement — the owner's
+revision plus each attached fragment's layer and revision. It is what a completion claim is stamped
+against, so an applicant who confirmed a photograph for one destination is asked to check it again if
+they switch to another that judges it differently. You never write a key; you only make sure your
+fragment's revision is honest, because the key is built from it. See [ADR-051b].
+
+**One code, or two?** This is the judgement the guide cannot make for you, and it is not mechanically
+detectable in either direction.
+
+- **`PHOTOS` is one code.** Greece asks for a recent ICAO photograph; Germany asks for one of
+  35 x 45 mm, no older than six months, full-face. One obligation — *the photograph* — judged two
+  ways. A `GR_PHOTOS` and a `DE_PHOTOS` would be two codes for one document, and it gets worse with
+  every country you add.
+- **`TRANSPORT_RESERVATION` and `TRANSPORT_MEANS_PROOF` are two codes.** Annex III I.1 lists a flight
+  reservation and other proof of intended means of transport side by side. A booking and a
+  non-booking proof are different instruments, not one instrument judged differently — no
+  composition-scoped criterion could turn one into the other. They are related by a satisfaction
+  group instead.
+
+The test is identity, not strictness: *are these distinct evidence obligations, or the same
+obligation with composition-specific criteria?* Do not put two distinct obligations under one code
+because they feel similar, and do not mint a second code because two missions judge the same document
+differently ([ADR-052b]).
+
+### Satisfaction groups — "any one of these"
+
+When your authority offers a choice — Annex III I.1's "flight reservations, other proof of intended
+means of transport, **or** proof of travel itinerary" — declare a group rather than marking one
+member required and the rest optional. That rendering demands a document the authority does not.
+
+```typescript
+groups: [
+  {
+    id: 'xx-travel-arrangements',
+    anyOf: ['TRANSPORT_RESERVATION', 'TRANSPORT_MEANS_PROOF', 'ITINERARY'],
+    labelKey: 'visa-domain:groups.xx-travel-arrangements',
+    sourceRefs: ['xx-harmonised-list'],
+  },
+]
+```
+
+A group occupies **one** slot in readiness however many members it has, and is satisfied by the best
+any member reaches; the workspace stops recommending the other routes once one is confirmed. Declare
+it on the layer whose instrument offers the choice — which is not necessarily the layer that owns the
+members — and remember that the choice may not be universal: Annex III's "and/or" for the employer
+letter is a real alternative in Greece and is closed by the German mission, which asks for one letter
+carrying both, so that group is declared on the Greek mission layer alone.
+
+Members must exist in the composition, a member belongs to at most one group, and a group needs at
+least two members. The composer enforces all three.
 
 ### `revision` — the acceptance contract
 
@@ -238,6 +310,11 @@ otherwise.
 A criterion the applicant cannot read is not part of the contract. If you add an acceptance
 criterion to `notes`, wire `notesKey` — a test refuses to let a `notes` string exist unreachable, and
 making a previously-invisible criterion visible is itself a bump. See ADR-051.
+
+**This number is the owner's, and it is global.** It means the same thing in every composition, and
+nothing derives a composed value from it — the criteria a *refining* layer adds are versioned on the
+fragment and carried by `contractKey`, never summed into this number. An earlier build did sum them,
+and two packs ended up rendering different photographs at the same revision; see [ADR-051b].
 
 ## Step 4 — Sources and review status (be honest)
 
@@ -309,3 +386,5 @@ why identifiers are stable, requirements are keys-not-prose, and source honesty 
 [ADR-012]: ./decisions.md
 [ADR-014]: ./decisions.md
 [ADR-015]: ./decisions.md
+[ADR-051b]: ./decisions.md#adr-051b
+[ADR-052b]: ./decisions.md#adr-052b
