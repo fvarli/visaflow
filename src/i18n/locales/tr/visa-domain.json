@@ -367,6 +367,7 @@
   "detail": {
     "de-tr-mission": {
       "PHOTOS": {
+        "count": "1 adet fotoğraf",
         "size": "35 x 45 mm ölçüsünde ve 6 aydan eski olmamalı",
         "pose": "Tam karşıdan çekilmiş; başı örten ya da gözleri kapatan bir şey olmamalı. Dini gerekçelerle istisna yapılabilir, ancak gözlerin önü yine de kapatılmamalı"
       },

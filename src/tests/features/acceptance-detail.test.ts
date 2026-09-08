@@ -275,7 +275,7 @@ describe('the production packs render their own detail and nobody else’s', () 
         )
       ),
     ]
-    expect(keys.length).toBe(14)
+    expect(keys.length).toBe(15)
 
     for (const locale of ['en', 'tr'] as const) {
       await i18n.changeLanguage(locale)

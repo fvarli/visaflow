@@ -217,6 +217,16 @@ export const REQUIREMENT_REVISIONS: RequirementRevision[] = [
       'another size or age satisfied the shared contract and fails this one.',
   },
   {
+    code: 'PHOTOS',
+    revision: 3,
+    bumpedIn: 'DE 1.6.0',
+    viaLayer: 'de-tr-mission',
+    reason:
+      'The tourism checklist asks for one photograph — "1 adet biyometrik ' +
+      'vesikalık" — which the general page the other criteria come from does ' +
+      'not state. Somebody who brought two met revision 2.',
+  },
+  {
     code: 'PASSPORT_CURRENT',
     revision: 3,
     bumpedIn: 'DE 1.5.0',

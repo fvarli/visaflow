@@ -424,16 +424,18 @@ describe('Germany pack — refinement adds citations and detail, and nothing els
       notesKey: gr?.notesKey,
     })
     expect(de?.detailKeys).toEqual([
+      'visa-domain:detail.de-tr-mission.PHOTOS.count',
       'visa-domain:detail.de-tr-mission.PHOTOS.size',
       'visa-domain:detail.de-tr-mission.PHOTOS.pose',
     ])
     expect(gr?.detailKeys).toEqual([
       'visa-domain:detail.gr-tr-mission.PHOTOS.recent',
     ])
-    // Both compositions attached exactly one fragment at revision 1, so both
-    // land on 2 — from different fragments. Same number, different bar, which
-    // is why the composed revision is only ever compared within a composition.
-    expect([de?.revision, gr?.revision]).toEqual([2, 2])
+    // Germany's fragment is at revision 2 and Greece's at 1, over the same
+    // owner revision of 1 — so 3 and 2. The numbers were briefly equal and that
+    // was a coincidence, not a property: they are only ever compared within a
+    // composition, never across.
+    expect([de?.revision, gr?.revision]).toEqual([3, 2])
     expect(de?.sourceRefs).toEqual([
       'eu-visa-code-art13',
       'de-tr-schengen-general',

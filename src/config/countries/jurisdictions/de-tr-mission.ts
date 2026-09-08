@@ -182,10 +182,16 @@ export const deTrMissionLayer: RequirementLayer = {
       addSourceRefs: ['de-tr-schengen-general'],
       addDetail: {
         detailKeys: [
+          // The count is on the tourism checklist — "1 adet biyometrik
+          // vesikalık" — not on the general page the other two come from. It
+          // arrived one commit after the fragment did, which is why this is
+          // revision 2 rather than 1: an applicant who read the fragment
+          // without it brought however many photographs they had.
+          'visa-domain:detail.de-tr-mission.PHOTOS.count',
           'visa-domain:detail.de-tr-mission.PHOTOS.size',
           'visa-domain:detail.de-tr-mission.PHOTOS.pose',
         ],
-        revision: 1,
+        revision: 2,
       },
     },
     {

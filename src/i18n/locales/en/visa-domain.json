@@ -367,6 +367,7 @@
   "detail": {
     "de-tr-mission": {
       "PHOTOS": {
+        "count": "One photograph",
         "size": "35 x 45 mm, and not older than six months",
         "pose": "Full-face, with nothing covering the head or the eyes. Exceptions are possible on religious grounds, but the eyes must stay uncovered"
       },
