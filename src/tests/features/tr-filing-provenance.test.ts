@@ -172,7 +172,8 @@ describe('Greek mission authority arrives only by destination refinement', () =>
   })
 
   it('does not let its own quarantined requirements claim Greek authority', () => {
-    // The two it owns are held precisely because no source supports them.
+    // The five it owns are held because their contracts do not yet match the
+    // evidence, not because no evidence exists — see the gap register.
     // Attaching one of the mission citations to either would convert a recorded
     // evidence gap into a claim of authority — the failure mode the allowlist in
     // `country-pack-provenance.test.ts` exists to prevent.

@@ -525,6 +525,14 @@ describe('country packs — Greece composition and citations', () => {
    * source states — a range invented somewhere upstream and then cited as if
    * it were authority. Pinned per locale, and pinned negatively too: a
    * translation that quietly restores the range must fail.
+   *
+   * `SPONSOR_BANK_STATEMENTS` joined the list in H4b. It carried the same
+   * invented range, left standing when ADR-048 removed it from
+   * `BANK_STATEMENTS` because no Greek source could then be read to say
+   * otherwise. The visa centre's tourism checklist says "son üç ayın
+   * hareketlerini" — the last three months — so the range is now contradicted
+   * rather than merely unsupported. The row stays uncited for reasons the gap
+   * register records; that is a separate question from what its prose says.
    */
   it.each(['tr', 'en'] as const)(
     'states the source-backed three-month period in %s',
@@ -541,9 +549,10 @@ describe('country packs — Greece composition and citations', () => {
 
       const payslips = text('PAYSLIPS')
       const bank = text('BANK_STATEMENTS')
+      const sponsorBank = text('SPONSOR_BANK_STATEMENTS')
       await i18n.changeLanguage('tr')
 
-      const threeMonths = /three months|üç aya|üç ayd/i
+      const threeMonths = /three months|üç aya|üç ayd|üç ayın/i
       const inventedRange = /3\s*-\s*6|3-6/
 
       expect({
@@ -551,11 +560,15 @@ describe('country packs — Greece composition and citations', () => {
         payslipsNoRange: !inventedRange.test(payslips),
         bankPeriod: threeMonths.test(bank),
         bankNoRange: !inventedRange.test(bank),
+        sponsorBankPeriod: threeMonths.test(sponsorBank),
+        sponsorBankNoRange: !inventedRange.test(sponsorBank),
       }).toEqual({
         payslipsPeriod: true,
         payslipsNoRange: true,
         bankPeriod: true,
         bankNoRange: true,
+        sponsorBankPeriod: true,
+        sponsorBankNoRange: true,
       })
     }
   )
@@ -1169,42 +1182,65 @@ describe('country packs — the E5a corrections render, and stay inside their la
  * evidence about practice. It does not promote the document to something the
  * jurisdiction requires, and a requirement does not earn a citation by being
  * asked for twice.
+ *
+ * REASONS REWRITTEN IN H4b, AND THE REWRITE IS THE POINT. Every entry below
+ * used to say the operative Greek checklist could not be reached. It was read
+ * on 2026-09-09, so that reason had stopped being true, and a register whose
+ * stated reasons are false is worse than no register — it reads as a limitation
+ * that has been retired. None of the five became citable, but each is uncited
+ * for its own reason now, and those are what the entries record.
  */
 const JURISDICTION_EVIDENCE_GAPS: Record<string, string> = {
   SPONSOR_LETTER:
-    'Moved out of the common layer in E5c. Germany could classify it ' +
-    'UNSUPPORTED — its mission sheets are closed and list no sponsor document ' +
-    'at all — so it stopped being composed there. Greece could not: the visa ' +
-    'centre checklist its mission points applicants to is unreachable, and a ' +
-    'FAQ on that same site defines who may sponsor, which is a ' +
-    'requirement-specific signal that the blocked page may carry it.',
+    "The Greek visa centre's tourism checklist asks for it — the sponsor's " +
+    'petition, in all four consular jurisdictions. It is uncited because the ' +
+    'condition does not match: this row fires on a funding election ' +
+    '(`financing.source`), the checklist raises the sponsor block from ' +
+    'occupation, and no working branch it publishes asks for a sponsor ' +
+    'document at all. A citation vouches for the condition too (ADR-048). ' +
+    "Three of the four jurisdictions also ask for the sponsor's identity " +
+    'photocopy, a second evidence identity this pack does not carry, and ' +
+    'Edirne does not — a per-consulate difference nothing in the model can ' +
+    'express.',
   SPONSOR_BANK_STATEMENTS:
-    'Same move and same evidence state as the sponsor letter. It additionally ' +
-    'renders an invented "3-6 months" window that no authority states — the ' +
-    'range ADR-048 removed from BANK_STATEMENTS, still live here. Recorded ' +
-    'rather than quietly corrected, because inventing a different number ' +
-    'would repeat the defect in the other direction.',
+    'Same condition mismatch as the sponsor letter, and asked for by the same ' +
+    "checklist through the sponsor's own occupational branch. The invented " +
+    '"3-6 months" window it used to render is gone: the checklist states the ' +
+    'last three months, which is what the contract now says. The freshness ' +
+    'bar it also states — statements no older than a week at the appointment ' +
+    'date — is deliberately not rendered, because adding it would tighten the ' +
+    'contract and that needs a revision bump argued on its own.',
   SPONSOR_INCOME_PROOF:
-    'Same move and same evidence state as the sponsor letter. Article 14(4) ' +
-    'lets a Member State require sponsorship proof on its own national form; ' +
-    'Greece publishes no such form on any page this audit could reach, and ' +
-    "whether its checklist asks for the sponsor's income another way is what " +
-    'the blocked page would settle.',
+    'Not one document, which is why no citation can be truthful. The ' +
+    'checklist does not name a generic income artifact; it says the sponsor ' +
+    "prepares the documents of the sponsor's own occupational category — " +
+    'payslips for an employee, tax plate and trade registry for a company ' +
+    'owner, pension records for a pensioner. That is a rule producing a set, ' +
+    'and no acceptance criterion turns one of those into another, so this ' +
+    'code is standing in for several evidence identities at once (ADR-052b). ' +
+    "The sponsor's occupation is also unreachable: applicability sees only " +
+    '`{ employment, financing }`, and is evaluated per dossier, not per ' +
+    'sponsor.',
   RELATIONSHIP_PROOF:
-    'Same move and same evidence state. Annex II C.2 is family ties with the ' +
-    'host or inviting person and Annex II B.5 is ties as integration in the ' +
-    'country of residence; neither establishes a bar to prove a relationship ' +
-    'to a financial sponsor, and Article 14(4)(g) makes those ties a field on ' +
-    'a national form rather than a document to bring.',
+    'The checklist establishes a relationship *rule* — the sponsor must be a ' +
+    'first-degree relative, and a married applicant must name their spouse — ' +
+    'but not obviously a separate document to prove it. The civil-registry ' +
+    "extract already shows an applicant's parents, or spouse and children, " +
+    'and a spouse sponsor additionally brings the marriage booklet in three ' +
+    'of four jurisdictions. A sibling sponsor is the case that keeps this ' +
+    'open, since siblings are not among the entries the extract guarantees. ' +
+    'Annex II C.2 and B.5 remain about ties to a host and to the country of ' +
+    'residence, neither of which is a financial sponsor.',
   EMPLOYER_SIGNATURE_CIRCULAR:
-    'İmza Sirküleri. No current official source at any level — absent from Visa ' +
-    'Code Annex II, from Annex III, and from the German mission sheet. The Greek ' +
-    "mission's own pages have since been read first-hand and are silent on it, " +
-    'but the visa centre checklist those pages direct applicants to answers a ' +
-    'question about this exact document and cannot be reached, which is the ' +
-    'requirement-specific signal that keeps it UNVERIFIED rather than retired ' +
-    'with the three that went in E5c. Held in the Greek mission layer as ' +
-    'quarantine so it cannot reach a second destination.',
+    'İmza Sirküleri. Absent from Visa Code Annex II, from Annex III and from ' +
+    "the German mission sheet, and the Greek mission's own pages are silent " +
+    'on it. The visa centre checklist those pages direct applicants to does ' +
+    'list it, in all four jurisdictions, inside the company-document block on ' +
+    'the employed branch. It stays uncited because the condition over-applies: ' +
+    'the public-servant branch carries no company block at all, and ' +
+    '`employed` cannot tell a public servant from an ordinary employee. The ' +
+    'nationality note this row used to render was contradicted by that same ' +
+    'checklist and has been removed.',
 }
 
 describe('country packs — the jurisdiction evidence gap is bounded', () => {
@@ -1280,6 +1316,28 @@ describe('country packs — the jurisdiction evidence gap is bounded', () => {
         explained: true,
       })
     }
+  })
+
+  it('records the reason that is true now, not one that has been overtaken', () => {
+    /**
+     * Every entry here once said the Greek visa centre's checklist could not
+     * be reached. It was read on 2026-09-09, and a register still claiming
+     * otherwise would describe a limitation that has been retired — the same
+     * failure the stale-entry test above catches structurally, arriving
+     * through prose instead.
+     *
+     * Deliberately narrow: it forbids the specific claim that was overtaken,
+     * not the words. A future row genuinely blocked on an unreachable source
+     * should say so, and would want its own wording.
+     */
+    const overtaken = Object.entries(JURISDICTION_EVIDENCE_GAPS)
+      .filter(([, reason]) =>
+        /checklist[^.]*\b(is unreachable|cannot be reached)|blocked page/i.test(
+          reason
+        )
+      )
+      .map(([code]) => code)
+    expect(overtaken).toEqual([])
   })
 
   it('keeps the set small enough to stay reviewable', () => {

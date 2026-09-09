@@ -20,47 +20,60 @@ import type { RequirementLayer } from '../../types'
  * placed after `tr-filing` refines in the stated direction and names its
  * authority accurately.
  *
- * IT ALSO OWNS ONE REQUIREMENT, AND THAT IS NOT A FINDING. It was inherited
- * from before the layer split and has no resolvable official source. It is held
- * here as **quarantine**, not endorsement: scoped to the one pack that carries
- * it so a second destination cannot inherit an unverified ask. Nothing about
- * this placement says Greece currently requires it.
+ * IT ALSO OWNS FIVE REQUIREMENTS, AND THAT IS NOT A FINDING. The signature
+ * circular was inherited from before the layer split; the four sponsor
+ * requirements arrived in E5c. All five are held here as **quarantine**, not
+ * endorsement: scoped to the one pack that carries them so a second destination
+ * cannot inherit an unverified ask. Nothing about this placement says Greece
+ * currently requires them.
  *
- * It is not retired, because the operative applicant-facing checklist for this
- * filing context — published by the visa centre the mission names — cannot be
- * read from this environment, and an unreachable source is not evidence that a
- * requirement is gone. That page answers a question about this exact document,
- * which is the requirement-specific signal the audit needed; retiring on the
- * strength of a network failure would strip a document from Greek applicants'
- * checklists on no evidence at all. It is listed in the evidence-gap allowlist
- * in `country-pack-provenance.test.ts`, which bounds the set and demands a
- * written reason for each entry.
+ * WHAT CHANGED ON 2026-09-09, AND WHAT DID NOT. The visa centre's checklist —
+ * the operative applicant-facing list for this filing context, published by the
+ * centre the mission names — was unreachable for months and was retrieved that
+ * day through ordinary site navigation. So the reason these five stay uncited
+ * is no longer "we cannot read the source". It is that the source supports the
+ * documents while the contracts around them do not yet match: their
+ * applicability conditions describe a different population from the one the
+ * checklist does, and one of them is not a single document at all. A citation
+ * vouches for a requirement's condition as well as its prose (ADR-048), so
+ * citing them now would assert something the evidence does not carry.
+ *
+ * Each records its own current blocker in the evidence-gap allowlist in
+ * `country-pack-provenance.test.ts`, which bounds the set and demands a written
+ * reason for each entry.
  *
  * THREE OTHERS SAT HERE UNTIL E5c. `ID_CARD_COPY`, `PASSPORT_PREVIOUS` and
  * `PREVIOUS_VISAS` were retired once the fidelity audit had read the Visa Code,
  * Annex III and the Greek mission's own pages first-hand and found no support
- * for any of them, with no requirement-specific signal on the one unreachable
- * channel. Quarantine is for evidence we cannot reach; it is not a place to
- * keep asks we have looked for and not found.
+ * for any of them, with no requirement-specific signal on the one channel that
+ * was then unreachable. That channel has since been read, and it does list all
+ * three — recorded on the retirement entries themselves, which keep their
+ * original reasons and carry the amendment beside them. The codes stay retired:
+ * a retired identity is never reused (ADR-049).
  */
 export const grTrMissionLayer: RequirementLayer = {
   id: 'gr-tr-mission',
   kind: 'jurisdiction',
   add: [
     /**
-     * No current official source at any level: absent from Visa Code Annex II,
-     * absent from the Commission's Annex III for Türkiye, and absent from the
-     * German mission's own sheet. ADR-048 already declined to re-point it.
+     * Absent from Visa Code Annex II, from the Commission's Annex III for
+     * Türkiye, and from the German mission's own sheet. ADR-048 already
+     * declined to re-point it.
      *
-     * Retention is a hold pending a reachable Greek source, not a finding that
-     * one exists.
+     * The Greek visa centre's checklist does list it, in all four consular
+     * jurisdictions, inside the company-document block on the employed branch
+     * — and not on the public-servant branch, which carries no such block. That
+     * is support for the document and a contradiction of the nationality note
+     * this requirement used to render, which H4b removed. It is not yet support
+     * for the contract: `employed` cannot separate an ordinary employee from a
+     * public servant, so both the requiredness and the condition stay as they
+     * are until the occupational vocabulary can express the distinction.
      */
     {
       code: 'EMPLOYER_SIGNATURE_CIRCULAR',
       nameKey: 'visa-domain:requirements.EMPLOYER_SIGNATURE_CIRCULAR.name',
       descriptionKey:
         'visa-domain:requirements.EMPLOYER_SIGNATURE_CIRCULAR.description',
-      notesKey: 'visa-domain:requirements.EMPLOYER_SIGNATURE_CIRCULAR.notes',
       category: 'employment',
       ownerType: 'employer',
       required: false,
@@ -78,10 +91,8 @@ export const grTrMissionLayer: RequirementLayer = {
      * German mission's sheets are closed — they state that in principle only
      * the documents they list are required — and they list none of these, so
      * for Germany the audit could classify them UNSUPPORTED on an adequate
-     * search. For Greece it could not: the visa centre checklist its mission
-     * directs applicants to is unreachable, and a FAQ on that same site defines
-     * who may act as a sponsor, which is a requirement-specific signal that the
-     * blocked page may well carry them.
+     * search. For Greece it could not, because the visa centre checklist its
+     * mission directs applicants to could not then be read.
      *
      * Two different evidence states, one shared requirement. Retiring them
      * globally would convert Greece's evidence debt into a finding of absence;
@@ -90,11 +101,25 @@ export const grTrMissionLayer: RequirementLayer = {
      * composes says exactly what is true of each pack, and needs no suppression
      * mechanism to do it.
      *
-     * They are copied here **verbatim** — same codes, revisions, requiredness,
-     * conditionals and rendered contracts. Nothing about their content is
-     * improved while the evidence is unresolved, including the invented
-     * "3-6 months" window on the sponsor's statements, which is recorded as a
-     * gap rather than quietly corrected into a number no source states.
+     * THAT CHECKLIST WAS READ ON 2026-09-09, AND IT ASKS FOR THREE OF THE FOUR.
+     * The sponsor's petition, the sponsor's bank statements and the sponsor's
+     * own occupational documents are all on it. None of the four is cited even
+     * so, and the reasons differ per row — recorded one by one in the
+     * evidence-gap allowlist rather than summarised here.
+     *
+     * What they share is the condition. All four fire on
+     * `financing.source == 'sponsor'`, a funding election the applicant makes;
+     * the checklist raises the sponsor block from occupation instead, on
+     * applicants who do not work. Every working branch it publishes — employee,
+     * public servant, company owner, freelancer, farmer, pensioner — asks for
+     * no sponsor document at all. So the rows can be shown to someone the
+     * authority does not ask them of, which is a condition mismatch and not a
+     * wording one, and no prose edit reaches it.
+     *
+     * One correction did land: the invented "3-6 months" window on the
+     * sponsor's statements is gone. The checklist states the last three months,
+     * which is what the contract now renders — a loosening, so no revision
+     * moved.
      */
     {
       code: 'SPONSOR_LETTER',

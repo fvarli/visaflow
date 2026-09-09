@@ -1664,6 +1664,51 @@ wrong produced one correction and three useful negative results.
   plus `gov.gr`, `visa.gov.gr` and `greece.gov.gr`. Nothing changed, and nothing was inferred to
   compensate.
 
+**Third evidence pass (2026-09-09).** The channel the pass above called unreachable was reached, and
+the result is one correction, one removal, and a longer list of things it does *not* license.
+
+- **The Greek visa centre's tourism checklist was retrieved.** The Ankara mission states it has
+  "outsourced the collection of all Schengen visa applications and biometric data to Kosmos Vize" and
+  names that site for further information; the site's footer links back to `mfa.gr/turkey`. Earlier
+  attempts loaded its deep URLs directly and were refused; loading the homepage and following the
+  site's own "Gerekli Belgeler" link served it. Normal navigation, no bypass.
+- **It is a generator, not a page.** The list is produced from a residence province, a consular
+  branch and six applicant axes, so there is no stable per-combination URL and nothing to cite as
+  one. What was sampled: ten occupations at İstanbul; employee and non-working at Ankara, İzmir and
+  Edirne; both nationality values only in the sampled İstanbul branches; one captured value on the
+  remaining axes. The nationality × jurisdiction product was not sampled.
+- **`SPONSOR_BANK_STATEMENTS` said "3-6 months"; the checklist says the last three.** The range
+  ADR-048 removed from `BANK_STATEMENTS` was left live here for want of a Greek source. It is now
+  contradicted rather than merely unsupported, and the contract renders three months. A loosening, so
+  no revision moved.
+- **`EMPLOYER_SIGNATURE_CIRCULAR`'s note claimed a nationality dependency.** The checklist conditions
+  the document on occupation — it sits in the company-document block on the employed branch and is
+  absent from the public-servant one — and mentions nationality nowhere. The note is removed.
+- **None of the five quarantined rows is cited, and that is the pass's main finding.** The checklist
+  supports the documents; it does not support the contracts around them. All four sponsor rows fire
+  on `financing.source`, a funding election, while the checklist raises the sponsor block from
+  occupation and asks for no sponsor document on any working branch it publishes.
+  `EMPLOYER_SIGNATURE_CIRCULAR`'s `employed` cannot tell a public servant from an ordinary employee.
+  And `SPONSOR_INCOME_PROOF` is not one document at all — the checklist asks the sponsor for the
+  evidence set of the sponsor's own occupational category. A citation vouches for a requirement's
+  condition as well as its prose ([ADR-048]), so coverage stays at 20 of 25 and each row now records
+  its own current blocker in the evidence-gap register instead of the retrieval failure that no
+  longer applies.
+- **The three E5c retirements rest on a premise that no longer holds.** `ID_CARD_COPY`,
+  `PASSPORT_PREVIOUS` and `PREVIOUS_VISAS` were retired partly because the one blocked channel
+  carried no requirement-specific signal. It carries all three. Their reasons in `retired.ts` are
+  kept as written and each gained a dated `amendedBy` note: the evidence-absence rationale is
+  superseded, the codes stay retired, and restoring the obligations would take new identities and
+  contracts argued on their own ([ADR-049]).
+- **What the checklist asks for and this pack does not is an inventory, not a baseline.** It is
+  measured over the captured slice above — not a canonical or exhaustive Greece figure — and the
+  largest items in it are blocked on the model rather than on evidence: a residence record asked of
+  every applicant, proof of residence for non-Turkish nationals (Annex III I.5(g), rendered with a
+  three-month bar), a companion's visa copy, and per-occupation document sets for civil servants,
+  farmers and freelancers that the seven-value `employmentStatus` vocabulary cannot express. The
+  sponsor's identity photocopy is asked for by three consular jurisdictions and not by Edirne, which
+  nothing in the composition model can represent — a layer is per mission, not per post.
+
 **Next:** Greece-specific verification, from a network that can reach `mfa.gr` or by a maintainer
 entering the ministry's published list by hand. Every requirement above marked partial or
 conflicting is waiting on precisely that.

@@ -203,7 +203,7 @@
     },
     "SPONSOR_BANK_STATEMENTS": {
       "name": "Sponsor Bank Statements",
-      "description": "Sponsor bank statements for last 3-6 months"
+      "description": "Sponsor bank statements covering the last three months"
     },
     "SPONSOR_INCOME_PROOF": {
       "name": "Sponsor Income Documents",
@@ -229,8 +229,7 @@
     },
     "EMPLOYER_SIGNATURE_CIRCULAR": {
       "name": "Employer Signature Circular",
-      "description": "Company signature authorization document",
-      "notes": "May be required depending on nationality"
+      "description": "Company signature authorization document"
     },
     "PROPERTY_DEED": {
       "name": "Property Ownership Documents",

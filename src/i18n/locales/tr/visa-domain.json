@@ -203,7 +203,7 @@
     },
     "SPONSOR_BANK_STATEMENTS": {
       "name": "Sponsor Banka Hesap Dökümü",
-      "description": "Sponsora ait son 3-6 aylık banka hesap dökümü"
+      "description": "Sponsora ait son üç ayın hareketlerini kapsayan banka hesap dökümü"
     },
     "SPONSOR_INCOME_PROOF": {
       "name": "Sponsor Gelir Belgeleri",
@@ -229,8 +229,7 @@
     },
     "EMPLOYER_SIGNATURE_CIRCULAR": {
       "name": "İşveren İmza Sirküleri",
-      "description": "Şirket imza yetkisi belgesi",
-      "notes": "Uyruğa bağlı olarak istenebilir"
+      "description": "Şirket imza yetkisi belgesi"
     },
     "PROPERTY_DEED": {
       "name": "Tapu Belgesi",

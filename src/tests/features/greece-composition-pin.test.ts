@@ -382,7 +382,6 @@ const PINNED_REQUIREMENTS: Record<string, DocumentRequirement> = {
     nameKey: 'visa-domain:requirements.EMPLOYER_SIGNATURE_CIRCULAR.name',
     descriptionKey:
       'visa-domain:requirements.EMPLOYER_SIGNATURE_CIRCULAR.description',
-    notesKey: 'visa-domain:requirements.EMPLOYER_SIGNATURE_CIRCULAR.notes',
     category: 'employment',
     ownerType: 'employer',
     required: false,

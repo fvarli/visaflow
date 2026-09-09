@@ -30,6 +30,20 @@ export interface RetiredRequirement {
   /** Why the identity could not be reused. */
   reason: string
   /**
+   * Evidence read *after* retirement that bears on the reason above, with the
+   * date it was read.
+   *
+   * Append-only, and that is the whole point: `reason` is the record as it was
+   * written, and a decision made on the evidence available at the time is not
+   * made wrong by evidence that arrives later — it is superseded, which is a
+   * different thing and has to stay legible as one. Editing the original would
+   * leave a file claiming the retirement had always rested on grounds nobody
+   * held.
+   *
+   * Never read at runtime, for the same reason `replacedBy` is not.
+   */
+  amendedBy?: { readAt: string; note: string }[]
+  /**
    * The requirement that took over this slot in the checklist, for humans.
    * Never read at runtime: a retired record must not inherit a new meaning.
    */
@@ -54,6 +68,14 @@ export const RETIRED_REQUIREMENTS: RetiredRequirement[] = [
    * so every Greek applicant was told to obtain a national identity card copy
    * that no authority in the file asks for, and readiness withheld completion
    * until they did.
+   *
+   * THE CHANNEL WAS OPENED ON 2026-09-09, AND IT ASKS FOR ALL THREE. Each
+   * carries the dated amendment in `amendedBy`; the reasons above are left
+   * exactly as written. What is superseded is the *evidence-absence* premise,
+   * not the retirement — the codes stay retired, because an identity that has
+   * shipped is never re-pointed at a new contract (ADR-049). Whether these
+   * obligations should return, and under what identities, is a separate
+   * question this file does not answer.
    */
   {
     code: 'ID_CARD_COPY',
@@ -64,6 +86,24 @@ export const RETIRED_REQUIREMENTS: RetiredRequirement[] = [
       "mission's own published requirements — all read first-hand. The German " +
       'mission asks for the barcoded civil-registry extract and no identity ' +
       'card, which is what settled the question ADR-052 had left open.',
+    amendedBy: [
+      {
+        readAt: '2026-09-09',
+        note:
+          "The Greek visa centre's tourism checklist — the one channel " +
+          'this retirement recorded as unreachable — was read on this ' +
+          'date and does ask for a photocopy of the national identity ' +
+          'card — "Nüfus cüzdanı: (Kimlik) fotokopisi", with no qualifier ' +
+          'attached, in all four consular jurisdictions and on every ' +
+          'occupational branch sampled. The evidence-absence rationale ' +
+          'above is therefore superseded. The code stays retired ' +
+          'regardless: a retired identity is never reused (ADR-049), so ' +
+          'restoring the obligation would take a new code and a contract ' +
+          'argued on its own evidence, and this is the only one of the ' +
+          'three whose applicability the current model could express, ' +
+          'since it carries no condition at all.',
+      },
+    ],
   },
   {
     code: 'PASSPORT_PREVIOUS',
@@ -73,6 +113,24 @@ export const RETIRED_REQUIREMENTS: RetiredRequirement[] = [
       'German mission asks for a copy of the passport carrying the visas it ' +
       'wants to see — a narrower ask it states as its own requirement — and the ' +
       'Greek mission asks for nothing of the kind.',
+    amendedBy: [
+      {
+        readAt: '2026-09-09',
+        note:
+          "The Greek visa centre's tourism checklist — the one channel " +
+          'this retirement recorded as unreachable — was read on this ' +
+          'date and does ask for the previous passport — "Eski pasaport: ' +
+          'Var ise bir önceki pasaport ve vize fotokopileri ' +
+          'sunulmalıdır", in all four consular jurisdictions and on every ' +
+          'occupational branch sampled. The evidence-absence rationale ' +
+          'above is therefore superseded. The code stays retired ' +
+          'regardless: a retired identity is never reused (ADR-049), so ' +
+          'restoring the obligation would take a new code and a contract ' +
+          'argued on its own evidence. Note the ask is conditional on ' +
+          'holding one, which nothing in `{ employment, financing }` can ' +
+          'currently see.',
+      },
+    ],
   },
   {
     code: 'PREVIOUS_VISAS',
@@ -83,6 +141,24 @@ export const RETIRED_REQUIREMENTS: RetiredRequirement[] = [
       'each application, so prior Schengen history is retrieved rather than ' +
       'collected — though that alone was never the argument, since the German ' +
       'mission does ask for copies and states so.',
+    amendedBy: [
+      {
+        readAt: '2026-09-09',
+        note:
+          "The Greek visa centre's tourism checklist — the one channel " +
+          'this retirement recorded as unreachable — was read on this ' +
+          'date and does ask for copies of previously issued visas — and ' +
+          'asks more broadly than this code ever did, naming visas from ' +
+          'any country rather than Schengen alone, in all four consular ' +
+          'jurisdictions and on every occupational branch sampled. The ' +
+          'evidence-absence rationale above is therefore superseded. The ' +
+          'code stays retired regardless: a retired identity is never ' +
+          'reused (ADR-049), so restoring the obligation would take a new ' +
+          'code and a contract argued on its own evidence. The ask is ' +
+          'conditional on having them, which the applicability context ' +
+          'cannot currently express.',
+      },
+    ],
   },
 
   {
