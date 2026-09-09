@@ -16,6 +16,8 @@ import DocumentsPage from '@/pages/DocumentsPage'
 import { importDossier } from '@/features/import-export/services/import.service'
 import { documentLabel } from '@/lib/document-label'
 import { buildDocumentReadiness } from '@/features/readiness/document-readiness'
+import { requiredRequirementCodes } from '@/features/readiness/requirement-readiness'
+import { resolveObligations } from '@/features/readiness/obligations'
 import { resolveVisaTemplate } from '@/config/countries'
 import exampleJson from '@/data/examples/example-dossier.json'
 import type { Dossier } from '@/domain/schemas/dossier.schema'
@@ -268,13 +270,38 @@ describe('Documents workspace — the group caption agrees with the hero', () =>
    * legitimate is the caption applying a *different rule* to the rows it does
    * have, which is what this measures.
    */
+  const obligationsOf = (dossier: Dossier) => {
+    const template = resolveVisaTemplate(
+      dossier.application?.destinationCountry,
+      dossier.application?.visaType
+    )
+    return resolveObligations({
+      documents: dossier.documents,
+      requiredRequirementCodes: requiredRequirementCodes(
+        template,
+        dossier.application ?? null
+      ),
+      template,
+      application: dossier.application,
+    })
+  }
+
   const canonical = (dossier: Dossier) => {
     const template = resolveVisaTemplate(
       dossier.application?.destinationCountry,
       dossier.application?.visaType
     )
+    // Reproduces what the page's hero actually computes, which passes the
+    // applicable required codes — so a requirement with no record yet counts as
+    // outstanding. Without them this helper counted only the rows on file and
+    // agreed with the captions for the wrong reason: both were ignoring
+    // uncollected work.
     return buildDocumentReadiness({
       documents: dossier.documents,
+      requiredRequirementCodes: requiredRequirementCodes(
+        template,
+        dossier.application ?? null
+      ),
       template,
       application: dossier.application,
     })
@@ -287,9 +314,27 @@ describe('Documents workspace — the group caption agrees with the hero', () =>
     const expected = canonical(POLLUTED_SEED)
     const shown = captionTotals()
 
-    // The denominator is applicable required work — never the row count.
-    expect(shown.total).toBe(expected.applicable)
-    expect(shown.ready).toBe(expected.ready)
+    /**
+     * Captions and hero count the same obligations, and the only difference is
+     * where they can be shown.
+     *
+     * A category section is rendered from the *records* in that category, so an
+     * obligation whose requirement has no record yet — `CIVIL_REGISTRY_EXTRACT`
+     * in this seed — belongs to a category with no section and has no caption to
+     * appear in. The hero still counts it, and the consistency centre still names
+     * it, so nothing is lost; it is simply not on this list. Accounted for here
+     * rather than hidden, so the sum stays an exact statement.
+     */
+    const shownCategories = new Set(
+      POLLUTED_SEED.documents.map((d) => d.category)
+    )
+    const homeless = obligationsOf(POLLUTED_SEED).filter(
+      (o) => !o.category || !shownCategories.has(o.category)
+    )
+    expect(shown.total + homeless.length).toBe(expected.applicable)
+    expect(
+      shown.ready + homeless.filter((o) => o.status === 'ready').length
+    ).toBe(expected.ready)
     // And it is genuinely smaller than the row count, so the assertion above
     // is not passing by the two populations happening to coincide.
     expect(shown.total).toBeLessThan(POLLUTED_SEED.documents.length)

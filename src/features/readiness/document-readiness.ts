@@ -1,17 +1,15 @@
 import type { Document } from '@/domain/schemas/document.schema'
 import type { Application } from '@/domain/schemas/application.schema'
 import type { VisaTypeTemplate } from '@/config/types'
-import {
-  resolveDocumentSemantics,
-  effectiveStatus,
-} from '@/features/documents/document-semantics'
+import { resolveDocumentSemantics } from '@/features/documents/document-semantics'
 import type { DocumentStatus } from '@/domain/types/common'
 import {
   READINESS_CLASS,
   type DocumentReadiness,
   type ReadinessClass,
 } from './readiness-types'
-import { groupedCodes, resolveGroupSlots } from './satisfaction-groups'
+import { groupedCodes } from './satisfaction-groups'
+import { resolveObligations } from './obligations'
 
 /**
  * The canonical document-readiness derivation — the single place VisaFlow
@@ -128,110 +126,55 @@ export function buildDocumentReadiness(
 
   let optional = 0
   let historical = 0
-  const present = new Set<string>()
-
-  /**
-   * Members of an alternative-satisfaction group are counted as their group,
-   * once, further down — never here (C3a).
-   *
-   * Counting them individually is what made a dossier holding a perfectly
-   * acceptable travel itinerary read as missing a flight booking: the authority
-   * asks for one of three and readiness asked for the one that happened to be
-   * flagged `required`. Their records still exist and still show their own
-   * status on screen; what changes is what the arithmetic owes.
-   */
   const grouped = groupedCodes(template)
 
+  /**
+   * The obligations this dossier owes, resolved once (`resolveObligations`).
+   *
+   * This loop used to compute them inline, and the Documents category caption
+   * grew a second implementation that counted required *requirements* — so the
+   * caption read "1/4" under a hero reading "1 of 11" for an obligation the
+   * authority states as one-of-two. One list, every consumer.
+   */
+  for (const obligation of resolveObligations({
+    documents,
+    requiredRequirementCodes,
+    template,
+    application,
+  })) {
+    counts[obligation.status] += 1
+  }
+
+  /**
+   * The two axes that are not obligations, and are therefore still counted here.
+   *
+   * `historical` is a retired record — real work somebody did, for a
+   * requirement nobody asks for now. `optional` is a requirement the pack does
+   * not require, or a custom document the applicant added themselves. Neither
+   * is work this dossier owes, so neither may reach the percentage; both are
+   * still worth showing.
+   */
   for (const doc of documents) {
-    present.add(doc.code)
     const semantics = resolveDocumentSemantics(doc, template, application)
 
-    /**
-     * Only an active requirement is current work (ADR-050).
-     *
-     * Persisted `required` is not authority for a code the template no longer
-     * lists. Trusting it is how a withdrawn obligation ended up in both the
-     * numerator and the denominator, raising the percentage because the
-     * applicant had once collected something nobody asks for now.
-     */
-    // Retirement is a registry fact, true with or without a template.
     if (semantics.membership === 'retired') {
       historical += 1
       continue
     }
-
-    /**
-     * Activeness, unlike retirement, cannot be judged without a template —
-     * every code looks unresolved. Callers that deliberately omit it (the
-     * documents filter's own counting, the dashboard snapshot) keep the older
-     * behaviour of trusting the record, which is correct for them: they are
-     * counting records the user can see, not obligations.
-     */
     if (template) {
       if (semantics.membership === 'unknown') continue
       if (semantics.membership === 'custom') {
-        // Real work someone chose to do, never an authoritative requirement —
-        // whatever a hand-edited file claims. `required` defaults to `true` on
-        // import, so this must not be conditional on the stored flag.
+        // `required` defaults to `true` on import, so this must not be
+        // conditional on the stored flag.
         optional += 1
         continue
       }
     }
-
-    // A record left behind by an applicability change keeps its user state and
-    // stays visible, but it is not work this dossier still owes (ADR-049).
     if (!semantics.isApplicable) continue
-
-    if (!semantics.required) {
-      // A grouped member is not "optional" either — its group carries the
-      // obligation, and calling it optional here would count it in a bucket the
-      // applicant reads as "nice to have".
-      if (!grouped.has(doc.code)) optional += 1
-      continue
-    }
-
-    if (grouped.has(doc.code)) continue
-
-    /**
-     * A claim made against an older, laxer definition is not a satisfied
-     * requirement today (ADR-051).
-     *
-     * The persisted `status` is untouched — it is what the user asserted, and
-     * theirs to change. What moves is the derived answer, and `effectiveStatus`
-     * is where that move is defined, so the Documents filter reaches the same
-     * conclusion instead of reading the raw field. An unrecorded claim is left
-     * alone: no stamp is not evidence of staleness.
-     */
-    counts[classifyStatus(effectiveStatus(doc, template))] += 1
-  }
-
-  // A requirement with no record at all is work that has not been started.
-  for (const code of requiredRequirementCodes) {
-    if (present.has(code)) continue
-    if (grouped.has(code)) continue
-    counts.notStarted += 1
-  }
-
-  /**
-   * One slot per applicable group, whatever its size.
-   *
-   * This is the whole of C3a's arithmetic. The slot takes the best status any
-   * member reached, so a booking marked `ready` satisfies the obligation and the
-   * other two routes are neither missing nor extra — they are simply not the
-   * road this applicant took.
-   *
-   * A group enters on exactly the terms an ungrouped requirement does: some
-   * member has a record, or some member is in the caller's
-   * `requiredRequirementCodes`. Callers that pass an empty list are counting the
-   * records in front of them rather than the obligations a pack imposes, and a
-   * group must not be the one thing that ignores them.
-   */
-  const countable = new Set(requiredRequirementCodes)
-  for (const slot of resolveGroupSlots(template, documents, application)) {
-    const entersCount = slot.applicableCodes.some(
-      (code) => present.has(code) || countable.has(code)
-    )
-    if (entersCount) counts[slot.status] += 1
+    // A grouped member is not "optional" either — its group carries the
+    // obligation, and calling it optional would put it in a bucket the
+    // applicant reads as "nice to have".
+    if (!semantics.required && !grouped.has(doc.code)) optional += 1
   }
 
   const applicable =

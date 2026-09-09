@@ -95,6 +95,7 @@
       "required": "Required",
       "conditional": "Required in your case",
       "optional": "Optional",
+      "alternative": "Alternative",
       "custom": "Custom supporting document",
       "retired": "Retired requirement"
     },

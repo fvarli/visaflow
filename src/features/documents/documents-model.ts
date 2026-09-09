@@ -10,7 +10,10 @@ import type { Sponsor } from '@/domain/schemas/sponsor.schema'
 import type { DocumentCategory, DocumentStatus } from '@/domain/types/common'
 import type { VisaTypeTemplate } from '@/config/types'
 import type { ValidationFinding } from '@/domain/rules/types'
-import { satisfiedGroupMembers } from '@/features/readiness/satisfaction-groups'
+import {
+  groupFor,
+  satisfiedGroupMembers,
+} from '@/features/readiness/satisfaction-groups'
 import { buildDocumentReadiness } from '@/features/readiness/document-readiness'
 import type { DocumentReadiness } from '@/features/readiness/readiness-types'
 import { requiredRequirementCodes } from '@/features/readiness/requirement-readiness'
@@ -262,7 +265,13 @@ export function deriveNextDocument(
 }
 
 export type DocumentKind =
-  'required' | 'conditional' | 'optional' | 'retired' | 'custom'
+  | 'required'
+  | 'conditional'
+  | 'optional'
+  /** A member of a satisfaction group — one accepted route, not an obligation. */
+  | 'alternative'
+  | 'retired'
+  | 'custom'
 
 /**
  * Where a document comes from. A document is template-derived iff its `code`
@@ -286,6 +295,19 @@ export function classifyDoc(
   // record whose provenance is the reason it was kept (ADR-050).
   if (membership === 'retired') return 'retired'
   if (membership !== 'active') return 'custom'
+  /**
+   * A member of a satisfaction group is neither required nor optional, and
+   * saying either is a false statement about what the authority asks for.
+   *
+   * The obligation belongs to the group, not to any member: Annex III I.1
+   * accepts a flight reservation, other proof of intended means of transport,
+   * *or* an itinerary. Calling the reservation "Required" told an applicant to
+   * obtain a document they do not need, directly above the line saying any one
+   * of the three would do; calling the itinerary "Optional" made a fully
+   * accepted route read as a nice-to-have. The group's own label carries the
+   * meaning — this badge only has to stop contradicting it.
+   */
+  if (groupFor(doc.code, template)) return 'alternative'
   if (requirement?.conditionalOn) return 'conditional'
   return required ? 'required' : 'optional'
 }

@@ -95,6 +95,7 @@
       "required": "Zorunlu",
       "conditional": "Sizin durumunuzda zorunlu",
       "optional": "İsteğe bağlı",
+      "alternative": "Alternatif",
       "custom": "Özel destekleyici belge",
       "retired": "Kaldırılmış gereklilik"
     },

@@ -25,6 +25,8 @@ import { useFormatters } from '@/lib/format'
 import { DocumentCategorySchema } from '@/domain/types/common'
 import type { DocumentCategory } from '@/domain/types/common'
 import type { Document } from '@/domain/schemas/document.schema'
+import { resolveObligations } from '@/features/readiness/obligations'
+import { requiredRequirementCodes } from '@/features/readiness/requirement-readiness'
 import type { ValidationFinding } from '@/domain/rules/types'
 import {
   useDocumentsModel,
@@ -43,7 +45,6 @@ import {
   planTemplateSync,
 } from '@/features/documents/template-sync'
 import {
-  completionStanding,
   countsTowardReadiness,
   effectiveStatus,
 } from '@/features/documents/document-semantics'
@@ -227,6 +228,29 @@ export default function DocumentsPage() {
     [template, state.documents, state.application]
   )
 
+  /**
+   * The obligations this dossier owes, exactly as the hero counts them.
+   *
+   * Resolved once for the whole page and filtered per category below. This used
+   * to be a second implementation — a required-requirement filter over the rows
+   * — which is how the Employment section read "1/4" under a hero reading
+   * "1 of 11": the letter and the leave approval are one obligation the
+   * authority accepts either way, and only the hero knew it (C3a).
+   */
+  const obligations = useMemo(
+    () =>
+      resolveObligations({
+        documents: state.documents,
+        requiredRequirementCodes: requiredRequirementCodes(
+          template,
+          state.application
+        ),
+        template,
+        application: state.application,
+      }),
+    [state.documents, state.application, template]
+  )
+
   if (!hasData) {
     return (
       <PageBody>
@@ -303,23 +327,16 @@ export default function DocumentsPage() {
   }
 
   /**
-   * "N/M ready" for one category, counted the way the hero above it counts
-   * (ADR-051).
+   * "N/M ready" for one category.
    *
-   * This used to be a raw status filter over every row, so a withdrawn,
-   * unrecognised, optional or no-longer-applicable record landed in both the
-   * numerator and the denominator — a caption disagreeing with the percentage
-   * a few pixels above it.
+   * Counted from the obligation list rather than from the rows on screen, so a
+   * filter can hide rows without moving a caption that describes what the
+   * category owes — which is what the line above it always claimed to do.
    */
-  const groupCount = (docs: Document[]) => {
-    const counted = docs.filter((d) => requiredOf(d))
-    // A claim against an older, laxer definition is not ready today, and the
-    // hero above has already stopped counting it (ADR-051).
-    const ready = counted.filter(
-      (d) =>
-        d.status === 'ready' && completionStanding(d, template) !== 'superseded'
-    ).length
-    return t('documents:group.count', { ready, total: counted.length })
+  const groupCount = (category: DocumentCategory) => {
+    const owed = obligations.filter((o) => o.category === category)
+    const ready = owed.filter((o) => o.status === 'ready').length
+    return t('documents:group.count', { ready, total: owed.length })
   }
 
   const emptyState = (
@@ -494,7 +511,7 @@ export default function DocumentsPage() {
             <DocumentGroup
               key={group.category}
               title={td(`visa-domain:documentCategory.${group.category}`)}
-              countLabel={groupCount(group.documents)}
+              countLabel={groupCount(group.category)}
               toggleLabel={t('documents:group.toggle', {
                 category: td(`visa-domain:documentCategory.${group.category}`),
               })}
