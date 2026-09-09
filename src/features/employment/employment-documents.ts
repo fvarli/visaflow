@@ -2,8 +2,7 @@ import { buildDocumentReadiness } from '@/features/readiness/document-readiness'
 import type { DocumentReadiness } from '@/features/readiness/readiness-types'
 import { applicableRequirements } from '@/features/documents/template-sync'
 import type { Document } from '@/domain/schemas/document.schema'
-import type { Application } from '@/domain/schemas/application.schema'
-import type { VisaTypeTemplate } from '@/config/types'
+import type { ApplicabilityContext, VisaTypeTemplate } from '@/config/types'
 import type { DocumentStatus, OwnerType } from '@/domain/types/common'
 
 /**
@@ -52,13 +51,13 @@ const HR_REQUEST_STATUSES = new Set<EmploymentDocStatus>([
 
 export function buildEmploymentDocuments(
   documents: Document[],
-  application: Application | null,
+  context: ApplicabilityContext,
   template: VisaTypeTemplate | undefined
 ): EmploymentDocumentsView {
   const employmentDocs = documents.filter((d) => d.category === 'employment')
 
   const applicable = template
-    ? applicableRequirements(template, application).filter(
+    ? applicableRequirements(template, context).filter(
         (req) => req.category === 'employment'
       )
     : []
@@ -72,7 +71,7 @@ export function buildEmploymentDocuments(
       .filter((req) => req.required)
       .map((req) => req.code),
     template,
-    application,
+    context,
   })
 
   const byCode = new Map(employmentDocs.map((d) => [d.code, d]))

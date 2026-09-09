@@ -1,5 +1,4 @@
-import type { Application } from '@/domain/schemas/application.schema'
-import type { VisaTypeTemplate } from '@/config/types'
+import type { ApplicabilityContext, VisaTypeTemplate } from '@/config/types'
 import { applicableRequirements } from '@/features/documents/template-sync'
 
 /**
@@ -16,10 +15,10 @@ import { applicableRequirements } from '@/features/documents/template-sync'
  */
 export function requiredRequirementCodes(
   template: VisaTypeTemplate | undefined,
-  application: Application | null
+  context: ApplicabilityContext
 ): string[] {
   if (!template) return []
-  return applicableRequirements(template, application)
+  return applicableRequirements(template, context)
     .filter((req) => req.required)
     .map((req) => req.code)
 }

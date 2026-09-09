@@ -13,6 +13,7 @@ import { importPartial } from '@/features/import-export/services/import.service'
 import type { Document } from '@/domain/schemas/document.schema'
 import type { Application } from '@/domain/schemas/application.schema'
 import type { EmploymentStatus } from '@/domain/types/common'
+import { ctxFor } from '@/tests/support/applicability'
 
 /**
  * What a dossier written before ADR-048 does under the current build.
@@ -81,7 +82,7 @@ describe('a retired code keeps its own identity', () => {
       documents: [taxReturns],
       requiredRequirementCodes: codes,
       template,
-      application: application('self_employed'),
+      context: ctxFor(application('self_employed')),
     })
     expect(readiness.notStarted).toBeGreaterThan(0)
   })
@@ -136,7 +137,7 @@ describe('template-owned metadata is re-derived, not frozen', () => {
         application('employed')
       ),
       template,
-      application: application('employed'),
+      context: ctxFor(application('employed')),
     })
     expect({
       badge: classifyDoc(staleSgk, template),
@@ -191,7 +192,7 @@ describe('an applicability change strands a record without losing it', () => {
       documents: [stranded],
       requiredRequirementCodes: codes,
       template,
-      application: selfEmployed,
+      context: ctxFor(selfEmployed),
     })
     // E5b made this requirement `required: true`, so once it applies again the
     // record counts as ready rather than as optional work. The property being
@@ -269,7 +270,7 @@ describe('retired records are visible history, never current work', () => {
       documents,
       requiredRequirementCodes: requiredRequirementCodes(template, employed),
       template,
-      application: employed,
+      context: ctxFor(employed),
     })
 
   it('classifies all three as retired, never as custom', () => {
@@ -301,7 +302,7 @@ describe('retired records are visible history, never current work', () => {
       documents: preRetirement,
       requiredRequirementCodes: codes,
       template,
-      application: selfEmployed,
+      context: ctxFor(selfEmployed),
     })
     for (const replacement of [
       'TAX_PAYMENT_STATEMENT',
@@ -371,7 +372,7 @@ describe('an unrecognised code is not retired, and not current work', () => {
       documents,
       requiredRequirementCodes: requiredRequirementCodes(template, employed),
       template,
-      application: employed,
+      context: ctxFor(employed),
     })
 
   it('is classified unknown, not retired', () => {
@@ -427,7 +428,7 @@ describe('a custom document is never an authoritative requirement', () => {
       documents: [imported!],
       requiredRequirementCodes: [],
       template,
-      application: employed,
+      context: ctxFor(employed),
     })
     expect({
       optional: readiness.optional,

@@ -1,8 +1,8 @@
 import { createDocumentId } from '@/domain/types/common'
-import { isRequirementApplicable } from '@/config/types'
+import type { ApplicabilityContext } from '@/config/types'
+import { isApplicable } from './applicability'
 import type { DocumentRequirement, VisaTypeTemplate } from '@/config/types'
 import type { Document } from '@/domain/schemas/document.schema'
-import type { Application } from '@/domain/schemas/application.schema'
 import type { DocumentCategory } from '@/domain/types/common'
 
 /**
@@ -61,17 +61,13 @@ export function isCustomCode(code: string): boolean {
   return code.startsWith(CUSTOM_CODE_PREFIX)
 }
 
-/** Template requirements applicable given the current employment/financing. */
+/** Template requirements applicable to the dossier `context` describes. */
 export function applicableRequirements(
   template: VisaTypeTemplate,
-  application: Application | null
+  context: ApplicabilityContext
 ): DocumentRequirement[] {
-  const context = {
-    employment: application?.employment,
-    financing: application?.financing,
-  }
   return template.documentRequirements.filter((req) =>
-    isRequirementApplicable(req, context)
+    isApplicable(req, context)
   )
 }
 
@@ -89,11 +85,11 @@ export interface TemplateSyncPlan {
  */
 export function planTemplateSync(
   documents: Document[],
-  application: Application | null,
+  context: ApplicabilityContext,
   template: VisaTypeTemplate
 ): TemplateSyncPlan {
   const present = new Set(documents.map((d) => d.code))
-  const applicable = applicableRequirements(template, application)
+  const applicable = applicableRequirements(template, context)
   const applicableCodes = new Set(applicable.map((r) => r.code))
   const templateCodes = new Set(
     template.documentRequirements.map((r) => r.code)
@@ -109,8 +105,8 @@ export function planTemplateSync(
 /** Requirements the user could re-add: applicable, present in template, absent. */
 export function availableRequirementsToAdd(
   documents: Document[],
-  application: Application | null,
+  context: ApplicabilityContext,
   template: VisaTypeTemplate
 ): DocumentRequirement[] {
-  return planTemplateSync(documents, application, template).toAdd
+  return planTemplateSync(documents, context, template).toAdd
 }

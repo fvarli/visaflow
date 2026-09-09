@@ -38,6 +38,7 @@ import {
   filterDocuments,
   matchQuickFilter,
 } from '@/features/documents/document-filters'
+import { buildApplicabilityContext } from '@/features/documents/applicability'
 import {
   applicableRequirements,
   documentFromRequirement,
@@ -140,6 +141,19 @@ export default function DocumentsPage() {
   }
 
   const ownerId = state.applicant?.id ?? ''
+  /**
+   * Built once, so every surface on this page asks the same question of the
+   * same dossier — the divergence H4c1 removed came from four call sites each
+   * assembling their own.
+   */
+  const applicability = useMemo(
+    () =>
+      buildApplicabilityContext({
+        applicant: state.applicant,
+        application: state.application,
+      }),
+    [state.applicant, state.application]
+  )
   const countryCode = state.application?.destinationCountry
   const template = model.template
 
@@ -155,10 +169,9 @@ export default function DocumentsPage() {
         state.application.visaType
       )
       if (seedTemplate) {
-        const docs = applicableRequirements(
-          seedTemplate,
-          state.application
-        ).map((req) => documentFromRequirement(req, state.applicant?.id ?? ''))
+        const docs = applicableRequirements(seedTemplate, applicability).map(
+          (req) => documentFromRequirement(req, state.applicant?.id ?? '')
+        )
         setDocuments(docs)
       }
     }
@@ -178,8 +191,8 @@ export default function DocumentsPage() {
   /** Effective requiredness, so the rows agree with the counts above them. */
   const requiredOf = useMemo(
     () => (doc: Document) =>
-      countsTowardReadiness(doc, template, state.application),
-    [template, state.application]
+      countsTowardReadiness(doc, template, applicability),
+    [template, applicability]
   )
 
   /**
@@ -208,7 +221,7 @@ export default function DocumentsPage() {
   )
 
   const availableToAdd = useMemo(
-    () => (template ? applicableRequirements(template, state.application) : []),
+    () => (template ? applicableRequirements(template, applicability) : []),
     [template, state.application]
   )
   const missingRequirements = useMemo(
@@ -223,7 +236,7 @@ export default function DocumentsPage() {
   const syncPlan = useMemo(
     () =>
       template
-        ? planTemplateSync(state.documents, state.application, template)
+        ? planTemplateSync(state.documents, applicability, template)
         : { toAdd: [], noLongerApplicable: [] },
     [template, state.documents, state.application]
   )
@@ -243,10 +256,10 @@ export default function DocumentsPage() {
         documents: state.documents,
         requiredRequirementCodes: requiredRequirementCodes(
           template,
-          state.application
+          applicability
         ),
         template,
-        application: state.application,
+        context: applicability,
       }),
     [state.documents, state.application, template]
   )

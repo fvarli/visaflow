@@ -16,6 +16,7 @@ import { SessionLeaveDialog } from './SessionLeaveDialog'
 import { useDossier } from '@/app/providers/DossierProvider'
 import { useWorkspace } from '@/app/providers/WorkspaceProvider'
 import { buildDocumentReadiness } from '@/features/readiness/document-readiness'
+import { buildApplicabilityContext } from '@/features/documents/applicability'
 import { requiredRequirementCodes } from '@/features/readiness/requirement-readiness'
 import { resolveVisaTemplate } from '@/config/countries'
 import { downloadDossier } from '@/features/import-export/services/export.service'
@@ -167,6 +168,10 @@ export function AppLayout() {
   // country pack's required requirements: without them the badge counted only
   // instantiated records and showed 3 while every page body showed 4 (ADR-034).
   const navCounts = useMemo(() => {
+    const applicability = buildApplicabilityContext({
+      applicant: state.applicant,
+      application: state.application,
+    })
     const template = resolveVisaTemplate(
       state.application?.destinationCountry,
       state.application?.visaType
@@ -176,13 +181,13 @@ export function AppLayout() {
         documents: state.documents,
         requiredRequirementCodes: requiredRequirementCodes(
           template,
-          state.application
+          applicability
         ),
         template,
-        application: state.application,
+        context: applicability,
       }).outstanding,
     }
-  }, [state.documents, state.application])
+  }, [state.applicant, state.documents, state.application])
 
   const handleScroll = useCallback((event: React.UIEvent<HTMLElement>) => {
     setScrolled(event.currentTarget.scrollTop > 4)

@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest'
+import { ctxFor } from '@/tests/support/applicability'
 import {
   classifyBand,
   deriveTasks,
@@ -73,6 +74,7 @@ const input = (
   documents: Document[] = []
 ): TasksInput => ({
   application,
+  context: ctxFor(application),
   documents,
   template,
   findings: [],

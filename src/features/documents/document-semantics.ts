@@ -1,9 +1,9 @@
-import { isRequirementApplicable } from '@/config/types'
+import type { ApplicabilityContext } from '@/config/types'
+import { isApplicable } from './applicability'
 import { isRetiredRequirement } from '@/config/countries/retired'
 import { isCustomCode } from '@/features/documents/template-sync'
 import type { DocumentRequirement, VisaTypeTemplate } from '@/config/types'
 import type { Document } from '@/domain/schemas/document.schema'
-import type { Application } from '@/domain/schemas/application.schema'
 import type {
   DocumentCategory,
   DocumentStatus,
@@ -83,7 +83,7 @@ export interface DocumentSemantics {
 export function resolveDocumentSemantics(
   document: Document,
   template: VisaTypeTemplate | undefined,
-  application?: Application | null
+  context?: ApplicabilityContext
 ): DocumentSemantics {
   const requirement = template?.documentRequirements.find(
     (r) => r.code === document.code
@@ -107,19 +107,14 @@ export function resolveDocumentSemantics(
     }
   }
 
-  const isApplicable =
-    application === undefined
-      ? true
-      : isRequirementApplicable(requirement, {
-          employment: application?.employment,
-          financing: application?.financing,
-        })
+  const applicable =
+    context === undefined ? true : isApplicable(requirement, context)
 
   return {
     required: requirement.required,
     category: requirement.category,
     ownerType: requirement.ownerType,
-    isApplicable,
+    isApplicable: applicable,
     membership: 'active',
     requirement,
   }
@@ -141,9 +136,9 @@ export function resolveDocumentSemantics(
 export function countsTowardReadiness(
   document: Document,
   template: VisaTypeTemplate | undefined,
-  application?: Application | null
+  context?: ApplicabilityContext
 ): boolean {
-  const semantics = resolveDocumentSemantics(document, template, application)
+  const semantics = resolveDocumentSemantics(document, template, context)
   return (
     semantics.membership === 'active' &&
     semantics.isApplicable &&

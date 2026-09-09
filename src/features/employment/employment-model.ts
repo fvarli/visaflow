@@ -1,5 +1,6 @@
 import { useMemo } from 'react'
 import type { Applicant } from '@/domain/schemas/applicant.schema'
+import { buildApplicabilityContext } from '@/features/documents/applicability'
 import type { Application } from '@/domain/schemas/application.schema'
 import type { Document } from '@/domain/schemas/document.schema'
 import type { Sponsor } from '@/domain/schemas/sponsor.schema'
@@ -157,7 +158,8 @@ export function buildEmploymentModel(
     application?.destinationCountry,
     application?.visaType
   )
-  const docView = buildEmploymentDocuments(documents, application, template)
+  const applicability = buildApplicabilityContext({ applicant, application })
+  const docView = buildEmploymentDocuments(documents, applicability, template)
 
   const leaveFindings =
     applicant && application

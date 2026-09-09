@@ -3,7 +3,11 @@ import i18n, { DEFAULT_LOCALE, LOCALE_STORAGE_KEY } from '@/i18n'
 import { exportDossier } from '@/features/import-export/services/export.service'
 import { importDossier } from '@/features/import-export/services/import.service'
 import { resolveVisaTemplate } from '@/config/countries'
-import { isRequirementApplicable } from '@/config/types'
+import type { Application } from '@/domain/schemas/application.schema'
+import {
+  buildApplicabilityContext,
+  isApplicable,
+} from '@/features/documents/applicability'
 import { DocumentSchema } from '@/domain/schemas/document.schema'
 import type { Document } from '@/domain/schemas/document.schema'
 import { SCHEMA_VERSION } from '@/domain/schemas/dossier.schema'
@@ -18,10 +22,17 @@ function buildDocumentsFromTemplate(): Document[] {
   const template = resolveVisaTemplate('GR', 'short_stay_tourism')
   if (!template) throw new Error('Greece tourism template missing')
 
-  const context = { employment: { employmentStatus: 'employed' } }
+  // Built the way production builds it, so this fixture cannot drift from
+  // what DocumentsPage actually evaluates.
+  const context = buildApplicabilityContext({
+    applicant: null,
+    application: {
+      employment: { employmentStatus: 'employed' },
+    } as Application,
+  })
 
   return template.documentRequirements
-    .filter((req) => isRequirementApplicable(req, context))
+    .filter((req) => isApplicable(req, context))
     .map((req) => ({
       id: 'fixed-id-for-comparison',
       code: req.code,

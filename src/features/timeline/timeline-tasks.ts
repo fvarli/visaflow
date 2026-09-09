@@ -3,7 +3,7 @@ import { applicableRequirements } from '@/features/documents/template-sync'
 import { countsTowardReadiness } from '@/features/documents/document-semantics'
 import type { Application } from '@/domain/schemas/application.schema'
 import type { Document } from '@/domain/schemas/document.schema'
-import type { VisaTypeTemplate } from '@/config/types'
+import type { ApplicabilityContext, VisaTypeTemplate } from '@/config/types'
 import type { ValidationFinding } from '@/domain/rules/types'
 import {
   resolveTimelinePolicy,
@@ -78,6 +78,7 @@ export interface PreparationTask {
 
 export interface TasksInput {
   application: Application | null
+  context: ApplicabilityContext
   documents: Document[]
   template: VisaTypeTemplate | undefined
   findings: ValidationFinding[]
@@ -115,14 +116,14 @@ function reviewStatus(
   documents: Document[],
   errorCount: number,
   template: VisaTypeTemplate | undefined,
-  application: Application | null
+  context: ApplicabilityContext
 ): TaskStatus {
   if (errorCount > 0) return 'needsAttention'
   // Effective requiredness. `TasksInput` already carried the template; reading
   // the persisted flag instead left this task stuck on `inProgress` forever
   // because of a withdrawn requirement nobody has to obtain (ADR-051).
   const required = documents.filter((d) =>
-    template ? countsTowardReadiness(d, template, application) : d.required
+    template ? countsTowardReadiness(d, template, context) : d.required
   )
   if (required.length === 0) return 'notStarted'
   const allReady = required.every((d) => READY_DOC_STATUSES.has(d.status))
@@ -186,13 +187,11 @@ function relativePhase(leadDays: number): TaskBand {
 }
 
 export function deriveTasks(input: TasksInput, now: Date): PreparationTask[] {
-  const { application, documents, template, findings } = input
+  const { application, context, documents, template, findings } = input
   const appointmentIso = application?.appointment?.date ?? null
   const tripEntryIso = application?.trip?.entryDate ?? null
   const applicableCodes = new Set(
-    template
-      ? applicableRequirements(template, application).map((r) => r.code)
-      : []
+    template ? applicableRequirements(template, context).map((r) => r.code) : []
   )
   const errorCount = findings.filter((f) => f.severity === 'error').length
 
@@ -214,7 +213,7 @@ export function deriveTasks(input: TasksInput, now: Date): PreparationTask[] {
   for (const item of resolveTimelinePolicy(template)) {
     const status =
       item.id === 'final-review'
-        ? reviewStatus(documents, errorCount, template, application)
+        ? reviewStatus(documents, errorCount, template, context)
         : docStatusFor(item.relatedDocuments, documents, applicableCodes)
     const targetDate = targetFor(item.leadDays)
     const band = bandFor(targetDate, status, item.leadDays)
@@ -236,7 +235,7 @@ export function deriveTasks(input: TasksInput, now: Date): PreparationTask[] {
   // Only when a trip exists; a VisaFlow default of 3 days before travel.
   if (tripEntryIso) {
     const targetDate = isoDate(subDays(parseISO(tripEntryIso), 3))
-    const status = reviewStatus(documents, errorCount, template, application)
+    const status = reviewStatus(documents, errorCount, template, context)
     const band = appointmentIso
       ? classifyBand(targetDate, status, now, appointmentIso, tripEntryIso)
       : relativePhase(1)

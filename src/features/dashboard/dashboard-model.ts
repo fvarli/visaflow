@@ -1,6 +1,7 @@
 import { differenceInCalendarDays, parseISO, subDays } from 'date-fns'
 import { useMemo } from 'react'
 import type { Applicant } from '@/domain/schemas/applicant.schema'
+import { buildApplicabilityContext } from '@/features/documents/applicability'
 import type { Application } from '@/domain/schemas/application.schema'
 import type { Document } from '@/domain/schemas/document.schema'
 import type { Sponsor } from '@/domain/schemas/sponsor.schema'
@@ -237,7 +238,7 @@ export function buildDossierSnapshot(input: DashboardInput): SnapshotItem[] {
       application?.destinationCountry,
       application?.visaType
     ),
-    application,
+    context: buildApplicabilityContext({ applicant, application }),
   })
   const items: SnapshotItem[] = []
 
@@ -461,11 +462,12 @@ function buildApplicationModel(
         })
       : EMPTY_VALIDATION
 
+  const applicability = buildApplicabilityContext({ applicant, application })
   const readiness = buildDocumentReadiness({
     documents,
-    requiredRequirementCodes: requiredRequirementCodes(template, application),
+    requiredRequirementCodes: requiredRequirementCodes(template, applicability),
     template,
-    application,
+    context: applicability,
   })
 
   const state = deriveReadinessState(
@@ -474,7 +476,7 @@ function buildApplicationModel(
     validation.errorCount,
     Boolean(application?.appointment),
     template,
-    application
+    applicability
   )
 
   const timeline = buildTimeline(application, documents, now)

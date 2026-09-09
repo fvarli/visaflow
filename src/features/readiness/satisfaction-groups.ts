@@ -1,7 +1,7 @@
-import type { Application } from '@/domain/schemas/application.schema'
 import type { Document } from '@/domain/schemas/document.schema'
 import type { SatisfactionGroup, VisaTypeTemplate } from '@/config/types'
-import { isRequirementApplicable } from '@/config/types'
+import type { ApplicabilityContext } from '@/config/types'
+import { isApplicable } from '@/features/documents/applicability'
 import { effectiveStatus } from '@/features/documents/document-semantics'
 import { READINESS_CLASS, type ReadinessClass } from './readiness-types'
 
@@ -66,12 +66,12 @@ export function groupedCodes(
 export function resolveGroupSlots(
   template: VisaTypeTemplate | undefined,
   documents: Document[],
-  application?: Application | null
+  context?: ApplicabilityContext
 ): GroupSlot[] {
   const groups = template?.satisfactionGroups ?? []
   if (groups.length === 0 || !template) return []
 
-  const context = (application ?? {}) as unknown as Record<string, unknown>
+  const applicability: ApplicabilityContext = context ?? {}
   const byCode = new Map(documents.map((doc) => [doc.code, doc]))
   const slots: GroupSlot[] = []
 
@@ -79,7 +79,7 @@ export function resolveGroupSlots(
     const members = group.anyOf
       .map((code) => template.documentRequirements.find((r) => r.code === code))
       .filter((r) => r !== undefined)
-      .filter((r) => isRequirementApplicable(r, context))
+      .filter((r) => isApplicable(r, applicability))
 
     if (members.length === 0) continue
     if (!members.some((r) => r.required)) continue
@@ -124,10 +124,10 @@ export function resolveGroupSlots(
 export function satisfiedGroupMembers(
   template: VisaTypeTemplate | undefined,
   documents: Document[],
-  application?: Application | null
+  context?: ApplicabilityContext
 ): Set<string> {
   const satisfied = new Set<string>()
-  for (const slot of resolveGroupSlots(template, documents, application)) {
+  for (const slot of resolveGroupSlots(template, documents, context)) {
     if (slot.status !== 'ready') continue
     for (const code of slot.group.anyOf) satisfied.add(code)
   }

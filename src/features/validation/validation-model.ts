@@ -1,5 +1,6 @@
 import { useMemo } from 'react'
 import type { Applicant } from '@/domain/schemas/applicant.schema'
+import { buildApplicabilityContext } from '@/features/documents/applicability'
 import type { Application } from '@/domain/schemas/application.schema'
 import type { Document } from '@/domain/schemas/document.schema'
 import type { Sponsor } from '@/domain/schemas/sponsor.schema'
@@ -284,6 +285,7 @@ export function buildValidationModel(
   input: ValidationInput
 ): ValidationCenterModel {
   const { applicant, application, documents, sponsors } = input
+  const applicability = buildApplicabilityContext({ applicant, application })
   const hasData = applicant !== null && application !== null
 
   /**
@@ -309,9 +311,9 @@ export function buildValidationModel(
   // how one dossier could read 45% here and 36% there (ADR-033).
   const readiness = buildDocumentReadiness({
     documents,
-    requiredRequirementCodes: requiredRequirementCodes(template, application),
+    requiredRequirementCodes: requiredRequirementCodes(template, applicability),
     template,
-    application,
+    context: applicability,
   })
 
   const actionable: ActionableFinding[] = validation.findings.map(

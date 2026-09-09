@@ -1,3 +1,4 @@
+import type { ApplicabilityContext } from '@/config/types'
 import type { Application } from '@/domain/schemas/application.schema'
 import type { Document } from '@/domain/schemas/document.schema'
 import type { VisaTypeTemplate } from '@/config/types'
@@ -79,7 +80,7 @@ export function deriveReadinessState(
    * callers keep the older behaviour deliberately rather than by omission.
    */
   template?: VisaTypeTemplate,
-  application?: Application | null
+  context?: ApplicabilityContext
 ): ReadinessState {
   // No applicable work at all — either nothing is on file, or every requirement
   // has been disclaimed. Neither is a prepared dossier, so this must never read
@@ -95,14 +96,14 @@ export function deriveReadinessState(
   // never makes the dossier read as "waiting" for something.
   const notInHand = documents.filter((d) => {
     const isRequired = template
-      ? countsTowardReadiness(d, template, application)
+      ? countsTowardReadiness(d, template, context)
       : d.required
     return isRequired && !isObtained(d.status) && d.status !== 'needs_update'
   })
   if (notInHand.length > 0) {
     const allReservations = notInHand.every((d) =>
       RESERVATION_CATEGORIES.includes(
-        resolveDocumentSemantics(d, template, application).category
+        resolveDocumentSemantics(d, template, context).category
       )
     )
     return allReservations ? 'waiting_reservations' : 'documents_remaining'

@@ -14,6 +14,7 @@ import type { Application } from '@/domain/schemas/application.schema'
 import type { Document } from '@/domain/schemas/document.schema'
 import type { DocumentStatus } from '@/domain/types/common'
 import type { DocumentRequirement, RequirementLayer } from '@/config/types'
+import { ctxFor } from '@/tests/support/applicability'
 
 /**
  * C3a — one obligation, several accepted documents.
@@ -80,7 +81,7 @@ function readinessWith(documents: Document[], app = application()) {
     documents,
     requiredRequirementCodes: requiredRequirementCodes(greece, app),
     template: greece,
-    application: app,
+    context: ctxFor(app),
   })
 }
 
@@ -514,7 +515,7 @@ describe('Germany accepts an official undertaking instead of an accommodation do
       documents,
       requiredRequirementCodes: requiredRequirementCodes(germany, deApp),
       template: germany,
-      application: deApp,
+      context: ctxFor(deApp),
     })
 
   it('composes the undertaking, and Greece does not', () => {

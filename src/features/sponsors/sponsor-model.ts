@@ -1,5 +1,6 @@
 import { useMemo } from 'react'
 import type { Applicant } from '@/domain/schemas/applicant.schema'
+import { buildApplicabilityContext } from '@/features/documents/applicability'
 import type { Application } from '@/domain/schemas/application.schema'
 import type { Document } from '@/domain/schemas/document.schema'
 import type { Sponsor } from '@/domain/schemas/sponsor.schema'
@@ -177,6 +178,7 @@ function deriveReadiness(
 
 export function buildSponsorsModel(input: SponsorsInput): SponsorsModel {
   const { applicant, application, documents, sponsors } = input
+  const applicability = buildApplicabilityContext({ applicant, application })
   const hasData = application !== null
 
   const template = resolveVisaTemplate(
@@ -196,7 +198,7 @@ export function buildSponsorsModel(input: SponsorsInput): SponsorsModel {
     const docView = buildSponsorDocuments(
       sponsor,
       documents,
-      application,
+      applicability,
       template
     )
     const findings = sponsorFindings.filter(

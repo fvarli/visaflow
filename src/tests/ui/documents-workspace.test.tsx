@@ -21,6 +21,7 @@ import { resolveObligations } from '@/features/readiness/obligations'
 import { resolveVisaTemplate } from '@/config/countries'
 import exampleJson from '@/data/examples/example-dossier.json'
 import type { Dossier } from '@/domain/schemas/dossier.schema'
+import { ctxFor } from '@/tests/support/applicability'
 
 const imported = importDossier(JSON.stringify(exampleJson))
 if (!imported.success || !imported.data) {
@@ -282,7 +283,7 @@ describe('Documents workspace — the group caption agrees with the hero', () =>
         dossier.application ?? null
       ),
       template,
-      application: dossier.application,
+      context: ctxFor(dossier.application),
     })
   }
 
@@ -303,7 +304,7 @@ describe('Documents workspace — the group caption agrees with the hero', () =>
         dossier.application ?? null
       ),
       template,
-      application: dossier.application,
+      context: ctxFor(dossier.application),
     })
   }
 

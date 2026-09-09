@@ -1,7 +1,6 @@
-import type { Application } from '@/domain/schemas/application.schema'
 import type { Document } from '@/domain/schemas/document.schema'
 import type { DocumentCategory } from '@/domain/types/common'
-import type { VisaTypeTemplate } from '@/config/types'
+import type { ApplicabilityContext, VisaTypeTemplate } from '@/config/types'
 import {
   resolveDocumentSemantics,
   effectiveStatus,
@@ -58,21 +57,21 @@ export interface ObligationInput {
   /** Applicable **required** requirement codes, from `requirement-readiness`. */
   requiredRequirementCodes?: string[]
   template?: VisaTypeTemplate
-  application?: Application | null
+  context?: ApplicabilityContext
 }
 
 export function resolveObligations({
   documents,
   requiredRequirementCodes = [],
   template,
-  application,
+  context,
 }: ObligationInput): Obligation[] {
   const grouped = groupedCodes(template)
   const present = new Set(documents.map((doc) => doc.code))
   const obligations: Obligation[] = []
 
   for (const doc of documents) {
-    const semantics = resolveDocumentSemantics(doc, template, application)
+    const semantics = resolveDocumentSemantics(doc, template, context)
 
     // Retirement is a registry fact, true with or without a template, and a
     // withdrawn requirement is not current work (ADR-050).
@@ -127,7 +126,7 @@ export function resolveObligations({
    * group must not be the one thing that ignores them.
    */
   const countable = new Set(requiredRequirementCodes)
-  for (const slot of resolveGroupSlots(template, documents, application)) {
+  for (const slot of resolveGroupSlots(template, documents, context)) {
     const enters = slot.applicableCodes.some(
       (code) => present.has(code) || countable.has(code)
     )

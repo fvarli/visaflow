@@ -1,6 +1,5 @@
 import type { Document } from '@/domain/schemas/document.schema'
-import type { Application } from '@/domain/schemas/application.schema'
-import type { VisaTypeTemplate } from '@/config/types'
+import type { ApplicabilityContext, VisaTypeTemplate } from '@/config/types'
 import { resolveDocumentSemantics } from '@/features/documents/document-semantics'
 import type { DocumentStatus } from '@/domain/types/common'
 import {
@@ -73,7 +72,7 @@ export interface ReadinessInput {
    */
   template?: VisaTypeTemplate
   /** Needed to evaluate applicability; without it every known code applies. */
-  application?: Application | null
+  context?: ApplicabilityContext
   /**
    * Codes of the applicable **required** template requirements for this
    * application (see `requirement-readiness.ts`).
@@ -108,12 +107,7 @@ const EMPTY: DocumentReadiness = {
 export function buildDocumentReadiness(
   input: ReadinessInput
 ): DocumentReadiness {
-  const {
-    documents,
-    requiredRequirementCodes = [],
-    template,
-    application,
-  } = input
+  const { documents, requiredRequirementCodes = [], template, context } = input
 
   const counts: Record<ReadinessClass, number> = {
     ready: 0,
@@ -140,7 +134,7 @@ export function buildDocumentReadiness(
     documents,
     requiredRequirementCodes,
     template,
-    application,
+    context,
   })) {
     counts[obligation.status] += 1
   }
@@ -155,7 +149,7 @@ export function buildDocumentReadiness(
    * still worth showing.
    */
   for (const doc of documents) {
-    const semantics = resolveDocumentSemantics(doc, template, application)
+    const semantics = resolveDocumentSemantics(doc, template, context)
 
     if (semantics.membership === 'retired') {
       historical += 1

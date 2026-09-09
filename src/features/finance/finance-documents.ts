@@ -2,8 +2,7 @@ import { buildDocumentReadiness } from '@/features/readiness/document-readiness'
 import type { DocumentReadiness } from '@/features/readiness/readiness-types'
 import { applicableRequirements } from '@/features/documents/template-sync'
 import type { Document } from '@/domain/schemas/document.schema'
-import type { Application } from '@/domain/schemas/application.schema'
-import type { VisaTypeTemplate } from '@/config/types'
+import type { ApplicabilityContext, VisaTypeTemplate } from '@/config/types'
 import { RETIRED_REQUIREMENTS } from '@/config/countries/retired'
 import type {
   DocumentCategory,
@@ -139,15 +138,13 @@ function gatherGroupFor(group: FinanceDocGroupId): GatherGroupId {
 
 export function buildFinanceDocuments(
   documents: Document[],
-  application: Application | null,
+  context: ApplicabilityContext,
   template: VisaTypeTemplate | undefined
 ): FinanceDocumentsView {
   const financeDocs = documents.filter(
     (d) => financeDocGroup(d.code, d.category, d.ownerType) !== null
   )
-  const applicable = template
-    ? applicableRequirements(template, application)
-    : []
+  const applicable = template ? applicableRequirements(template, context) : []
 
   // Scoped to the finance-relevant codes, including applicable requirements
   // with no record yet, so the caption matches the list beneath it (ADR-034).
@@ -161,7 +158,7 @@ export function buildFinanceDocuments(
       )
       .map((req) => req.code),
     template,
-    application,
+    context,
   })
 
   const byCode = new Map(financeDocs.map((d) => [d.code, d]))

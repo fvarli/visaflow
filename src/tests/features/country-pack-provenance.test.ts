@@ -1218,9 +1218,11 @@ const JURISDICTION_EVIDENCE_GAPS: Record<string, string> = {
     'owner, pension records for a pensioner. That is a rule producing a set, ' +
     'and no acceptance criterion turns one of those into another, so this ' +
     'code is standing in for several evidence identities at once (ADR-052b). ' +
-    "The sponsor's occupation is also unreachable: applicability sees only " +
-    '`{ employment, financing }`, and is evaluated per dossier, not per ' +
-    'sponsor.',
+    "The sponsor's occupation is also unreachable. H4c1 widened the " +
+    "applicability projection to carry the applicant's nationality, but a " +
+    "sponsor's occupation is neither the applicant's nor a single value: " +
+    'applicability is evaluated once per dossier, and a dossier may hold ' +
+    'several sponsors.',
   RELATIONSHIP_PROOF:
     'The checklist establishes a relationship *rule* — the sponsor must be a ' +
     'first-degree relative, and a married applicant must name their spouse — ' +

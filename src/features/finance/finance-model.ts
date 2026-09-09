@@ -1,5 +1,6 @@
 import { useMemo } from 'react'
 import type { Applicant } from '@/domain/schemas/applicant.schema'
+import { buildApplicabilityContext } from '@/features/documents/applicability'
 import type { Application } from '@/domain/schemas/application.schema'
 import type { Document } from '@/domain/schemas/document.schema'
 import type { Sponsor } from '@/domain/schemas/sponsor.schema'
@@ -211,7 +212,8 @@ export function buildFinanceModel(input: FinanceInput): FinanceModel {
     application?.destinationCountry,
     application?.visaType
   )
-  const docView = buildFinanceDocuments(documents, application, template)
+  const applicability = buildApplicabilityContext({ applicant, application })
+  const docView = buildFinanceDocuments(documents, applicability, template)
 
   const moneyFindings =
     applicant && application

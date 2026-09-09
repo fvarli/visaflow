@@ -7,6 +7,7 @@ import { effectiveStatus } from '@/features/documents/document-semantics'
 import type { Application } from '@/domain/schemas/application.schema'
 import type { Document } from '@/domain/schemas/document.schema'
 import type { Dossier } from '@/domain/schemas/dossier.schema'
+import { ctxFor } from '@/tests/support/applicability'
 
 /**
  * The readiness ring and the findings list must answer the same question the
@@ -115,7 +116,7 @@ describe('requiredness comes from the pack, not from the seeded flag', () => {
       documents: [stale],
       requiredRequirementCodes: requiredRequirementCodes(GREECE, app),
       template: GREECE,
-      application: app,
+      context: ctxFor(app),
     })
     const flagged = runValidation({
       dossier: dossierOf([stale], app),
@@ -360,7 +361,7 @@ describe('validation and readiness owe the same obligations', () => {
       documents,
       requiredRequirementCodes: requiredRequirementCodes(GREECE, app),
       template: GREECE,
-      application: app,
+      context: ctxFor(app),
     })
     const findings = runValidation({
       dossier: dossierOf(documents, app),

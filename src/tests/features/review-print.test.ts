@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest'
+import { ctxFor } from '@/tests/support/applicability'
 import {
   buildPrintPackage,
   bundleForGroup,
@@ -68,7 +69,7 @@ function build(
 ) {
   const checklist = buildSubmissionChecklist(
     documents,
-    app,
+    ctxFor(app),
     withTemplate ? TEMPLATE : undefined,
     appointmentDate
   )

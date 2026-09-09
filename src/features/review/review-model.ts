@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 import { differenceInCalendarDays, parseISO } from 'date-fns'
 import type { Applicant } from '@/domain/schemas/applicant.schema'
+import { buildApplicabilityContext } from '@/features/documents/applicability'
 import type { Application } from '@/domain/schemas/application.schema'
 import type { Document } from '@/domain/schemas/document.schema'
 import type { Sponsor } from '@/domain/schemas/sponsor.schema'
@@ -121,11 +122,13 @@ export function buildFinalReviewModel(
   // Reused wholesale — same input, same output as the Validation Center.
   const validation = buildValidationModel(input)
 
+  const applicability = buildApplicabilityContext({ applicant, application })
+
   const readiness = buildDocumentReadiness({
     documents,
-    requiredRequirementCodes: requiredRequirementCodes(template, application),
+    requiredRequirementCodes: requiredRequirementCodes(template, applicability),
     template,
-    application,
+    context: applicability,
   })
   const readinessState = deriveReadinessState(
     readiness,
@@ -133,12 +136,12 @@ export function buildFinalReviewModel(
     validation.validation.errorCount,
     appointmentDate !== null,
     template,
-    application
+    applicability
   )
 
   const checklist = buildSubmissionChecklist(
     documents,
-    application,
+    applicability,
     template,
     appointmentDate
   )

@@ -1,5 +1,8 @@
 import type {
+  CountryCode,
   DocumentCategory,
+  EmploymentStatus,
+  FinancingSource,
   OwnerType,
   VisaType,
 } from '@/domain/types/common'
@@ -358,31 +361,80 @@ export interface CitationRefinement {
 }
 
 /**
- * Unchanged from the previous configuration model — conditional evaluation
- * must behave identically, so this logic is reused verbatim.
+ * What a requirement's `conditionalOn` may read — the whole capability surface,
+ * written out.
+ *
+ * A **bounded projection of the dossier, not a window onto it.** The dossier
+ * holds passports, previous visas, refusals and two deprecated identifiers that
+ * nothing may consume; handing all of that to pack configuration because it
+ * happens to be in scope would let any future condition reach any of it, and
+ * nobody would notice until a pack asserted something on a field it had no
+ * business reading. Widening this type is how the capability grows, and it
+ * should take an argument each time.
+ *
+ * Each field is typed nominally from `domain/types/common`, which the config
+ * layer already depends on — so this stays a projection rather than a copy of
+ * the schema shapes, and adding it opens no new dependency edge. Importing
+ * `Employment` or `Applicant` from `domain/schemas` instead would pull in every
+ * field those carry, which is the thing being avoided.
+ *
+ * Being a real type rather than `Record<string, unknown>` is also what stops a
+ * caller handing this function some other object that happens to be in scope —
+ * the failure that let three call sites drift apart before H4c1.
+ */
+export interface ApplicabilityContext {
+  employment?: { employmentStatus?: EmploymentStatus }
+  financing?: { source?: FinancingSource }
+  /** Nationality only. Nothing else about the applicant is exposed. */
+  applicant?: { nationality?: CountryCode }
+}
+
+/**
+ * One notion of "the dossier does not say", shared by every operator that needs
+ * it, so the presence tests and the value comparisons cannot drift apart.
+ */
+function isAbsent(fieldValue: unknown): boolean {
+  return fieldValue === undefined || fieldValue === null || fieldValue === ''
+}
+
+/**
+ * Does this requirement apply to the dossier described by `context`?
+ *
+ * ABSENT FIELDS DO NOT MATCH A VALUE COMPARISON, and that is a correction, not
+ * an inherited behaviour. `notEquals` was a bare `!==`, so a condition of the
+ * form "nationality is not TR" returned **true** for a dossier that had not
+ * said what the nationality was — an unknown answer became a positive one, and
+ * the engine manufactured an obligation out of ignorance. For a checklist that
+ * is the wrong direction to fail in: a document nobody needs is worse than a
+ * requirement that appears once the applicant fills the field in.
+ *
+ * It applies to `equals` and `notEquals` only. `exists` and `notExists` are
+ * presence tests — `notExists` is *defined* by absence, and a blanket rule
+ * would turn it into a dead operator. `includes` already returns false for an
+ * absent field through its `Array.isArray` guard.
+ *
+ * Safe to change when it was changed: every `conditionalOn` in the repository,
+ * in the packs and in the tests alike, used `equals`, which already behaved
+ * this way. The correction is to an operator nothing had used yet.
  */
 export function isRequirementApplicable(
   requirement: DocumentRequirement,
-  context: Record<string, unknown>
+  context: ApplicabilityContext
 ): boolean {
   if (!requirement.conditionalOn) return true
 
   const { field, operator, value } = requirement.conditionalOn
-  const fieldValue = getNestedValue(context, field)
+  const fieldValue = getNestedValue(context as Record<string, unknown>, field)
 
   switch (operator) {
     case 'equals':
-      return fieldValue === value
+      return !isAbsent(fieldValue) && fieldValue === value
     case 'notEquals':
-      return fieldValue !== value
+      return !isAbsent(fieldValue) && fieldValue !== value
     case 'exists':
-      return (
-        fieldValue !== undefined && fieldValue !== null && fieldValue !== ''
-      )
+      return !isAbsent(fieldValue)
     case 'notExists':
-      return (
-        fieldValue === undefined || fieldValue === null || fieldValue === ''
-      )
+      return isAbsent(fieldValue)
     case 'includes':
       return Array.isArray(fieldValue) && fieldValue.includes(value)
     default:

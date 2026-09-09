@@ -1,6 +1,5 @@
-import type { Application } from '@/domain/schemas/application.schema'
 import type { Document } from '@/domain/schemas/document.schema'
-import type { VisaTypeTemplate } from '@/config/types'
+import type { ApplicabilityContext, VisaTypeTemplate } from '@/config/types'
 import type {
   DocumentCategory,
   DocumentStatus,
@@ -201,7 +200,7 @@ function rowLink(docId: string | null, category: DocumentCategory): string {
  */
 export function buildSubmissionChecklist(
   documents: Document[],
-  application: Application | null,
+  context: ApplicabilityContext,
   template: VisaTypeTemplate | undefined,
   appointmentDate: string | null
 ): SubmissionChecklist {
@@ -211,7 +210,7 @@ export function buildSubmissionChecklist(
    * tells them to fetch a document nobody asks for any more (ADR-051).
    */
   const inPackage = documents.filter((doc) => {
-    const { membership } = resolveDocumentSemantics(doc, template, application)
+    const { membership } = resolveDocumentSemantics(doc, template, context)
     // Only a *withdrawn* requirement is dropped, and only when the applicant
     // never obtained it. Their own records — custom, or written by a build this
     // one does not recognise — stay: hiding a document someone filed would lose
@@ -225,7 +224,7 @@ export function buildSubmissionChecklist(
   const rows: ChecklistRow[] = inPackage.map((doc) => {
     // Requiredness from the pack as it stands, not the copy frozen into the
     // record when it was seeded (ADR-049).
-    const effective = resolveDocumentSemantics(doc, template, application)
+    const effective = resolveDocumentSemantics(doc, template, context)
     const expiresBeforeAppointment =
       classifyFreshness(doc, appointmentDate, false) ===
       'expiresBeforeAppointment'
@@ -257,9 +256,7 @@ export function buildSubmissionChecklist(
   // a final pre-appointment check should list what you actually carry. Optional
   // documents the applicant did create stay in the package (ADR-034).
   const applicable = template
-    ? applicableRequirements(template, application).filter(
-        (req) => req.required
-      )
+    ? applicableRequirements(template, context).filter((req) => req.required)
     : []
   for (const req of applicable) {
     if (byCode.has(req.code)) continue

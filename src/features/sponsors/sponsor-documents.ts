@@ -1,8 +1,7 @@
 import { applicableRequirements } from '@/features/documents/template-sync'
 import type { Document } from '@/domain/schemas/document.schema'
 import type { Sponsor } from '@/domain/schemas/sponsor.schema'
-import type { Application } from '@/domain/schemas/application.schema'
-import type { VisaTypeTemplate } from '@/config/types'
+import type { ApplicabilityContext, VisaTypeTemplate } from '@/config/types'
 import type {
   DocumentCategory,
   DocumentStatus,
@@ -81,7 +80,7 @@ function toRow(doc: Document, linked: boolean): SponsorDocRow {
 export function buildSponsorDocuments(
   sponsor: Sponsor,
   allDocuments: Document[],
-  application: Application | null,
+  context: ApplicabilityContext,
   template: VisaTypeTemplate | undefined
 ): SponsorDocumentsView {
   const eligible = allDocuments.filter((d) =>
@@ -108,7 +107,7 @@ export function buildSponsorDocuments(
 
   const presentCodes = new Set(allDocuments.map((d) => d.code))
   const missingRequirements: SponsorMissingRequirement[] = template
-    ? applicableRequirements(template, application)
+    ? applicableRequirements(template, context)
         .filter(
           (req) =>
             isSponsorEvidence(req.code, req.category) &&

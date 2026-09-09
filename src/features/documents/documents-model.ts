@@ -1,9 +1,11 @@
+import type { ApplicabilityContext } from '@/config/types'
 import { useMemo } from 'react'
 import { useDossier } from '@/app/providers/DossierProvider'
 import { runValidation } from '@/domain/rules/runner'
 import { resolveVisaTemplate } from '@/config/countries'
 import type { Dossier } from '@/domain/schemas/dossier.schema'
 import type { Applicant } from '@/domain/schemas/applicant.schema'
+import { buildApplicabilityContext } from '@/features/documents/applicability'
 import type { Application } from '@/domain/schemas/application.schema'
 import type { Document } from '@/domain/schemas/document.schema'
 import type { Sponsor } from '@/domain/schemas/sponsor.schema'
@@ -179,7 +181,7 @@ export function deriveNextDocument(
   documents: Document[],
   requiredRequirementCodes: string[] = [],
   template?: VisaTypeTemplate,
-  application?: Application | null
+  context?: ApplicabilityContext
 ): NextDocumentRecommendation | null {
   /**
    * Effective requiredness, not the persisted flag (ADR-050).
@@ -199,12 +201,12 @@ export function deriveNextDocument(
    * group stay in the running, so the first applicable route is still what gets
    * recommended.
    */
-  const settled = satisfiedGroupMembers(template, documents, application)
+  const settled = satisfiedGroupMembers(template, documents, context)
 
   const required = documents.filter(
     (d) =>
       !settled.has(d.code) &&
-      (template ? countsTowardReadiness(d, template, application) : d.required)
+      (template ? countsTowardReadiness(d, template, context) : d.required)
   )
   const present = new Set(documents.map((d) => d.code))
 
@@ -404,6 +406,7 @@ export function buildDocumentsModel(
   now: Date
 ): DocumentsModel {
   const { applicant, application, documents, sponsors } = input
+  const applicability = buildApplicabilityContext({ applicant, application })
   const template = resolveVisaTemplate(
     application?.destinationCountry,
     application?.visaType
@@ -422,7 +425,7 @@ export function buildDocumentsModel(
     findings = runValidation({ dossier, template }).findings
   }
 
-  const requirementCodes = requiredRequirementCodes(template, application)
+  const requirementCodes = requiredRequirementCodes(template, applicability)
   const present = new Set(documents.map((doc) => doc.code))
 
   return {
@@ -430,7 +433,7 @@ export function buildDocumentsModel(
       documents,
       requiredRequirementCodes: requirementCodes,
       template,
-      application,
+      context: applicability,
     }),
     /**
      * Template-aware, like the hero above it.
@@ -445,7 +448,7 @@ export function buildDocumentsModel(
     filterableReadiness: buildDocumentReadiness({
       documents,
       template,
-      application,
+      context: applicability,
     }),
     pendingRequirementCount: requirementCodes.filter(
       (code) => !present.has(code)
@@ -455,7 +458,7 @@ export function buildDocumentsModel(
       documents,
       requirementCodes,
       template,
-      application
+      applicability
     ),
     template,
     findingsByDoc: associateFindings(documents, findings),

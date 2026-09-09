@@ -127,8 +127,9 @@ export const RETIRED_REQUIREMENTS: RetiredRequirement[] = [
           'regardless: a retired identity is never reused (ADR-049), so ' +
           'restoring the obligation would take a new code and a contract ' +
           'argued on its own evidence. Note the ask is conditional on ' +
-          'holding one, which nothing in `{ employment, financing }` can ' +
-          'currently see.',
+          'holding one, and the applicability projection carries no ' +
+          'previous-passport data — H4c1 added nationality to it and nothing ' +
+          'else.',
       },
     ],
   },

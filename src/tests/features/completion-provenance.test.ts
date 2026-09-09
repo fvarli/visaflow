@@ -18,6 +18,7 @@ import { STORAGE_FORMAT_VERSION } from '@/features/workspace/saved-dossier'
 import type { Document } from '@/domain/schemas/document.schema'
 import type { Application } from '@/domain/schemas/application.schema'
 import type { VisaTypeTemplate, DocumentRequirement } from '@/config/types'
+import { ctxFor } from '@/tests/support/applicability'
 
 /**
  * A requirement's current definition and a user's claim that they satisfied an
@@ -192,7 +193,7 @@ describe('what a superseded claim does to canonical readiness', () => {
       documents,
       requiredRequirementCodes: requiredRequirementCodes(pack, employed),
       template: pack,
-      application: employed,
+      context: ctxFor(employed),
     })
 
   it('does not count as ready', () => {
@@ -279,7 +280,7 @@ describe('a claim from before provenance existed', () => {
       documents: [legacy],
       requiredRequirementCodes: requiredRequirementCodes(packV2, employed),
       template: packV2,
-      application: employed,
+      context: ctxFor(employed),
     })
     expect({
       ready: readiness.ready,

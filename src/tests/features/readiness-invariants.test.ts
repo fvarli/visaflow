@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest'
+import { ctxFor } from '@/tests/support/applicability'
 import { buildDashboardModel } from '@/features/dashboard/dashboard-model'
 import { buildDocumentsModel } from '@/features/documents/documents-model'
 import { buildValidationModel } from '@/features/validation/validation-model'
@@ -229,6 +230,7 @@ describe('INVARIANT 3 — received has one documented semantic', () => {
     const tasks = deriveTasks(
       {
         application,
+        context: ctxFor(application),
         documents: receivedHeavy.documents,
         template,
         findings: [],
@@ -371,10 +373,10 @@ describe('INVARIANT 6 — every readiness consumer uses the same denominator', (
         documents: fixture.documents,
         requiredRequirementCodes: requiredRequirementCodes(
           template,
-          fixture.application
+          ctxFor(fixture.application)
         ),
         template,
-        application: fixture.application,
+        context: ctxFor(fixture.application),
       })
       expect(badge.outstanding).toBe(canonical(fixture).outstanding)
     }

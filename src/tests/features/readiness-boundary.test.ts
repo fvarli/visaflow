@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest'
+import { ctxFor } from '@/tests/support/applicability'
 import { buildDossierSnapshot } from '@/features/dashboard/dashboard-model'
 import { deriveReadinessState } from '@/features/readiness/readiness-model'
 import { deriveTasks } from '@/features/timeline/timeline-tasks'
@@ -42,10 +43,10 @@ const readinessOf = (fixture: DossierFixture) => {
     documents: fixture.documents,
     requiredRequirementCodes: requiredRequirementCodes(
       template,
-      fixture.application
+      ctxFor(fixture.application)
     ),
     template,
-    application: fixture.application,
+    context: ctxFor(fixture.application),
   })
 }
 
@@ -107,7 +108,7 @@ describe('LEAK 3 — the readiness caption on three heroes', () => {
       0,
       Boolean(fixture.application?.appointment?.date),
       templateOf(fixture),
-      fixture.application
+      ctxFor(fixture.application)
     )
 
   it('reads the same for a dossier that differs only in non-current records', () => {
@@ -189,6 +190,7 @@ describe('LEAK 4 — the Timeline "final review" task', () => {
     deriveTasks(
       {
         application: fixture.application!,
+        context: ctxFor(fixture.application),
         documents: fixture.documents,
         template: templateOf(fixture),
         findings: [],
@@ -213,7 +215,7 @@ describe('LEAK 5 — the Final Review checklist and its printout', () => {
   const rows = (fixture: DossierFixture) =>
     buildSubmissionChecklist(
       fixture.documents,
-      fixture.application,
+      ctxFor(fixture.application),
       templateOf(fixture),
       fixture.application?.appointment?.date ?? null
     ).rows

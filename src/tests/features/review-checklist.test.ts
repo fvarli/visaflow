@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest'
+import { ctxFor } from '@/tests/support/applicability'
 import {
   buildSubmissionChecklist,
   checklistState,
@@ -101,7 +102,7 @@ describe('review-checklist', () => {
 
   describe('buildSubmissionChecklist', () => {
     it('returns nothing for an empty dossier with no template', () => {
-      const result = buildSubmissionChecklist([], null, undefined, null)
+      const result = buildSubmissionChecklist([], ctxFor(null), undefined, null)
       expect(result.groups).toEqual([])
       expect(result.rows).toEqual([])
       expect(result.counts.total).toBe(0)
@@ -152,7 +153,12 @@ describe('review-checklist', () => {
           status: 'ready',
         }),
       ]
-      const result = buildSubmissionChecklist(documents, null, undefined, null)
+      const result = buildSubmissionChecklist(
+        documents,
+        ctxFor(null),
+        undefined,
+        null
+      )
       const custom = result.rows.find((r) => r.code === 'CUSTOM-123')
       expect(custom).toBeDefined()
       expect(custom?.group).toBe('additional')
@@ -180,7 +186,7 @@ describe('review-checklist', () => {
       ]
       const expiring = buildSubmissionChecklist(
         documents,
-        null,
+        ctxFor(null),
         undefined,
         '2026-06-01'
       )
@@ -188,7 +194,7 @@ describe('review-checklist', () => {
 
       const fine = buildSubmissionChecklist(
         documents,
-        null,
+        ctxFor(null),
         undefined,
         '2026-02-01'
       )
@@ -199,7 +205,12 @@ describe('review-checklist', () => {
       const documents = [
         doc({ id: 'x', code: 'BANK_STATEMENTS', validUntil: '2020-01-01' }),
       ]
-      const result = buildSubmissionChecklist(documents, null, undefined, null)
+      const result = buildSubmissionChecklist(
+        documents,
+        ctxFor(null),
+        undefined,
+        null
+      )
       expect(result.rows[0]?.expiresBeforeAppointment).toBe(false)
     })
 
@@ -227,7 +238,12 @@ describe('review-checklist', () => {
         doc({ id: 'b', code: 'B', status: 'not_applicable' }),
         doc({ id: 'c', code: 'C', status: 'not_started' }),
       ]
-      const result = buildSubmissionChecklist(documents, null, undefined, null)
+      const result = buildSubmissionChecklist(
+        documents,
+        ctxFor(null),
+        undefined,
+        null
+      )
       expect(result.counts.total).toBe(3)
       expect(result.counts.actionable).toBe(2)
       expect(result.counts.ready).toBe(1)
@@ -246,7 +262,12 @@ describe('review-checklist', () => {
           status: 'needs_update',
         }),
       ]
-      const result = buildSubmissionChecklist(documents, null, undefined, null)
+      const result = buildSubmissionChecklist(
+        documents,
+        ctxFor(null),
+        undefined,
+        null
+      )
       const summed = result.groups.reduce((acc, g) => acc + g.counts.total, 0)
       expect(summed).toBe(result.counts.total)
     })

@@ -2372,6 +2372,20 @@ config-declared line without restructuring the layers.
   `{ employment, financing }` and contains no applicant data, so no jurisdiction-conditional
   requirement is expressible even once a discriminator exists ([ADR-048] records the same blocker
   alongside the missing comparison and conjunction operators).
+
+  > **Amended by H4c1 (2026-09-10).** The context is now a named `ApplicabilityContext` and carries
+  > the applicant's **nationality** — nothing else about the applicant. It is a bounded projection
+  > rather than a window onto the dossier: everything absent from the type is unreachable from pack
+  > configuration by construction, and widening it is meant to take an argument each time. Two other
+  > things changed with it. There is one builder, where there had been three that had already
+  > drifted — two projecting `{ employment, financing }` and one casting the whole `Application` —
+  > and a source scan now forbids any other production file from calling the evaluator. And a
+  > *value comparison* against an absent field no longer matches: `notEquals` was a bare `!==`, so
+  > "nationality is not TR" was true of a dossier that had not said, which manufactured an obligation
+  > out of ignorance. `exists`/`notExists` are untouched, being presence tests. The rest of this
+  > bullet stands: **the filing jurisdiction is still invisible**, and so are occupation beyond the
+  > seven-value vocabulary, a sponsor's own occupation, travel companions and minors. The text above
+  > is kept as written.
 - **Generic codes monopolised by Türkiye-specific contracts.** `SOCIAL_SECURITY`,
   `CIVIL_REGISTRY_EXTRACT`, `PENSIONER_BOOKLET`, `TAX_PAYMENT_STATEMENT` and
   `COMPANY_ACTIVITY_CERTIFICATE` are generic names holding jurisdiction-specific documents; a second

@@ -8,6 +8,7 @@ import { resolveVisaTemplate } from '@/config/countries'
 import type { Application } from '@/domain/schemas/application.schema'
 import type { Document } from '@/domain/schemas/document.schema'
 import type { DocumentCategory } from '@/domain/types/common'
+import { ctxFor } from '@/tests/support/applicability'
 
 /**
  * The obligation lives in the group, not in any member.
@@ -107,7 +108,7 @@ describe('a category owes obligations, not requirements', () => {
       documents,
       requiredRequirementCodes: requiredRequirementCodes(template, application),
       template,
-      application,
+      context: ctxFor(application),
     }).filter((o) => o.category === category)
 
   const GR_EMPLOYMENT = [
@@ -200,13 +201,13 @@ describe('a category owes obligations, not requirements', () => {
       documents: docs,
       requiredRequirementCodes: codes,
       template: GREECE,
-      application: employed,
+      context: ctxFor(employed),
     })
     const readiness = buildDocumentReadiness({
       documents: docs,
       requiredRequirementCodes: codes,
       template: GREECE,
-      application: employed,
+      context: ctxFor(employed),
     })
     expect(obligations).toHaveLength(
       readiness.applicable + readiness.notApplicable

@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 import { differenceInCalendarDays, parseISO } from 'date-fns'
 import type { Applicant } from '@/domain/schemas/applicant.schema'
+import { buildApplicabilityContext } from '@/features/documents/applicability'
 import type { Application } from '@/domain/schemas/application.schema'
 import type { Document } from '@/domain/schemas/document.schema'
 import type { Sponsor } from '@/domain/schemas/sponsor.schema'
@@ -118,11 +119,12 @@ export function buildAppointmentDay(
   // (an applicable requirement marked not-applicable simply leaves the set).
   // A `received` document deliberately does not qualify here even though it
   // satisfies its preparation task on the plan — see ADR-033.
+  const applicability = buildApplicabilityContext({ applicant, application })
   const allRequiredReady = buildDocumentReadiness({
     documents,
-    requiredRequirementCodes: requiredRequirementCodes(template, application),
+    requiredRequirementCodes: requiredRequirementCodes(template, applicability),
     template,
-    application,
+    context: applicability,
   }).complete
   const form = documents.find((d) => d.code === 'APPLICATION_FORM')
   const formReady =
@@ -174,16 +176,29 @@ export function buildTimelineModel(
           totalRules: 0,
         }
 
+  const timelineApplicability = buildApplicabilityContext({
+    applicant,
+    application,
+  })
   const readiness = buildDocumentReadiness({
     documents,
-    requiredRequirementCodes: requiredRequirementCodes(template, application),
+    requiredRequirementCodes: requiredRequirementCodes(
+      template,
+      timelineApplicability
+    ),
     template,
-    application,
+    context: timelineApplicability,
   })
   const actions = deriveNextActions(readiness, validation, application)
 
   const tasks = deriveTasks(
-    { application, documents, template, findings: validation.findings },
+    {
+      application,
+      context: timelineApplicability,
+      documents,
+      template,
+      findings: validation.findings,
+    },
     now
   )
 
@@ -206,7 +221,7 @@ export function buildTimelineModel(
       validation.errorCount,
       appointmentDate !== null,
       template,
-      application
+      timelineApplicability
     ),
     outstandingDocuments: readiness.outstanding,
     primaryAction: actions[0] ?? null,

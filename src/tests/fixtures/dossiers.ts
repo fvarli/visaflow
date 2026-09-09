@@ -9,6 +9,7 @@ import { applyDocumentUpdate } from '@/features/documents/document-semantics'
 import { requiredRequirementCodes } from '@/features/readiness/requirement-readiness'
 import { buildDocumentReadiness } from '@/features/readiness/document-readiness'
 import type { DocumentReadiness } from '@/features/readiness/readiness-types'
+import { ctxFor } from '@/tests/support/applicability'
 
 /**
  * Shared dossier fixtures for the readiness invariants.
@@ -398,10 +399,10 @@ export function canonicalReadiness(fixture: DossierFixture): DocumentReadiness {
     documents: fixture.documents,
     requiredRequirementCodes: requiredRequirementCodes(
       template,
-      fixture.application
+      ctxFor(fixture.application)
     ),
     template,
-    application: fixture.application,
+    context: ctxFor(fixture.application),
   })
 }
 
