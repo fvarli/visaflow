@@ -47,6 +47,8 @@ const SUPPORTED_BY_ANNEX_III: Record<string, string> = {
   TAX_PAYMENT_STATEMENT: 'I.5(c) statement of taxes payment',
   COMPANY_ACTIVITY_CERTIFICATE: 'I.5(c) company activity certificate',
   STUDENT_CERTIFICATE: 'I.5(d) student certificate',
+  FARMER_CERTIFICATE:
+    'I.5(b) farmer certificate issued by a chamber of agriculture',
   FILING_COUNTRY_RESIDENCE_PERMIT:
     'I.5(g) proof of residence in Türkiye for non-Turkish nationals, valid ' +
     'three months beyond departure from the Member States',

@@ -68,6 +68,9 @@ const PINNED_ORDER = [
   'TAX_PAYMENT_STATEMENT',
   'STUDENT_CERTIFICATE',
   'PENSIONER_BOOKLET',
+  // H4c2b2 — the first occupational obligation, appended rather than
+  // interleaved so no existing dossier's next document moves.
+  'FARMER_CERTIFICATE',
   'FILING_COUNTRY_RESIDENCE_PERMIT',
 ]
 
@@ -384,6 +387,23 @@ const PINNED_REQUIREMENTS: Record<string, DocumentRequirement> = {
    * `tr-filing` because Annex III I.5(g) is the jurisdiction's instrument, so
    * Germany composes it too.
    */
+  FARMER_CERTIFICATE: {
+    code: 'FARMER_CERTIFICATE',
+    nameKey: 'visa-domain:requirements.FARMER_CERTIFICATE.name',
+    descriptionKey: 'visa-domain:requirements.FARMER_CERTIFICATE.description',
+    notesKey: 'visa-domain:requirements.FARMER_CERTIFICATE.notes',
+    category: 'employment',
+    ownerType: 'applicant',
+    required: true,
+    conditionalOn: {
+      field: 'employment.occupation',
+      operator: 'equals',
+      value: 'farmer',
+    },
+    sourceRefs: ['eu-c2021-5156-turkey-annex3'],
+    revision: 1,
+    contractKey: 'FARMER_CERTIFICATE@1',
+  },
   FILING_COUNTRY_RESIDENCE_PERMIT: {
     code: 'FILING_COUNTRY_RESIDENCE_PERMIT',
     nameKey: 'visa-domain:requirements.FILING_COUNTRY_RESIDENCE_PERMIT.name',
@@ -559,7 +579,7 @@ const PINNED_ENVELOPE = {
   id: 'schengen-short-stay-tourism',
   visaType: 'short_stay_tourism',
   nameKey: 'visa-domain:visaTypes.schengen-short-stay-tourism',
-  templateVersion: '1.10.0',
+  templateVersion: '1.11.0',
   lastReviewedAt: '2026-09-07',
   reviewStatus: 'partially_verified',
   sourceIds: ['gr-mfa-general'],

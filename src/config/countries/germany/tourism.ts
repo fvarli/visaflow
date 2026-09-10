@@ -83,6 +83,11 @@ const GERMANY_TOURISM_ORDER = [
   'EMPLOYER_TAX_PLATE',
   'TAX_PAYMENT_STATEMENT',
   'COMPANY_ACTIVITY_CERTIFICATE',
+  // Annex III I.5(b) — farmers, which this sheet asks for at its own section
+  // 4(b). Inherited rather than declared: the clause belongs to the instrument
+  // adopted for applications lodged in Türkiye, so it reaches every mission
+  // that receives them, exactly as the residence permit below does.
+  'FARMER_CERTIFICATE',
   // Section 4(d) — students.
   'STUDENT_CERTIFICATE',
   // Annex III I.5(g). The sheet enumerates non-Turkish citizens as a category
@@ -138,7 +143,7 @@ export const germanyTourismComposition = composeVisaTemplate({
      * Greece's number counts its own history and the two are unrelated —
      * `templateVersion` is per pack, not repository-wide.
      */
-    templateVersion: '1.8.0',
+    templateVersion: '1.9.0',
     lastReviewedAt: '2026-09-07',
     /**
      * `verified`, and the word means exactly one thing here: **every** composed

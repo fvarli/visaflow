@@ -30,6 +30,32 @@ export interface ConditionalRequirement {
 }
 
 /**
+ * The one way a pack asks about occupation.
+ *
+ * `ConditionalRequirement.value` is `string | boolean | number`, so a pack has
+ * never been type-checked against any vocabulary — `value: 'farmr'` compiles
+ * today and would compile against a closed enum too. This is where that safety
+ * is created rather than assumed: the argument is a `KnownOccupationCode`, so a
+ * typo is a compile error at the site where it is made.
+ *
+ * It also fixes the field, which matters more than it looks. `employment.occupation`
+ * is the **effective** value the resolver produced; `employment.occupationCode`
+ * is the raw persisted string, and a pack that reached for the second would be
+ * comparing against a code no build validated. Authors cannot choose the wrong
+ * one through this door, and an invariant test catches anyone who writes the
+ * literal instead (ADR-053).
+ *
+ * Deliberately not a builder. One field, one operator, one code — a general
+ * expression API is a capability with no caller, and `oneOf` is a separate
+ * decision on its own evidence.
+ */
+export function occupationIs(
+  code: KnownOccupationCode
+): ConditionalRequirement {
+  return { field: 'employment.occupation', operator: 'equals', value: code }
+}
+
+/**
  * Where a requirement came from.
  *
  * VisaFlow does not scrape or call official websites. A source record is a

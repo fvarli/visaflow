@@ -290,6 +290,11 @@
       "name": "Copies of Visas from the Last 10 Years",
       "description": "One photocopy of each Schengen, EU, United Kingdom, United States or Canadian visa valid within the last 10 years, and of the passport that carries them",
       "notes": "This is separate from your current passport: it covers the pages of any passport holding those visas, including an expired one."
+    },
+    "FARMER_CERTIFICATE": {
+      "name": "Farmer Certificate",
+      "description": "Farmer certificate issued by a chamber of agriculture",
+      "notes": "Required if you are a farmer."
     }
   },
   "milestones": {

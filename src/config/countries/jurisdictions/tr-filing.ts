@@ -1,4 +1,5 @@
 import { trFilingSources } from '../../sources/tr-filing.sources'
+import { occupationIs } from '../../types'
 import type {
   DocumentRequirement,
   RequirementLayer,
@@ -313,6 +314,68 @@ const trFilingDocuments: DocumentRequirement[] = [
     // I.4.c — "pensioner booklet, if relevant". A different document from the
     // payment statements this requirement used to describe.
     sourceRefs: ['eu-c2021-5156-turkey-annex3'],
+    revision: 1,
+  },
+  {
+    /**
+     * I.5(b), in full: "Farmers: farmer certificate issued by a chamber of
+     * agriculture."
+     *
+     * The first requirement in this repository conditioned on occupation
+     * rather than on employment status, and the first one a farmer could ever
+     * have been shown. Annex III lists Farmers as a category beside Employees
+     * and Company owners; the seven-value status vocabulary had no value for
+     * one, so a farmer picked `self_employed` and got a company owner's
+     * checklist (ADR-053).
+     *
+     * WHY THIS LAYER, FROM THE SOURCE RATHER THAN FROM CONVENIENCE. The clause
+     * belongs to the harmonised list adopted for applications lodged in
+     * Türkiye, so it binds every mission that receives them — the same
+     * reasoning that placed `FILING_COUNTRY_RESIDENCE_PERMIT`, not "both packs
+     * happen to want it". The German mission sheet asks for the same document
+     * at its own section 4(b), "Çiftçiler için: Ziraat Odasından çiftçilik
+     * belgesi", which corroborates the reading independently.
+     *
+     * THE GERMAN SHEET IS NOT CITED HERE EVEN SO. A shared row's citations
+     * reach both compositions, so listing a German mission source would have
+     * Greece citing German authority for a Turkish document — the ADR-048
+     * defect one layer up. The corroboration lives in this comment and in a
+     * test; only the neutral instrument is a `sourceRef`.
+     *
+     * ONE EVIDENCE IDENTITY, AND ONLY ONE. The Greek visa centre's farmer
+     * branch also asks for a ÇKS registry record, a farmland title deed and an
+     * agricultural-vehicle registration. Those are separate documents, none of
+     * which this certificate stands in for, and each needs its own reviewed
+     * adjudication before it can be asked of anybody (ADR-052b).
+     *
+     * WHAT THIS DOES NOT FIX. The three company-owner rows above still fire on
+     * `self_employed`, so a farmer who says so is asked for this *and* still
+     * asked for those. Narrowing them means reading a field every existing
+     * dossier has left unanswered, which would silently withdraw required
+     * documents from anyone who never saw the question. That correction is its
+     * own decision on its own evidence.
+     */
+    code: 'FARMER_CERTIFICATE',
+    nameKey: 'visa-domain:requirements.FARMER_CERTIFICATE.name',
+    descriptionKey: 'visa-domain:requirements.FARMER_CERTIFICATE.description',
+    notesKey: 'visa-domain:requirements.FARMER_CERTIFICATE.notes',
+    category: 'employment',
+    /**
+     * The applicant's. A chamber of agriculture issues it, but an issuer is not
+     * an owner — `ownerType` says whose situation the document describes, and
+     * `EMPLOYER_TRADE_REGISTRY` above answers the same question the same way
+     * for a chamber of commerce.
+     */
+    ownerType: 'applicant',
+    /**
+     * Required for the category. I.5 lists documents "to be presented by
+     * specific categories of applicants" and attaches no qualifier to this one,
+     * unlike I.4(c)'s "if relevant" — requiredness and applicability are
+     * separate axes (ADR-051a).
+     */
+    required: true,
+    conditionalOn: occupationIs('farmer'),
+    sourceRefs: [COMMISSION_ANNEX_III],
     revision: 1,
   },
   {

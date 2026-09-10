@@ -139,8 +139,8 @@ describe('Greece evidence pass — the contracts it deliberately left alone', ()
     // rows still show the unverified notice.
     const greece = getCountryConfig('GR')
     expect(computeVerificationCoverage(greece!, template)).toEqual({
-      total: 26,
-      verified: 21,
+      total: 27,
+      verified: 22,
       isComplete: false,
     })
   })
@@ -233,13 +233,13 @@ describe('Annex III I.5(g) — the obligation the evidence work produced', () =>
     ])
   })
 
-  it('moves Greece to twenty-one of twenty-six', () => {
+  it('moves Greece to twenty-two of twenty-seven', () => {
     // The first row this evidence effort added rather than corrected, and it
     // arrives cited — so the numerator and denominator move together.
     const greece = getCountryConfig('GR')
     expect(computeVerificationCoverage(greece!, template)).toEqual({
-      total: 26,
-      verified: 21,
+      total: 27,
+      verified: 22,
       isComplete: false,
     })
   })

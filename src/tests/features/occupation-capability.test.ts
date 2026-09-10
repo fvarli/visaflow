@@ -8,6 +8,9 @@ import {
   resolveOccupation,
 } from '@/features/documents/applicability'
 import { resolveVisaTemplate } from '@/config/countries'
+import { requiredRequirementCodes } from '@/features/readiness/requirement-readiness'
+import { runValidation } from '@/domain/rules/runner'
+import type { Dossier } from '@/domain/schemas/dossier.schema'
 import { ALL_REQUIREMENT_LAYERS } from '@/config/countries/layers'
 import { importPartial } from '@/features/import-export/services/import.service'
 import { exportDossier } from '@/features/import-export/services/export.service'
@@ -16,6 +19,7 @@ import {
   EmploymentStatusSchema,
   KNOWN_OCCUPATION_CODES,
   OCCUPATIONS_BY_STATUS,
+  isKnownOccupationCode,
   type EmploymentStatus,
 } from '@/domain/types/common'
 import type { Application } from '@/domain/schemas/application.schema'
@@ -65,6 +69,13 @@ const codesFor = (
       employment: employment(status, occupationCode),
     } as unknown as Application)
   ).map((r) => r.code)
+
+/** Every production requirement whose applicability reads the effective code. */
+const OCCUPATION_CONDITIONED = ALL_REQUIREMENT_LAYERS.flatMap((layer) =>
+  (layer.add ?? []).filter(
+    (r) => r.conditionalOn?.field === 'employment.occupation'
+  )
+)
 
 describe('resolveOccupation — raw, known, effective', () => {
   it.each([
@@ -615,18 +626,75 @@ describe('the capability changes nothing for anybody', () => {
     expect(sizes.length).toBe(14)
   })
 
-  it('because no production requirement consults occupation yet', () => {
+  it('because the one requirement that reads occupation needs an answer', () => {
     /**
-     * The guard that keeps the next slice out of this one. A requirement
-     * conditioned on occupation is H4c2b2's decision, on its own evidence, and
-     * it must not arrive as a side effect of the vocabulary existing.
+     * This asserted an empty list until H4c2b2, when the capability got its
+     * first production consumer. The equivalence above still holds for the same
+     * reason it did then — a dossier that has not answered the occupational
+     * question resolves to `undefined`, and `FARMER_CERTIFICATE` is
+     * conditioned on `equals farmer`, so it cannot appear for anyone who has
+     * not said so.
+     *
+     * That is the property worth restating rather than deleting: farmer is
+     * never *inferred* from `self_employed`.
      */
-    const conditioned = ALL_REQUIREMENT_LAYERS.flatMap((layer) =>
+    expect(OCCUPATION_CONDITIONED.map((r) => r.code)).toEqual([
+      'FARMER_CERTIFICATE',
+    ])
+  })
+})
+
+/**
+ * Pack-authoring safety, which ADR-053 decision 8 requires and which the typed
+ * helper alone cannot deliver.
+ *
+ * `occupationIs()` makes a typo a compile error at the site where it is made.
+ * It cannot stop anybody writing the condition literal by hand, and
+ * `ConditionalRequirement.value` is `string | boolean | number`, so a
+ * hand-written `'farmr'` compiles. That is what this walk is for — the same
+ * callee-then-registry idiom `applicability-drift.test.ts` uses.
+ */
+describe('every occupational condition names a code this build knows', () => {
+  it('uses only known codes', () => {
+    const unknown = OCCUPATION_CONDITIONED.filter(
+      (r) => !isKnownOccupationCode(r.conditionalOn?.value)
+    ).map((r) => `${r.code} -> ${String(r.conditionalOn?.value)}`)
+    expect(unknown).toEqual([])
+  })
+
+  it('uses only the operator occupational conditions are defined for', () => {
+    // `equals` is the whole vocabulary today. A pack reaching for `notEquals`
+    // would be expressing "not a farmer", which under fail-closed semantics is
+    // false for every dossier that has not answered — a subtractive change
+    // needing its own decision, not a condition someone slips in.
+    const operators = [
+      ...new Set(OCCUPATION_CONDITIONED.map((r) => r.conditionalOn?.operator)),
+    ]
+    expect(operators).toEqual(['equals'])
+  })
+
+  it('never reads the raw persisted code, or a path near it', () => {
+    /**
+     * The failure this exists to prevent: a pack conditioning on
+     * `employment.occupationCode` would compare against an unvalidated string
+     * that no resolver has judged, so an unknown code from a newer build could
+     * satisfy a condition written before it existed.
+     */
+    const raw = ALL_REQUIREMENT_LAYERS.flatMap((layer) =>
       (layer.add ?? [])
-        .filter((r) => r.conditionalOn?.field === 'employment.occupation')
-        .map((r) => layer.id + ' -> ' + r.code)
+        .filter((r) => {
+          const field = r.conditionalOn?.field ?? ''
+          return (
+            field.includes('occupation') && field !== 'employment.occupation'
+          )
+        })
+        .map((r) => `${layer.id} -> ${r.code} -> ${r.conditionalOn?.field}`)
     )
-    expect(conditioned).toEqual([])
+    expect(raw).toEqual([])
+  })
+
+  it('has something to check, so none of the above is vacuous', () => {
+    expect(OCCUPATION_CONDITIONED.length).toBeGreaterThan(0)
   })
 })
 
@@ -689,5 +757,137 @@ describe('four concepts, four labels a reader can tell apart', () => {
     expect(occupations.filter((o) => statuses.includes(o))).toEqual([])
     expect(occupations.filter((o) => others.includes(o))).toEqual([])
     expect(new Set(occupations).size).toBe(occupations.length)
+  })
+})
+
+/**
+ * The first production obligation, and the only claim this slice makes:
+ * occupational routing works end to end.
+ *
+ * One requirement, one condition, both packs. What matters as much as the
+ * positive case is the list of populations it must *not* reach — most of all
+ * the applicant who has said `self_employed` and nothing more, because
+ * inferring farmer from self-employment is exactly the over-reach the coarse
+ * vocabulary was never able to avoid.
+ */
+describe('FARMER_CERTIFICATE — the first occupational obligation', () => {
+  const CODE = 'FARMER_CERTIFICATE'
+
+  it.each([
+    ['GR', GREECE],
+    ['DE', GERMANY],
+  ] as const)('reaches a farmer in %s', (_cc, template) => {
+    // Both packs, because Annex III I.5(b) belongs to the instrument adopted
+    // for applications lodged in Türkiye rather than to either mission.
+    expect(codesFor('self_employed', 'farmer', template)).toContain(CODE)
+  })
+
+  it.each([
+    ['a company owner', 'self_employed', 'company_owner'],
+    [
+      'an independent professional',
+      'self_employed',
+      'independent_professional',
+    ],
+    ['an ordinary employee', 'employed', 'employee'],
+    ['a public servant', 'employed', 'public_servant'],
+    ['an unknown future code', 'self_employed', FUTURE],
+    ['a stale pair that says retired', 'retired', 'farmer'],
+  ] as const)('does not reach %s', (_label, status, code) => {
+    for (const template of [GREECE, GERMANY]) {
+      expect(codesFor(status, code, template)).not.toContain(CODE)
+    }
+  })
+
+  it('does not reach someone who only said self-employed', () => {
+    /**
+     * The load-bearing negative. A farmer picks `self_employed` today because
+     * nothing finer existed, so inferring the certificate from that value would
+     * ask it of every company owner and freelancer in the country — the exact
+     * over-ask the occupational axis was introduced to end, arriving through
+     * the change meant to fix it.
+     */
+    for (const template of [GREECE, GERMANY]) {
+      expect(codesFor('self_employed', undefined, template)).not.toContain(CODE)
+    }
+  })
+
+  it('is required, so readiness counts it rather than treating it as extra', () => {
+    const requirement = GREECE.documentRequirements.find((r) => r.code === CODE)
+    expect({
+      required: requirement?.required,
+      owner: requirement?.ownerType,
+    }).toEqual({ required: true, owner: 'applicant' })
+  })
+})
+
+describe('FARMER_CERTIFICATE flows through the ordinary pipeline', () => {
+  /**
+   * No bespoke rule, no farmer-specific branch anywhere. If the obligation did
+   * not travel the same path every other required requirement travels, the
+   * capability would have bought a checklist entry and not an obligation.
+   */
+  const farmer = {
+    destinationCountry: 'GR',
+    visaType: 'short_stay_tourism',
+    employment: employment('self_employed', 'farmer'),
+  } as unknown as Application
+
+  it('joins the readiness denominator for a farmer, and not for anyone else', () => {
+    const forFarmer = requiredRequirementCodes(GREECE, ctxFor(farmer))
+    const forOwner = requiredRequirementCodes(
+      GREECE,
+      ctxFor({
+        ...farmer,
+        employment: employment('self_employed', 'company_owner'),
+      })
+    )
+    expect({
+      farmer: forFarmer.includes('FARMER_CERTIFICATE'),
+      owner: forOwner.includes('FARMER_CERTIFICATE'),
+    }).toEqual({ farmer: true, owner: false })
+  })
+
+  it('is named by validation when a farmer has no record of it', () => {
+    const named = runValidation({
+      dossier: {
+        applicant: { id: 'a1', nationality: 'TR' },
+        application: farmer,
+        documents: [],
+        sponsors: [],
+      } as unknown as Dossier,
+      template: GREECE,
+      applicability: ctxFor(farmer),
+    })
+      .findings.flatMap((f) => f.messageParams?.documentCodes?.documents ?? [])
+      .includes('FARMER_CERTIFICATE')
+
+    expect(named).toBe(true)
+  })
+
+  it('and says nothing once the document is ready', () => {
+    const findings = runValidation({
+      dossier: {
+        applicant: { id: 'a1', nationality: 'TR' },
+        application: farmer,
+        documents: [
+          {
+            id: 'd-farm',
+            code: 'FARMER_CERTIFICATE',
+            category: 'employment',
+            ownerType: 'applicant',
+            ownerId: 'a1',
+            required: true,
+            status: 'ready',
+            verified: false,
+          },
+        ],
+        sponsors: [],
+      } as unknown as Dossier,
+      template: GREECE,
+      applicability: ctxFor(farmer),
+    }).findings.flatMap((f) => f.messageParams?.documentCodes?.documents ?? [])
+
+    expect(findings).not.toContain('FARMER_CERTIFICATE')
   })
 })

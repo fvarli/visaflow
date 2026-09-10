@@ -1709,6 +1709,15 @@ the result is one correction, one removal, and a longer list of things it does *
   sponsor's identity photocopy is asked for by three consular jurisdictions and not by Edirne, which
   nothing in the composition model can represent — a layer is per mission, not per post.
 
+  > **Amended by H4c2b2 (2026-09-11).** The occupational half of that sentence is no longer wholly
+  > true. [ADR-053](#adr-053) built the vocabulary and `FARMER_CERTIFICATE` is now asked of anyone who
+  > says they farm, in both packs, on Annex III I.5(b). The original wording stands because it was
+  > accurate when written and because most of what it names still holds: the civil servant's
+  > institution card, the freelancer's professional-body letter and card, and the farmer's remaining
+  > documents — the ÇKS registry record, the farmland deed, the agricultural-vehicle registration —
+  > are each an unreviewed evidence identity, and the company-document rows still over-ask a farmer
+  > because narrowing them is a subtractive change with its own decision to make.
+
 **Next:** Greece-specific verification, from a network that can reach `mfa.gr` or by a maintainer
 entering the ministry's published list by hand. Every requirement above marked partial or
 conflicting is waiting on precisely that.

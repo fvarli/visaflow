@@ -290,6 +290,11 @@
       "name": "Son 10 Yılın Vize Fotokopileri",
       "description": "Son 10 yıl içinde geçerli olan Schengen, AB, Birleşik Krallık, ABD ve Kanada vizelerinizin ve bu vizeleri taşıyan pasaportun birer adet fotokopisi",
       "notes": "Mevcut pasaportunuzdan ayrı bir belgedir: söz konusu vizeleri taşıyan pasaportun — süresi dolmuş olsa bile — ilgili sayfalarını kapsar."
+    },
+    "FARMER_CERTIFICATE": {
+      "name": "Çiftçi Belgesi",
+      "description": "Ziraat odası tarafından düzenlenen çiftçi belgesi",
+      "notes": "Çiftçiyseniz istenir."
     }
   },
   "milestones": {

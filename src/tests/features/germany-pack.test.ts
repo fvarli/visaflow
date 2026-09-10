@@ -52,6 +52,8 @@ const GERMANY_ORDER = [
   'EMPLOYER_TAX_PLATE',
   'TAX_PAYMENT_STATEMENT',
   'COMPANY_ACTIVITY_CERTIFICATE',
+  // Annex III I.5(b), which this sheet also asks for at its own section 4(b).
+  'FARMER_CERTIFICATE',
   'STUDENT_CERTIFICATE',
   'FILING_COUNTRY_RESIDENCE_PERMIT',
 ]
@@ -89,7 +91,7 @@ describe('Germany pack — composition', () => {
     )
   })
 
-  it('owns four requirements and inherits the other twenty-one', () => {
+  it('owns four requirements and inherits the other twenty-two', () => {
     const tally = new Map<string, number>()
     for (const [, layerId] of germany.ownership) {
       tally.set(layerId, (tally.get(layerId) ?? 0) + 1)
@@ -98,7 +100,11 @@ describe('Germany pack — composition', () => {
       'schengen-short-stay': 8,
       // Twelve since F0 — `TRANSPORT_MEANS_PROOF` is Annex III's, so this pack
       // inherits it for the same reason Greece does: both file in Türkiye.
-      'tr-filing': 13,
+      // Fourteen since H4c2b2 added the farmer certificate on I.5(b). Germany
+      // gains a requirement from a Greek evidence pass, and that is the layer
+      // model working rather than a leak: the clause was always Annex III's,
+      // and this sheet asks for the document itself at section 4(b).
+      'tr-filing': 14,
       // Four since H3: the official undertaking is this mission's own
       // evidence, accepted in place of an accommodation document.
       'de-tr-mission': 4,
@@ -119,7 +125,7 @@ describe('Germany pack — composition', () => {
     // now supports. F0 moved both sides by one and completeness held, which is
     // the property worth pinning: a requirement may not join this pack without
     // its own source.
-    expect(coverage).toEqual({ total: 25, verified: 25, isComplete: true })
+    expect(coverage).toEqual({ total: 26, verified: 26, isComplete: true })
     expect(
       isReviewStatusSupported(germany.template.reviewStatus, coverage)
     ).toBe(true)
@@ -502,10 +508,10 @@ describe('Germany pack — refinement adds citations and detail, and nothing els
 
 describe('Germany pack — Greece is untouched by its arrival', () => {
   it('still composes its own requirements with its own coverage', () => {
-    expect(greece.template.documentRequirements).toHaveLength(26)
+    expect(greece.template.documentRequirements).toHaveLength(27)
     expect(computeVerificationCoverage(greeceConfig, greece.template)).toEqual({
-      total: 26,
-      verified: 21,
+      total: 27,
+      verified: 22,
       isComplete: false,
     })
   })

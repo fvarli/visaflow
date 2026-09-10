@@ -71,6 +71,11 @@ const GREECE_TOURISM_ORDER = [
   'TAX_PAYMENT_STATEMENT',
   'STUDENT_CERTIFICATE',
   'PENSIONER_BOOKLET',
+  // I.5(b) — farmers. Appended after the occupational block rather than
+  // interleaved: order decides which document `deriveNextDocument` sends
+  // somebody to first, and a farmer's certificate has no business ahead of an
+  // employee's payslips for the applicants who see both lists.
+  'FARMER_CERTIFICATE',
   // I.5(g) — the applicant category that is about who you are rather than what
   // you do, so it sits after the occupational block rather than inside it.
   'FILING_COUNTRY_RESIDENCE_PERMIT',
@@ -140,7 +145,7 @@ export const greeceTourismComposition = composeVisaTemplate({
      * which layer owns those four requirements, not what Greece asks for, so
      * the composed output was identical and the number held.
      */
-    templateVersion: '1.10.0',
+    templateVersion: '1.11.0',
     lastReviewedAt: '2026-09-07',
     /**
      * Still derived from evidence rather than chosen: 19 of the 24 requirements
