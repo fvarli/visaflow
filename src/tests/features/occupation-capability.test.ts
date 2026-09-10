@@ -266,6 +266,79 @@ describe('an unknown future code survives every boundary and acts on nothing', (
   })
 })
 
+describe('an unknown code under a status with no occupational branch', () => {
+  /**
+   * ADJUDICATED IN H4c2b1a, AND PINNED SO A LATER SLICE HAS TO ARGUE IT.
+   *
+   * A retiree or a student is asked no occupational question at all, so an
+   * unknown code they carry is invisible to them. That is *interpretation A*,
+   * and it is what ADR-053 actually requires: decision 4 asks for preserved,
+   * inert and round-tripping; decision 5 forbids destructive clearing. Neither
+   * says anything about disclosure, and the ADR's only mentions of the UI are
+   * to deny it any correctness role.
+   *
+   * The wider reading — surfacing dormant occupational data under a status that
+   * has no branches — is a product decision the record does not make, and
+   * hiding it is not destructive: the value survives, acts on nothing, and
+   * reappears the moment the applicant returns to a status that has branches.
+   * If a later slice wants that disclosure it will have to change these tests,
+   * which is the point of writing them.
+   */
+  const BRANCHLESS = [
+    'retired',
+    'student',
+    'unemployed',
+    'homemaker',
+    'other',
+  ] as const
+
+  it.each(BRANCHLESS)(
+    '%s is asked no occupational question at all',
+    (status) => {
+      // The reason the control does not render, stated where it can be checked
+      // rather than inferred from the component.
+      expect(OCCUPATIONS_BY_STATUS[status]).toBeUndefined()
+    }
+  )
+
+  it.each(['retired', 'student'] as const)(
+    '%s keeps an unknown code, and it stays inert',
+    (status) => {
+      expect(resolveOccupation(employment(status, FUTURE))).toBeUndefined()
+      expect(codesFor(status, FUTURE)).toEqual(codesFor(status, undefined))
+    }
+  )
+
+  it('cannot be erased by moving between branchless statuses', () => {
+    /**
+     * The path that would lose the value silently: switch to a status where
+     * the control is not mounted, so nothing can show what happened. The
+     * transition rule returns an unknown code unchanged for *every* target,
+     * which is what makes the round trip safe.
+     */
+    for (const from of BRANCHLESS) {
+      for (const to of EmploymentStatusSchema.options) {
+        expect({
+          from,
+          to,
+          kept: occupationAfterStatusChange(employment(from, FUTURE), to),
+        }).toEqual({ from, to, kept: FUTURE })
+      }
+    }
+  })
+
+  it('and comes back into view on a status that has branches', () => {
+    // The other half of "not destructive": a value hidden under `retired` is
+    // still the dossier's answer when the applicant says self-employed again.
+    expect(
+      occupationAfterStatusChange(
+        employment('retired', FUTURE),
+        'self_employed'
+      )
+    ).toBe(FUTURE)
+  })
+})
+
 describe('a contradictory pair is preserved and inert', () => {
   it.each([
     ['retired', 'farmer'],
@@ -286,7 +359,7 @@ describe('a contradictory pair is preserved and inert', () => {
  * would pass. That is not hypothetical — it is exactly how the reverted first
  * attempt kept a green test over a real regression.
  */
-const BEFORE_H4C2B1: Record<string, Record<string, string[]>> = {
+const BEFORE_H4C2B1: Record<'GR' | 'DE', Record<EmploymentStatus, string[]>> = {
   GR: {
     employed: [
       'APPLICATION_FORM',
@@ -529,7 +602,7 @@ describe('the capability changes nothing for anybody', () => {
           cc,
           status,
           codes: codesFor(status, undefined, template),
-        }).toEqual({ cc, status, codes: BEFORE_H4C2B1[cc]![status]! })
+        }).toEqual({ cc, status, codes: BEFORE_H4C2B1[cc][status] })
       }
     }
   )

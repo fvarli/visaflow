@@ -37,11 +37,18 @@ interface OccupationSelectorProps {
  * Radix shows `SelectValue`'s placeholder whenever the current value matches no
  * `SelectItem`, so a code imported from a newer build would render as an empty
  * control — indistinguishable from an unanswered question, while the value sat
- * in the file and re-exported intact. That is the misreport ADR-053 forbids and
- * a near-miss of the defect that got the first attempt reverted. So an
- * unrecognised value is given an item of its own, labelled as unrecognised, and
- * shows as selected: honest about what the dossier holds, honest that this
- * build cannot act on it, and replaceable by picking a known option.
+ * in the file and re-exported intact. So an unrecognised value is given an item
+ * of its own, labelled as unrecognised, and shows as selected: honest about
+ * what the dossier holds, honest that this build cannot act on it, and
+ * replaceable by picking a known option.
+ *
+ * THIS GOES BEYOND WHAT ADR-053 ASKS FOR, AND THE DISTINCTION IS WORTH KEEPING
+ * STRAIGHT. The ADR requires an unknown code to be preserved, inert and never
+ * destructively cleared; it says nothing about how one must be displayed, and
+ * its only mentions of the UI are to deny it any correctness role. What this
+ * defends against is the *class* of defect that got the first attempt reverted
+ * — a control showing one thing while the dossier held another — not a rule the
+ * decision record states.
  */
 export function OccupationSelector({
   options,
