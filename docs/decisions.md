@@ -2815,3 +2815,144 @@ It is not the property that mattered.
 
 **Implementation:** documentation only — `docs/decisions.md`, `docs/json-schema.md`,
 `docs/architecture.md`. The behaviour it describes shipped in `3636eb6` and `975a152`.
+
+---
+
+## ADR-053: Occupation Is a Second Axis, Carried as an Opaque Code
+
+**Status:** Accepted · 2026-09-10 · extends [ADR-043](#adr-043), applies [ADR-052b](#adr-052b) and
+[ADR-051a](#adr-051a)
+
+**Context.** Three records have named the same blocker for two sprints. The Greek mission layer, on
+`EMPLOYER_SIGNATURE_CIRCULAR`: *"`employed` cannot separate an ordinary employee from a public servant,
+so both the requiredness and the condition stay as they are until the occupational vocabulary can
+express the distinction."* ADR-047's evidence pass: *"per-occupation document sets for civil servants,
+farmers and freelancers that the seven-value `employmentStatus` vocabulary cannot express."* ADR-052a's
+ledger carries the same gap.
+
+The evidence is specific. The Greek visa centre's checklist branches on an axis it labels *Meslek*, and
+the branches disagree materially: a *Kamu Çalışanı* is asked for an institution letter and an
+institution card and is **not** asked for the company-document block an ordinary *Çalışan* gets, while a
+*Çiftçi* is asked for none of either. Annex III names Farmers (I.5(b)) and Company owners (I.5(c)) as
+categories in their own right, and the German mission sheet has its own farmer category at section 4(b).
+
+**Decision:**
+
+1. **Occupation is a second axis, not more values on the first.** `employmentStatus` keeps its seven
+   coarse values unchanged. An occupational classification is used only where a source distinguishes
+   subcategories *within* one of those states. This vocabulary is a record of distinctions specific
+   authorities draw; it is **not** an exhaustive ontology of professions or of employment types, and
+   nothing may be inferred from a category's absence from it.
+2. **The persisted representation is open** — conceptually `employment.occupationCode?: string`, and
+   deliberately **not** a closed `z.enum`. `importPartial` parses `application` as a single unit, so an
+   unknown enum value anywhere inside that slice costs the reader `applicationId`, `applicantId`,
+   `destinationCountry`, `visaType`, `status`, timestamps, `appointment`, `trip`, `employment`,
+   `employerDetails`, `financing`, `sponsorIds`, `documentIds` and `notes` — and `hasData` is still true
+   if the applicant survived, so the import reports **success** over a one-line "1 item was left out"
+   notice. An open string cannot reproduce that when the vocabulary grows.
+3. **Raw, known and effective are three distinct things.** *Raw* is the opaque code as persisted.
+   *Known* is membership in this build's domain registry — a build-time fact, not a stored one.
+   *Effective* is a raw code that is both known **and** legal for the recorded coarse status. Only the
+   effective value is ever exposed to applicability. A raw value is never rewritten merely because the
+   build reading it cannot classify it.
+4. **An unknown future code is preserved and inert.** In a build that supports the field it must not
+   fail `ApplicationSchema`, must not be erased at parse, import or export, must not activate any
+   requirement, and must round-trip intact. The compatibility boundary is stated exactly: a build that
+   predates the field entirely **may** strip it, because `z.object` drops unknown keys, and no design
+   can make a build round-trip a field it has never heard of. What such a build must never do is lose
+   the Application slice because the field exists.
+5. **An invalid pair is resolved, never rejected and never normalized away.** Persisted data stays
+   permissive; a canonical resolver decides. Known and compatible yields the code; known and
+   incompatible yields nothing; unknown yields nothing; absent yields nothing. Applicability therefore
+   fails closed, as [ADR-051a](#adr-051a)'s successor rule for absent values already requires. An
+   interactive status change may clear a *known* stale code, but correctness must never depend on that
+   transition, and an *unknown* code must never be destructively cleared on the grounds that this build
+   cannot classify it.
+6. **The known vocabulary lives in the domain layer**, conceptually a `KNOWN_OCCUPATION_CODES as const`
+   with a union type derived from it. Growing that list after the field exists is a domain change, not
+   a persisted-format change.
+7. **The applicability projection stays bounded.** It may expose the effective known code and nothing
+   else — not the raw value, not the `Employment` object. The projection *is* the capability
+   (ADR-052a's bounded-context principle, as H4c1 implemented it), and widening it takes an argument
+   each time.
+8. **Open persistence does not mean free-form pack conditions.** `ConditionalRequirement.value` is
+   already typed `string | boolean | number`, so pack-authored values have never been checked against
+   any enum and the open persisted form costs no safety that exists today. Two mechanisms are required
+   of the implementing slice: a typed authoring path so a known code is checked where the mistake is
+   made, and an invariant test that fails any condition on the occupational field whose value is not a
+   known code — the callee-guard idiom, not a shape guard.
+9. **Shared-layer semantics, at the strength the evidence supports.** For the captured Greece and
+   Germany tourism-from-Türkiye slices, the observed German occupational groupings are compatible with
+   coarser groupings of the finer distinctions the Greek checklist draws, where both address the same
+   population. That is a compatibility observation about two captured slices — **not** an exhaustive
+   shared taxonomy, and not a claim that either list partitions all applicants. Shared `tr-filing`
+   rules continue to use the coarse status wherever the common authority speaks at that level; a
+   mission layer may add requirements at finer effective codes. Refinement may not be used to narrow
+   another layer's applicability.
+10. **Free-text `applicant.occupation` is untouched by this decision** — not redefined, not retired.
+    Whether it should survive beside a structured field is a separate question with its own slice.
+11. **Versioning.** Introducing the field costs one `schemaVersion` bump under the convention
+    [ADR-043](#adr-043) rule 3 established. Later additions to the known-code registry cost none: this
+    is the last bump required **for occupation-vocabulary growth**, which is not a claim that VisaFlow
+    will never bump `schemaVersion` again for anything else. No storage migration is implied;
+    `STORAGE_FORMAT_VERSION` does not move.
+
+**Why the invariant and the contract were settled before the representation.** They pull in opposite
+directions, and choosing a representation first hides that. Making a contradictory pair *structurally*
+impossible in the persisted schema — a discriminated union, or a `superRefine` — means an inconsistent
+file fails its slice, which is decision 2's failure wearing decision 5's clothes. Normalizing the pair
+at parse looks like the compromise and is not: a normalizer that keeps only known-and-legal values
+erases exactly the unknown future codes decision 4 exists to carry. The reconciliation is that
+enforcement must be **non-destructive**: permissive at every boundary, strict only at the point of use.
+That is why the resolver, and not the schema, holds the invariant.
+
+**One choke point, and why it is sufficient.** The effective value is produced in exactly one place, the
+sole applicability-context builder, which a source-scanning test already forbids anything else from
+duplicating. That single site covers every path by which a bad pair can arrive: import, the IndexedDB
+payload (which is validated by a structural check only and never by Zod), a programmatic update, and a
+stale value the UI failed to clear. An enforcement point in the UI would cover none of those.
+
+**Rejected alternatives.**
+
+- **Widening `EmploymentStatusSchema`.** The worst option on compatibility — it is decision 2's failure
+  today rather than at the next vocabulary addition — and it also splits four requirements that are
+  genuinely shared: an employee and a public servant both file a social-security record and payslips,
+  and `employed` is exactly their union.
+- **A closed occupational enum in an optional key.** Safe on the release that introduces it and
+  identical to the enum-widening failure on the next one. It postpones the hazard; it does not close it.
+- **A discriminated employment union at the persisted boundary**, and **`.refine` / `.superRefine` pair
+  rejection.** Both convert a data inconsistency into total slice loss.
+- **Parse-time `.transform` or any destructive normalization.** Erases unknown future codes at the one
+  boundary they must survive.
+- **Deriving occupation from existing structured fields.** None of `employerName`, `jobTitle`,
+  `department`, `monthlyNetIncome`, `salaryBank`, `startDate` or `financing.source` distinguishes public
+  from private employment, or a farmer from a company owner. New user input is unavoidable, so
+  derivation does not solve the capability.
+- **Deriving it from free-text `applicant.occupation`.** An unconstrained string cannot back an
+  auditable condition, and the field has no consumer today.
+- **Relying on the UI to hide or clear the value.** Not a correctness boundary — see the historical
+  note.
+
+**Consequences.**
+
+- A dossier that never answers the new question resolves to exactly the checklist it resolved to
+  before, for every coarse status, because absence fails closed. That property is what lets the
+  vocabulary arrive without disturbing anyone, and it is the implementing slice's central test.
+- A contradictory pair can exist in an exported file and is *inert* rather than corrected. That is
+  deliberate: the alternative destroys data the user gave us. Surfacing it at import would need the
+  `ImportResult.warnings` channel, which is populated by the service today and read by no component —
+  its own slice, if it is wanted at all.
+- Nothing here authorises a requirement. The first production obligation is a separate decision on its
+  own evidence, and no requirement code, condition or evidence identity is adopted by this ADR.
+
+**Historical note.** An earlier attempt shipped in `33618da` and was reverted in `f2de587`. Three
+lessons are worth keeping and the ADR does not otherwise depend on it: stale occupational state stays
+behaviourally active even when the UI hides it — the reverted build showed a placeholder while three
+required farmer documents remained applicable to a retiree with no control left to clear them; a closed
+enum only postpones the future-value import hazard; and evidence identity must not be adjudicated
+inside the commit that implements it, which produced one conflated identity, three omitted documents,
+and a false statement about a source in a decision record.
+
+**Implementation:** documentation only — `docs/decisions.md`. The capability it governs is not built
+yet; the schema, resolver, projection and known-code registry are a separate slice, and the first
+production requirement a separate one after that.
