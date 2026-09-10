@@ -269,6 +269,11 @@
       "name": "Pensioner Booklet",
       "description": "Pensioner booklet"
     },
+    "FILING_COUNTRY_RESIDENCE_PERMIT": {
+      "name": "Türkiye Residence Permit",
+      "description": "Proof that you reside lawfully in Türkiye, valid for at least three months beyond the date you return from your trip",
+      "notes": "Asked of applicants who are not Turkish nationals"
+    },
     "DE_S54_DECLARATION": {
       "name": "Residence Act § 54 Declaration",
       "description": "Signed declaration submitted with the application form, required under § 54 of the German Residence Act",

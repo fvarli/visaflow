@@ -269,6 +269,11 @@
       "name": "Emekli Cüzdanı",
       "description": "Emekli cüzdanı"
     },
+    "FILING_COUNTRY_RESIDENCE_PERMIT": {
+      "name": "Türkiye Oturum İzni",
+      "description": "Türkiye'de yasal olarak ikamet ettiğinizi gösteren belge; seyahatten dönüş tarihinizden itibaren en az üç ay daha geçerli olmalıdır",
+      "notes": "T.C. vatandaşı olmayan başvuru sahiplerinden istenir"
+    },
     "DE_S54_DECLARATION": {
       "name": "İkamet Kanunu 54. Madde Beyannamesi",
       "description": "Başvuru formuyla birlikte verilen, Alman İkamet Kanunu’nun 54. maddesi uyarınca istenen imzalı beyanname",

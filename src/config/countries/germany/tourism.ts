@@ -85,6 +85,10 @@ const GERMANY_TOURISM_ORDER = [
   'COMPANY_ACTIVITY_CERTIFICATE',
   // Section 4(d) — students.
   'STUDENT_CERTIFICATE',
+  // Annex III I.5(g). The sheet enumerates non-Turkish citizens as a category
+  // of its own; the jurisdiction's instrument is what states the document and
+  // its three-month bar, so this pack inherits rather than declares it.
+  'FILING_COUNTRY_RESIDENCE_PERMIT',
 ]
 
 /**
@@ -126,12 +130,15 @@ export const germanyTourismComposition = composeVisaTemplate({
      * `1.5.0` renders eight acceptance bars the mission publishes on
      * requirements this pack inherits rather than owns; `1.6.0` adds the
      * photograph count, which sits on the tourism checklist rather than the
-     * general page the rest of that fragment came from.
+     * general page the rest of that fragment came from; `1.8.0` inherits Annex
+     * III I.5(g), the residence permit a non-Turkish national files with —
+     * declared by the jurisdiction whose instrument states it, so this pack
+     * gains it without the German layers asserting anything.
      *
      * Greece's number counts its own history and the two are unrelated —
      * `templateVersion` is per pack, not repository-wide.
      */
-    templateVersion: '1.7.0',
+    templateVersion: '1.8.0',
     lastReviewedAt: '2026-09-07',
     /**
      * `verified`, and the word means exactly one thing here: **every** composed

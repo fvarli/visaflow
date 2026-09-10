@@ -1,5 +1,10 @@
 import { describe, it, expect } from 'vitest'
-import { applicableRequirements } from '@/features/documents/template-sync'
+import type { Applicant } from '@/domain/schemas/applicant.schema'
+import {
+  applicableRequirements,
+  planTemplateSync,
+} from '@/features/documents/template-sync'
+import { buildApplicabilityContext } from '@/features/documents/applicability'
 import { requiredRequirementCodes } from '@/features/readiness/requirement-readiness'
 import { resolveVisaTemplate } from '@/config/countries'
 import type { Application } from '@/domain/schemas/application.schema'
@@ -118,5 +123,79 @@ describe('the civil registry extract is asked of everyone', () => {
     expect(required.filter((c) => c === 'CIVIL_REGISTRY_EXTRACT')).toHaveLength(
       1
     )
+  })
+})
+
+/**
+ * Annex III I.5(g) — the first requirement in either pack whose applicability
+ * turns on who the applicant is rather than what they do.
+ *
+ * The clause asks non-Turkish nationals for proof that they reside lawfully in
+ * Türkiye. Until H4c1 the condition could not be written at all: applicability
+ * saw only employment and financing, so a real obligation with real evidence
+ * behind it sat in the MISSING inventory for want of a field the dossier had
+ * carried since the beginning.
+ */
+describe('Annex III I.5(g) — residence in the filing country', () => {
+  const PERMIT = 'FILING_COUNTRY_RESIDENCE_PERMIT'
+
+  const codesForNationality = (nationality: string | null) =>
+    applicableRequirements(
+      template,
+      buildApplicabilityContext({
+        applicant:
+          nationality === null
+            ? null
+            : ({ id: 'a1', nationality } as unknown as Applicant),
+        application: applicationWith('employed'),
+      })
+    ).map((r) => r.code)
+
+  it('asks a non-Turkish national for it', () => {
+    expect(codesForNationality('PL')).toContain(PERMIT)
+  })
+
+  it('does not ask a Turkish national for it', () => {
+    // The whole point of the clause: it is the *non*-Turkish category.
+    expect(codesForNationality('TR')).not.toContain(PERMIT)
+  })
+
+  it.each([
+    ['a dossier with no applicant yet', null],
+    ['an applicant who has not answered', ''],
+  ])('does not ask %s for it', (_label, nationality) => {
+    /**
+     * A fresh dossier initialises `nationality` to `''`, so without H4c1's
+     * fail-closed rule every new dossier would open by demanding a residence
+     * permit of someone who may well be Turkish. An unknown answer is not a
+     * foreign one.
+     */
+    expect(codesForNationality(nationality)).not.toContain(PERMIT)
+  })
+
+  it('is required for the population it applies to', () => {
+    // Conditional applicability and requiredness are separate axes: I.5 lists
+    // this without qualification for its category, so it is not a soft ask
+    // merely because it is a conditional one.
+    const permit = template.documentRequirements.find((r) => r.code === PERMIT)
+    expect({ required: permit?.required, category: permit?.category }).toEqual({
+      required: true,
+      category: 'identity',
+    })
+  })
+
+  it('leaves the record behind rather than deleting it if nationality changes', () => {
+    // ADR-049: an applicability change is not a withdrawal. `planTemplateSync`
+    // reports the row as no longer applicable and the user's state survives.
+    const seeded = [{ code: PERMIT } as never]
+    const plan = planTemplateSync(
+      seeded,
+      buildApplicabilityContext({
+        applicant: { id: 'a1', nationality: 'TR' } as unknown as Applicant,
+        application: applicationWith('employed'),
+      }),
+      template
+    )
+    expect(plan.noLongerApplicable.map((d) => d.code)).toContain(PERMIT)
   })
 })

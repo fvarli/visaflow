@@ -280,10 +280,10 @@ describe('Documents workspace — the group caption agrees with the hero', () =>
       documents: dossier.documents,
       requiredRequirementCodes: requiredRequirementCodes(
         template,
-        dossier.application ?? null
+        ctxFor(dossier.application, dossier.applicant)
       ),
       template,
-      context: ctxFor(dossier.application),
+      context: ctxFor(dossier.application, dossier.applicant),
     })
   }
 
@@ -301,10 +301,10 @@ describe('Documents workspace — the group caption agrees with the hero', () =>
       documents: dossier.documents,
       requiredRequirementCodes: requiredRequirementCodes(
         template,
-        dossier.application ?? null
+        ctxFor(dossier.application, dossier.applicant)
       ),
       template,
-      context: ctxFor(dossier.application),
+      context: ctxFor(dossier.application, dossier.applicant),
     })
   }
 

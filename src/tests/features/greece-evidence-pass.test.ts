@@ -139,8 +139,8 @@ describe('Greece evidence pass — the contracts it deliberately left alone', ()
     // rows still show the unverified notice.
     const greece = getCountryConfig('GR')
     expect(computeVerificationCoverage(greece!, template)).toEqual({
-      total: 25,
-      verified: 20,
+      total: 26,
+      verified: 21,
       isComplete: false,
     })
   })
@@ -188,5 +188,59 @@ describe('Greece evidence pass — the retirements it did not undo', () => {
     const idCard = RETIRED_REQUIREMENTS.find((r) => r.code === 'ID_CARD_COPY')
     expect(idCard?.reason).toContain('Mandatory and cited by nothing')
     expect(idCard?.reason).not.toContain('2026-09-09')
+  })
+})
+
+describe('Annex III I.5(g) — the obligation the evidence work produced', () => {
+  const PERMIT = 'FILING_COUNTRY_RESIDENCE_PERMIT'
+
+  it.each(['tr', 'en'] as const)(
+    'renders the three-month bar the clause states, in %s',
+    async (locale) => {
+      /**
+       * "Valid three months beyond the intended date of departure from the
+       * territory of the Member States" — the same event the Greek visa
+       * centre's checklist describes from the other side, as three months from
+       * the date of return. Both authorities agree, so the contract states it.
+       *
+       * Nothing checks it. `Document.validUntil` and `trip.exitDate` both
+       * exist and `passport.validAfterTrip` already does this arithmetic, so a
+       * rule is expressible — it is simply a separate decision from the
+       * obligation, and the E0 contract judges behaviour on what it asserts,
+       * not on what it declines to enforce.
+       */
+      await i18n.changeLanguage(locale)
+      const td = dynamicT(i18n.t.bind(i18n))
+      const rendered = [
+        td(`visa-domain:requirements.${PERMIT}.description`, {
+          defaultValue: '',
+        }),
+        td(`visa-domain:requirements.${PERMIT}.notes`, { defaultValue: '' }),
+      ].join(' ')
+      await i18n.changeLanguage('tr')
+
+      expect(/three months|üç ay/i.test(rendered)).toBe(true)
+    }
+  )
+
+  it('cites the instrument that states both the ask and the bar', () => {
+    // One citation covering identity, population, requiredness and the
+    // three-month criterion — so no part of the contract outruns its evidence
+    // (ADR-047, ADR-048).
+    expect(requirement(PERMIT).sourceRefs).toEqual([
+      'eu-c2021-5156-turkey-annex3',
+      'gr-tr-harmonised-list',
+    ])
+  })
+
+  it('moves Greece to twenty-one of twenty-six', () => {
+    // The first row this evidence effort added rather than corrected, and it
+    // arrives cited — so the numerator and denominator move together.
+    const greece = getCountryConfig('GR')
+    expect(computeVerificationCoverage(greece!, template)).toEqual({
+      total: 26,
+      verified: 21,
+      isComplete: false,
+    })
   })
 })

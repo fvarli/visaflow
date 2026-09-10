@@ -154,8 +154,14 @@ describe('Dashboard — seeded command center', () => {
       // not, and shrunk again when the authority turned out to offer a choice.
       // That is the pack telling the truth in all three directions, which is
       // why none of these numbers is pinned as a target.
+      //
+      // H4c1b moved it once more, and this time for a reason visible in the
+      // fixture itself: the example applicant is Polish, so Annex III I.5(g)
+      // asks them for a Türkiye residence permit. The first requirement that
+      // conditions on nationality lands on the one dossier this repository
+      // ships, which is the best demonstration of the capability there is.
       const ring = screen.getByRole('img')
-      expect(ring.getAttribute('aria-label')).toContain('55')
+      expect(ring.getAttribute('aria-label')).toContain('50')
 
       // The single next action offers exactly one CTA.
       expect(

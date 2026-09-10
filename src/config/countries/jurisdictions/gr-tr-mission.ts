@@ -245,6 +245,10 @@ export const grTrMissionLayer: RequirementLayer = {
     },
     { code: 'TAX_PAYMENT_STATEMENT', addSourceRefs: ['gr-tr-harmonised-list'] },
     { code: 'PENSIONER_BOOKLET', addSourceRefs: ['gr-tr-harmonised-list'] },
+    {
+      code: 'FILING_COUNTRY_RESIDENCE_PERMIT',
+      addSourceRefs: ['gr-tr-harmonised-list'],
+    },
 
     // EMPLOYER_TAX_PLATE and EMPLOYER_SIGNATURE_CIRCULAR get nothing. Neither
     // appears in Annex III, and ADR-048 already recorded that vergi levhası

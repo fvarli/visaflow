@@ -53,6 +53,7 @@ const GERMANY_ORDER = [
   'TAX_PAYMENT_STATEMENT',
   'COMPANY_ACTIVITY_CERTIFICATE',
   'STUDENT_CERTIFICATE',
+  'FILING_COUNTRY_RESIDENCE_PERMIT',
 ]
 
 /** Every citation the German layers introduce, by the source that carries it. */
@@ -88,7 +89,7 @@ describe('Germany pack — composition', () => {
     )
   })
 
-  it('owns four requirements and inherits the other twenty', () => {
+  it('owns four requirements and inherits the other twenty-one', () => {
     const tally = new Map<string, number>()
     for (const [, layerId] of germany.ownership) {
       tally.set(layerId, (tally.get(layerId) ?? 0) + 1)
@@ -97,7 +98,7 @@ describe('Germany pack — composition', () => {
       'schengen-short-stay': 8,
       // Twelve since F0 — `TRANSPORT_MEANS_PROOF` is Annex III's, so this pack
       // inherits it for the same reason Greece does: both file in Türkiye.
-      'tr-filing': 12,
+      'tr-filing': 13,
       // Four since H3: the official undertaking is this mission's own
       // evidence, accepted in place of an accommodation document.
       'de-tr-mission': 4,
@@ -118,7 +119,7 @@ describe('Germany pack — composition', () => {
     // now supports. F0 moved both sides by one and completeness held, which is
     // the property worth pinning: a requirement may not join this pack without
     // its own source.
-    expect(coverage).toEqual({ total: 24, verified: 24, isComplete: true })
+    expect(coverage).toEqual({ total: 25, verified: 25, isComplete: true })
     expect(
       isReviewStatusSupported(germany.template.reviewStatus, coverage)
     ).toBe(true)
@@ -189,6 +190,35 @@ describe('Germany pack — the two requirements it owns', () => {
     expect(quarantined.filter((code) => codes.has(code))).toEqual([])
     // And there is something to inherit, so the check is not empty.
     expect(quarantined.length).toBeGreaterThan(0)
+  })
+
+  it('inherits I.5(g) from the jurisdiction, with no Greek semantics attached', () => {
+    /**
+     * The one requirement H4c1b added, and the reason it is not a leak.
+     *
+     * Annex III is the harmonised list the Commission adopted for Türkiye, so
+     * a foreign resident's permit is what the *jurisdiction* asks of everyone
+     * filing in it — not something one mission decided. Scoping it to Greece
+     * would have been the ADR-052a error in reverse: mission practice dressed
+     * as jurisdiction authority, with Germany quietly excused an obligation
+     * its own sheet enumerates a category for.
+     *
+     * What Germany must *not* pick up is Greece's citation. The Greek mission
+     * appends its own copy of the instrument for its own composition; that ref
+     * travels with Greece and reaches nothing else.
+     */
+    const permit = germany.template.documentRequirements.find(
+      (r) => r.code === 'FILING_COUNTRY_RESIDENCE_PERMIT'
+    )
+    expect({
+      composed: Boolean(permit),
+      owner: germany.ownership.get('FILING_COUNTRY_RESIDENCE_PERMIT'),
+      sourceRefs: permit?.sourceRefs,
+    }).toEqual({
+      composed: true,
+      owner: 'tr-filing',
+      sourceRefs: ['eu-c2021-5156-turkey-annex3'],
+    })
   })
 
   it.each(['tr', 'en'] as const)('renders both codes in %s', async (locale) => {
@@ -472,10 +502,10 @@ describe('Germany pack — refinement adds citations and detail, and nothing els
 
 describe('Germany pack — Greece is untouched by its arrival', () => {
   it('still composes its own requirements with its own coverage', () => {
-    expect(greece.template.documentRequirements).toHaveLength(25)
+    expect(greece.template.documentRequirements).toHaveLength(26)
     expect(computeVerificationCoverage(greeceConfig, greece.template)).toEqual({
-      total: 25,
-      verified: 20,
+      total: 26,
+      verified: 21,
       isComplete: false,
     })
   })

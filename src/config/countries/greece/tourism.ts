@@ -71,6 +71,9 @@ const GREECE_TOURISM_ORDER = [
   'TAX_PAYMENT_STATEMENT',
   'STUDENT_CERTIFICATE',
   'PENSIONER_BOOKLET',
+  // I.5(g) — the applicant category that is about who you are rather than what
+  // you do, so it sits after the occupational block rather than inside it.
+  'FILING_COUNTRY_RESIDENCE_PERMIT',
 ]
 
 /**
@@ -130,12 +133,14 @@ export const greeceTourismComposition = composeVisaTemplate({
      * stated; `1.6.0` for the three retirements; `1.7.0` for the tax plate
      * leaving; `1.8.0` for the third travel-arrangement alternative arriving;
      * `1.9.0` for the consulate's "recent photograph" finally being rendered
-     * rather than only cited.
+     * rather than only cited; `1.10.0` for Annex III I.5(g) — the residence
+     * permit a non-Turkish national files with — which the pack could not ask
+     * for until applicability could see nationality.
      * The E5c sponsor move is absent from this list on purpose — it changed
      * which layer owns those four requirements, not what Greece asks for, so
      * the composed output was identical and the number held.
      */
-    templateVersion: '1.9.0',
+    templateVersion: '1.10.0',
     lastReviewedAt: '2026-09-07',
     /**
      * Still derived from evidence rather than chosen: 19 of the 24 requirements

@@ -68,6 +68,7 @@ const PINNED_ORDER = [
   'TAX_PAYMENT_STATEMENT',
   'STUDENT_CERTIFICATE',
   'PENSIONER_BOOKLET',
+  'FILING_COUNTRY_RESIDENCE_PERMIT',
 ]
 
 const PINNED_REQUIREMENTS: Record<string, DocumentRequirement> = {
@@ -377,6 +378,30 @@ const PINNED_REQUIREMENTS: Record<string, DocumentRequirement> = {
     revision: 2,
     contractKey: 'EMPLOYER_TRADE_REGISTRY@2',
   },
+  /**
+   * Added in H4c1b — the first requirement to condition on nationality, and
+   * the first new obligation the H4 evidence work produced. Owned by
+   * `tr-filing` because Annex III I.5(g) is the jurisdiction's instrument, so
+   * Germany composes it too.
+   */
+  FILING_COUNTRY_RESIDENCE_PERMIT: {
+    code: 'FILING_COUNTRY_RESIDENCE_PERMIT',
+    nameKey: 'visa-domain:requirements.FILING_COUNTRY_RESIDENCE_PERMIT.name',
+    descriptionKey:
+      'visa-domain:requirements.FILING_COUNTRY_RESIDENCE_PERMIT.description',
+    notesKey: 'visa-domain:requirements.FILING_COUNTRY_RESIDENCE_PERMIT.notes',
+    category: 'identity',
+    ownerType: 'applicant',
+    required: true,
+    conditionalOn: {
+      field: 'applicant.nationality',
+      operator: 'notEquals',
+      value: 'TR',
+    },
+    sourceRefs: ['eu-c2021-5156-turkey-annex3', 'gr-tr-harmonised-list'],
+    revision: 1,
+    contractKey: 'FILING_COUNTRY_RESIDENCE_PERMIT@1',
+  },
   EMPLOYER_SIGNATURE_CIRCULAR: {
     code: 'EMPLOYER_SIGNATURE_CIRCULAR',
     nameKey: 'visa-domain:requirements.EMPLOYER_SIGNATURE_CIRCULAR.name',
@@ -534,7 +559,7 @@ const PINNED_ENVELOPE = {
   id: 'schengen-short-stay-tourism',
   visaType: 'short_stay_tourism',
   nameKey: 'visa-domain:visaTypes.schengen-short-stay-tourism',
-  templateVersion: '1.9.0',
+  templateVersion: '1.10.0',
   lastReviewedAt: '2026-09-07',
   reviewStatus: 'partially_verified',
   sourceIds: ['gr-mfa-general'],

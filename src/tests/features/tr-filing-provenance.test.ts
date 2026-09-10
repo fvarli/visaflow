@@ -47,6 +47,9 @@ const SUPPORTED_BY_ANNEX_III: Record<string, string> = {
   TAX_PAYMENT_STATEMENT: 'I.5(c) statement of taxes payment',
   COMPANY_ACTIVITY_CERTIFICATE: 'I.5(c) company activity certificate',
   STUDENT_CERTIFICATE: 'I.5(d) student certificate',
+  FILING_COUNTRY_RESIDENCE_PERMIT:
+    'I.5(g) proof of residence in Türkiye for non-Turkish nationals, valid ' +
+    'three months beyond departure from the Member States',
   // I.1 names three routes and VisaFlow now has a code for each. Two are
   // common-layer requirements the act also covers, reached by refinement; the
   // middle one is owned by this layer, because only Annex III states it.

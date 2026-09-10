@@ -438,7 +438,7 @@ describe('country packs — Greece composition and citations', () => {
   const greece = PACKS.find((p) => p.countryCode === 'GR')
   const tourism = greece?.visaTypes[0]
 
-  it('composes 25 requirements from three ownership layers', () => {
+  it('composes 26 requirements from three ownership layers', () => {
     // Pins the composition the coverage denominator depends on. It used to
     // assert that the first nineteen codes were the shared array, which held
     // only while the pack was two concatenated arrays — the Türkiye-owned
@@ -448,7 +448,7 @@ describe('country packs — Greece composition and citations', () => {
     // What it says instead is where the twenty-eight come from, which is the
     // fact the coverage arithmetic actually depends on.
     const codes = requirementsOf(tourism!).map((r) => r.code)
-    expect(codes.length).toBe(25)
+    expect(codes.length).toBe(26)
 
     const byLayer = new Map<string, number>()
     for (const [, layerId] of greeceTourismComposition.ownership) {
@@ -459,7 +459,7 @@ describe('country packs — Greece composition and citations', () => {
       // Twelve since F0: `TRANSPORT_MEANS_PROOF` is the third travel-
       // arrangement route Annex III I.1 accepts, and Annex III is this layer's
       // own instrument, so it is owned here rather than shared.
-      'tr-filing': 12,
+      'tr-filing': 13,
       // Four legacy requirements with no resolvable source, quarantined to the
       // pack that carries them so a second destination cannot inherit them:
       // PREVIOUS_VISAS and PASSPORT_PREVIOUS (no Annex II basis; Article 21(2)
@@ -507,8 +507,8 @@ describe('country packs — Greece composition and citations', () => {
     // because every requirement added since carried a source and every one
     // removed carried none.
     expect(computeVerificationCoverage(greece!, tourism!)).toEqual({
-      total: 25,
-      verified: 20,
+      total: 26,
+      verified: 21,
       isComplete: false,
     })
     expect(tourism!.reviewStatus).toBe('partially_verified')

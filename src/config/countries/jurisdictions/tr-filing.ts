@@ -315,6 +315,60 @@ const trFilingDocuments: DocumentRequirement[] = [
     sourceRefs: ['eu-c2021-5156-turkey-annex3'],
     revision: 1,
   },
+  {
+    /**
+     * I.5(g), verbatim: "Non-Turkish nationals: Proof of residence in Turkey,
+     * valid three months beyond the intended date of departure from the
+     * territory of the Member States."
+     *
+     * WHY IT IS HERE AND NOT IN A MISSION LAYER. The clause is Annex III's, and
+     * Annex III is this layer's instrument — the harmonised list the Commission
+     * adopted for Türkiye, binding on every mission that receives applications
+     * lodged here. Scoping it to one destination would assert that a foreign
+     * resident's permit is that mission's own practice, when it is the
+     * jurisdiction's requirement of everyone filing in it. Both packs compose
+     * this layer and both now ask for it, which is the correct answer rather
+     * than a leak: the German mission's sheet enumerates non-Turkish citizens
+     * among its applicant categories independently.
+     *
+     * WHY THE CODE IS NOT `RESIDENCE_PERMIT`. A bare name reads as the
+     * destination's permit, which is the opposite document — and ADR-052
+     * already records generic codes monopolised by Türkiye-specific contracts
+     * as a limitation this project has, so taking another obvious name would
+     * repeat it. The prefix names what the obligation is about: proving lawful
+     * residence in the country the application is *filed* in. It derives
+     * nothing — filing jurisdiction remains config-declared (ADR-052a).
+     *
+     * THE THREE-MONTH BAR IS RENDERED, NOT ENFORCED, AND THAT IS DELIBERATE.
+     * `Document.validUntil` and `trip.exitDate` both exist, and
+     * `passport.validAfterTrip` already performs this exact arithmetic for the
+     * passport — so a rule is expressible and is filed as its own decision
+     * rather than smuggled in beside the obligation. Until one exists the
+     * criterion lives where an applicant reads it, which is the same place the
+     * blank-pages rule ended up for the same reason.
+     */
+    code: 'FILING_COUNTRY_RESIDENCE_PERMIT',
+    nameKey: 'visa-domain:requirements.FILING_COUNTRY_RESIDENCE_PERMIT.name',
+    descriptionKey:
+      'visa-domain:requirements.FILING_COUNTRY_RESIDENCE_PERMIT.description',
+    notesKey: 'visa-domain:requirements.FILING_COUNTRY_RESIDENCE_PERMIT.notes',
+    category: 'identity',
+    ownerType: 'applicant',
+    /**
+     * Required for the population it applies to. I.5 lists documents "to be
+     * presented by specific categories of applicants" and attaches no
+     * qualifier to this one — requiredness and applicability are separate axes,
+     * so a conditional requirement is not thereby a soft one (ADR-051a).
+     */
+    required: true,
+    conditionalOn: {
+      field: 'applicant.nationality',
+      operator: 'notEquals',
+      value: 'TR',
+    },
+    sourceRefs: ['eu-c2021-5156-turkey-annex3'],
+    revision: 1,
+  },
 ]
 
 /**
