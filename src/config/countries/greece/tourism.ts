@@ -71,6 +71,16 @@ const GREECE_TOURISM_ORDER = [
   'TAX_PAYMENT_STATEMENT',
   'STUDENT_CERTIFICATE',
   'PENSIONER_BOOKLET',
+  // The occupational rows, appended after the block they extend rather than
+  // interleaved into it. Order decides which document `deriveNextDocument`
+  // sends someone to first, so putting a farmer's certificate in front of an
+  // employee's payslips would change what every existing dossier is told to do
+  // next — for a requirement that applies to almost none of them.
+  'FARMER_CERTIFICATE',
+  'FARMER_REGISTRY_RECORD',
+  'FARMLAND_TITLE_DEED',
+  'INSTITUTION_ID_CARD',
+  'PROFESSIONAL_ID_CARD',
   // I.5(g) — the applicant category that is about who you are rather than what
   // you do, so it sits after the occupational block rather than inside it.
   'FILING_COUNTRY_RESIDENCE_PERMIT',

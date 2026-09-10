@@ -50,6 +50,11 @@
       "other": "Employer and leave details aren't needed for the status you selected. Other parts of your dossier document your situation."
     }
   },
+  "category": {
+    "label": "Occupational category",
+    "placeholder": "Select a category (optional)",
+    "description": "Some consulates ask for different documents depending on this. Leave it blank if none of the options fits."
+  },
   "employer": {
     "additionalDetails": "Additional employer details"
   },

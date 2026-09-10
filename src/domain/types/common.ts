@@ -60,6 +60,62 @@ export const EmploymentStatusSchema = z.enum([
 
 export type EmploymentStatus = z.infer<typeof EmploymentStatusSchema>
 
+/**
+ * Occupation, one level finer than `EmploymentStatus` — and a different axis,
+ * not a finer slicing of the same one.
+ *
+ * `employmentStatus` answers a routing question ("This determines which
+ * employer details apply"), and its seven values are the right vocabulary for
+ * that. What they cannot say is what kind of employee or business owner someone
+ * is, and the evidence turns on exactly that: the Greek visa centre's checklist
+ * branches on an axis it labels *Meslek*, where a *Kamu Çalışanı* is asked for
+ * an institution letter and an institution card and is **not** asked for the
+ * company-document block an ordinary *Çalışan* gets, and a *Çiftçi* is asked
+ * for none of either. Annex III names Farmers and Company owners as categories
+ * of their own, so two of these five carry L2 authority rather than only L3.
+ *
+ * WHY A SEPARATE FIELD RATHER THAN MORE `EmploymentStatus` VALUES. Widening a
+ * persisted enum is the one shape this project has never shipped, and the
+ * reason is measured: `importPartial` parses `application` as a single unit, so
+ * an older build meeting an unknown `employmentStatus` loses the whole
+ * application slice — destination country, visa type, appointment, trip,
+ * financing — and still reports the import a success. An unknown *key* is
+ * dropped harmlessly; an unknown *enum value* takes the document with it
+ * (ADR-043, ADR-051). It would also break the four requirements that are
+ * genuinely shared: an employee and a public servant both file a social
+ * security record and payslips, and `employed` is exactly their union.
+ *
+ * `employee` is spelled out rather than left implied by absence. Applicability
+ * is fail-closed — an unanswered field is not an answer — so someone has to be
+ * able to *say* "an ordinary employee" and have that be distinguishable from
+ * not having been asked yet.
+ */
+export const OccupationalCategorySchema = z.enum([
+  'employee',
+  'public_servant',
+  'company_owner',
+  'independent_professional',
+  'farmer',
+])
+
+export type OccupationalCategory = z.infer<typeof OccupationalCategorySchema>
+
+/**
+ * Which categories belong under which status.
+ *
+ * The two vocabularies are not independent: a public servant is employed and a
+ * farmer is not. This map is what keeps them consistent — the selector offers
+ * only what fits, and a status with no entry asks no category question at all,
+ * because for those the coarse value already *is* the branch the source
+ * publishes (a pensioner, a student, someone not working).
+ */
+export const OCCUPATIONAL_CATEGORIES_BY_STATUS: Partial<
+  Record<EmploymentStatus, readonly OccupationalCategory[]>
+> = {
+  employed: ['employee', 'public_servant'],
+  self_employed: ['company_owner', 'independent_professional', 'farmer'],
+}
+
 // Document status
 export const DocumentStatusSchema = z.enum([
   'not_started',

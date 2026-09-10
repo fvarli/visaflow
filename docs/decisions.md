@@ -2815,3 +2815,113 @@ It is not the property that mattered.
 
 **Implementation:** documentation only — `docs/decisions.md`, `docs/json-schema.md`,
 `docs/architecture.md`. The behaviour it describes shipped in `3636eb6` and `975a152`.
+
+---
+
+## ADR-053: Occupation Is a Second Axis, Not More Employment-Status Values
+
+**Status:** Accepted · 2026-09-10 · extends [ADR-043](#adr-043), applies
+[ADR-052b](#adr-052b) and [ADR-051a](#adr-051a)
+
+**Context.** Three separate records had named the same blocker for two sprints. The Greek mission
+layer, on `EMPLOYER_SIGNATURE_CIRCULAR`: *"`employed` cannot separate an ordinary employee from a
+public servant, so both the requiredness and the condition stay as they are until the occupational
+vocabulary can express the distinction."* ADR-047's evidence pass: *"per-occupation document sets for
+civil servants, farmers and freelancers that the seven-value `employmentStatus` vocabulary cannot
+express."* ADR-052a's ledger: *"occupation beyond the seven-value vocabulary"* is still invisible.
+
+The evidence is now in hand. The Greek visa centre's checklist, read on 2026-09-09, is a generator
+whose third axis is labelled **Meslek** — occupation — with nine values, and the branches disagree
+materially. A *Kamu Çalışanı* is asked for a *Kurum Yazısı* and a *Kurum Kartı* and is **not** asked
+for the company-document block a *Çalışan* gets. A *Çiftçi* is asked for a farmer certificate, a
+registry record and a title deed, and for none of the employment or company documents at all. Annex
+III independently lists Farmers (I.5(b)) and Company owners (I.5(c)) as categories of their own, so
+two of the distinctions have L2 authority rather than only L3.
+
+**Decision.**
+
+1. **A new optional field, `application.employment.occupationalCategory`, not more
+   `EmploymentStatus` values.** Five values — `employee`, `public_servant`, `company_owner`,
+   `independent_professional`, `farmer` — offered only under the coarse statuses they belong to.
+2. **`employee` is explicit rather than implied by absence.** Applicability is fail-closed since
+   H4c1, so someone must be able to *say* "an ordinary employee" and have that be distinguishable
+   from not having been asked.
+3. **`schemaVersion` → `1.4.0`.** Every earlier version stays readable and needs no migration.
+4. **`ApplicabilityContext.employment` gains the field**, and the projection now takes `Employment`
+   apart rather than passing the object through — an employer's name, address, income figure, bank
+   and two deprecated identifiers were all reachable by reference before.
+5. **Phase one is additive only.** Five new requirement codes, each conditioned with `equals` on the
+   new field; no existing condition narrowed, no `required` flipped, no `revision` moved.
+6. **The public-servant letter is acceptance detail, not a new code.** A public authority is still an
+   employer, so a *Kurum Yazısı* is `EMPLOYMENT_LETTER` and `APPROVED_LEAVE` with a different
+   issuer — ADR-052b Rule 1. The condition lives in the sentence, because `addDetail` is
+   unconditional by construction.
+7. **The visa centre becomes a citable source** (`gr-kosmos-checklist`, `authorized_visa_center`) for
+   requirements whose condition matches the branch it raises them from. The five requirements ADR-047
+   left uncited stay uncited, for their own recorded reasons.
+
+**Why not widen the enum.** This is the decisive argument and it is measured, not aesthetic.
+`importPartial` parses `application` as a single unit, so an older build meeting an unknown
+`employmentStatus` loses `destinationCountry`, `visaType`, `status`, `appointment`, `trip`,
+`employment`, `financing`, `sponsorIds`, `documentIds` and `notes` — and `hasData` is still true
+because the applicant survived, so **the import reports success** and shows one line saying "1 item
+was left out". An unknown *key* is dropped per-field and costs nothing. ADR-043 decided this exact
+question once before, rejecting `status: 'refused'` on `PreviousVisa` in favour of a separate list,
+and ADR-051 states the rule generally: *"An optional key is the safe shape."* All three shipped bumps
+added an optional key; none has ever widened a persisted enum. Both halves are now pinned by test
+rather than argued.
+
+Widening would also have broken the four requirements that are genuinely **shared**: an employee and
+a public servant both file a social-security record, an SGK entry declaration and payslips, and
+`employed` is exactly their union. Splitting the value would have made those conditions unions of
+finer values, requiring an `oneOf` operator that phase one does not otherwise need.
+
+**Why Germany gains a requirement from a Greek evidence pass.** `FARMER_CERTIFICATE` is owned by the
+filing layer, which both packs compose, because Annex III I.5(b) is the instrument adopted for
+applications lodged in Türkiye. The German sheet has no farmer category — it groups company owners
+with the self-employed and stops — but that is a mission's rendering, not the jurisdiction's rule.
+Scoping the clause to Greece would assert that a chamber-of-agriculture certificate is one mission's
+practice. This is the same reasoning that placed `FILING_COUNTRY_RESIDENCE_PERMIT`.
+
+**Consequences.**
+
+- **A dossier that never answers sees exactly the checklist it saw before**, for all seven statuses
+  in both packs. That is the load-bearing property, and it is pinned against code sets captured from
+  the commit before this one rather than recomputed from the current tree — the first version of that
+  test derived "before" by filtering "after" and was a tautology that passed while a subtractive
+  narrowing was in place.
+- **Greek employed applicants will be asked to re-check two completed rows.** The public-institution
+  fragments move the composed `contractKey`, and `document-semantics.ts` compares keys by equality
+  because contracts form a tree. Neither fragment tightens anything. This is ADR-051b's chosen
+  direction of error, and it is recorded in the fragment ledger rather than absorbed silently.
+- **The over-asking is not yet corrected, and that is deliberate.** A public servant is still shown
+  `EMPLOYER_SIGNATURE_CIRCULAR`; a farmer is still shown the three company-owner rows and Germany's
+  tax plate. Narrowing those means reading a field every existing dossier has left unanswered, and
+  fail-closed applicability would silently *withdraw* four required documents from anyone who never
+  saw the question. ADR-051a also classes an applicability change as no revision bump, so nothing in
+  the contract machinery would announce it. Withdrawing a document from someone preparing a file is
+  the one direction that can cost them an appointment, so it needs its own decision, its own evidence
+  and the `oneOf` operator — none of which belongs in the change that introduces the vocabulary.
+- **A third occupation-shaped question now exists.** `applicant.occupation` ("Occupation" / "Meslek")
+  is display-only with no consumer, and `employment.jobTitle` is "Görev". The new field is labelled
+  *Occupational category* / *Meslek grubu* to keep them apart. Whether `applicant.occupation` should
+  survive at all is a separate question this ADR does not answer.
+- **The two vocabularies must be distinguishable, and the first attempt was not.** `employee` and
+  `employed` are the same word in Turkish: both shipped as *"Ücretli çalışan"*, so the Employment
+  step asked two questions whose answers were spelled identically, stacked one above the other. Found
+  by looking at the running product, not by any test — the parity guard proves both locales carry the
+  key and says nothing about whether a reader can tell two of them apart. The category is now
+  *Company employee* / *Şirket çalışanı*, which is also what the checklist actually contrasts: an
+  *İşveren Yazısı* on company letterhead against a *Kurum Yazısı* from an institution. A guard now
+  refuses any status label that equals a category label, in either locale.
+- **A sponsor's occupation stays unreachable**, and not for want of vocabulary: applicability is
+  evaluated once per dossier and a dossier may hold several sponsors. `SPONSOR_INCOME_PROOF` remains
+  in the gap register.
+- **Minors are not modelled.** The checklist's own Meslek axis includes *"Reşit değil (18 yaş
+  altı)"* — it conflates age with occupation. The vocabulary here does not.
+
+**Implementation:** `src/domain/types/common.ts`, `src/domain/schemas/employment.schema.ts`,
+`src/domain/schemas/dossier.schema.ts`, `src/config/types.ts`,
+`src/features/documents/applicability.ts`, `src/config/sources/gr-tr-mission.sources.ts`, the two
+jurisdiction layers, both composition order arrays, `StatusStep.tsx` +
+`OccupationalCategorySelector.tsx`, and both locales.

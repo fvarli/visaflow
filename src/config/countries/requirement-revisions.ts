@@ -299,6 +299,59 @@ export const REQUIREMENT_REVISIONS: RequirementRevision[] = [
       'the chamber of commerce or of industry. The shared contract states ' +
       'neither.',
   },
+
+  /**
+   * H4c2 — the Greek mission's occupational fragments.
+   *
+   * THE FIRST TWO COST SOMETHING, AND THE LEDGER IS WHERE THAT IS SAID.
+   * Neither tightens: the shared contract already says "letter from employer",
+   * and a public authority is an employer, so a public servant who filed an
+   * institution letter satisfied it. What the fragments add is the sentence
+   * that tells them so. But a fragment moves the composed `contractKey`
+   * mechanically, and `document-semantics.ts` compares keys by equality rather
+   * than by ordering — deliberately, because contracts form a tree and "is this
+   * newer?" has no answer across branches. So every Greek applicant who had
+   * already marked an employer letter or a leave letter complete will be asked
+   * to re-check it.
+   *
+   * That is the cost of the design's chosen direction of error, and it is the
+   * harmless one: the alternative tells someone a document is accepted when it
+   * will be refused at the counter. It is recorded here rather than absorbed
+   * silently, because a clarification that re-opens two completed rows for
+   * every employed applicant is a decision, not a side effect.
+   */
+  {
+    code: 'EMPLOYMENT_LETTER',
+    revision: 1,
+    bumpedIn: 'GR 1.10.0',
+    viaLayer: 'gr-tr-mission',
+    reason:
+      'A public servant’s letter comes from the institution rather than from ' +
+      'a company. Not a tightening — the shared contract says "letter from ' +
+      'employer" and a public authority is one — but the composed contract ' +
+      'now states the branch the visa centre publishes.',
+  },
+  {
+    code: 'APPROVED_LEAVE',
+    revision: 1,
+    bumpedIn: 'GR 1.10.0',
+    viaLayer: 'gr-tr-mission',
+    reason:
+      'The institution letter may carry the leave, so a public servant needs ' +
+      'no separate one as long as it names the dates and says whether the ' +
+      'leave is paid. A loosening, stated for the same reason.',
+  },
+  {
+    code: 'FARMER_CERTIFICATE',
+    revision: 1,
+    bumpedIn: 'GR 1.10.0',
+    viaLayer: 'gr-tr-mission',
+    reason:
+      'The visa centre also accepts the certificate taken through e-Devlet. ' +
+      'Annex III names only the chamber of agriculture, so this widens what ' +
+      'Greece accepts and belongs to Greece alone. No claim can be affected: ' +
+      'the requirement ships in the same release as the fragment.',
+  },
 ]
 
 /**

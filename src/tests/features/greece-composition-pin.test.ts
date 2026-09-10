@@ -68,6 +68,15 @@ const PINNED_ORDER = [
   'TAX_PAYMENT_STATEMENT',
   'STUDENT_CERTIFICATE',
   'PENSIONER_BOOKLET',
+  // H4c2 — the occupational rows, appended rather than interleaved. Order
+  // decides which document `deriveNextDocument` sends someone to first, so
+  // putting a farmer's certificate ahead of an employee's payslips would change
+  // what every existing dossier is told to do next.
+  'FARMER_CERTIFICATE',
+  'FARMER_REGISTRY_RECORD',
+  'FARMLAND_TITLE_DEED',
+  'INSTITUTION_ID_CARD',
+  'PROFESSIONAL_ID_CARD',
   'FILING_COUNTRY_RESIDENCE_PERMIT',
 ]
 
@@ -208,9 +217,16 @@ const PINNED_REQUIREMENTS: Record<string, DocumentRequirement> = {
       value: 'employed',
     },
     validityPeriodDays: 30,
-    sourceRefs: ['eu-c2021-5156-turkey-annex3', 'gr-tr-harmonised-list'],
+    sourceRefs: [
+      'eu-c2021-5156-turkey-annex3',
+      'gr-tr-harmonised-list',
+      'gr-kosmos-checklist',
+    ],
     revision: 2,
-    contractKey: 'EMPLOYMENT_LETTER@2',
+    detailKeys: [
+      'visa-domain:detail.gr-tr-mission.EMPLOYMENT_LETTER.publicInstitution',
+    ],
+    contractKey: 'EMPLOYMENT_LETTER@2+gr-tr-mission:1',
   },
   APPROVED_LEAVE: {
     code: 'APPROVED_LEAVE',
@@ -225,9 +241,16 @@ const PINNED_REQUIREMENTS: Record<string, DocumentRequirement> = {
       value: 'employed',
     },
     validityPeriodDays: 30,
-    sourceRefs: ['eu-c2021-5156-turkey-annex3', 'gr-tr-harmonised-list'],
+    sourceRefs: [
+      'eu-c2021-5156-turkey-annex3',
+      'gr-tr-harmonised-list',
+      'gr-kosmos-checklist',
+    ],
     revision: 2,
-    contractKey: 'APPROVED_LEAVE@2',
+    detailKeys: [
+      'visa-domain:detail.gr-tr-mission.APPROVED_LEAVE.publicInstitution',
+    ],
+    contractKey: 'APPROVED_LEAVE@2+gr-tr-mission:1',
   },
   PAYSLIPS: {
     code: 'PAYSLIPS',
@@ -384,6 +407,93 @@ const PINNED_REQUIREMENTS: Record<string, DocumentRequirement> = {
    * `tr-filing` because Annex III I.5(g) is the jurisdiction's instrument, so
    * Germany composes it too.
    */
+  FARMER_CERTIFICATE: {
+    code: 'FARMER_CERTIFICATE',
+    nameKey: 'visa-domain:requirements.FARMER_CERTIFICATE.name',
+    descriptionKey: 'visa-domain:requirements.FARMER_CERTIFICATE.description',
+    notesKey: 'visa-domain:requirements.FARMER_CERTIFICATE.notes',
+    category: 'employment',
+    ownerType: 'applicant',
+    required: true,
+    conditionalOn: {
+      field: 'employment.occupationalCategory',
+      operator: 'equals',
+      value: 'farmer',
+    },
+    sourceRefs: ['eu-c2021-5156-turkey-annex3', 'gr-kosmos-checklist'],
+    revision: 1,
+    detailKeys: ['visa-domain:detail.gr-tr-mission.FARMER_CERTIFICATE.edevlet'],
+    contractKey: 'FARMER_CERTIFICATE@1+gr-tr-mission:1',
+  },
+  FARMER_REGISTRY_RECORD: {
+    code: 'FARMER_REGISTRY_RECORD',
+    nameKey: 'visa-domain:requirements.FARMER_REGISTRY_RECORD.name',
+    descriptionKey:
+      'visa-domain:requirements.FARMER_REGISTRY_RECORD.description',
+    notesKey: 'visa-domain:requirements.FARMER_REGISTRY_RECORD.notes',
+    category: 'employment',
+    ownerType: 'applicant',
+    required: true,
+    conditionalOn: {
+      field: 'employment.occupationalCategory',
+      operator: 'equals',
+      value: 'farmer',
+    },
+    sourceRefs: ['gr-kosmos-checklist'],
+    revision: 1,
+    contractKey: 'FARMER_REGISTRY_RECORD@1',
+  },
+  FARMLAND_TITLE_DEED: {
+    code: 'FARMLAND_TITLE_DEED',
+    nameKey: 'visa-domain:requirements.FARMLAND_TITLE_DEED.name',
+    descriptionKey: 'visa-domain:requirements.FARMLAND_TITLE_DEED.description',
+    notesKey: 'visa-domain:requirements.FARMLAND_TITLE_DEED.notes',
+    category: 'supporting',
+    ownerType: 'applicant',
+    required: true,
+    conditionalOn: {
+      field: 'employment.occupationalCategory',
+      operator: 'equals',
+      value: 'farmer',
+    },
+    sourceRefs: ['gr-kosmos-checklist'],
+    revision: 1,
+    contractKey: 'FARMLAND_TITLE_DEED@1',
+  },
+  INSTITUTION_ID_CARD: {
+    code: 'INSTITUTION_ID_CARD',
+    nameKey: 'visa-domain:requirements.INSTITUTION_ID_CARD.name',
+    descriptionKey: 'visa-domain:requirements.INSTITUTION_ID_CARD.description',
+    notesKey: 'visa-domain:requirements.INSTITUTION_ID_CARD.notes',
+    category: 'employment',
+    ownerType: 'applicant',
+    required: true,
+    conditionalOn: {
+      field: 'employment.occupationalCategory',
+      operator: 'equals',
+      value: 'public_servant',
+    },
+    sourceRefs: ['gr-kosmos-checklist'],
+    revision: 1,
+    contractKey: 'INSTITUTION_ID_CARD@1',
+  },
+  PROFESSIONAL_ID_CARD: {
+    code: 'PROFESSIONAL_ID_CARD',
+    nameKey: 'visa-domain:requirements.PROFESSIONAL_ID_CARD.name',
+    descriptionKey: 'visa-domain:requirements.PROFESSIONAL_ID_CARD.description',
+    notesKey: 'visa-domain:requirements.PROFESSIONAL_ID_CARD.notes',
+    category: 'employment',
+    ownerType: 'applicant',
+    required: false,
+    conditionalOn: {
+      field: 'employment.occupationalCategory',
+      operator: 'equals',
+      value: 'independent_professional',
+    },
+    sourceRefs: ['gr-kosmos-checklist'],
+    revision: 1,
+    contractKey: 'PROFESSIONAL_ID_CARD@1',
+  },
   FILING_COUNTRY_RESIDENCE_PERMIT: {
     code: 'FILING_COUNTRY_RESIDENCE_PERMIT',
     nameKey: 'visa-domain:requirements.FILING_COUNTRY_RESIDENCE_PERMIT.name',
@@ -581,6 +691,9 @@ const PINNED_SOURCE_IDS = [
   'eu-c2021-5156-turkey-annex3',
   'gr-tr-harmonised-list',
   'gr-mfa-tr-visa-page',
+  // H4c2 — the visa centre's own checklist, the first source in this pack that
+  // is the appointed contractor's rendering rather than a mission publication.
+  'gr-kosmos-checklist',
 ]
 
 /**

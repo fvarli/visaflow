@@ -50,6 +50,11 @@
       "other": "Seçtiğiniz durum için işveren ve izin bilgileri gerekmez. Durumunuz dosyanızın diğer bölümlerinde belgelenir."
     }
   },
+  "category": {
+    "label": "Meslek grubu",
+    "placeholder": "Bir grup seçin (isteğe bağlı)",
+    "description": "Bazı konsolosluklar bu bilgiye göre farklı belgeler ister. Seçeneklerden hiçbiri size uymuyorsa boş bırakabilirsiniz."
+  },
   "employer": {
     "additionalDetails": "Ek işveren bilgileri"
   },

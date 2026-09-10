@@ -64,10 +64,21 @@ export const grTrMissionLayer: RequirementLayer = {
      * jurisdictions, inside the company-document block on the employed branch
      * — and not on the public-servant branch, which carries no such block. That
      * is support for the document and a contradiction of the nationality note
-     * this requirement used to render, which H4b removed. It is not yet support
-     * for the contract: `employed` cannot separate an ordinary employee from a
-     * public servant, so both the requiredness and the condition stay as they
-     * are until the occupational vocabulary can express the distinction.
+     * this requirement used to render, which H4b removed. It is not support for
+     * the contract, because the condition over-applies: the public-servant
+     * branch carries no company block at all.
+     *
+     * THE VOCABULARY NOW EXISTS AND THIS ROW STILL DOES NOT USE IT (ADR-053).
+     * `occupationalCategory` could express "an ordinary employee, not a public
+     * servant" today. Narrowing the condition to it would read a field that
+     * every dossier written before this release has left unanswered, and
+     * applicability is fail-closed — so the row would silently vanish for
+     * every employed applicant who never saw the question. Withdrawing a
+     * document from someone preparing a file is the one direction that can
+     * cost them the appointment, and ADR-051a classes an applicability change
+     * as no revision bump, so nothing in the contract machinery would announce
+     * it. That correction is its own decision, with its own approval; it is
+     * not a consequence of the vocabulary arriving.
      */
     {
       code: 'EMPLOYER_SIGNATURE_CIRCULAR',
@@ -183,6 +194,152 @@ export const grTrMissionLayer: RequirementLayer = {
       },
       revision: 1,
     },
+    /**
+     * THE OCCUPATIONAL ROWS. Four documents the checklist asks of three of its
+     * *Meslek* branches, none of which any applicant could previously be shown,
+     * because `employmentStatus` had no value that named the population
+     * (ADR-053).
+     *
+     * These are the first requirements in the repository to cite the visa
+     * centre. They can, where the older five could not, for the reason that
+     * kept those five uncited: the checklist raises each of these from an
+     * occupational branch, and each of these fires on exactly that branch. The
+     * condition and the citation agree, which is what ADR-048 asks of a
+     * citation in the first place.
+     *
+     * THEY ARE ADDITIVE, AND ONLY ADDITIVE. Nothing above is narrowed to make
+     * room for them. A farmer who says so is now asked for the certificate
+     * Annex III names *and* still asked for the company-owner block the
+     * checklist does not ask them for; a public servant gets an institution
+     * card *and* still gets the signature circular. Half a correction is a
+     * strange thing to ship deliberately, so it is worth being plain about why:
+     * the other half withdraws documents, from dossiers that never answered the
+     * new question, and that is a decision to take on its own evidence rather
+     * than to slip in beside a vocabulary change.
+     */
+    {
+      /**
+       * *Kurum Kartı* — "Çalıştığınız resmi kurumun kimlik kartı ve
+       * fotokopisi." The identity card of the public institution you work for.
+       *
+       * A DISTINCT EVIDENCE IDENTITY, UNLIKE THE LETTER BESIDE IT. The same
+       * branch also asks for a *Kurum Yazısı*, and that one is not a new
+       * obligation — it is `EMPLOYMENT_LETTER` and `APPROVED_LEAVE` addressed
+       * to a public employer, because a public authority is still an employer.
+       * Acceptance detail, not a code (ADR-052b), and it is attached as detail
+       * below. A card is not a letter under any acceptance criterion, so it is
+       * a code.
+       */
+      code: 'INSTITUTION_ID_CARD',
+      nameKey: 'visa-domain:requirements.INSTITUTION_ID_CARD.name',
+      descriptionKey:
+        'visa-domain:requirements.INSTITUTION_ID_CARD.description',
+      notesKey: 'visa-domain:requirements.INSTITUTION_ID_CARD.notes',
+      category: 'employment',
+      /**
+       * The applicant's. The institution issues it, but it identifies the
+       * holder — `EMPLOYER_SIGNATURE_CIRCULAR` above is `employer` because the
+       * employer's own signatures are what it attests, and this is the
+       * opposite case.
+       */
+      ownerType: 'applicant',
+      // The branch lists it without qualification, unlike the professional
+      // card below, which it hedges with "Var ise".
+      required: true,
+      conditionalOn: {
+        field: 'employment.occupationalCategory',
+        operator: 'equals',
+        value: 'public_servant',
+      },
+      sourceRefs: ['gr-kosmos-checklist'],
+      revision: 1,
+    },
+    {
+      /**
+       * *Çiftçi Kayıt Belgesi (ÇKS)* — the farmer registration record, "bağlı
+       * olunan kurum tarafından verilmiş veya e-devletten alınan".
+       *
+       * Not the same document as `FARMER_CERTIFICATE`, which the filing layer
+       * owns on Annex III I.5(b)'s authority. That is the chamber of
+       * agriculture's certificate of being a farmer; this is the state
+       * registry's record of the holding. The checklist asks for both, in
+       * separate lines, and holding one is no evidence of holding the other —
+       * which is precisely when two obligations need two codes (ADR-052b).
+       * Only the certificate has L2 backing, so only it sits in the layer both
+       * packs compose.
+       */
+      code: 'FARMER_REGISTRY_RECORD',
+      nameKey: 'visa-domain:requirements.FARMER_REGISTRY_RECORD.name',
+      descriptionKey:
+        'visa-domain:requirements.FARMER_REGISTRY_RECORD.description',
+      notesKey: 'visa-domain:requirements.FARMER_REGISTRY_RECORD.notes',
+      category: 'employment',
+      ownerType: 'applicant',
+      required: true,
+      conditionalOn: {
+        field: 'employment.occupationalCategory',
+        operator: 'equals',
+        value: 'farmer',
+      },
+      sourceRefs: ['gr-kosmos-checklist'],
+      revision: 1,
+    },
+    {
+      /**
+       * *Tarla Tapuları* — "Çiftçilik belgesinde geçen tarlalardan en az 1
+       * tanesinin tapusu veya başkasından kiralandı ise tapu ve ona ait olan
+       * kira kontratı gerekmektedir."
+       *
+       * The title deed to at least one of the fields named on the farmer
+       * certificate — or, where the land is rented, the deed together with the
+       * lease. The alternative is stated inside the obligation, so it is one
+       * requirement with two acceptable answers rather than two requirements;
+       * the description carries it, which is the pattern this pack settled on
+       * for a condition that is part of what the document *is*.
+       */
+      code: 'FARMLAND_TITLE_DEED',
+      nameKey: 'visa-domain:requirements.FARMLAND_TITLE_DEED.name',
+      descriptionKey:
+        'visa-domain:requirements.FARMLAND_TITLE_DEED.description',
+      notesKey: 'visa-domain:requirements.FARMLAND_TITLE_DEED.notes',
+      category: 'supporting',
+      ownerType: 'applicant',
+      required: true,
+      conditionalOn: {
+        field: 'employment.occupationalCategory',
+        operator: 'equals',
+        value: 'farmer',
+      },
+      sourceRefs: ['gr-kosmos-checklist'],
+      revision: 1,
+    },
+    {
+      /**
+       * *Meslek Kartı* — "Var ise, meslek kimlik kartı fotokopisi."
+       *
+       * OPTIONAL, AND THE SOURCE IS THE REASON. "Var ise" — if you have one.
+       * The branch states the qualifier on this line and on no other, so
+       * rendering it as required would assert something the checklist declines
+       * to. Requiredness is part of the claim a citation vouches for (ADR-048),
+       * which is why the flag follows the wording rather than the row's
+       * neighbours.
+       */
+      code: 'PROFESSIONAL_ID_CARD',
+      nameKey: 'visa-domain:requirements.PROFESSIONAL_ID_CARD.name',
+      descriptionKey:
+        'visa-domain:requirements.PROFESSIONAL_ID_CARD.description',
+      notesKey: 'visa-domain:requirements.PROFESSIONAL_ID_CARD.notes',
+      category: 'employment',
+      ownerType: 'applicant',
+      required: false,
+      conditionalOn: {
+        field: 'employment.occupationalCategory',
+        operator: 'equals',
+        value: 'independent_professional',
+      },
+      sourceRefs: ['gr-kosmos-checklist'],
+      revision: 1,
+    },
   ],
   refine: [
     // The consulate's restatement of the Visa Code criteria. These carry no
@@ -225,8 +382,49 @@ export const grTrMissionLayer: RequirementLayer = {
     },
     { code: 'ACCOMMODATION', addSourceRefs: ['gr-tr-harmonised-list'] },
     { code: 'ITINERARY', addSourceRefs: ['gr-tr-harmonised-list'] },
-    { code: 'EMPLOYMENT_LETTER', addSourceRefs: ['gr-tr-harmonised-list'] },
-    { code: 'APPROVED_LEAVE', addSourceRefs: ['gr-tr-harmonised-list'] },
+    /**
+     * The public-servant letter, said without a new code.
+     *
+     * The checklist's *Kamu Çalışanı* branch replaces *İşveren Yazısı* with
+     * *Kurum Yazısı* — "Çalıştığınız resmi kurumdan alınmış" — and asks it to
+     * carry the same six things: the employee's name and passport number, the
+     * start date and function, the purpose of travel, the leave dates and
+     * whether the leave is paid. That is not a second obligation. A public
+     * authority is still an employer, and the same evidence identity with a
+     * different acceptable issuer is acceptance detail, not a new code
+     * (ADR-052b).
+     *
+     * THE CONDITION IS IN THE SENTENCE, WHICH IS WHY THIS NEEDS NO
+     * APPLICABILITY. `addDetail` is unconditional by construction — a refining
+     * layer may append detail, not narrow who sees it — so the detail is
+     * written as the branch it describes ("if you work for a public
+     * institution…"). An employee in the private sector reads a clause that
+     * plainly is not about them; a public servant reads the one line that
+     * tells them their letter comes from somewhere else. That is the same
+     * shape the companion's visa copy settled on in H4a.1, and it is why this
+     * half of the public-servant gap was never actually blocked on the
+     * vocabulary.
+     */
+    {
+      code: 'EMPLOYMENT_LETTER',
+      addSourceRefs: ['gr-tr-harmonised-list', 'gr-kosmos-checklist'],
+      addDetail: {
+        detailKeys: [
+          'visa-domain:detail.gr-tr-mission.EMPLOYMENT_LETTER.publicInstitution',
+        ],
+        revision: 1,
+      },
+    },
+    {
+      code: 'APPROVED_LEAVE',
+      addSourceRefs: ['gr-tr-harmonised-list', 'gr-kosmos-checklist'],
+      addDetail: {
+        detailKeys: [
+          'visa-domain:detail.gr-tr-mission.APPROVED_LEAVE.publicInstitution',
+        ],
+        revision: 1,
+      },
+    },
     { code: 'PAYSLIPS', addSourceRefs: ['gr-tr-harmonised-list'] },
     { code: 'SOCIAL_SECURITY', addSourceRefs: ['gr-tr-harmonised-list'] },
     { code: 'BANK_STATEMENTS', addSourceRefs: ['gr-tr-harmonised-list'] },
@@ -239,6 +437,25 @@ export const grTrMissionLayer: RequirementLayer = {
       addSourceRefs: ['gr-tr-harmonised-list'],
     },
     { code: 'STUDENT_CERTIFICATE', addSourceRefs: ['gr-tr-harmonised-list'] },
+    {
+      /**
+       * The e-Devlet route, which is the visa centre's and not Annex III's.
+       *
+       * The clause names the chamber of agriculture and stops there; the
+       * checklist adds "veya e-devletten alınan". That is one mission's
+       * acceptance detail, so it attaches here rather than in the shared filing
+       * layer — where a guard in `country-pack-provenance.test.ts` catches
+       * exactly this leak, and caught this one.
+       */
+      code: 'FARMER_CERTIFICATE',
+      addSourceRefs: ['gr-kosmos-checklist'],
+      addDetail: {
+        detailKeys: [
+          'visa-domain:detail.gr-tr-mission.FARMER_CERTIFICATE.edevlet',
+        ],
+        revision: 1,
+      },
+    },
     {
       code: 'COMPANY_ACTIVITY_CERTIFICATE',
       addSourceRefs: ['gr-tr-harmonised-list'],

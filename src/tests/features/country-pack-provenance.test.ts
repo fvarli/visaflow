@@ -438,7 +438,7 @@ describe('country packs — Greece composition and citations', () => {
   const greece = PACKS.find((p) => p.countryCode === 'GR')
   const tourism = greece?.visaTypes[0]
 
-  it('composes 26 requirements from three ownership layers', () => {
+  it('composes 31 requirements from three ownership layers', () => {
     // Pins the composition the coverage denominator depends on. It used to
     // assert that the first nineteen codes were the shared array, which held
     // only while the pack was two concatenated arrays — the Türkiye-owned
@@ -448,7 +448,7 @@ describe('country packs — Greece composition and citations', () => {
     // What it says instead is where the twenty-eight come from, which is the
     // fact the coverage arithmetic actually depends on.
     const codes = requirementsOf(tourism!).map((r) => r.code)
-    expect(codes.length).toBe(26)
+    expect(codes.length).toBe(31)
 
     const byLayer = new Map<string, number>()
     for (const [, layerId] of greeceTourismComposition.ownership) {
@@ -458,16 +458,19 @@ describe('country packs — Greece composition and citations', () => {
       'schengen-short-stay': 8,
       // Twelve since F0: `TRANSPORT_MEANS_PROOF` is the third travel-
       // arrangement route Annex III I.1 accepts, and Annex III is this layer's
-      // own instrument, so it is owned here rather than shared.
-      'tr-filing': 13,
-      // Four legacy requirements with no resolvable source, quarantined to the
-      // pack that carries them so a second destination cannot inherit them:
-      // PREVIOUS_VISAS and PASSPORT_PREVIOUS (no Annex II basis; Article 21(2)
-      // has the consulate consult the VIS instead), ID_CARD_COPY (mandatory
-      // and cited by nothing at all) and EMPLOYER_SIGNATURE_CIRCULAR (no
-      // source at any level). Placement here is containment, not a finding
-      // that Greece requires any of them.
-      'gr-tr-mission': 5,
+      // own instrument, so it is owned here rather than shared. Fourteen since
+      // H4c2 added `FARMER_CERTIFICATE` on Annex III I.5(b) — a clause of the
+      // same instrument, so it belongs to the same layer and reaches Germany
+      // too.
+      'tr-filing': 14,
+      // Five quarantined requirements with no resolvable source, held in the
+      // pack that carries them so a second destination cannot inherit them, and
+      // four cited ones added in H4c2 — the visa centre's occupational rows,
+      // which are the first requirements this layer owns *with* authority.
+      // Quarantine was never what the layer was for; it is where a Greek
+      // mission requirement lives, and until H4c2 every such requirement
+      // happened to be one without evidence.
+      'gr-tr-mission': 9,
       // 'greece' owns none: nothing in this pack is true *because* the
       // destination is Greece. Absent from the map rather than zero, since a
       // layer that declares nothing never reaches the ownership tally.
@@ -498,17 +501,19 @@ describe('country packs — Greece composition and citations', () => {
   })
 
   it('is partially verified on exactly the evidence recorded', () => {
-    // 20 of 25. The jump from 4 came from the harmonised list adopted for
+    // 26 of 31. The jump from 4 came from the harmonised list adopted for
     // Türkiye; `PHOTOS` was the nineteenth, cited to Visa Code Article 13 once
     // its copy was cut back to what that Article actually states, and
     // `TRANSPORT_MEANS_PROOF` is the twentieth, cited to Annex III I.1 on the
-    // day it was added. The five that stay uncited are the quarantined block —
-    // the numerator and denominator have moved together through E5 and F0
+    // day it was added. H4c2 added five occupational rows, every one cited —
+    // the farmer certificate to Annex III I.5(b) and four to the visa centre's
+    // own checklist. The five that stay uncited are the quarantined block; the
+    // numerator and denominator have moved together through E5, F0 and H4
     // because every requirement added since carried a source and every one
     // removed carried none.
     expect(computeVerificationCoverage(greece!, tourism!)).toEqual({
-      total: 26,
-      verified: 21,
+      total: 31,
+      verified: 26,
       isComplete: false,
     })
     expect(tourism!.reviewStatus).toBe('partially_verified')

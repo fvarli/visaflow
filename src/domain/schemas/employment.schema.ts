@@ -3,10 +3,22 @@ import {
   DateStringSchema,
   CurrencySchema,
   EmploymentStatusSchema,
+  OccupationalCategorySchema,
 } from '../types/common'
 
 export const EmploymentSchema = z.object({
   employmentStatus: EmploymentStatusSchema,
+  /**
+   * Occupation, where the coarse status cannot carry the distinction the
+   * evidence turns on — a public servant against an ordinary employee, a
+   * farmer against a company owner (ADR-053).
+   *
+   * Optional, and it stays optional. Every dossier written before this field
+   * existed simply has not answered, and applicability is fail-closed, so an
+   * unanswered dossier sees exactly the requirements it saw before. That is
+   * the property that lets the vocabulary arrive without disturbing anyone.
+   */
+  occupationalCategory: OccupationalCategorySchema.optional(),
   employerName: z.string().optional(),
   employerAddress: z.string().optional(),
   employerPhone: z.string().optional(),
