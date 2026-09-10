@@ -43,20 +43,7 @@ export function buildApplicabilityContext({
   application,
 }: ApplicabilityInput): ApplicabilityContext {
   return {
-    /**
-     * Taken apart rather than passed whole, for the same reason the applicant
-     * is: `Employment` carries an employer's name and address, an income
-     * figure, a bank and two deprecated identifiers, and handing them over
-     * because they are in scope is how a bounded capability stops being
-     * bounded. Two fields are readable; the rest are unreachable by
-     * construction.
-     */
-    employment: application?.employment
-      ? {
-          employmentStatus: application.employment.employmentStatus,
-          occupationalCategory: application.employment.occupationalCategory,
-        }
-      : undefined,
+    employment: application?.employment,
     financing: application?.financing,
     /**
      * Omitted rather than `{ nationality: undefined }` when there is no

@@ -53,45 +53,4 @@ export const grTrMissionSources: RequirementSource[] = [
     retrievedAt: '2026-09-07',
     notesKey: 'visa-domain:sources.gr-mfa-tr-visa-page.notes',
   },
-  {
-    /**
-     * The visa centre's own required-documents checklist — the operative list
-     * an applicant filing in Türkiye actually meets, and the one the Ankara
-     * page directs them to.
-     *
-     * IT IS A GENERATOR, NOT A DOCUMENT, WHICH IS WHY THE URL LOOKS THIN. The
-     * page asks six questions — visa category, means of travel, accommodation,
-     * **occupation**, travelling with children, nationality — and composes a
-     * list from the answers. There is no stable per-combination URL, so this
-     * cites the generator and the requirements citing it record which branch
-     * they came from. Everything cited here was read on the tourism · air ·
-     * hotel · no-children · Turkish-national path with only the occupation
-     * axis varied, so the branches are directly comparable.
-     *
-     * WHY IT IS CITABLE AT ALL, HAVING BEEN READ IN H4a AND CITED BY NOTHING.
-     * H4b left all five candidates uncited, and none of those reasons was
-     * "the centre is not an authority" — each was specific, and the recurring
-     * one was that the pack's condition did not match the branch the checklist
-     * raises the document from. A citation vouches for the condition too
-     * (ADR-048), so a row that fires on the wrong population cannot cite a
-     * source that asks it of a different one. The occupational vocabulary is
-     * what closes that gap for these rows: they fire on exactly the branch
-     * they were read from. The five older gaps are unaffected and stay
-     * recorded.
-     *
-     * `authorized_visa_center` is its own source type, below a mission's own
-     * publication in the evidence hierarchy and above nothing. It is the
-     * contractor the Hellenic Republic appointed, not the Hellenic Republic.
-     */
-    id: 'gr-kosmos-checklist',
-    authority: 'Kosmos Vize Hizmetleri',
-    titleKey: 'visa-domain:sources.gr-kosmos-checklist.title',
-    url: 'https://www.kosmosvize.com.tr/tr-tr/gerekli-belgeler',
-    sourceType: 'authorized_visa_center',
-    jurisdiction: 'TR',
-    language: 'tr',
-    lastVerifiedAt: '2026-09-09',
-    retrievedAt: '2026-09-09',
-    notesKey: 'visa-domain:sources.gr-kosmos-checklist.notes',
-  },
 ]

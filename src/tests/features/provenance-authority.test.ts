@@ -57,12 +57,6 @@ const PRODUCTION_PUBLISHER: Record<string, PublishingAuthority> = {
   'gr-mfa-general': { kind: 'destination', countryCode: 'GR' },
   'gr-tr-harmonised-list': { kind: 'destination', countryCode: 'GR' },
   'gr-mfa-tr-visa-page': { kind: 'destination', countryCode: 'GR' },
-  // The visa centre the Hellenic Republic appointed. Not the Hellenic
-  // Republic — but this axis asks who a source belongs to, not how strong it
-  // is, and a Greek contractor's checklist belongs to Greece as squarely as a
-  // Greek consulate's page does. Its weight is `sourceType`'s question, and it
-  // answers `authorized_visa_center` there.
-  'gr-kosmos-checklist': { kind: 'destination', countryCode: 'GR' },
   // German publications, and the reason this axis exists. The two mission
   // pages carry `jurisdiction: 'TR'` exactly as the Commission act and the
   // Greek mission pages do — three different publishers, one jurisdiction
@@ -131,67 +125,21 @@ describe('provenance authority — production packs', () => {
     const commission = publisherOf('eu-c2021-5156-turkey-annex3')
     expect(commission).toEqual({ kind: 'supranational' })
 
-    /**
-     * Evaluated against a destination that is deliberately not GR, every Greek
-     * citation stops vouching for anything — and every *shared* requirement is
-     * still acceptable, because Slice A gave each of them the Commission act
-     * as well.
-     *
-     * This is the strongest real statement available: the Türkiye layer is
-     * genuinely reusable. Before Slice A the same evaluation named **ten**
-     * requirements — every one whose sole authority was the Greek mission. The
-     * number is measured by reverting the citations and re-running, not
-     * reasoned from the count of requirements that changed.
-     *
-     * NARROWED IN H4c2 TO THE LAYERS THAT TRAVEL, AND THAT IS THE HONEST
-     * READING. It used to evaluate the whole composition, which was the same
-     * claim only while every Greece-owned requirement was uncited quarantine —
-     * a requirement citing nothing is not this function's business, so those
-     * five were silently skipped rather than deliberately excluded. The
-     * occupational rows are Greece-owned and *cited*, to a Greek source, and
-     * naming them here would be reporting the design as a defect: they exist
-     * because the Greek visa centre asks for them, they compose into no other
-     * pack, and there is no world in which a German applicant should inherit
-     * them. What must stay true is that nothing a second destination *would*
-     * inherit rests on Greek authority alone.
-     */
-    const shared = new Set(
-      [...greeceTourismComposition.ownership]
-        .filter(([, layerId]) => layerId !== 'gr-tr-mission')
-        .map(([code]) => code)
-    )
+    // Evaluated against a destination that is deliberately not GR, every Greek
+    // mission citation stops vouching for anything — and the result is still
+    // empty, because Slice A gave each of those requirements the Commission
+    // act as well.
+    //
+    // This is the strongest real statement available: the Türkiye layer is now
+    // genuinely reusable. Before Slice A the same evaluation named **ten**
+    // requirements — every one whose sole authority was the Greek mission.
+    // `BANK_STATEMENTS` was the eleventh to gain the Commission citation but
+    // would have passed regardless, because it already cited Annex II. The
+    // number is measured by reverting the citations and re-running, not
+    // reasoned from the count of requirements that changed.
     expect(
-      soleForeignAuthorityCodes(
-        greeceTourismComposition,
-        'DE',
-        publisherOf
-      ).filter((code) => shared.has(code))
+      soleForeignAuthorityCodes(greeceTourismComposition, 'DE', publisherOf)
     ).toEqual([])
-  })
-
-  it('and the Greek mission layer is what that narrowing excludes', () => {
-    /**
-     * Guards the narrowing above: if the mission layer stopped owning cited
-     * requirements, the filter would become a no-op and the assertion would
-     * quietly widen back without anyone deciding to. Naming the codes is what
-     * makes the exclusion reviewable — a sixth appearing here is a claim that
-     * Greece asks for something no other pack should, which is exactly the
-     * decision that deserves to be seen in a diff.
-     */
-    const greekOnly = soleForeignAuthorityCodes(
-      greeceTourismComposition,
-      'DE',
-      publisherOf
-    )
-    expect(greekOnly.sort()).toEqual([
-      'FARMER_REGISTRY_RECORD',
-      'FARMLAND_TITLE_DEED',
-      'INSTITUTION_ID_CARD',
-      'PROFESSIONAL_ID_CARD',
-    ])
-    for (const code of greekOnly) {
-      expect(greeceTourismComposition.ownership.get(code)).toBe('gr-tr-mission')
-    }
   })
 })
 

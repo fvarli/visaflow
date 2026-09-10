@@ -247,34 +247,11 @@ describe('the production packs render their own detail and nobody else’s', () 
     }
   })
 
-  it('attaches four Greek fragments, and to nothing it owns', () => {
+  it('attaches exactly one Greek fragment, to the photograph', () => {
     const withDetail = greeceTourismComposition.template.documentRequirements
       .filter((r) => (r.detailKeys ?? []).length > 0)
       .map((r) => r.code)
-    expect(withDetail).toEqual([
-      'PHOTOS',
-      'EMPLOYMENT_LETTER',
-      'APPROVED_LEAVE',
-      'FARMER_CERTIFICATE',
-    ])
-
-    /**
-     * The same rule the German assertion above states: detail goes on a code
-     * you inherit, never on one you own, because an owner's criteria belong in
-     * its own contract and saying them twice is how the two drift apart.
-     *
-     * It is worth checking here now rather than only there. H4c2 gave this
-     * layer requirements of its own for the first time, so "attach detail to
-     * something you own" became a mistake somebody could actually make — and
-     * the nearest miss is real: the same public-servant branch that produced
-     * these two fragments also produced `INSTITUTION_ID_CARD`, which is owned
-     * here and therefore states its criteria itself.
-     */
-    for (const code of withDetail) {
-      expect(greeceTourismComposition.ownership.get(code)).not.toBe(
-        'gr-tr-mission'
-      )
-    }
+    expect(withDetail).toEqual(['PHOTOS'])
   })
 
   it('lets no fragment key cross into the other pack', () => {
@@ -319,7 +296,7 @@ describe('the production packs render their own detail and nobody else’s', () 
         )
       ),
     ]
-    expect(keys.length).toBe(18)
+    expect(keys.length).toBe(15)
 
     for (const locale of ['en', 'tr'] as const) {
       await i18n.changeLanguage(locale)

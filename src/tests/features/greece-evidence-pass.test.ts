@@ -134,31 +134,19 @@ describe('Greece evidence pass — the contracts it deliberately left alone', ()
   })
 
   it('moves no coverage, because a prose correction is not a verification', () => {
-    // H4b's own claim, and it still holds — the five it corrected are still
-    // uncited and coverage moved by nothing on its account. The figures below
-    // have since moved for a different reason (H4c2 added five cited rows), so
-    // what this now asserts is the gap: the quarantined block is still five,
-    // and still outside the numerator.
+    // The pack reads the same to a user as it did before: twenty of twenty-five
+    // requirements carry their own dated evidence, and the five quarantined
+    // rows still show the unverified notice.
     const greece = getCountryConfig('GR')
-    const coverage = computeVerificationCoverage(greece!, template)
-    expect(coverage.total - coverage.verified).toBe(5)
-    expect(coverage.isComplete).toBe(false)
+    expect(computeVerificationCoverage(greece!, template)).toEqual({
+      total: 26,
+      verified: 21,
+      isComplete: false,
+    })
   })
 
   it('keeps every quarantined mission requirement uncited', () => {
-    // Named rather than "everything the layer owns", which stopped meaning the
-    // same thing in H4c2: the layer now also owns the occupational rows, which
-    // cite the visa centre because their conditions match the branches it
-    // raises them from. These five do not, which is why they are still here.
-    const QUARANTINED = [
-      'SPONSOR_LETTER',
-      'SPONSOR_BANK_STATEMENTS',
-      'SPONSOR_INCOME_PROOF',
-      'RELATIONSHIP_PROOF',
-      'EMPLOYER_SIGNATURE_CIRCULAR',
-    ]
     const cited = (grTrMissionLayer.add ?? [])
-      .filter((r) => QUARANTINED.includes(r.code))
       .filter((r) => (r.sourceRefs ?? []).length > 0)
       .map((r) => r.code)
     expect(cited).toEqual([])
@@ -245,16 +233,13 @@ describe('Annex III I.5(g) — the obligation the evidence work produced', () =>
     ])
   })
 
-  it('moves Greece to twenty-six of thirty-one', () => {
-    // The permit was the first row this evidence effort added rather than
-    // corrected, and it arrived cited; H4c2's five occupational rows did the
-    // same. The property being pinned is not the pair of numbers but that they
-    // move together — a requirement may not join this pack without its own
-    // source, so the uncited five stay exactly five.
+  it('moves Greece to twenty-one of twenty-six', () => {
+    // The first row this evidence effort added rather than corrected, and it
+    // arrives cited — so the numerator and denominator move together.
     const greece = getCountryConfig('GR')
     expect(computeVerificationCoverage(greece!, template)).toEqual({
-      total: 31,
-      verified: 26,
+      total: 26,
+      verified: 21,
       isComplete: false,
     })
   })

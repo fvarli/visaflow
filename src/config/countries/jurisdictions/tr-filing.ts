@@ -317,62 +317,6 @@ const trFilingDocuments: DocumentRequirement[] = [
   },
   {
     /**
-     * I.5(b), in full: "Farmers: farmer certificate issued by a chamber of
-     * agriculture."
-     *
-     * The first requirement in this pack conditioned on occupation rather than
-     * on employment status, and the first one a farmer could ever have been
-     * shown. Annex III lists Farmers as a category beside Employees and Company
-     * owners; the seven-value status vocabulary had no value for one, so a
-     * farmer picked `self_employed`, was asked for a trade-register bulletin
-     * and an activity certificate the clause does not ask them for, and was
-     * never asked for the one document it does (ADR-053).
-     *
-     * WHY THIS LAYER. The clause is Annex III's, and Annex III is this layer's
-     * instrument — the harmonised list adopted for Türkiye, binding on every
-     * mission receiving applications lodged here. The same reasoning that put
-     * `FILING_COUNTRY_RESIDENCE_PERMIT` here puts this here: it is the
-     * jurisdiction's requirement of a category of applicant, not one mission's
-     * practice. The Greek visa centre's own *Çiftçi* branch asks for it too,
-     * which corroborates rather than relocates it.
-     *
-     * WHAT THIS PHASE DOES NOT DO. The three company-owner requirements above
-     * still fire on `self_employed`, so a farmer who says so is now asked for
-     * this *and* still asked for those. Narrowing them means reading a field an
-     * existing dossier has not answered, and under fail-closed applicability
-     * that would silently withdraw four required documents from every
-     * self-employed applicant who never saw the question. That correction is a
-     * decision of its own, and it is not this one.
-     */
-    code: 'FARMER_CERTIFICATE',
-    nameKey: 'visa-domain:requirements.FARMER_CERTIFICATE.name',
-    descriptionKey: 'visa-domain:requirements.FARMER_CERTIFICATE.description',
-    notesKey: 'visa-domain:requirements.FARMER_CERTIFICATE.notes',
-    category: 'employment',
-    /**
-     * The applicant's. A chamber of agriculture issues it, but an issuer is not
-     * an owner — `ownerType` says whose situation the document is about, and
-     * `EMPLOYER_TRADE_REGISTRY` above settles the same question the same way
-     * for a chamber of commerce.
-     */
-    ownerType: 'applicant',
-    /**
-     * Required for the category. I.5 lists documents "to be presented by
-     * specific categories of applicants" and attaches no qualifier to this one,
-     * unlike I.4(c)'s "if relevant" — requiredness and applicability are
-     * separate axes (ADR-051a).
-     */
-    required: true,
-    conditionalOn: {
-      field: 'employment.occupationalCategory',
-      operator: 'equals',
-      value: 'farmer',
-    },
-    sourceRefs: ['eu-c2021-5156-turkey-annex3'],
-    revision: 1,
-  },
-  {
-    /**
      * I.5(g), verbatim: "Non-Turkish nationals: Proof of residence in Turkey,
      * valid three months beyond the intended date of departure from the
      * territory of the Member States."

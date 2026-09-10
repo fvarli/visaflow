@@ -83,14 +83,6 @@ const GERMANY_TOURISM_ORDER = [
   'EMPLOYER_TAX_PLATE',
   'TAX_PAYMENT_STATEMENT',
   'COMPANY_ACTIVITY_CERTIFICATE',
-  // Annex III I.5(b) — farmers. The German sheet has no farmer category; it
-  // groups company owners with the self-employed and stops there. This is
-  // inherited rather than declared, the same way the residence permit below is:
-  // the clause belongs to the instrument adopted for applications lodged in
-  // Türkiye, so it reaches every mission receiving them, and scoping it to
-  // Greece would assert that a chamber-of-agriculture certificate is one
-  // mission's practice when it is the jurisdiction's requirement.
-  'FARMER_CERTIFICATE',
   // Section 4(d) — students.
   'STUDENT_CERTIFICATE',
   // Annex III I.5(g). The sheet enumerates non-Turkish citizens as a category

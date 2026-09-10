@@ -6,7 +6,6 @@ import {
   isEmployerComplete,
   isIncomeComplete,
   isLeaveComplete,
-  isStatusComplete,
   leaveApplies,
 } from '@/features/employment/employment-wizard'
 import type { Application } from '@/domain/schemas/application.schema'
@@ -78,40 +77,6 @@ describe('employment wizard — deriveStepStatuses is status-aware', () => {
       'complete',
       'upcoming',
     ])
-  })
-
-  it('counts the status step done on the status alone', () => {
-    /**
-     * The occupational category is optional and must stay that way in the rail.
-     * Requiring it would flip every dossier written before it existed from
-     * complete to upcoming on load, for a question their consulate may not even
-     * ask them — and it would nag the four statuses that are offered no
-     * category at all.
-     *
-     * Asserted on `isStatusComplete` directly, and on `deriveStepStatuses` with
-     * the cursor somewhere else. The rail assertions in this file all sit at
-     * `current: 0`, which paints the status step `current` whatever its
-     * completeness says — so a change here would have passed all of them. It
-     * did: making the category mandatory left this whole file green until this
-     * test existed.
-     */
-    expect({
-      statusOnly: isStatusComplete({
-        employmentStatus: 'employed',
-        currency: 'EUR',
-      }),
-      withCategory: isStatusComplete({
-        employmentStatus: 'employed',
-        occupationalCategory: 'public_servant',
-        currency: 'EUR',
-      }),
-      noStatus: isStatusComplete(undefined),
-    }).toEqual({ statusOnly: true, withCategory: true, noStatus: false })
-
-    // Cursor on `review`, so the status step reports its own completeness.
-    expect(
-      deriveStepStatuses(appWith({ employmentStatus: 'retired' }), 5)[0]
-    ).toBe('complete')
   })
 
   it('leaves employer/income/leave upcoming for an employed applicant with gaps', () => {

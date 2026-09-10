@@ -283,31 +283,6 @@
       "name": "Son 10 Yılın Vize Fotokopileri",
       "description": "Son 10 yıl içinde geçerli olan Schengen, AB, Birleşik Krallık, ABD ve Kanada vizelerinizin ve bu vizeleri taşıyan pasaportun birer adet fotokopisi",
       "notes": "Mevcut pasaportunuzdan ayrı bir belgedir: söz konusu vizeleri taşıyan pasaportun — süresi dolmuş olsa bile — ilgili sayfalarını kapsar."
-    },
-    "FARMER_CERTIFICATE": {
-      "name": "Çiftçi Belgesi",
-      "description": "Ziraat odası tarafından verilen çiftçi belgesi",
-      "notes": "Çiftçiyseniz istenir. Annex III belgeyi düzenleyen kurum olarak ziraat odasını belirtir."
-    },
-    "FARMER_REGISTRY_RECORD": {
-      "name": "Çiftçi Kayıt Belgesi (ÇKS)",
-      "description": "Bağlı olduğunuz kurum tarafından verilen çiftçi kayıt belgeniz",
-      "notes": "Çiftçi belgesinden farklı bir belgedir: o belge çiftçilik yaptığınızı, bu belge işletmenizin kayıt bilgilerini gösterir. E-Devlet üzerinden alınır."
-    },
-    "FARMLAND_TITLE_DEED": {
-      "name": "Tarla Tapusu",
-      "description": "Çiftçi belgenizde geçen tarlalardan en az birinin tapusu",
-      "notes": "Tarla başkasından kiralandıysa tapu ile birlikte ona ait kira kontratını da getirin."
-    },
-    "INSTITUTION_ID_CARD": {
-      "name": "Kurum Kimlik Kartı",
-      "description": "Çalıştığınız resmi kurumun kimlik kartı ve fotokopisi",
-      "notes": "Kamu çalışanlarından istenir."
-    },
-    "PROFESSIONAL_ID_CARD": {
-      "name": "Meslek Kimlik Kartı",
-      "description": "Meslek kimlik kartınızın fotokopisi",
-      "notes": "Yalnızca varsa istenir. Belge listesi bu şekilde belirtiyor; kartınız yoksa eksiğiniz olmaz."
     }
   },
   "milestones": {
@@ -388,10 +363,6 @@
     "de-aufenthg-54": {
       "title": "İkamet Kanunu, 54. madde — Sınır dışı etme menfaati",
       "notes": "(2) no. 8, Schengen vize sürecinde yanlış veya eksik beyanı ağır bir sınır dışı etme menfaati sayar; (b) bendi ise yalnızca kişiye bu sonuçların önceden bildirilmiş olması hâlinde uygulanır. Beyannamenin dayandığı hüküm budur; belge sunulmasını kendisi düzenlemez."
-    },
-    "gr-kosmos-checklist": {
-      "title": "Gerekli belgeler — Yunanistan vize başvuru merkezi",
-      "notes": "Yunan misyonlarının başvuru sahiplerini yönlendirdiği belge listesi; yetkilendirdikleri vize merkezi tarafından yayımlanır, 9 Eylül 2026 tarihinde okundu. Sabit bir liste değil, bir üreteçtir: vize kategorisi, seyahat aracı, konaklama, meslek, çocuklu seyahat ve uyruk olmak üzere altı soru listeyi oluşturur ve her bileşimin ayrı bir adresi yoktur. Başvuru sahibinin karşılaştığı işleyen listedir; misyonun kendi yayını değil, yetkilendirdiği kuruluşun aktarımıdır."
     }
   },
   "templateNotes": {
@@ -437,15 +408,6 @@
     "gr-tr-mission": {
       "PHOTOS": {
         "recent": "Yakın tarihli bir fotoğraf"
-      },
-      "EMPLOYMENT_LETTER": {
-        "publicInstitution": "Resmi bir kurumda çalışıyorsanız yazı şirketten değil, çalıştığınız kurumdan alınır; kurum antetli kağıdına yazılır, imzalı ve kaşeli ya da e-imzalı olur."
-      },
-      "APPROVED_LEAVE": {
-        "publicInstitution": "Resmi bir kurumda çalışıyorsanız izniniz kurum yazınızda belirtilebilir; yazı izin tarihlerinizi ve iznin ücretli mi ücretsiz mi olduğunu içeriyorsa ayrı bir yazıya gerek kalmaz."
-      },
-      "FARMER_CERTIFICATE": {
-        "edevlet": "Yunanistan vize merkezi belgeyi e-Devlet üzerinden almanızı da kabul eder."
       }
     }
   },
@@ -453,12 +415,5 @@
     "tr-travel-arrangements": "Seyahat düzenlemeleri — bunlardan herhangi biri",
     "gr-employment-evidence": "İstihdam kanıtı — bunlardan biri",
     "de-accommodation-evidence": "Konaklama kanıtı — bunlardan herhangi biri"
-  },
-  "occupationalCategory": {
-    "employee": "Şirket çalışanı",
-    "public_servant": "Kamu çalışanı (memur)",
-    "company_owner": "Şirket sahibi",
-    "independent_professional": "Serbest meslek sahibi",
-    "farmer": "Çiftçi"
   }
 }

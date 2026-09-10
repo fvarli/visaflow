@@ -22,30 +22,7 @@ import { greeceTourismComposition } from '@/config/countries/greece/tourism'
  */
 
 const COMMISSION = 'eu-c2021-5156-turkey-annex3'
-const GREEK_MISSION = [
-  'gr-tr-harmonised-list',
-  'gr-mfa-tr-visa-page',
-  'gr-kosmos-checklist',
-]
-
-/**
- * The five the Greek mission layer holds without authority.
- *
- * Named rather than derived as "everything this layer owns", which is what this
- * file used to assume and what stopped being true when the layer gained
- * requirements that *do* cite the visa centre (ADR-053). The distinction is the
- * whole point: these five are uncited because their contracts do not match the
- * evidence — a condition that fires on the wrong population, a code standing in
- * for several documents — and a citation vouches for the condition too
- * (ADR-048). Their reasons live one file over, in the gap register.
- */
-const QUARANTINED = [
-  'SPONSOR_LETTER',
-  'SPONSOR_BANK_STATEMENTS',
-  'SPONSOR_INCOME_PROOF',
-  'RELATIONSHIP_PROOF',
-  'EMPLOYER_SIGNATURE_CIRCULAR',
-]
+const GREEK_MISSION = ['gr-tr-harmonised-list', 'gr-mfa-tr-visa-page']
 
 /**
  * Every requirement the Commission act actually supports, and where.
@@ -70,8 +47,6 @@ const SUPPORTED_BY_ANNEX_III: Record<string, string> = {
   TAX_PAYMENT_STATEMENT: 'I.5(c) statement of taxes payment',
   COMPANY_ACTIVITY_CERTIFICATE: 'I.5(c) company activity certificate',
   STUDENT_CERTIFICATE: 'I.5(d) student certificate',
-  FARMER_CERTIFICATE:
-    'I.5(b) farmer certificate issued by a chamber of agriculture',
   FILING_COUNTRY_RESIDENCE_PERMIT:
     'I.5(g) proof of residence in Türkiye for non-Turkish nationals, valid ' +
     'three months beyond departure from the Member States',
@@ -187,50 +162,27 @@ describe('Greek mission authority arrives only by destination refinement', () =>
   })
 
   it('arrives from the Greek mission layer, and only from there', () => {
-    // Every Greek mission reference in the composition comes from this layer
-    // and from nowhere else. It used to come only from refinements; the
-    // occupational rows this layer now owns cite the visa centre directly, so
-    // both halves count.
-    const declared = (grTrMissionLayer.add ?? []).flatMap(
-      (r) => r.sourceRefs ?? []
-    )
+    // This layer used to own nothing. It now holds two quarantined legacy
+    // requirements — Article 14(3) permits a mission to ask for more than the
+    // harmonised list, and this is where such a thing would live — but that is
+    // separate from the point here, which is about citations: every Greek
+    // mission reference in the composition comes from this layer's refinements
+    // and from nowhere else.
     const refined = (grTrMissionLayer.refine ?? []).flatMap(
       (r) => r.addSourceRefs
     )
-    expect([...new Set([...declared, ...refined])].sort()).toEqual(
-      [...GREEK_MISSION].sort()
-    )
+    expect([...new Set(refined)].sort()).toEqual([...GREEK_MISSION].sort())
   })
 
-  it('does not let its quarantined requirements claim Greek authority', () => {
-    /**
-     * The five are held because their contracts do not match the evidence, not
-     * because no evidence exists — see the gap register. Attaching a mission
-     * citation to one would convert a recorded gap into a claim of authority:
-     * the failure the allowlist in `country-pack-provenance.test.ts` exists to
-     * prevent.
-     *
-     * This asserted "nothing this layer owns is cited" until H4c2, which was a
-     * true statement of the same rule only while the five were everything the
-     * layer owned. Widening it to the five by name is what keeps it a claim
-     * about *them* rather than an accident of the layer's contents.
-     */
-    for (const code of QUARANTINED) {
-      const requirement = (grTrMissionLayer.add ?? []).find(
-        (r) => r.code === code
-      )
-      expect(requirement).toBeDefined()
-      expect(requirement?.sourceRefs ?? []).toEqual([])
+  it('does not let its own quarantined requirements claim Greek authority', () => {
+    // The five it owns are held because their contracts do not yet match the
+    // evidence, not because no evidence exists — see the gap register.
+    // Attaching one of the mission citations to either would convert a recorded
+    // evidence gap into a claim of authority — the failure mode the allowlist in
+    // `country-pack-provenance.test.ts` exists to prevent.
+    for (const requirement of grTrMissionLayer.add ?? []) {
+      expect(requirement.sourceRefs ?? []).toEqual([])
     }
-  })
-
-  it('and the layer does own cited requirements, so that is a real distinction', () => {
-    // Guards the guard: if every owned requirement were uncited again, the
-    // assertion above would pass while saying nothing.
-    const cited = (grTrMissionLayer.add ?? []).filter(
-      (r) => (r.sourceRefs ?? []).length > 0
-    )
-    expect(cited.length).toBeGreaterThan(0)
   })
 
   it('composes after the jurisdiction layer, so it refines forwards', () => {

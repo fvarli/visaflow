@@ -283,31 +283,6 @@
       "name": "Copies of Visas from the Last 10 Years",
       "description": "One photocopy of each Schengen, EU, United Kingdom, United States or Canadian visa valid within the last 10 years, and of the passport that carries them",
       "notes": "This is separate from your current passport: it covers the pages of any passport holding those visas, including an expired one."
-    },
-    "FARMER_CERTIFICATE": {
-      "name": "Farmer Certificate",
-      "description": "Farmer certificate issued by a chamber of agriculture",
-      "notes": "Required if you are a farmer. Annex III names the chamber of agriculture as the issuer."
-    },
-    "FARMER_REGISTRY_RECORD": {
-      "name": "Farmer Registry Record (ÇKS)",
-      "description": "Your farmer registration record from the institution you are registered with",
-      "notes": "A different document from the farmer certificate: that one certifies that you farm, this one is the registry record of your holding. Available through e-Devlet."
-    },
-    "FARMLAND_TITLE_DEED": {
-      "name": "Farmland Title Deed",
-      "description": "Title deed to at least one of the fields named on your farmer certificate",
-      "notes": "If the land is rented from someone else, bring the title deed together with the lease agreement for it."
-    },
-    "INSTITUTION_ID_CARD": {
-      "name": "Institution ID Card",
-      "description": "The identity card of the public institution you work for, and a photocopy",
-      "notes": "Asked of public servants."
-    },
-    "PROFESSIONAL_ID_CARD": {
-      "name": "Professional ID Card",
-      "description": "A photocopy of your professional identity card",
-      "notes": "Only if you have one. The checklist asks for it that way, so nothing is missing if you do not."
     }
   },
   "milestones": {
@@ -388,10 +363,6 @@
     "de-aufenthg-54": {
       "title": "Residence Act, § 54 — Interest in expulsion",
       "notes": "Subsection (2) no. 8 makes false or incomplete statements in a Schengen visa procedure a serious interest in expulsion, and point (b) applies only where the person was informed of those consequences beforehand. It is the basis the declaration refers to; it does not itself list a document to submit."
-    },
-    "gr-kosmos-checklist": {
-      "title": "Required documents — Greek visa application centre",
-      "notes": "The checklist the Greek missions direct applicants to, published by the visa centre they appointed, read on 9 September 2026. It is a generator rather than a fixed list: six questions — visa category, means of travel, accommodation, occupation, travelling with children, and nationality — compose the list, and there is no separate address for each combination. It is the operative list an applicant meets, and it is the appointed contractor's rendering rather than the mission's own publication."
     }
   },
   "templateNotes": {
@@ -437,15 +408,6 @@
     "gr-tr-mission": {
       "PHOTOS": {
         "recent": "A recent photograph"
-      },
-      "EMPLOYMENT_LETTER": {
-        "publicInstitution": "If you work for a public institution, the letter comes from that institution rather than from a company, on its letterhead, signed and stamped or carrying an e-signature."
-      },
-      "APPROVED_LEAVE": {
-        "publicInstitution": "If you work for a public institution, your institution letter may state the leave, so a separate letter is not needed as long as it names the dates and says whether the leave is paid."
-      },
-      "FARMER_CERTIFICATE": {
-        "edevlet": "The Greek visa centre also accepts the certificate taken through e-Devlet."
       }
     }
   },
@@ -453,12 +415,5 @@
     "tr-travel-arrangements": "Travel arrangements — any one of these",
     "gr-employment-evidence": "Employment evidence — either of these",
     "de-accommodation-evidence": "Accommodation evidence — any one of these"
-  },
-  "occupationalCategory": {
-    "employee": "Company employee",
-    "public_servant": "Public servant",
-    "company_owner": "Company owner",
-    "independent_professional": "Independent professional",
-    "farmer": "Farmer"
   }
 }

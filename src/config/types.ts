@@ -3,7 +3,6 @@ import type {
   DocumentCategory,
   EmploymentStatus,
   FinancingSource,
-  OccupationalCategory,
   OwnerType,
   VisaType,
 } from '@/domain/types/common'
@@ -384,21 +383,7 @@ export interface CitationRefinement {
  * the failure that let three call sites drift apart before H4c1.
  */
 export interface ApplicabilityContext {
-  /**
-   * Two fields, one axis apart. `employmentStatus` routes the wizard;
-   * `occupationalCategory` says what kind of employee or business owner, which
-   * is the distinction a checklist draws and the coarse value cannot carry.
-   *
-   * Widening this type took an argument, as the comment above requires: the
-   * Greek visa centre publishes a *Meslek* axis whose branches disagree
-   * materially — an institution letter and card for a public servant, no
-   * company-document block, none of either for a farmer — and Annex III names
-   * Farmers and Company owners as categories in their own right (ADR-053).
-   */
-  employment?: {
-    employmentStatus?: EmploymentStatus
-    occupationalCategory?: OccupationalCategory
-  }
+  employment?: { employmentStatus?: EmploymentStatus }
   financing?: { source?: FinancingSource }
   /**
    * Nationality only. Nothing else about the applicant is exposed.
