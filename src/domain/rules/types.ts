@@ -1,5 +1,5 @@
 import type { Dossier } from '../schemas/dossier.schema'
-import type { VisaTypeTemplate } from '@/config/types'
+import type { ApplicabilityContext, VisaTypeTemplate } from '@/config/types'
 
 export type ValidationSeverity = 'error' | 'warning' | 'info'
 
@@ -80,6 +80,18 @@ export interface ValidationContext {
    * old record-only semantics back.
    */
   template: VisaTypeTemplate | undefined
+  /**
+   * Applicability, built once by the caller rather than by each rule.
+   *
+   * Required for the same reason `template` is. The rules used to derive this
+   * themselves from `dossier.application`, which is an `Application` and not a
+   * context — so they saw employment and financing and never nationality, and
+   * a nationality-conditional requirement was outstanding in readiness while
+   * the consistency centre said nothing about it. Handing the built context
+   * down is what keeps one dossier giving one answer; a rule that builds its
+   * own is the failure this field exists to remove.
+   */
+  applicability: ApplicabilityContext
 }
 
 export type ValidationRule = (context: ValidationContext) => ValidationFinding[]

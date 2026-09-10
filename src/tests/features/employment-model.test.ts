@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest'
+import { ctxFor } from '@/tests/support/applicability'
 import {
   buildEmploymentDocuments,
   hrClipboardText,
@@ -69,7 +70,7 @@ describe('buildEmploymentDocuments — employment-only, reused helpers', () => {
     doc({ id: '3', code: 'BANK_STATEMENTS', category: 'financial' }),
   ]
   const app = application({ employmentStatus: 'employed' })
-  const view = buildEmploymentDocuments(documents, app, template)
+  const view = buildEmploymentDocuments(documents, ctxFor(app), template)
 
   it('surfaces applicable employment requirements with their dossier status', () => {
     const letter = view.rows.find((r) => r.code === 'EMPLOYMENT_LETTER')

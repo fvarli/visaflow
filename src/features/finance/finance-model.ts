@@ -220,6 +220,7 @@ export function buildFinanceModel(input: FinanceInput): FinanceModel {
       ? runValidation({
           dossier: toDossier(applicant, application, documents, sponsors),
           template,
+          applicability,
         }).findings.filter((f) => f.ruleId.startsWith('sponsor.'))
       : []
 

@@ -166,6 +166,7 @@ export function buildEmploymentModel(
       ? runValidation({
           dossier: toDossier(applicant, application, documents, sponsors),
           template,
+          applicability,
         }).findings.filter((f) => f.ruleId.startsWith('employment.'))
       : []
 

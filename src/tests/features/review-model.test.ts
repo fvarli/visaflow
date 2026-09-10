@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest'
+import { ctxFor } from '@/tests/support/applicability'
 import { buildFinalReviewModel } from '@/features/review/review-model'
 import { buildDocumentReadiness } from '@/features/readiness/document-readiness'
 import { requiredRequirementCodes } from '@/features/readiness/requirement-readiness'
@@ -130,7 +131,7 @@ const canonicalReadiness = (app: Application) =>
     documents: DOCUMENTS,
     requiredRequirementCodes: requiredRequirementCodes(
       resolveVisaTemplate(app.destinationCountry, app.visaType),
-      app
+      ctxFor(app)
     ),
   })
 
@@ -142,6 +143,10 @@ describe('review-model', () => {
       const readiness = canonicalReadiness(app)
       const validation = runValidation({
         dossier: dossierOf(app),
+        applicability: ctxFor(
+          dossierOf(app).application,
+          dossierOf(app).applicant
+        ),
         template: GREECE,
       })
 
@@ -158,7 +163,14 @@ describe('review-model', () => {
       const model = buildFinalReviewModel(input({ application: app }), NOW)
       const expected = deriveNextActions(
         canonicalReadiness(app),
-        runValidation({ dossier: dossierOf(app), template: GREECE }),
+        runValidation({
+          dossier: dossierOf(app),
+          template: GREECE,
+          applicability: ctxFor(
+            dossierOf(app).application,
+            dossierOf(app).applicant
+          ),
+        }),
         app
       )[0]
 
@@ -330,7 +342,7 @@ describe('review-model', () => {
       // checklist still listed missing items.
       const allReady: Document[] = requiredRequirementCodes(
         resolveVisaTemplate(app.destinationCountry, app.visaType),
-        app
+        ctxFor(app)
       ).map((code, i) => doc({ id: `ready-${i}`, code, status: 'ready' }))
 
       const model = buildFinalReviewModel(

@@ -191,6 +191,7 @@ export function buildSponsorsModel(input: SponsorsInput): SponsorsModel {
       ? runValidation({
           dossier: toDossier(applicant, application, documents, sponsors),
           template,
+          applicability,
         }).findings.filter((f) => f.ruleId.startsWith('sponsor.'))
       : []
 

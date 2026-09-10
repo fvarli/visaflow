@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest'
+import { ctxFor } from '@/tests/support/applicability'
 import {
   areaForRuleId,
   categoryForRuleId,
@@ -186,21 +187,22 @@ function allRequiredReady(application: Application): Document[] {
     application.destinationCountry,
     application.visaType
   )
-  return requiredRequirementCodes(template, application).map((code, i) =>
-    applyDocumentUpdate(
-      {
-        id: `ready-${i}`,
-        code,
-        name: code,
-        category: 'supporting',
-        ownerType: 'applicant',
-        ownerId: 'a1',
-        required: true,
-        status: 'not_started',
-      } as unknown as Document,
-      { status: 'ready' },
-      template
-    )
+  return requiredRequirementCodes(template, ctxFor(application)).map(
+    (code, i) =>
+      applyDocumentUpdate(
+        {
+          id: `ready-${i}`,
+          code,
+          name: code,
+          category: 'supporting',
+          ownerType: 'applicant',
+          ownerId: 'a1',
+          required: true,
+          status: 'not_started',
+        } as unknown as Document,
+        { status: 'ready' },
+        template
+      )
   )
 }
 

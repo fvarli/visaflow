@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest'
+import { ctxFor } from '@/tests/support/applicability'
 import { deriveConsistency } from '@/features/finance/finance-consistency'
 import { buildFinanceDocuments } from '@/features/finance/finance-documents'
 import { resolveVisaTemplate } from '@/config/countries'
@@ -45,7 +46,7 @@ const application = (
 })
 
 const docsFor = (app: Application, documents: Document[] = []) =>
-  buildFinanceDocuments(documents, app, template)
+  buildFinanceDocuments(documents, ctxFor(app), template)
 
 const ids = (app: Application, documents: Document[] = []) =>
   deriveConsistency({

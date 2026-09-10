@@ -79,7 +79,7 @@ const TRANSPORT = [
 function readinessWith(documents: Document[], app = application()) {
   return buildDocumentReadiness({
     documents,
-    requiredRequirementCodes: requiredRequirementCodes(greece, app),
+    requiredRequirementCodes: requiredRequirementCodes(greece, ctxFor(app)),
     template: greece,
     context: ctxFor(app),
   })
@@ -142,7 +142,7 @@ describe('any accepted member satisfies the obligation', () => {
     expect(baseline.notStarted).toBeGreaterThan(0)
     expect(baseline.complete).toBe(false)
 
-    const slot = resolveGroupSlots(greece, [], application()).find(
+    const slot = resolveGroupSlots(greece, [], ctxFor(application())).find(
       (s) => s.group.id === 'tr-travel-arrangements'
     )
     expect({ status: slot?.status, satisfiedBy: slot?.satisfiedBy }).toEqual({
@@ -153,7 +153,7 @@ describe('any accepted member satisfies the obligation', () => {
 
   it('counts the group once, not once per member', () => {
     // Stated against the arithmetic directly: three requirements, one slot.
-    const codes = requiredRequirementCodes(greece, application())
+    const codes = requiredRequirementCodes(greece, ctxFor(application()))
     const ungrouped = codes.filter((c) => !TRANSPORT.includes(c))
     // `EMPLOYMENT_LETTER`/`APPROVED_LEAVE` are the other group, so the employed
     // applicant's denominator is the ungrouped requirements plus two slots.
@@ -190,9 +190,11 @@ describe('unrelated requirements are untouched', () => {
   it('drops a group whose members do not apply to this dossier', () => {
     // A student owes nothing under the employer-letter choice, so the group
     // must not appear as an obligation they can never meet.
-    const ids = resolveGroupSlots(greece, [], application('student')).map(
-      (s) => s.group.id
-    )
+    const ids = resolveGroupSlots(
+      greece,
+      [],
+      ctxFor(application('student'))
+    ).map((s) => s.group.id)
     expect(ids).toEqual(['tr-travel-arrangements'])
   })
 })
@@ -205,30 +207,30 @@ describe('the workspace stops asking once the obligation is met', () => {
     // the only outstanding work, so it must be what the workspace names. An
     // empty dossier would prove nothing here — it would recommend whatever
     // comes first in the pack's order.
-    const documents = requiredRequirementCodes(greece, app)
+    const documents = requiredRequirementCodes(greece, ctxFor(app))
       .filter((c) => !TRANSPORT.includes(c))
       .map((code) => doc(code, 'ready'))
 
     const next = deriveNextDocument(
       documents,
-      requiredRequirementCodes(greece, app),
+      requiredRequirementCodes(greece, ctxFor(app)),
       greece,
-      app
+      ctxFor(app)
     )
     expect(TRANSPORT).toContain(next?.code)
   })
 
   it('never recommends another route once one is ready', () => {
-    const documents = requiredRequirementCodes(greece, app).map((code) =>
-      doc(code, TRANSPORT.includes(code) ? 'ready' : 'ready')
+    const documents = requiredRequirementCodes(greece, ctxFor(app)).map(
+      (code) => doc(code, TRANSPORT.includes(code) ? 'ready' : 'ready')
     )
     // Everything ready, including the booking — nothing at all should be
     // recommended, and in particular not the itinerary.
     const next = deriveNextDocument(
       documents,
-      requiredRequirementCodes(greece, app),
+      requiredRequirementCodes(greece, ctxFor(app)),
       greece,
-      app
+      ctxFor(app)
     )
     expect(next).toBeNull()
   })
@@ -237,16 +239,16 @@ describe('the workspace stops asking once the obligation is met', () => {
     // The narrow regression this guards: booking ready, itinerary absent. Before
     // C3a the uninstantiated-code branch would have offered `ITINERARY` the
     // moment it entered the required set.
-    const documents = requiredRequirementCodes(greece, app)
+    const documents = requiredRequirementCodes(greece, ctxFor(app))
       .filter((c) => !TRANSPORT.includes(c))
       .map((code) => doc(code, 'ready'))
     documents.push(doc('TRANSPORT_RESERVATION', 'ready'))
 
     const next = deriveNextDocument(
       documents,
-      requiredRequirementCodes(greece, app),
+      requiredRequirementCodes(greece, ctxFor(app)),
       greece,
-      app
+      ctxFor(app)
     )
     expect(next?.code).not.toBe('ITINERARY')
     expect(next?.code).not.toBe('TRANSPORT_MEANS_PROOF')
@@ -506,14 +508,17 @@ describe('Germany accepts an official undertaking instead of an accommodation do
   }
 
   const accommodationSlot = (documents: Document[]) =>
-    resolveGroupSlots(germany, documents, deApp).find(
+    resolveGroupSlots(germany, documents, ctxFor(deApp)).find(
       (s) => s.group.id === 'de-accommodation-evidence'
     )
 
   const readinessOf = (documents: Document[]) =>
     buildDocumentReadiness({
       documents,
-      requiredRequirementCodes: requiredRequirementCodes(germany, deApp),
+      requiredRequirementCodes: requiredRequirementCodes(
+        germany,
+        ctxFor(deApp)
+      ),
       template: germany,
       context: ctxFor(deApp),
     })
@@ -601,6 +606,7 @@ describe('Germany accepts an official undertaking instead of an accommodation do
         sponsors: [],
       } as never,
       template: germany,
+      applicability: ctxFor(deApp),
     }).findings
 
     expect(

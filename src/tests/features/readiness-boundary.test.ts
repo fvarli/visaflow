@@ -43,10 +43,10 @@ const readinessOf = (fixture: DossierFixture) => {
     documents: fixture.documents,
     requiredRequirementCodes: requiredRequirementCodes(
       template,
-      ctxFor(fixture.application)
+      ctxFor(fixture.application, fixture.applicant)
     ),
     template,
-    context: ctxFor(fixture.application),
+    context: ctxFor(fixture.application, fixture.applicant),
   })
 }
 
@@ -108,7 +108,7 @@ describe('LEAK 3 — the readiness caption on three heroes', () => {
       0,
       Boolean(fixture.application?.appointment?.date),
       templateOf(fixture),
-      ctxFor(fixture.application)
+      ctxFor(fixture.application, fixture.applicant)
     )
 
   it('reads the same for a dossier that differs only in non-current records', () => {
@@ -190,7 +190,7 @@ describe('LEAK 4 — the Timeline "final review" task', () => {
     deriveTasks(
       {
         application: fixture.application!,
-        context: ctxFor(fixture.application),
+        context: ctxFor(fixture.application, fixture.applicant),
         documents: fixture.documents,
         template: templateOf(fixture),
         findings: [],
@@ -215,7 +215,7 @@ describe('LEAK 5 — the Final Review checklist and its printout', () => {
   const rows = (fixture: DossierFixture) =>
     buildSubmissionChecklist(
       fixture.documents,
-      ctxFor(fixture.application),
+      ctxFor(fixture.application, fixture.applicant),
       templateOf(fixture),
       fixture.application?.appointment?.date ?? null
     ).rows

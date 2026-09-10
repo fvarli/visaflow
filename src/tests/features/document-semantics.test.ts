@@ -72,7 +72,7 @@ describe('a retired code keeps its own identity', () => {
   it('does not satisfy the requirement that replaced it', () => {
     const codes = requiredRequirementCodes(
       template,
-      application('self_employed')
+      ctxFor(application('self_employed'))
     )
     // The replacement is owed in full; the old record cannot stand in for it.
     expect(codes).toContain('TAX_PAYMENT_STATEMENT')
@@ -93,7 +93,7 @@ describe('a retired code keeps its own identity', () => {
     const semantics = resolveDocumentSemantics(
       taxReturns,
       template,
-      application('self_employed')
+      ctxFor(application('self_employed'))
     )
     expect(semantics.membership).toBe('retired')
     expect(semantics.requirement).toBeUndefined()
@@ -118,7 +118,7 @@ describe('template-owned metadata is re-derived, not frozen', () => {
     const semantics = resolveDocumentSemantics(
       staleSgk,
       template,
-      application('employed')
+      ctxFor(application('employed'))
     )
     expect({
       membership: semantics.membership,
@@ -134,7 +134,7 @@ describe('template-owned metadata is re-derived, not frozen', () => {
       documents: [staleSgk],
       requiredRequirementCodes: requiredRequirementCodes(
         template,
-        application('employed')
+        ctxFor(application('employed'))
       ),
       template,
       context: ctxFor(application('employed')),
@@ -144,7 +144,7 @@ describe('template-owned metadata is re-derived, not frozen', () => {
       countsAsWork: countsTowardReadiness(
         staleSgk,
         template,
-        application('employed')
+        ctxFor(application('employed'))
       ),
       outstanding: readiness.outstanding > 0,
     }).toEqual({ badge: 'conditional', countsAsWork: true, outstanding: true })
@@ -152,7 +152,11 @@ describe('template-owned metadata is re-derived, not frozen', () => {
 
   it('never writes the correction back into the record', () => {
     const before = JSON.stringify(staleSgk)
-    resolveDocumentSemantics(staleSgk, template, application('employed'))
+    resolveDocumentSemantics(
+      staleSgk,
+      template,
+      ctxFor(application('employed'))
+    )
     // User data is not ours to rewrite; the snapshot stays as the export format
     // and the historical fallback.
     expect(JSON.stringify(staleSgk)).toBe(before)
@@ -173,21 +177,25 @@ describe('an applicability change strands a record without losing it', () => {
   it('stops counting as work while it does not apply', () => {
     const employed = application('employed')
     expect(
-      resolveDocumentSemantics(stranded, template, employed).isApplicable
+      resolveDocumentSemantics(stranded, template, ctxFor(employed))
+        .isApplicable
     ).toBe(false)
-    expect(countsTowardReadiness(stranded, template, employed)).toBe(false)
+    expect(countsTowardReadiness(stranded, template, ctxFor(employed))).toBe(
+      false
+    )
   })
 
   it('counts again if the applicant becomes self-employed', () => {
     const selfEmployed = application('self_employed')
     expect(
-      resolveDocumentSemantics(stranded, template, selfEmployed).isApplicable
+      resolveDocumentSemantics(stranded, template, ctxFor(selfEmployed))
+        .isApplicable
     ).toBe(true)
   })
 
   it('is never deleted, and never duplicated when it returns', () => {
     const selfEmployed = application('self_employed')
-    const codes = requiredRequirementCodes(template, selfEmployed)
+    const codes = requiredRequirementCodes(template, ctxFor(selfEmployed))
     const readiness = buildDocumentReadiness({
       documents: [stranded],
       requiredRequirementCodes: codes,
@@ -268,7 +276,10 @@ describe('retired records are visible history, never current work', () => {
   const readinessOf = (documents: Document[]) =>
     buildDocumentReadiness({
       documents,
-      requiredRequirementCodes: requiredRequirementCodes(template, employed),
+      requiredRequirementCodes: requiredRequirementCodes(
+        template,
+        ctxFor(employed)
+      ),
       template,
       context: ctxFor(employed),
     })
@@ -277,7 +288,7 @@ describe('retired records are visible history, never current work', () => {
     for (const doc of preRetirement) {
       expect({
         code: doc.code,
-        membership: resolveDocumentSemantics(doc, template, employed)
+        membership: resolveDocumentSemantics(doc, template, ctxFor(employed))
           .membership,
         kind: classifyDoc(doc, template),
       }).toEqual({ code: doc.code, membership: 'retired', kind: 'retired' })
@@ -297,7 +308,7 @@ describe('retired records are visible history, never current work', () => {
 
   it('leaves every replacement unsatisfied', () => {
     const selfEmployed = application('self_employed')
-    const codes = requiredRequirementCodes(template, selfEmployed)
+    const codes = requiredRequirementCodes(template, ctxFor(selfEmployed))
     const readiness = buildDocumentReadiness({
       documents: preRetirement,
       requiredRequirementCodes: codes,
@@ -370,7 +381,10 @@ describe('an unrecognised code is not retired, and not current work', () => {
   const readinessOf = (documents: Document[]) =>
     buildDocumentReadiness({
       documents,
-      requiredRequirementCodes: requiredRequirementCodes(template, employed),
+      requiredRequirementCodes: requiredRequirementCodes(
+        template,
+        ctxFor(employed)
+      ),
       template,
       context: ctxFor(employed),
     })
@@ -380,7 +394,7 @@ describe('an unrecognised code is not retired, and not current work', () => {
     // template — otherwise every foreign code would claim a history it has not
     // got.
     expect(
-      resolveDocumentSemantics(foreign, template, employed).membership
+      resolveDocumentSemantics(foreign, template, ctxFor(employed)).membership
     ).toBe('unknown')
   })
 

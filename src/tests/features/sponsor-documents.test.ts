@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest'
+import { ctxFor } from '@/tests/support/applicability'
 import {
   buildSponsorDocuments,
   isSponsorEvidence,
@@ -77,7 +78,7 @@ describe('buildSponsorDocuments — associations', () => {
     const view = buildSponsorDocuments(
       sponsor({ documentIds: ['l1'] }),
       documents,
-      application('sponsor'),
+      ctxFor(application('sponsor')),
       template
     )
     expect(view.linked.map((r) => r.docId)).toEqual(['l1'])
@@ -98,7 +99,7 @@ describe('buildSponsorDocuments — associations', () => {
     const view = buildSponsorDocuments(
       sponsor({ documentIds: ['ghost', 'l1'] }),
       documents,
-      application('sponsor'),
+      ctxFor(application('sponsor')),
       template
     )
     expect(view.stale).toEqual(['ghost'])
@@ -109,7 +110,7 @@ describe('buildSponsorDocuments — associations', () => {
     const view = buildSponsorDocuments(
       sponsor({ documentIds: ['p1'] }),
       documents,
-      application('sponsor'),
+      ctxFor(application('sponsor')),
       template
     )
     expect(view.stale).toEqual(['p1'])
@@ -121,7 +122,7 @@ describe('buildSponsorDocuments — associations', () => {
     const view = buildSponsorDocuments(
       sponsor({ documentIds: ['l1'] }),
       [letter],
-      application('sponsor'),
+      ctxFor(application('sponsor')),
       template
     )
     const missing = view.missingRequirements.map((r) => r.code)
@@ -134,7 +135,7 @@ describe('buildSponsorDocuments — associations', () => {
     const view = buildSponsorDocuments(
       sponsor({}),
       [],
-      application('self'),
+      ctxFor(application('self')),
       template
     )
     expect(view.missingRequirements).toEqual([])
@@ -144,13 +145,13 @@ describe('buildSponsorDocuments — associations', () => {
     const a = buildSponsorDocuments(
       sponsor({ id: 's1', documentIds: ['l1'] }),
       documents,
-      application('sponsor'),
+      ctxFor(application('sponsor')),
       template
     )
     const b = buildSponsorDocuments(
       sponsor({ id: 's2', documentIds: ['l1'] }),
       documents,
-      application('sponsor'),
+      ctxFor(application('sponsor')),
       template
     )
     expect(a.linked.map((r) => r.docId)).toEqual(['l1'])
@@ -161,7 +162,7 @@ describe('buildSponsorDocuments — associations', () => {
     const view = buildSponsorDocuments(
       sponsor({ documentIds: ['l1', 'b1'] }),
       documents,
-      application('sponsor'),
+      ctxFor(application('sponsor')),
       template
     )
     expect(view.linkedCount).toBe(2)

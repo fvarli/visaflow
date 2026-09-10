@@ -153,6 +153,10 @@ export function buildTimelineModel(
   now: Date
 ): TimelineModel {
   const { applicant, application, documents, sponsors } = input
+  const timelineApplicability = buildApplicabilityContext({
+    applicant,
+    application,
+  })
   const hasData = application !== null
   const appointmentDate = application?.appointment?.date ?? null
 
@@ -166,6 +170,7 @@ export function buildTimelineModel(
       ? runValidation({
           dossier: toDossier(applicant, application, documents, sponsors),
           template,
+          applicability: timelineApplicability,
         })
       : {
           findings: [],
@@ -176,10 +181,6 @@ export function buildTimelineModel(
           totalRules: 0,
         }
 
-  const timelineApplicability = buildApplicabilityContext({
-    applicant,
-    application,
-  })
   const readiness = buildDocumentReadiness({
     documents,
     requiredRequirementCodes: requiredRequirementCodes(

@@ -302,6 +302,7 @@ export function buildValidationModel(
     ? runValidation({
         dossier: toDossier(applicant, application, documents, sponsors),
         template,
+        applicability,
       })
     : EMPTY_VALIDATION
 

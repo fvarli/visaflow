@@ -80,11 +80,19 @@ const dossierOf = (documents: Document[], app: Application): Dossier =>
   }) as unknown as Dossier
 
 const ruleIds = (dossier: Dossier) =>
-  runValidation({ dossier, template: GREECE }).findings.map((f) => f.ruleId)
+  runValidation({
+    dossier,
+    template: GREECE,
+    applicability: ctxFor(dossier.application, dossier.applicant),
+  }).findings.map((f) => f.ruleId)
 
 /** The document codes the missing-required finding actually names. */
 const namedMissing = (dossier: Dossier): string[] =>
-  runValidation({ dossier, template: GREECE })
+  runValidation({
+    dossier,
+    template: GREECE,
+    applicability: ctxFor(dossier.application, dossier.applicant),
+  })
     .findings.filter((f) => f.ruleId === 'document.requiredNotStarted')
     .flatMap((f) => f.messageParams?.documentCodes?.documents ?? [])
 
@@ -114,12 +122,13 @@ describe('requiredness comes from the pack, not from the seeded flag', () => {
     // findings list did not, on one dossier, at the same moment.
     const readiness = buildDocumentReadiness({
       documents: [stale],
-      requiredRequirementCodes: requiredRequirementCodes(GREECE, app),
+      requiredRequirementCodes: requiredRequirementCodes(GREECE, ctxFor(app)),
       template: GREECE,
       context: ctxFor(app),
     })
     const flagged = runValidation({
       dossier: dossierOf([stale], app),
+      applicability: ctxFor(app),
       template: GREECE,
     }).findings.some((f) =>
       (f.messageParams?.documentCodes?.documents ?? []).includes(
@@ -211,7 +220,11 @@ describe('a superseded claim reaches the needs-update finding', () => {
   it('does not rewrite the record to say so', () => {
     // Validation reads; it never asserts on the applicant's behalf (ADR-051).
     const documents = [legacy]
-    runValidation({ dossier: dossierOf(documents, app), template: GREECE })
+    runValidation({
+      dossier: dossierOf(documents, app),
+      template: GREECE,
+      applicability: ctxFor(app),
+    })
     expect(documents[0]!.status).toBe('ready')
     expect(documents[0]!.satisfiedRevision).toBe(1)
   })
@@ -231,6 +244,7 @@ describe('no rule resolves its own template', () => {
     const orphan = doc({ code: 'EMPLOYER_TRADE_REGISTRY', required: true })
     const ids = runValidation({
       dossier: dossierOf([orphan], application('self_employed')),
+      applicability: ctxFor(application('self_employed')),
       template: undefined,
     }).findings.map((f) => f.ruleId)
     expect(ids).not.toContain('document.requiredNotStarted')
@@ -246,7 +260,11 @@ describe('a grouped obligation is one obligation, named once', () => {
     'ITINERARY',
   ]
   const obligationIds = (dossier: Dossier) =>
-    runValidation({ dossier, template: GREECE })
+    runValidation({
+      dossier,
+      template: GREECE,
+      applicability: ctxFor(dossier.application, dossier.applicant),
+    })
       .findings.filter(
         (f) => f.ruleId === 'document.requiredObligationNotStarted'
       )
@@ -324,6 +342,7 @@ describe('a grouped obligation is one obligation, named once', () => {
   it('names the obligation, never a member', () => {
     const finding = runValidation({
       dossier: dossierOf([], app),
+      applicability: ctxFor(app),
       template: GREECE,
     }).findings.find(
       (f) => f.id === 'missing-obligation-tr-travel-arrangements'
@@ -359,12 +378,13 @@ describe('validation and readiness owe the same obligations', () => {
     const documents: Document[] = []
     const readiness = buildDocumentReadiness({
       documents,
-      requiredRequirementCodes: requiredRequirementCodes(GREECE, app),
+      requiredRequirementCodes: requiredRequirementCodes(GREECE, ctxFor(app)),
       template: GREECE,
       context: ctxFor(app),
     })
     const findings = runValidation({
       dossier: dossierOf(documents, app),
+      applicability: ctxFor(app),
       template: GREECE,
     }).findings
     const named = findings

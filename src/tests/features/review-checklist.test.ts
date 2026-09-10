@@ -109,7 +109,12 @@ describe('review-checklist', () => {
     })
 
     it('surfaces applicable requirements that have no document record yet', () => {
-      const result = buildSubmissionChecklist([], application(), TEMPLATE, null)
+      const result = buildSubmissionChecklist(
+        [],
+        ctxFor(application()),
+        TEMPLATE,
+        null
+      )
       expect(result.rows.length).toBeGreaterThan(0)
       expect(result.rows.every((r) => r.status === 'not_instantiated')).toBe(
         true
@@ -131,7 +136,7 @@ describe('review-checklist', () => {
       ]
       const result = buildSubmissionChecklist(
         documents,
-        application(),
+        ctxFor(application()),
         TEMPLATE,
         null
       )
@@ -166,7 +171,12 @@ describe('review-checklist', () => {
     })
 
     it('groups rows in the documented submission order', () => {
-      const result = buildSubmissionChecklist([], application(), TEMPLATE, null)
+      const result = buildSubmissionChecklist(
+        [],
+        ctxFor(application()),
+        TEMPLATE,
+        null
+      )
       const ids = result.groups.map((g) => g.id)
       const expectedOrder = SUBMISSION_GROUP_ORDER.filter((id) =>
         ids.includes(id)
@@ -217,7 +227,7 @@ describe('review-checklist', () => {
     it('surfaces sponsor requirements only for sponsor-funded applications', () => {
       const selfFunded = buildSubmissionChecklist(
         [],
-        application({ financing: { source: 'self', currency: 'EUR' } }),
+        ctxFor(application({ financing: { source: 'self', currency: 'EUR' } })),
         TEMPLATE,
         null
       )
@@ -225,7 +235,9 @@ describe('review-checklist', () => {
 
       const sponsored = buildSubmissionChecklist(
         [],
-        application({ financing: { source: 'sponsor', currency: 'EUR' } }),
+        ctxFor(
+          application({ financing: { source: 'sponsor', currency: 'EUR' } })
+        ),
         TEMPLATE,
         null
       )

@@ -192,7 +192,7 @@ export const receivedHeavy: DossierFixture = {
       RECEIVED_APPLICATION.destinationCountry,
       RECEIVED_APPLICATION.visaType
     ),
-    RECEIVED_APPLICATION
+    ctxFor(RECEIVED_APPLICATION, APPLICANT)
   ).map((code, index) =>
     doc({ code, status: index === 0 ? 'ready' : 'received' }, index)
   ),
@@ -215,7 +215,7 @@ export const manyNotApplicable: DossierFixture = {
       NA_APPLICATION.destinationCountry,
       NA_APPLICATION.visaType
     ),
-    NA_APPLICATION
+    ctxFor(NA_APPLICATION, APPLICANT)
   ).map((code, index) =>
     index % 3 === 0
       ? doc({ code, status: 'not_applicable', notes: SKIP_NOTE }, index)
@@ -243,7 +243,7 @@ export const allApplicableReady: DossierFixture = {
         READY_APPLICATION.destinationCountry,
         READY_APPLICATION.visaType
       ),
-      READY_APPLICATION
+      ctxFor(READY_APPLICATION, APPLICANT)
     ).map((code, index) => doc({ code, status: 'ready' }, index)),
     // One optional document, deliberately not started: it must never move the
     // percentage in either direction. It was `PREVIOUS_VISAS` until E5c retired
@@ -399,10 +399,10 @@ export function canonicalReadiness(fixture: DossierFixture): DocumentReadiness {
     documents: fixture.documents,
     requiredRequirementCodes: requiredRequirementCodes(
       template,
-      ctxFor(fixture.application)
+      ctxFor(fixture.application, fixture.applicant)
     ),
     template,
-    context: ctxFor(fixture.application),
+    context: ctxFor(fixture.application, fixture.applicant),
   })
 }
 

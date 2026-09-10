@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest'
+import { ctxFor } from '@/tests/support/applicability'
 import {
   buildFinanceDocuments,
   financeClipboardText,
@@ -79,7 +80,7 @@ describe('buildFinanceDocuments — finance-only, reused helpers', () => {
       { source: 'sponsor' },
       { employmentStatus: 'employed' }
     )
-    const view = buildFinanceDocuments(documents, app, template)
+    const view = buildFinanceDocuments(documents, ctxFor(app), template)
 
     const bank = view.rows.find((r) => r.code === 'BANK_STATEMENTS')
     expect(bank?.group).toBe('bank')
@@ -109,7 +110,7 @@ describe('buildFinanceDocuments — finance-only, reused helpers', () => {
       { source: 'self' },
       { employmentStatus: 'employed' }
     )
-    const view = buildFinanceDocuments([], app, template)
+    const view = buildFinanceDocuments([], ctxFor(app), template)
     expect(view.rows.some((r) => r.group === 'sponsor')).toBe(false)
     // Bank statement is always applicable.
     expect(view.rows.some((r) => r.code === 'BANK_STATEMENTS')).toBe(true)
@@ -120,7 +121,7 @@ describe('buildFinanceDocuments — finance-only, reused helpers', () => {
       { source: 'sponsor' },
       { employmentStatus: 'employed' }
     )
-    const view = buildFinanceDocuments([], app, template)
+    const view = buildFinanceDocuments([], ctxFor(app), template)
     const gatherIds = view.gather.map((g) => g.id)
     // Missing bank + income go under personal; sponsor docs under sponsor.
     expect(gatherIds).toContain('personal')
@@ -138,7 +139,7 @@ describe('financeClipboardText — names only, grouped, privacy-safe', () => {
     { source: 'sponsor' },
     { employmentStatus: 'employed' }
   )
-  const view = buildFinanceDocuments([], app, template)
+  const view = buildFinanceDocuments([], ctxFor(app), template)
 
   it('builds grouped plain text from names only, in the active locale', () => {
     const groups = view.gather.map((g) => ({

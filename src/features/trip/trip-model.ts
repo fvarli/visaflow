@@ -1,4 +1,5 @@
 import { useMemo } from 'react'
+import { buildApplicabilityContext } from '@/features/documents/applicability'
 import { differenceInCalendarDays, parseISO } from 'date-fns'
 import { useDossier } from '@/app/providers/DossierProvider'
 import { runValidation } from '@/domain/rules/runner'
@@ -133,6 +134,7 @@ export function buildTripModel(input: TripModelInput, now: Date): TripModel {
     }
     findings = runValidation({
       dossier,
+      applicability: buildApplicabilityContext({ applicant, application }),
       // The only model that had no template of its own. Validation needs one to
       // read requiredness from the pack instead of from each record's seeded
       // flag, so it is resolved here rather than inside a rule.

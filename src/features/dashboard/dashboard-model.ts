@@ -444,6 +444,7 @@ function buildApplicationModel(
   now: Date
 ): ApplicationDashboardModel {
   const { applicant, application, documents, sponsors } = input
+  const applicability = buildApplicabilityContext({ applicant, application })
   const hasData = applicant !== null || application !== null
 
   // Resolved before validation runs, because validation needs it too: two rules
@@ -459,10 +460,10 @@ function buildApplicationModel(
       ? runValidation({
           dossier: toDossier(applicant, application, documents, sponsors),
           template,
+          applicability,
         })
       : EMPTY_VALIDATION
 
-  const applicability = buildApplicabilityContext({ applicant, application })
   const readiness = buildDocumentReadiness({
     documents,
     requiredRequirementCodes: requiredRequirementCodes(template, applicability),

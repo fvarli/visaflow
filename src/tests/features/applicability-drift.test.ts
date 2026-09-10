@@ -76,6 +76,22 @@ describe('applicability — one builder, and only one', () => {
     expect(builder?.[1] ?? '').toContain('isRequirementApplicable')
   })
 
+  it('still refuses an Application at compile time', () => {
+    /**
+     * The scan above guards the evaluator's importers. This guards the other
+     * half, which is what actually shipped a defect: `Application` satisfied
+     * `ApplicabilityContext` structurally, so five validation rules passed one
+     * and silently lost nationality. The `never` fields are what stop that, and
+     * they look deletable to anyone tidying up — so their absence is a failure
+     * rather than a silent regression.
+     */
+    const types = code(SOURCES['/src/config/types.ts'] ?? '')
+    expect({
+      rejectsApplication: /applicationId\?:\s*never/.test(types),
+      rejectsWholeApplicant: /passport\?:\s*never/.test(types),
+    }).toEqual({ rejectsApplication: true, rejectsWholeApplicant: true })
+  })
+
   it('and the call still decides something', () => {
     // Guards the guard: if applicability stopped filtering anything, every
     // assertion above would hold while the capability was dead.

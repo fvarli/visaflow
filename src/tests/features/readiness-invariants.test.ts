@@ -177,7 +177,14 @@ describe('INVARIANT 3 — received has one documented semantic', () => {
     expect(r.inProgress).toBe(0)
     const actions = deriveNextActions(
       r,
-      runValidation({ dossier: toDossier(receivedHeavy)!, template: GREECE }),
+      runValidation({
+        dossier: toDossier(receivedHeavy)!,
+        template: GREECE,
+        applicability: ctxFor(
+          toDossier(receivedHeavy)!.application,
+          toDossier(receivedHeavy)!.applicant
+        ),
+      }),
       receivedHeavy.application
     )
     const missing = actions.find((a) => a.id === 'completeMissingDocs')
@@ -209,7 +216,11 @@ describe('INVARIANT 3 — received has one documented semantic', () => {
     const receivedIds = receivedHeavy.documents
       .filter((d) => d.status === 'received')
       .map((d) => d.id)
-    const findings = runValidation({ dossier, template: GREECE }).findings
+    const findings = runValidation({
+      dossier,
+      template: GREECE,
+      applicability: ctxFor(dossier.application, dossier.applicant),
+    }).findings
     for (const id of receivedIds) {
       expect(
         findings.some((f) =>
@@ -373,10 +384,10 @@ describe('INVARIANT 6 — every readiness consumer uses the same denominator', (
         documents: fixture.documents,
         requiredRequirementCodes: requiredRequirementCodes(
           template,
-          ctxFor(fixture.application)
+          ctxFor(fixture.application, fixture.applicant)
         ),
         template,
-        context: ctxFor(fixture.application),
+        context: ctxFor(fixture.application, fixture.applicant),
       })
       expect(badge.outstanding).toBe(canonical(fixture).outstanding)
     }

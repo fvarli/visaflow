@@ -98,7 +98,11 @@ describe('a bucket chip and the rows it reveals', () => {
     const readiness = canonicalReadiness(fixture)
     const labelOf = (doc: Document) => doc.code
     const requiredOf = (doc: Document) =>
-      countsTowardReadiness(doc, template, ctxFor(fixture.application))
+      countsTowardReadiness(
+        doc,
+        template,
+        ctxFor(fixture.application, fixture.applicant)
+      )
     const statusOf = (doc: Document) => effectiveStatus(doc, template)
 
     /**
@@ -111,7 +115,7 @@ describe('a bucket chip and the rows it reveals', () => {
     const present = new Set(fixture.documents.map((d) => d.code))
     const uninstantiated = requiredRequirementCodes(
       template,
-      ctxFor(fixture.application)
+      ctxFor(fixture.application, fixture.applicant)
     ).filter((code) => !present.has(code)).length
 
     for (const key of STATUS_BUCKETS) {
@@ -139,7 +143,11 @@ describe('a bucket chip and the rows it reveals', () => {
     )
     const labelOf = (doc: Document) => doc.code
     const requiredOf = (doc: Document) =>
-      countsTowardReadiness(doc, template, ctxFor(fixture.application))
+      countsTowardReadiness(
+        doc,
+        template,
+        ctxFor(fixture.application, fixture.applicant)
+      )
     const statusOf = (doc: Document) => effectiveStatus(doc, template)
     const rowsFor = (key: BucketKey) =>
       filterDocuments(

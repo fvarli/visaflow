@@ -203,11 +203,11 @@ describe('Annex III I.5(g) — the obligation the evidence work produced', () =>
        * centre's checklist describes from the other side, as three months from
        * the date of return. Both authorities agree, so the contract states it.
        *
-       * Nothing checks it. `Document.validUntil` and `trip.exitDate` both
-       * exist and `passport.validAfterTrip` already does this arithmetic, so a
-       * rule is expressible — it is simply a separate decision from the
-       * obligation, and the E0 contract judges behaviour on what it asserts,
-       * not on what it declines to enforce.
+       * H4c1c added the rule that checks it, so the contract and the engine
+       * now say the same thing. This test still pins only the *rendered*
+       * wording, which is the half that reaches an applicant who has not filled
+       * in an expiry date yet — `residence-permit-validity.test.ts` owns the
+       * behaviour.
        */
       await i18n.changeLanguage(locale)
       const td = dynamicT(i18n.t.bind(i18n))

@@ -385,8 +385,35 @@ export interface CitationRefinement {
 export interface ApplicabilityContext {
   employment?: { employmentStatus?: EmploymentStatus }
   financing?: { source?: FinancingSource }
-  /** Nationality only. Nothing else about the applicant is exposed. */
-  applicant?: { nationality?: CountryCode }
+  /**
+   * Nationality only. Nothing else about the applicant is exposed.
+   *
+   * The `never`s are the boundary, not decoration. Without them a whole
+   * `Applicant` is assignable here — a reference, so the excess-property check
+   * never fires — and a pack could then author
+   * `conditionalOn: 'applicant.passport.number'` and have it resolve, because
+   * the evaluator walks whatever object it is handed. Naming two of the fields
+   * that must not arrive is what makes "nationality only" a fact rather than an
+   * intention.
+   */
+  applicant?: { nationality?: CountryCode; id?: never; passport?: never }
+  applicationId?: never
+  /**
+   * This is not an `Application`, and the type now says so.
+   *
+   * H4c1 gave the context a name but not an identity: `Application` carries
+   * optional `employment` and `financing` too, so it satisfied this interface
+   * structurally and could be passed anywhere a context was expected. It
+   * resolved those two fields and silently dropped nationality. Five production
+   * call sites in the validation rules did exactly that, and the defect shipped
+   * — every rules fixture is Turkish, so a green suite proved nothing.
+   *
+   * `applicationId` is a required `string` on `Application`, so declaring it
+   * `never` here is an ordinary assignability failure rather than an
+   * excess-property check: it fires on variables and member expressions, which
+   * is precisely what the excess-property check could not do. It costs nothing
+   * at runtime and the builder never sets it.
+   */
 }
 
 /**

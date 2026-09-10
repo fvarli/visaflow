@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest'
+import { ctxFor } from '@/tests/support/applicability'
 import type { Applicant } from '@/domain/schemas/applicant.schema'
 import {
   applicableRequirements,
@@ -36,9 +37,10 @@ function applicationWith(employmentStatus: EmploymentStatus): Application {
 }
 
 const codesFor = (employmentStatus: EmploymentStatus) =>
-  applicableRequirements(template, applicationWith(employmentStatus)).map(
-    (r) => r.code
-  )
+  applicableRequirements(
+    template,
+    ctxFor(applicationWith(employmentStatus))
+  ).map((r) => r.code)
 
 /**
  * Documents the harmonised list files under "Company owners".
@@ -81,7 +83,7 @@ describe('company-owner documents follow the applicant, not the employer', () =>
 describe('SGK documents are required of employed applicants', () => {
   it('counts toward what an employed applicant still owes', () => {
     expect(
-      requiredRequirementCodes(template, applicationWith('employed'))
+      requiredRequirementCodes(template, ctxFor(applicationWith('employed')))
     ).toContain('SOCIAL_SECURITY')
   })
 
@@ -90,7 +92,7 @@ describe('SGK documents are required of employed applicants', () => {
     // asked for an employment-entry statement at all.
     expect(codesFor('retired')).not.toContain('SOCIAL_SECURITY')
     expect(
-      requiredRequirementCodes(template, applicationWith('retired'))
+      requiredRequirementCodes(template, ctxFor(applicationWith('retired')))
     ).not.toContain('SOCIAL_SECURITY')
   })
 })
@@ -108,7 +110,7 @@ describe('the civil registry extract is asked of everyone', () => {
     ] as EmploymentStatus[]) {
       expect(codesFor(status)).toContain('CIVIL_REGISTRY_EXTRACT')
       expect(
-        requiredRequirementCodes(template, applicationWith(status))
+        requiredRequirementCodes(template, ctxFor(applicationWith(status)))
       ).toContain('CIVIL_REGISTRY_EXTRACT')
     }
   })
@@ -118,7 +120,7 @@ describe('the civil registry extract is asked of everyone', () => {
     // required code counts as not-started, so every dossier gains this item.
     const required = requiredRequirementCodes(
       template,
-      applicationWith('employed')
+      ctxFor(applicationWith('employed'))
     )
     expect(required.filter((c) => c === 'CIVIL_REGISTRY_EXTRACT')).toHaveLength(
       1

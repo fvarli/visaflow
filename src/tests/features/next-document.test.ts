@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest'
+import { ctxFor } from '@/tests/support/applicability'
 import {
   deriveNextDocument,
   buildDocumentsModel,
@@ -166,7 +167,12 @@ describe('deriveNextDocument — superseded completion claims', () => {
   })
 
   it('recommends re-checking a superseded claim', () => {
-    const next = deriveNextDocument([passport(1)], [], template, employed)
+    const next = deriveNextDocument(
+      [passport(1)],
+      [],
+      template,
+      ctxFor(employed)
+    )
     expect(next?.code).toBe('PASSPORT_CURRENT')
     // Deliberately not `update`: the document may be perfectly valid and need
     // only re-confirming, so "update or replace it" would be wrong advice.
@@ -176,13 +182,17 @@ describe('deriveNextDocument — superseded completion claims', () => {
   })
 
   it('does not recommend a claim made against the current definition', () => {
-    expect(deriveNextDocument([passport(2)], [], template, employed)).toBeNull()
+    expect(
+      deriveNextDocument([passport(2)], [], template, ctxFor(employed))
+    ).toBeNull()
   })
 
   it('does not recommend a claim that predates provenance', () => {
     // Unrecorded, not superseded — absence of a stamp is not evidence, so
     // existing users keep their green tick (ADR-051).
-    expect(deriveNextDocument([passport()], [], template, employed)).toBeNull()
+    expect(
+      deriveNextDocument([passport()], [], template, ctxFor(employed))
+    ).toBeNull()
   })
 
   it("ranks the applicant's own needs_update ahead of one we inferred", () => {
@@ -190,7 +200,7 @@ describe('deriveNextDocument — superseded completion claims', () => {
       [passport(1), { ...doc('needs_update', 'PHOTOS'), category: 'identity' }],
       [],
       template,
-      employed
+      ctxFor(employed)
     )
     expect(next?.code).toBe('PHOTOS')
     expect(next?.action).toBe('update')
@@ -203,7 +213,7 @@ describe('deriveNextDocument — superseded completion claims', () => {
       const stale = { ...passport(1), code, id: `d-${code}` }
       expect({
         code,
-        next: deriveNextDocument([stale], [], template, employed),
+        next: deriveNextDocument([stale], [], template, ctxFor(employed)),
       }).toEqual({ code, next: null })
     }
   })

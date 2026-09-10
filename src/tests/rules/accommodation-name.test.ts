@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest'
+import { ctxFor } from '@/tests/support/applicability'
 import { runValidation, getValidationSummary } from '@/domain/rules/runner'
 import { buildValidationModel } from '@/features/validation/validation-model'
 import { buildDashboardModel } from '@/features/dashboard/dashboard-model'
@@ -147,8 +148,16 @@ function dashboardOf(dossier: Dossier) {
 }
 
 describe('a guest name that is not the applicant changes nothing normative', () => {
-  const a = runValidation({ dossier: mismatched, template: GREECE })
-  const b = runValidation({ dossier: matched, template: GREECE })
+  const a = runValidation({
+    dossier: mismatched,
+    template: GREECE,
+    applicability: ctxFor(mismatched.application, mismatched.applicant),
+  })
+  const b = runValidation({
+    dossier: matched,
+    template: GREECE,
+    applicability: ctxFor(matched.application, matched.applicant),
+  })
 
   it('raises no finding of its own', () => {
     // The rule is gone, so the mismatch produces nothing. Stated as a set
@@ -167,12 +176,20 @@ describe('a guest name that is not the applicant changes nothing normative', () 
       errors: a.errorCount,
       warnings: a.warningCount,
       info: a.infoCount,
-      summary: getValidationSummary({ dossier: mismatched, template: GREECE }),
+      summary: getValidationSummary({
+        dossier: mismatched,
+        template: GREECE,
+        applicability: ctxFor(mismatched.application, mismatched.applicant),
+      }),
     }).toEqual({
       errors: b.errorCount,
       warnings: b.warningCount,
       info: b.infoCount,
-      summary: getValidationSummary({ dossier: matched, template: GREECE }),
+      summary: getValidationSummary({
+        dossier: matched,
+        template: GREECE,
+        applicability: ctxFor(matched.application, matched.applicant),
+      }),
     })
   })
 

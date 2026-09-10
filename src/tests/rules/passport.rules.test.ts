@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest'
+import { ctxFor } from '@/tests/support/applicability'
 import { passportValidAfterTrip } from '@/domain/rules/passport.rules'
 import type { Dossier } from '@/domain/schemas/dossier.schema'
 
@@ -55,7 +56,26 @@ describe('passportValidAfterTrip', () => {
     // Trip ends June 10, passport expires Oct 1 (more than 3 months after)
     const dossier = createTestDossier('2025-10-01', '2025-06-10')
 
-    const findings = passportValidAfterTrip({ dossier, template: undefined })
+    const findings = passportValidAfterTrip({
+      dossier,
+      template: undefined,
+      applicability: ctxFor(dossier.application, dossier.applicant),
+    })
+    expect(findings).toHaveLength(0)
+  })
+
+  it('accepts a passport valid exactly 3 months after the trip', () => {
+    // The convention has been in the code since this rule was written and
+    // nothing defended it: `isBefore` is strict, so the boundary date itself
+    // passes. H4c1c pinned the same boundary for the residence permit and it
+    // would be odd to leave the original unguarded.
+    const dossier = createTestDossier('2025-09-10', '2025-06-10')
+
+    const findings = passportValidAfterTrip({
+      dossier,
+      template: undefined,
+      applicability: ctxFor(dossier.application, dossier.applicant),
+    })
     expect(findings).toHaveLength(0)
   })
 
@@ -63,7 +83,11 @@ describe('passportValidAfterTrip', () => {
     // Trip ends June 10, passport expires Aug 1 (less than 3 months after)
     const dossier = createTestDossier('2025-08-01', '2025-06-10')
 
-    const findings = passportValidAfterTrip({ dossier, template: undefined })
+    const findings = passportValidAfterTrip({
+      dossier,
+      template: undefined,
+      applicability: ctxFor(dossier.application, dossier.applicant),
+    })
     expect(findings).toHaveLength(1)
     expect(findings[0]?.severity).toBe('error')
     expect(findings[0]?.id).toBe('passport-validity-insufficient')
@@ -73,7 +97,11 @@ describe('passportValidAfterTrip', () => {
     // Trip ends June 10, passport expires June 5 (during trip)
     const dossier = createTestDossier('2025-06-05', '2025-06-10')
 
-    const findings = passportValidAfterTrip({ dossier, template: undefined })
+    const findings = passportValidAfterTrip({
+      dossier,
+      template: undefined,
+      applicability: ctxFor(dossier.application, dossier.applicant),
+    })
     expect(findings).toHaveLength(1)
     expect(findings[0]?.severity).toBe('error')
   })
@@ -115,7 +143,11 @@ describe('passportValidAfterTrip', () => {
       sponsors: [],
     }
 
-    const findings = passportValidAfterTrip({ dossier, template: undefined })
+    const findings = passportValidAfterTrip({
+      dossier,
+      template: undefined,
+      applicability: ctxFor(dossier.application, dossier.applicant),
+    })
     expect(findings).toHaveLength(0)
   })
 })

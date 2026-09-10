@@ -1,8 +1,9 @@
-import { parseISO, isBefore } from 'date-fns'
+import { parseISO, addMonths, isBefore } from 'date-fns'
 import {
   countsTowardReadiness,
   effectiveStatus,
 } from '@/features/documents/document-semantics'
+import { isApplicable } from '@/features/documents/applicability'
 import { requiredRequirementCodes } from '@/features/readiness/requirement-readiness'
 import {
   groupedCodes,
@@ -14,12 +15,16 @@ import type {
   ValidationRule,
 } from './types'
 
+/** Annex III I.5(g). Named once so the rule and its tests cannot drift. */
+const RESIDENCE_PERMIT = 'FILING_COUNTRY_RESIDENCE_PERMIT'
+
 /**
  * Rule 9: Required documents cannot be marked not_applicable without a note
  */
 export const requiredDocumentsNotSkipped: ValidationRule = ({
   dossier,
   template,
+  applicability,
 }: ValidationContext): ValidationFinding[] => {
   const findings: ValidationFinding[] = []
   const grouped = groupedCodes(template)
@@ -52,7 +57,7 @@ export const requiredDocumentsNotSkipped: ValidationRule = ({
      * work at all.
      */
     if (
-      countsTowardReadiness(doc, template, dossier.application) &&
+      countsTowardReadiness(doc, template, applicability) &&
       doc.status === 'not_applicable' &&
       !doc.notes
     ) {
@@ -121,6 +126,7 @@ export const documentsNotExpiredBeforeAppointment: ValidationRule = ({
 export const missingRequiredDocuments: ValidationRule = ({
   dossier,
   template,
+  applicability,
 }: ValidationContext): ValidationFinding[] => {
   const findings: ValidationFinding[] = []
 
@@ -145,12 +151,12 @@ export const missingRequiredDocuments: ValidationRule = ({
   const notStartedRecords = dossier.documents.filter(
     (doc) =>
       !grouped.has(doc.code) &&
-      countsTowardReadiness(doc, template, dossier.application) &&
+      countsTowardReadiness(doc, template, applicability) &&
       doc.status === 'not_started'
   )
   const uninstantiated = requiredRequirementCodes(
     template,
-    dossier.application
+    applicability
   ).filter((code) => !grouped.has(code) && !present.has(code))
 
   const outstanding = [
@@ -197,16 +203,11 @@ export const missingRequiredDocuments: ValidationRule = ({
 export const missingRequiredObligations: ValidationRule = ({
   dossier,
   template,
+  applicability,
 }: ValidationContext): ValidationFinding[] => {
-  const slots = resolveGroupSlots(
-    template,
-    dossier.documents,
-    dossier.application
-  )
+  const slots = resolveGroupSlots(template, dossier.documents, applicability)
   const present = new Set(dossier.documents.map((doc) => doc.code))
-  const required = new Set(
-    requiredRequirementCodes(template, dossier.application)
-  )
+  const required = new Set(requiredRequirementCodes(template, applicability))
 
   return (
     slots
@@ -272,6 +273,76 @@ export const documentsNeedingUpdate: ValidationRule = ({
   return []
 }
 
+/**
+ * Rule 14: a residence permit must outlast the trip by three months.
+ *
+ * Annex III I.5(g) asks a non-Turkish national for proof of residence in
+ * Türkiye "valid three months beyond the intended date of departure from the
+ * territory of the Member States", and the Greek visa centre's checklist states
+ * the same bar from the other side — three months from the date of return.
+ * H4c1b rendered that criterion and deliberately left it unchecked, because the
+ * obligation and its enforcement are two decisions and one commit answering
+ * both is how the second stops getting argued. This is the second decision.
+ *
+ * WHERE IT STAYS SILENT, AND WHY EACH SILENCE IS DELIBERATE.
+ *
+ *  - **No record at all.** `missingRequiredDocuments` already reports a
+ *    required requirement with no document, so keying off an existing record
+ *    means there is nothing here to say twice.
+ *  - **No `validUntil`.** The house convention, set by the rule above: an
+ *    unknown expiry is never a finding in either direction. Guessing "probably
+ *    fine" and guessing "probably expired" are both inventions, and the
+ *    applicant has not told us which.
+ *  - **Already `not_applicable` or `needs_update`.** The applicant has
+ *    acknowledged the state; repeating it back is noise.
+ *  - **A Turkish national.** The requirement does not apply to them, and that
+ *    judgement belongs to the pack's own condition rather than to a nationality
+ *    check written a second time in here.
+ */
+export const residencePermitOutlastsTrip: ValidationRule = ({
+  dossier,
+  template,
+  applicability,
+}: ValidationContext): ValidationFinding[] => {
+  const exitDate = dossier.application.trip?.exitDate
+  if (!template || !exitDate) return []
+
+  const requirement = template.documentRequirements.find(
+    (r) => r.code === RESIDENCE_PERMIT
+  )
+  if (!requirement || !isApplicable(requirement, applicability)) return []
+
+  const requiredValidity = addMonths(parseISO(exitDate), 3)
+
+  return dossier.documents
+    .filter(
+      (doc) =>
+        doc.code === RESIDENCE_PERMIT &&
+        doc.validUntil &&
+        doc.status !== 'not_applicable' &&
+        doc.status !== 'needs_update'
+    )
+    .filter((doc) => isBefore(parseISO(doc.validUntil!), requiredValidity))
+    .map((doc) => ({
+      id: `residence-permit-expires-too-soon-${doc.id}`,
+      ruleId: 'document.residencePermitValidity',
+      /**
+       * An error, on the same reading as the passport rule it mirrors: two
+       * facts already in the dossier contradict a stated bar and the arithmetic
+       * settles it. Its one substantive effect is that a fully collected
+       * dossier reads "preparing" rather than "ready for your appointment"
+       * until the permit is renewed, which is honest for a document that would
+       * be refused at the counter.
+       */
+      severity: 'error' as const,
+      messageKey: 'findings.residencePermitValidityInsufficient',
+      messageParams: {
+        dates: { validUntil: doc.validUntil!, tripEnd: exitDate },
+      },
+      relatedFields: [`documents.${doc.id}.validUntil`, 'trip.exitDate'],
+    }))
+}
+
 // Export all document rules
 export const documentRules: ValidationRule[] = [
   requiredDocumentsNotSkipped,
@@ -279,4 +350,5 @@ export const documentRules: ValidationRule[] = [
   missingRequiredDocuments,
   missingRequiredObligations,
   documentsNeedingUpdate,
+  residencePermitOutlastsTrip,
 ]

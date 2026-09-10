@@ -185,6 +185,11 @@
       "description": "Insurance coverage of {{amount}} may be below the Schengen minimum of {{minimum}}.",
       "action": "Verify your insurance meets the minimum coverage requirement."
     },
+    "residencePermitValidityInsufficient": {
+      "title": "Residence permit expires too soon",
+      "description": "Your Türkiye residence permit is valid until {{validUntil}}, but must remain valid for at least 3 months after you return ({{tripEnd}}).",
+      "action": "Renew your residence permit, or move the trip earlier, before applying."
+    },
     "passportValidityInsufficient": {
       "title": "Passport validity insufficient",
       "description": "Passport expires on {{expiryDate}}, but must be valid for at least 3 months after the trip ends ({{tripEnd}}).",

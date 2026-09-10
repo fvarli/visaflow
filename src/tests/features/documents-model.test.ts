@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest'
+import { ctxFor } from '@/tests/support/applicability'
 import {
   groupByCategory,
   deriveNextDocument,
@@ -242,7 +243,7 @@ describe('template sync', () => {
 
   it('adds missing applicable requirements and flags — never deletes — the rest', () => {
     const docs = [doc({ id: 'a', code: 'A' }), doc({ id: 'b', code: 'B' })]
-    const plan = planTemplateSync(docs, application, template)
+    const plan = planTemplateSync(docs, ctxFor(application), template)
     // C is applicable and missing → add; B is a template code no longer
     // applicable (not employed) → flagged, not deleted.
     expect(plan.toAdd.map((r) => r.code)).toEqual(['C'])

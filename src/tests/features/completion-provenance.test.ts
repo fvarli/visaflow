@@ -191,7 +191,10 @@ describe('what a superseded claim does to canonical readiness', () => {
   const readinessOf = (documents: Document[], pack: VisaTypeTemplate) =>
     buildDocumentReadiness({
       documents,
-      requiredRequirementCodes: requiredRequirementCodes(pack, employed),
+      requiredRequirementCodes: requiredRequirementCodes(
+        pack,
+        ctxFor(employed)
+      ),
       template: pack,
       context: ctxFor(employed),
     })
@@ -240,7 +243,7 @@ describe('every surface that shows a completion agrees about it', () => {
     const stale = doc({ status: 'ready', satisfiedRevision: 1 })
     const { rows } = buildSubmissionChecklist(
       [stale],
-      employed,
+      ctxFor(employed),
       packV2,
       '2099-04-01'
     )
@@ -255,7 +258,7 @@ describe('every surface that shows a completion agrees about it', () => {
     const legacy = doc({ status: 'ready' })
     const { rows } = buildSubmissionChecklist(
       [legacy],
-      employed,
+      ctxFor(employed),
       packV2,
       '2099-04-01'
     )
@@ -278,7 +281,10 @@ describe('a claim from before provenance existed', () => {
   it('keeps counting as ready', () => {
     const readiness = buildDocumentReadiness({
       documents: [legacy],
-      requiredRequirementCodes: requiredRequirementCodes(packV2, employed),
+      requiredRequirementCodes: requiredRequirementCodes(
+        packV2,
+        ctxFor(employed)
+      ),
       template: packV2,
       context: ctxFor(employed),
     })

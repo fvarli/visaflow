@@ -106,7 +106,10 @@ describe('a category owes obligations, not requirements', () => {
   ) =>
     resolveObligations({
       documents,
-      requiredRequirementCodes: requiredRequirementCodes(template, application),
+      requiredRequirementCodes: requiredRequirementCodes(
+        template,
+        ctxFor(application)
+      ),
       template,
       context: ctxFor(application),
     }).filter((o) => o.category === category)
@@ -196,7 +199,7 @@ describe('a category owes obligations, not requirements', () => {
     // The property that stops a third counting implementation appearing: every
     // obligation the ring counts is one the categories can account for.
     const docs = GR_EMPLOYMENT.map((c) => doc(c))
-    const codes = requiredRequirementCodes(GREECE, employed)
+    const codes = requiredRequirementCodes(GREECE, ctxFor(employed))
     const obligations = resolveObligations({
       documents: docs,
       requiredRequirementCodes: codes,

@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest'
+import { ctxFor } from '@/tests/support/applicability'
 import { buildTimelineModel } from '@/features/timeline/timeline-model'
 import { buildDocumentReadiness } from '@/features/readiness/document-readiness'
 import { requiredRequirementCodes } from '@/features/readiness/requirement-readiness'
@@ -85,10 +86,14 @@ describe('buildTimelineModel — Dashboard priority compatibility', () => {
         documents: DOCUMENTS,
         requiredRequirementCodes: requiredRequirementCodes(
           resolveVisaTemplate(app.destinationCountry, app.visaType),
-          app
+          ctxFor(app)
         ),
       }),
-      runValidation({ dossier, template: GREECE }),
+      runValidation({
+        dossier,
+        template: GREECE,
+        applicability: ctxFor(dossier.application, dossier.applicant),
+      }),
       app
     )[0]
     expect(model.primaryAction).toEqual(expected)

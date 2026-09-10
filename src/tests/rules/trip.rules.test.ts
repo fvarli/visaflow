@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest'
+import { ctxFor } from '@/tests/support/applicability'
 import {
   tripDatesValid,
   appointmentBeforeTrip,
@@ -74,7 +75,11 @@ describe('tripDatesValid', () => {
       },
     })
 
-    const findings = tripDatesValid({ dossier, template: undefined })
+    const findings = tripDatesValid({
+      dossier,
+      template: undefined,
+      applicability: ctxFor(dossier.application, dossier.applicant),
+    })
     expect(findings).toHaveLength(0)
   })
 
@@ -103,7 +108,11 @@ describe('tripDatesValid', () => {
       },
     })
 
-    const findings = tripDatesValid({ dossier, template: undefined })
+    const findings = tripDatesValid({
+      dossier,
+      template: undefined,
+      applicability: ctxFor(dossier.application, dossier.applicant),
+    })
     expect(findings).toHaveLength(1)
     expect(findings[0]?.severity).toBe('error')
     expect(findings[0]?.id).toBe('trip-dates-invalid')
@@ -111,7 +120,11 @@ describe('tripDatesValid', () => {
 
   it('returns no findings when trip dates are missing', () => {
     const dossier = createTestDossier()
-    const findings = tripDatesValid({ dossier, template: undefined })
+    const findings = tripDatesValid({
+      dossier,
+      template: undefined,
+      applicability: ctxFor(dossier.application, dossier.applicant),
+    })
     expect(findings).toHaveLength(0)
   })
 })
@@ -145,7 +158,11 @@ describe('appointmentBeforeTrip', () => {
       },
     })
 
-    const findings = appointmentBeforeTrip({ dossier, template: undefined })
+    const findings = appointmentBeforeTrip({
+      dossier,
+      template: undefined,
+      applicability: ctxFor(dossier.application, dossier.applicant),
+    })
     expect(findings).toHaveLength(0)
   })
 
@@ -177,7 +194,11 @@ describe('appointmentBeforeTrip', () => {
       },
     })
 
-    const findings = appointmentBeforeTrip({ dossier, template: undefined })
+    const findings = appointmentBeforeTrip({
+      dossier,
+      template: undefined,
+      applicability: ctxFor(dossier.application, dossier.applicant),
+    })
     expect(findings).toHaveLength(1)
     expect(findings[0]?.severity).toBe('error')
     expect(findings[0]?.id).toBe('appointment-after-trip')
@@ -211,7 +232,11 @@ describe('tripNotInPast', () => {
       },
     })
 
-    const findings = tripNotInPast({ dossier, template: undefined })
+    const findings = tripNotInPast({
+      dossier,
+      template: undefined,
+      applicability: ctxFor(dossier.application, dossier.applicant),
+    })
     expect(findings).toHaveLength(0)
   })
 
@@ -240,7 +265,11 @@ describe('tripNotInPast', () => {
       },
     })
 
-    const findings = tripNotInPast({ dossier, template: undefined })
+    const findings = tripNotInPast({
+      dossier,
+      template: undefined,
+      applicability: ctxFor(dossier.application, dossier.applicant),
+    })
     expect(findings).toHaveLength(1)
     expect(findings[0]?.severity).toBe('error')
     expect(findings[0]?.id).toBe('trip-in-past')
@@ -288,7 +317,11 @@ describe('routeNightsMatchTotal', () => {
       },
     })
 
-    const findings = routeNightsMatchTotal({ dossier, template: undefined })
+    const findings = routeNightsMatchTotal({
+      dossier,
+      template: undefined,
+      applicability: ctxFor(dossier.application, dossier.applicant),
+    })
     expect(findings).toHaveLength(0)
   })
 
@@ -325,7 +358,11 @@ describe('routeNightsMatchTotal', () => {
       },
     })
 
-    const findings = routeNightsMatchTotal({ dossier, template: undefined })
+    const findings = routeNightsMatchTotal({
+      dossier,
+      template: undefined,
+      applicability: ctxFor(dossier.application, dossier.applicant),
+    })
     expect(findings).toHaveLength(1)
     expect(findings[0]?.severity).toBe('warning')
     expect(findings[0]?.id).toBe('route-nights-mismatch')

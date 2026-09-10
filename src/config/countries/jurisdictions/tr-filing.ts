@@ -339,13 +339,13 @@ const trFilingDocuments: DocumentRequirement[] = [
      * residence in the country the application is *filed* in. It derives
      * nothing — filing jurisdiction remains config-declared (ADR-052a).
      *
-     * THE THREE-MONTH BAR IS RENDERED, NOT ENFORCED, AND THAT IS DELIBERATE.
-     * `Document.validUntil` and `trip.exitDate` both exist, and
-     * `passport.validAfterTrip` already performs this exact arithmetic for the
-     * passport — so a rule is expressible and is filed as its own decision
-     * rather than smuggled in beside the obligation. Until one exists the
-     * criterion lives where an applicant reads it, which is the same place the
-     * blank-pages rule ended up for the same reason.
+     * THE THREE-MONTH BAR IS BOTH RENDERED AND ENFORCED, AS OF H4c1c.
+     * It was rendered alone at first, deliberately: the obligation and its
+     * enforcement are two decisions, and one commit answering both is how the
+     * second stops getting argued. `document.residencePermitValidity` now
+     * checks the recorded `validUntil` against `trip.exitDate` plus three
+     * months, mirroring `passport.validAfterTrip`. An unrecorded expiry is
+     * still no finding in either direction — the applicant has not said.
      */
     code: 'FILING_COUNTRY_RESIDENCE_PERMIT',
     nameKey: 'visa-domain:requirements.FILING_COUNTRY_RESIDENCE_PERMIT.name',

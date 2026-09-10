@@ -185,6 +185,11 @@
       "description": "{{amount}} tutarındaki sigorta teminatı, {{minimum}} olan Schengen alt sınırının altında kalabilir.",
       "action": "Sigortanızın asgari teminat şartını karşıladığını doğrulayın."
     },
+    "residencePermitValidityInsufficient": {
+      "title": "Oturum izni çok erken doluyor",
+      "description": "Türkiye oturum izniniz {{validUntil}} tarihine kadar geçerli; dönüş tarihinizden ({{tripEnd}}) sonra en az 3 ay daha geçerli olmalıdır.",
+      "action": "Başvurudan önce oturum izninizi yenileyin veya seyahatinizi öne alın."
+    },
     "passportValidityInsufficient": {
       "title": "Pasaport geçerlilik süresi yetersiz",
       "description": "Pasaportunuzun geçerliliği {{expiryDate}} tarihinde doluyor; seyahat bitiminden ({{tripEnd}}) sonra en az 3 ay geçerli olmalıdır.",
