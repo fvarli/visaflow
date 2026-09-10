@@ -341,7 +341,14 @@ describe('version axes', () => {
     // `satisfiedRevision`, and the reason is sharper: the number alone cannot
     // say *which* acceptance contract a claim was made against once a mission
     // layer can attach its own criteria to a shared requirement.
-    expect(SCHEMA_VERSION).toBe('1.3.0')
+    //
+    // What this file asserts is that 1.3.0 stays *readable*, not that it is
+    // still the version being written. Pinning `SCHEMA_VERSION` here made a
+    // slice's own test fail on the next bump for a reason unrelated to the
+    // slice; which version this build writes is `schema-compat.test.ts`'s
+    // contract to hold.
+    expect(SUPPORTED_SCHEMA_VERSIONS).toContain('1.3.0')
+    expect(SCHEMA_VERSION >= '1.3.0').toBe(true)
     expect(SUPPORTED_SCHEMA_VERSIONS).toContain('1.0.0')
     expect(SUPPORTED_SCHEMA_VERSIONS).toContain('1.1.0')
     expect(SUPPORTED_SCHEMA_VERSIONS).toContain('1.2.0')

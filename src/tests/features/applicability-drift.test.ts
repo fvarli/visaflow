@@ -92,6 +92,43 @@ describe('applicability — one builder, and only one', () => {
     }).toEqual({ rejectsApplication: true, rejectsWholeApplicant: true })
   })
 
+  it('no production code outside the owners touches the raw occupation code', () => {
+    /**
+     * The second half of the same guard, for the second capability.
+     *
+     * `occupationCode` is an open string that may hold a value this build does
+     * not understand, and exactly one function is allowed to decide what it
+     * means. A feature that read the raw field would be deciding applicability
+     * for itself again — and worse than the 2026 drift it would be deciding it
+     * on an unvalidated string, so a code from a newer build could reach a
+     * comparison that was never written for it.
+     *
+     * Three files may name it: the schema that declares it, the module that
+     * resolves it, and the step that edits it. Everything else asks the
+     * resolver, or asks the context.
+     */
+    const OWNERS = [
+      '/src/domain/schemas/employment.schema.ts',
+      '/src/features/documents/applicability.ts',
+      '/src/components/employment/StatusStep.tsx',
+      '/src/components/employment/OccupationSelector.tsx',
+    ]
+    const offenders = Object.entries(SOURCES)
+      .filter(([path]) => !isTest(path) && !OWNERS.includes(path))
+      .filter(([, contents]) => code(contents).includes('occupationCode'))
+      .map(([path]) => path)
+
+    expect(offenders).toEqual([])
+  })
+
+  it('and the owners do name it, so that scan is not passing on an absence', () => {
+    const named = Object.entries(SOURCES)
+      .filter(([, contents]) => code(contents).includes('occupationCode'))
+      .map(([path]) => path)
+      .sort()
+    expect(named.length).toBeGreaterThanOrEqual(3)
+  })
+
   it('and the call still decides something', () => {
     // Guards the guard: if applicability stopped filtering anything, every
     // assertion above would hold while the capability was dead.

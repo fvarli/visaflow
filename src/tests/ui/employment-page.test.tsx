@@ -33,6 +33,22 @@ const RETIRED_SEED: Dossier = {
     : SEED.application,
 }
 
+/** A dossier carrying a specific status/occupation pair. */
+const seedWith = (employmentStatus: string, occupationCode?: string): Dossier =>
+  ({
+    ...SEED,
+    application: SEED.application
+      ? {
+          ...SEED.application,
+          employment: {
+            employmentStatus,
+            currency: 'EUR',
+            ...(occupationCode === undefined ? {} : { occupationCode }),
+          },
+        }
+      : SEED.application,
+  }) as Dossier
+
 function Seed({
   data,
   children,
@@ -156,6 +172,79 @@ describe('Employment — HR request copy', () => {
     expect(copied).not.toContain('Tech Solutions')
     expect(
       await screen.findByText(i18n.t('employment:documents.hr.copied'))
+    ).toBeInTheDocument()
+  })
+})
+
+/**
+ * The occupational question, in the UI.
+ *
+ * The reverted first attempt shipped this control with **no** component test at
+ * all, and the defect it carried was purely a UI-state defect. So the cases
+ * below are the ones that were missed: what the control shows for a value it
+ * does not recognise, and what a status change does to a value that is no
+ * longer legal.
+ */
+describe('Employment — the occupational question', () => {
+  it('is asked only for statuses that have occupational branches', async () => {
+    await i18n.changeLanguage('en')
+    const { unmount } = renderPage(seedWith('employed'))
+    expect(
+      await screen.findByText(i18n.t('employment:occupation.label'))
+    ).toBeInTheDocument()
+    unmount()
+
+    // A pensioner is already the branch the checklists publish, so there is no
+    // finer question to put to them.
+    renderPage(seedWith('retired'))
+    expect(screen.queryByText(i18n.t('employment:occupation.label'))).toBeNull()
+  })
+
+  /**
+   * WHAT IS NOT TESTED HERE, AND WHY. Opening the option list needs the pointer
+   * APIs Radix uses and jsdom does not implement — no test in this repository
+   * opens a `Select`, which is also why the reverted attempt's selector had no
+   * coverage at all. The option list and both status transitions are covered
+   * instead by `occupationAfterStatusChange` as a pure rule, and by browser QA
+   * against real Chrome. What remains here is everything the rendered control
+   * can honestly be asked in jsdom.
+   */
+
+  it('shows a known compatible code as the selected answer', async () => {
+    await i18n.changeLanguage('en')
+    renderPage(seedWith('self_employed', 'farmer'))
+    expect(
+      await screen.findByText(i18n.t('visa-domain:occupationCode.farmer'))
+    ).toBeInTheDocument()
+  })
+
+  it('shows an unrecognised code truthfully, not as an empty selector', async () => {
+    /**
+     * The case the reverted attempt would have failed. A controlled Radix
+     * `Select` renders its placeholder when the value matches no item, so a
+     * code written by a newer build would look exactly like an unanswered
+     * question while sitting in the file and re-exporting intact. The selector
+     * gives it an item of its own instead.
+     */
+    await i18n.changeLanguage('en')
+    renderPage(seedWith('self_employed', 'future_category_2027'))
+
+    expect(await screen.findByText(/future_category_2027/)).toBeInTheDocument()
+    expect(
+      screen.queryByText(i18n.t('employment:occupation.placeholder'))
+    ).toBeNull()
+  })
+
+  it('does not require an answer for the step to count as done', async () => {
+    // An optional field that flipped existing dossiers from complete to
+    // upcoming on load would be a regression dressed as a feature.
+    await i18n.changeLanguage('en')
+    renderPage(seedWith('employed'))
+    expect(
+      await screen.findByText(i18n.t('employment:occupation.label'))
+    ).toBeInTheDocument()
+    expect(
+      screen.queryByText(i18n.t('employment:occupation.placeholder'))
     ).toBeInTheDocument()
   })
 })

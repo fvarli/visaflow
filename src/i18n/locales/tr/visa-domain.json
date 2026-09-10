@@ -68,6 +68,13 @@
     "homemaker": "Ev hanımı veya ev erkeği",
     "other": "Diğer"
   },
+  "occupationCode": {
+    "employee": "Şirket çalışanı",
+    "public_servant": "Kamu çalışanı (memur)",
+    "company_owner": "Şirket sahibi",
+    "independent_professional": "Serbest meslek sahibi",
+    "farmer": "Çiftçi"
+  },
   "maritalStatus": {
     "single": "Bekâr",
     "married": "Evli",

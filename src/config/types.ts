@@ -3,6 +3,7 @@ import type {
   DocumentCategory,
   EmploymentStatus,
   FinancingSource,
+  KnownOccupationCode,
   OwnerType,
   VisaType,
 } from '@/domain/types/common'
@@ -383,7 +384,26 @@ export interface CitationRefinement {
  * the failure that let three call sites drift apart before H4c1.
  */
 export interface ApplicabilityContext {
-  employment?: { employmentStatus?: EmploymentStatus }
+  /**
+   * Two fields, one axis apart, and the second one is already resolved.
+   *
+   * `employmentStatus` is the coarse state. `occupation` is the **effective**
+   * occupational code — known to this build *and* legal for that status — as
+   * produced by the resolver in `features/documents/applicability.ts`. The raw
+   * persisted string never arrives here: a code this build does not recognise,
+   * or one that contradicts the status, is inert by being absent rather than by
+   * being special-cased downstream (ADR-053).
+   *
+   * Widening this type took an argument, as the comment above requires. The
+   * argument is that consular checklists branch on occupation — an institution
+   * letter and card for a public servant, no company-document block, neither
+   * for a farmer — and that Annex III names Farmers and Company owners as
+   * categories of their own.
+   */
+  employment?: {
+    employmentStatus?: EmploymentStatus
+    occupation?: KnownOccupationCode
+  }
   financing?: { source?: FinancingSource }
   /**
    * Nationality only. Nothing else about the applicant is exposed.

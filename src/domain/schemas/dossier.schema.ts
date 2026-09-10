@@ -12,7 +12,15 @@ import { SponsorSchema } from './sponsor.schema'
  * `document.satisfiedRevision` — how far the requirement had tightened when a
  * completion claim was made. 1.3.0 adds `document.satisfiedContract`, which
  * says *which* definition it was, because one code can now render a different
- * acceptance bar in each pack and two of those bars can share a number.
+ * acceptance bar in each pack and two of those bars can share a number. 1.4.0
+ * adds `application.employment.occupationCode` — occupation as a second axis,
+ * carrying the distinction between a public servant and an ordinary employee,
+ * or a farmer and a company owner, that the coarse status cannot (ADR-053).
+ *
+ * 1.4.0 is also the last bump occupation will ask for. The field is an open
+ * string, not an enum, so the vocabulary it carries may grow without the format
+ * changing — which is the point of the shape. That says nothing about future
+ * bumps for anything else.
  *
  * The rule is unchanged and it is about meaning, not parsing: no field changed
  * meaning and none was removed, so every older document is already valid here.
@@ -22,7 +30,7 @@ import { SponsorSchema } from './sponsor.schema'
  * nothing said. The version mismatch is what warns them first (ADR-043,
  * ADR-051).
  */
-export const SCHEMA_VERSION = '1.3.0' as const
+export const SCHEMA_VERSION = '1.4.0' as const
 
 /**
  * Every version this build can **read**. Import accepts all of them unchanged;
@@ -33,6 +41,7 @@ export const SUPPORTED_SCHEMA_VERSIONS = [
   '1.1.0',
   '1.2.0',
   '1.3.0',
+  '1.4.0',
 ] as const
 
 export type SupportedSchemaVersion = (typeof SUPPORTED_SCHEMA_VERSIONS)[number]

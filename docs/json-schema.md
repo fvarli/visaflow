@@ -4,8 +4,8 @@ This document describes the JSON format used by VisaFlow for importing and expor
 
 ## Schema Version
 
-Current version: `1.3.0`. VisaFlow **reads** `1.0.0`, `1.1.0`, `1.2.0` and `1.3.0`, and **writes**
-`1.3.0`.
+Current version: `1.4.0`. VisaFlow **reads** `1.0.0`, `1.1.0`, `1.2.0`, `1.3.0` and `1.4.0`, and
+**writes** `1.4.0`.
 No version this project has ever written is dropped: a file already on your disk stays openable.
 
 The schema version is included in every exported file. It is not the application version and not the
@@ -13,8 +13,15 @@ local `STORAGE_FORMAT_VERSION` — see the note at the top of [CHANGELOG.md](../
 
 **No older file needs migration.** Every bump so far has only *added* an optional field —
 `applicant.previousRefusals` in 1.1.0, `document.satisfiedRevision` in 1.2.0,
-`document.satisfiedContract` in 1.3.0. Nothing changed meaning and nothing was removed, so every
-older document is already a valid `1.3.0` document and imports with no warning at all.
+`document.satisfiedContract` in 1.3.0, `application.employment.occupationCode` in 1.4.0. Nothing
+changed meaning and nothing was removed, so every older document is already a valid `1.4.0` document
+and imports with no warning at all.
+
+**Every bump has added a *key*, never a value to an existing enum, and that is a rule rather than a
+coincidence.** An unknown key is dropped field by field. An unknown enum value fails the object it sits
+in — and `application` is parsed as one unit, so a value an older build does not recognise would take
+the destination country, visa type, appointment, trip and financing with it while the import still
+reported success (ADR-043, ADR-053).
 
 Nothing is rewritten on disk, either. An older file is **parsed as it stands**; if you then export,
 the new file is written at the current version with whatever fields this build knows about. Import
@@ -29,7 +36,7 @@ is about meaning, not parsing.
 
 ```json
 {
-  "schemaVersion": "1.3.0",
+  "schemaVersion": "1.4.0",
   "exportedAt": "2025-01-15T10:30:00.000Z",
   "applicant": { ... },
   "application": { ... },
@@ -377,7 +384,32 @@ is a separate requirement that starts unsatisfied.
 That change moved neither `schemaVersion` nor `STORAGE_FORMAT_VERSION`; only the country pack's
 `templateVersion` did.
 
-### Version 1.3.0 (Current) — 2026-09-08
+### Version 1.4.0 (Current) — 2026-09-10
+
+Adds `application.employment.occupationCode`, an optional string.
+
+Occupation, one level finer than `employmentStatus`, where a consulate's checklist branches on it: a
+public servant against an ordinary employee, a farmer against a company owner. The values this build
+understands are `employee`, `public_servant`, `company_owner`, `independent_professional` and `farmer`.
+
+**It is an open string on purpose, and it is not validated against that list.** The field is parsed as
+`z.string()`, so a file may carry a code this build has never seen — written by a newer one, or by
+hand. Such a value is **kept exactly as written and round-trips intact**, and it is **inert**: it
+activates no requirement, because only a code this build knows *and* that is legal for the recorded
+`employmentStatus` reaches the checklist. A code that contradicts the status is treated the same way —
+preserved in the file, ignored by the checklist.
+
+The reason for the shape is the parser, not taste. `application` is parsed as a single unit, so an
+unknown *enum* value inside it would cost a reader the whole slice; an unknown *string* costs nothing.
+That is also why **this is the last version bump occupation will ask for** — the vocabulary can grow
+without the format changing. It says nothing about future bumps for anything else.
+
+**Nothing is inferred.** A file without the field resolves to exactly the checklist it always did;
+`employmentStatus`, `applicant.occupation` and `employment.jobTitle` are never read to guess it.
+
+See ADR-053.
+
+### Version 1.3.0 — 2026-09-08
 
 Adds `document.satisfiedContract`, an optional string.
 

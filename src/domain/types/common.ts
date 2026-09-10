@@ -60,6 +60,69 @@ export const EmploymentStatusSchema = z.enum([
 
 export type EmploymentStatus = z.infer<typeof EmploymentStatusSchema>
 
+/**
+ * Occupation — a second axis, not a finer slicing of the first (ADR-053).
+ *
+ * `employmentStatus` answers a routing question: which employer details apply.
+ * These answer a different one: which *branch* of a consulate's checklist an
+ * applicant falls into. The Greek visa centre publishes an axis it labels
+ * *Meslek* on which a *Kamu Çalışanı* is asked for an institution letter and
+ * card and is **not** asked for the company-document block an ordinary
+ * *Çalışan* gets, and a *Çiftçi* is asked for neither. Annex III names Farmers
+ * and Company owners as categories in their own right, and the German mission
+ * sheet has its own farmer category.
+ *
+ * THIS IS NOT AN ONTOLOGY OF PROFESSIONS. It is a record of distinctions
+ * particular authorities draw, and nothing may be inferred from a category's
+ * absence: Annex III I.5(e) has truck drivers with a document set of their own
+ * and they are deliberately not here, because no reviewed pass has adjudicated
+ * them.
+ *
+ * `employee` is spelled out rather than left implied by absence. Applicability
+ * is fail-closed, so "no code" already means "has not answered"; without an
+ * explicit value there would be no way to say *ordinary employee* and have it
+ * be distinguishable from silence.
+ *
+ * These are the codes this build **knows**. The persisted field is an open
+ * string and may hold others — see `occupationCode` on `EmploymentSchema`.
+ */
+export const KNOWN_OCCUPATION_CODES = [
+  'employee',
+  'public_servant',
+  'company_owner',
+  'independent_professional',
+  'farmer',
+] as const
+
+export type KnownOccupationCode = (typeof KNOWN_OCCUPATION_CODES)[number]
+
+export function isKnownOccupationCode(
+  value: unknown
+): value is KnownOccupationCode {
+  return (KNOWN_OCCUPATION_CODES as readonly unknown[]).includes(value)
+}
+
+/**
+ * Which codes are legal under which coarse status.
+ *
+ * The two vocabularies are not independent — a public servant is employed and
+ * a farmer is not — and this map is the single place that relationship is
+ * stated. The selector offers from it and the resolver decides from it, so the
+ * question a user is asked and the answer applicability accepts cannot drift
+ * apart.
+ *
+ * A status with no entry asks no occupational question at all. For a pensioner,
+ * a student or someone not working the coarse value already *is* the branch the
+ * checklists publish, so narrowing further would be a question with no
+ * consequence.
+ */
+export const OCCUPATIONS_BY_STATUS: Partial<
+  Record<EmploymentStatus, readonly KnownOccupationCode[]>
+> = {
+  employed: ['employee', 'public_servant'],
+  self_employed: ['company_owner', 'independent_professional', 'farmer'],
+}
+
 // Document status
 export const DocumentStatusSchema = z.enum([
   'not_started',

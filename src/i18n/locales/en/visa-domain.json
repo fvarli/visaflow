@@ -68,6 +68,13 @@
     "homemaker": "Homemaker",
     "other": "Other"
   },
+  "occupationCode": {
+    "employee": "Company employee",
+    "public_servant": "Public servant",
+    "company_owner": "Company owner",
+    "independent_professional": "Independent professional",
+    "farmer": "Farmer"
+  },
   "maritalStatus": {
     "single": "Single",
     "married": "Married",

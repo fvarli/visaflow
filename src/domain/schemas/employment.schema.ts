@@ -7,6 +7,32 @@ import {
 
 export const EmploymentSchema = z.object({
   employmentStatus: EmploymentStatusSchema,
+  /**
+   * Occupation, as an **opaque code** (ADR-053).
+   *
+   * WHY `z.string()` AND NOT AN ENUM, WHICH IS THE WHOLE POINT OF THE FIELD.
+   * `importPartial` parses `application` as a single unit, so an unknown enum
+   * value anywhere inside it costs the reader `destinationCountry`, `visaType`,
+   * `appointment`, `trip`, `financing` and everything else — and `hasData` is
+   * still true if the applicant survived, so the import reports *success* over
+   * a one-line "1 item was left out". A closed enum here would be safe on the
+   * release that added it and would reproduce that failure on the next value.
+   * An open string cannot.
+   *
+   * So this field holds whatever it was given. The vocabulary this build
+   * understands lives in `KNOWN_OCCUPATION_CODES`, a build-time fact rather
+   * than a stored one, and growing it later is a domain change and not a
+   * format change.
+   *
+   * A code that is unknown here, or known but illegal for the recorded
+   * `employmentStatus`, is preserved exactly as written and is **inert**: the
+   * resolver in `features/documents/applicability.ts` is the only thing that
+   * turns a raw code into something applicability may act on, and it returns
+   * nothing in both cases. Nothing on this path rewrites the value — a
+   * normalizer that kept only known-and-legal codes would erase precisely the
+   * future codes the open string exists to carry.
+   */
+  occupationCode: z.string().optional(),
   employerName: z.string().optional(),
   employerAddress: z.string().optional(),
   employerPhone: z.string().optional(),
