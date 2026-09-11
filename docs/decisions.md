@@ -2832,6 +2832,13 @@ It is not the property that mattered.
 **Status:** Accepted · 2026-09-10 · extends [ADR-043](#adr-043), applies [ADR-052b](#adr-052b) and
 [ADR-051a](#adr-051a)
 
+> **Amended by [ADR-053a](#adr-053a) (2026-09-11).** Decisions 1, 2, 3, 6, 7, 8, 9, 10 and 11 stand.
+> Decision 4's *"must not activate any requirement"* and Decision 5's *"Applicability therefore fails
+> closed"* are narrowed: they hold for new fine-axis obligations, and an existing requirement migrating
+> from a coarse employment condition may, where a recorded historical entitlement exists, continue under
+> that prior contract while classification is unavailable. An unknown code is still never the activating
+> fact and is still never read as an occupation. The text is kept as written.
+
 **Context.** Three records have named the same blocker for two sprints. The Greek mission layer, on
 `EMPLOYER_SIGNATURE_CIRCULAR`: *"`employed` cannot separate an ordinary employee from a public servant,
 so both the requiredness and the condition stay as they are until the occupational vocabulary can
@@ -2965,3 +2972,104 @@ and a false statement about a source in a decision record.
 **Implementation:** documentation only — `docs/decisions.md`. The capability it governs is not built
 yet; the schema, resolver, projection and known-code registry are a separate slice, and the first
 production requirement a separate one after that.
+
+---
+
+## ADR-053a: Migrating a Requirement From Coarse to Fine Occupational Routing
+
+**Status:** Accepted · 2026-09-11 · amends [ADR-053](#adr-053), applies [ADR-051a](#adr-051a)
+
+**Context.** [ADR-053](#adr-053) built the occupational axis and `FARMER_CERTIFICATE` proved it in
+production. What it did not settle is the other half of the work: five requirements that were written
+against the coarse `employmentStatus` axis are asking the wrong populations, and correcting them means
+moving a condition from a field every dossier has answered onto one most have not.
+
+Two findings made that unsafe, and both were measured rather than reasoned.
+
+**Workflow incompleteness does not protect anything.** H4c2d3 made the status step incomplete for an
+applicant who has not classified themselves, and that is worth having — but `isStatusComplete` has
+exactly two consumers, the stepper rail and a review chip. The twelve modules that decide what is asked
+and counted all read `requiredRequirementCodes(template, applicability)`, and no path exists by which
+step completeness could reach them. Narrowing the company-document rows today would take Greece from
+eleven required documents to eight for an unclassified applicant, and **readiness would rise from 36% to
+50% while they obtained nothing.**
+
+**And the obvious remedy is worse than incomplete.** Adding `unclassified` as a member of the
+occupational set — so a migrated row could name it alongside its real categories — fails on the very
+first row. `EMPLOYER_SIGNATURE_CIRCULAR` is conditioned on `employed` today and its corrected population
+reaches two *self-employed* categories, so `self_employed` + unclassified would match the token and
+**activate** a requirement that population never had. A membership test carries no memory of which
+population the row previously asked; it can only widen.
+
+**Decision:**
+
+1. **Three questions, kept apart.** *Resolution* — which known category is this applicant in?
+   *Entitlement* — is this requirement permitted to preserve an older contract? *Condition* — which
+   contract runs in which state? Conflating any two of them is what produced both failures above.
+2. **No sentinel, anywhere.** Effective occupation remains `KnownOccupationCode | undefined`.
+   `unclassified` does not enter the vocabulary, the projection's value space, or persistence, and
+   `KnownOccupationCode | 'unclassified'` is explicitly rejected. Classification is **derived**:
+   *classified* ⇔ effective occupation is not `undefined`. Nothing new is stored to support this.
+3. **Unusable classification is one state with three causes** — the code is absent, unknown to this
+   build, or known but incompatible with the recorded status. [ADR-053](#adr-053) already resolves all
+   three to nothing, so this needs no new rule and no new code path. Raw values stay untouched and
+   round-trip, and none of the three is ever read as an occupation. A status that opens no occupational
+   branch is likewise never classified, and its behaviour is decided by the requirement's recorded prior
+   contract like any other.
+4. **The migration contract.** A new fine-axis requirement fails closed until the applicant has a usable
+   effective occupation. An existing requirement migrating from a coarse employment condition must not
+   be silently withdrawn because classification is unavailable: while unclassified it uses **exactly its
+   recorded prior coarse applicability contract**, and once classified it uses the corrected fine
+   contract. In one line — `classified ? correctedFineCondition : recordedPriorCoarseCondition`.
+5. **This is a migration compatibility mechanism, not the semantics of occupational applicability.** It
+   exists to carry dossiers across one change and is expected to be removed.
+6. **Entitlement is historical, and the ledger is the authoritative gate.** A condition that *quotes* a
+   prior contract proves nothing — a row written tomorrow could quote a fiction. A durable **migration
+   ledger** therefore records, per entitled requirement code, the exact prior coarse condition, why the
+   migration exists, and what would retire it. The condition authored in a pack is the *executable
+   representation* of that entitlement, not the entitlement itself, and invariants cross-check the two
+   in both directions.
+7. **Preservation is exact.** Fallback means *evaluate the recorded prior condition*, never *apply to
+   every unclassified applicant*.
+8. **Retirement is required and undated.** Every ledger entry carries an explicit retirement criterion.
+   No date or adoption threshold is invented here: VisaFlow is local-first with no migration telemetry,
+   so "remove once adoption reaches X" is not available to us. Retirement takes a later reviewed
+   decision, and the absence of telemetry is never licence to delete a fallback.
+
+**The asymmetry, and why it is not inconsistency.** A new obligation needs an answer to *appear*; a
+migrated one needs an answer to *disappear*. Both are the same refusal to act without evidence — they
+only point in opposite directions, because the harm is in opposite directions. Inventing a document for
+someone the source never named and withdrawing one the source does name are both ways of lying to an
+applicant, and an unanswered question must produce neither.
+
+**`EMPLOYER_SIGNATURE_CIRCULAR`, worked through.** Legacy condition `employmentStatus = employed`;
+corrected population `employee`, `independent_professional`, `company_owner`.
+
+| status | occupation | contract used | applies |
+|---|---|---|---|
+| `employed` | none usable | prior — `employed` | **yes**, preserved |
+| `employed` | `employee` | corrected | yes |
+| `employed` | `public_servant` | corrected | **no** — the correction |
+| `self_employed` | none usable | prior — `employed` | **no** — not activated |
+| `self_employed` | `company_owner` | corrected | **yes**, once classified |
+| `retired` | none usable | prior — `employed` | no |
+
+The fourth row is the whole reason this ADR exists. A flat `unclassified` member would have answered
+*yes* there, inventing an obligation for a population the previous contract never covered.
+
+**The mirror case.** A company-document row on legacy `self_employed`: `self_employed` + unusable keeps
+it, which is what holds the readiness denominator; `employed` + unusable does not gain it; and
+`self_employed` + `farmer` loses it once the applicant classifies — which is the over-ask correction
+finally landing.
+
+**Consequences.**
+
+- The readiness cliff does not happen. An unclassified applicant is asked for exactly what they were asked for before, and the corrections apply to people who have answered.
+- Migration fallback is **not** an ordinary property a pack author can reach for. Without a ledger entry there is no entitlement, whatever a condition claims.
+- `FARMER_CERTIFICATE` is the negative example: a new fine-axis requirement with no prior coarse contract, therefore no entitlement and no route to one. It must never acquire the fallback.
+- `EMPLOYER_SIGNATURE_CIRCULAR`, `EMPLOYER_TRADE_REGISTRY`, `COMPANY_ACTIVITY_CERTIFICATE`, `TAX_PAYMENT_STATEMENT` and `EMPLOYER_TAX_PLATE` are the motivating candidates. **None is migrated by this decision**; each needs its own adjudication of the corrected population.
+- Every [ADR-053](#adr-053) decision not named above stands: the persisted code is an optional open string, vocabulary growth costs no schema migration, unknown raw values are preserved, known-and-compatible resolution is the effective occupation, invalid pairs are resolved rather than schema-rejected, UI clearing is not the correctness boundary, nothing is inferred from free-text occupation, no sentinel is persisted, and no fallback modifies the raw employment record.
+
+**Implementation:** documentation only — `docs/decisions.md`. Nothing here is built. The condition
+shape, the ledger and their invariants are one slice; the first migrated requirement is another after
+it.
