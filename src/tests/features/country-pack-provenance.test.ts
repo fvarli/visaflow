@@ -1240,12 +1240,20 @@ const JURISDICTION_EVIDENCE_GAPS: Record<string, string> = {
     'İmza Sirküleri. Absent from Visa Code Annex II, from Annex III and from ' +
     "the German mission sheet, and the Greek mission's own pages are silent " +
     'on it. The visa centre checklist those pages direct applicants to does ' +
-    'list it, in all four jurisdictions, inside the company-document block on ' +
-    'the employed branch. It stays uncited because the condition over-applies: ' +
-    'the public-servant branch carries no company block at all, and ' +
-    '`employed` cannot tell a public servant from an ordinary employee. The ' +
-    'nationality note this row used to render was contradicted by that same ' +
-    'checklist and has been removed.',
+    "list it, inside the company-document block. ADR-047's fourth evidence " +
+    'pass read that block on every occupational branch at all four ' +
+    'jurisdictions, and they agree: it is asked of an employee, a company ' +
+    'owner and an independent professional, and not of a public servant or a ' +
+    'farmer. The population is therefore no longer the blocker. Two things ' +
+    'are. The pack still renders the coarse `employed` condition, which ' +
+    'over-applies to public servants and misses the two self-employed ' +
+    "categories. And the row is declared `ownerType: 'employer'`, which the " +
+    'same captures contradict for those two categories — their company ' +
+    "documents are their own, not an employer's — so correcting the " +
+    'condition alone would render a false owner. A citation vouches for the ' +
+    'contract, not only the document (ADR-048), so it stays uncited until ' +
+    'both are settled. The nationality note this row used to render was ' +
+    'contradicted by that same checklist and has been removed.',
 }
 
 describe('country packs — the jurisdiction evidence gap is bounded', () => {

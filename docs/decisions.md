@@ -1718,6 +1718,57 @@ the result is one correction, one removal, and a longer list of things it does *
   > are each an unreviewed evidence identity, and the company-document rows still over-ask a farmer
   > because narrowing them is a subtractive change with its own decision to make.
 
+**Fourth evidence pass (2026-09-12).** One row, closed across all four consular jurisdictions. The
+third pass sampled ten occupations at İstanbul but only *employee* and *non-working* at the other three
+posts, which left `EMPLOYER_SIGNATURE_CIRCULAR`'s occupational population resting on a single post. The
+twelve missing cells — four occupational branches × Ankara, İzmir and Edirne — were retrieved.
+
+- **Same channel, same method, same axes.** The generator was reached as before: its homepage, then its
+  own "Gerekli Belgeler" link and its own city chooser. Normal navigation, no bypass, and nothing was
+  submitted to the appointment system. There is still no stable per-combination URL to cite. The
+  controlled axes were held at *Turistik*, *Uçak ile seyahat*, *Otel*, the *Meslek* under test,
+  *Çocuksuz seyahat* and *Türkiye*; the province values were İstanbul, İzmir, Ankara and Edirne. Each
+  capture's own jurisdiction header was checked to name the intended post before its body was read.
+- **The occupational branches agree at every post.** Twenty cells, all resolved, none unreadable:
+
+  | branch (*Meslek*) | İstanbul | Ankara | İzmir | Edirne |
+  |---|---|---|---|---|
+  | Çalışan | present | present | present | present |
+  | Kamu Çalışanı (Memur) | absent | absent | absent | absent |
+  | Şirket Sahibi | present | present | present | present |
+  | Serbest Meslek | present | present | present | present |
+  | Çiftçi | absent | absent | absent | absent |
+
+  *Absent* here is absent from the branch as captured: the two negative branches carry no
+  company-document block at all, rather than a block that omits the line. The positive branches carry
+  it verbatim — *"Şirket Dokümanları: Güncel Vergi Levhası, Ticari Sicil Gazetesi, Son 6 aya ait
+  Orijinal ya da e-imzalı Faaliyet belgesi, İmza Sirküleri (şahıs firmalarında İmza Beyannamesi)"* —
+  with *Serbest Meslek* dropping only the `İmza Beyannamesi` parenthetical.
+- **The bank's signature circular is a different document and was never counted.** *"banka imza
+  sirküleriyle beraber"* sits in the bank-statement prose on **every** branch, including both negatives,
+  at every post. Only `İmza Sirküleri` inside the company-document block is evidence for this row.
+  Anyone re-running this must exclude the bank phrase first or they will read presence everywhere.
+- **What this licenses.** `EMPLOYER_SIGNATURE_CIRCULAR`'s corrected population is *employee*, *company
+  owner* and *independent professional*, corroborated identically by four posts.
+  [ADR-053a](#adr-053a)'s worked example asserted exactly that population before this pass had sourced
+  it; it is now evidence rather than assertion, and the ADR text is kept as written.
+- **What it does not license — the document's owner.** On the *Çalışan* branch the company-document
+  block is the **employer's** company; on *Şirket Sahibi* and *Serbest Meslek* it is the applicant's
+  **own**. This row is declared `ownerType: 'employer'`, which is copied onto the created document and
+  rendered to the applicant as a label, a filter and a grouping. Correcting applicability alone would
+  tell a company owner that their employer supplies their own firm's circular. Changing the owner
+  changes what evidence is expected, so it is not an applicability-only correction under
+  [ADR-051a](#adr-051a) and cannot ride along on one. Requiredness is untouched and stays `false`.
+- **What it does not license — a single list.** The four posts agree on this row and differ elsewhere in
+  the same captures: Edirne asks for a dated residence-history record and does not ask for the previous
+  passport, Ankara carries a branch-specific note on old euro banknotes, İzmir carries one on applicants
+  born in Greece, and the farmland document set is not the same at Ankara as at the other two. A layer
+  is still per mission, not per post. *Agreement on one row* is not *one published list*.
+- **`FARMER_CERTIFICATE` gained three further corroborating posts.** The *Çiftçi* branch asks for
+  *"Bağlı olduğunuz ziraat odası tarafından verilmiş veya e-devletten alınan çiftçi belgeniz"* at Ankara,
+  İzmir and Edirne as well. The requirement is cited to Annex III I.5(b) and that citation does not
+  move; this is a second authority agreeing with it, recorded so the agreement is not rediscovered.
+
 **Next:** Greece-specific verification, from a network that can reach `mfa.gr` or by a maintainer
 entering the ministry's published list by hand. Every requirement above marked partial or
 conflicting is waiting on precisely that.
