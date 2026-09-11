@@ -649,16 +649,30 @@ describe('the capability changes nothing for anybody', () => {
  * helper alone cannot deliver.
  *
  * `occupationIs()` makes a typo a compile error at the site where it is made.
- * It cannot stop anybody writing the condition literal by hand, and
- * `ConditionalRequirement.value` is `string | boolean | number`, so a
- * hand-written `'farmr'` compiles. That is what this walk is for — the same
- * callee-then-registry idiom `applicability-drift.test.ts` uses.
+ * It cannot stop anybody writing the condition literal by hand — the authored
+ * value is a plain primitive, so a hand-written `'farmr'` compiles. That is
+ * what this walk is for: the same callee-then-registry idiom
+ * `applicability-drift.test.ts` uses.
  */
 describe('every occupational condition names a code this build knows', () => {
+  /**
+   * Narrowed on the operator rather than reaching for `.value` directly.
+   *
+   * H4c2d1 made `ConditionalRequirement` a discriminated union, and it refused
+   * to compile this — correctly, because reading a payload without knowing
+   * which operator authored it is exactly the unsoundness the union exists to
+   * stop. An occupational condition that is not `equals` has no single value to
+   * check, and the test below is what requires it to be `equals` today.
+   */
+  const authoredValue = (r: (typeof OCCUPATION_CONDITIONED)[number]) => {
+    const c = r.conditionalOn
+    return c && 'value' in c ? c.value : undefined
+  }
+
   it('uses only known codes', () => {
     const unknown = OCCUPATION_CONDITIONED.filter(
-      (r) => !isKnownOccupationCode(r.conditionalOn?.value)
-    ).map((r) => `${r.code} -> ${String(r.conditionalOn?.value)}`)
+      (r) => !isKnownOccupationCode(authoredValue(r))
+    ).map((r) => `${r.code} -> ${String(authoredValue(r))}`)
     expect(unknown).toEqual([])
   })
 

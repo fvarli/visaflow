@@ -163,6 +163,33 @@ Declare it in the layer that **owns** it, then compose. Do not re-list a require
 already declares — a `code` is owned by exactly one layer registry-wide, and the composer rejects a
 second declaration.
 
+### The condition vocabulary
+
+`conditionalOn` is a discriminated union, so the operator decides what payload you may write:
+
+| operator | payload | true when |
+|---|---|---|
+| `equals` / `notEquals` | `value` | the field is answered **and** compares as stated |
+| `oneOf` | `values`, a **non-empty** set | the field is answered and is one of them |
+| `includes` | `value` | the field is an **array** containing the value |
+| `exists` / `notExists` | none | the field is answered / is not |
+
+Three things to know before authoring one.
+
+**An unanswered field matches nothing.** `equals`, `notEquals` and `oneOf` are all false when the field
+is absent, empty or unresolvable. That is deliberate and it is the direction of error the project
+chooses: a requirement that appears once somebody fills in their profile is a better failure than a
+document nobody needs. `notExists` is the exception, because absence is what it tests.
+
+**`oneOf` is not `includes`.** `includes` wants the *field* to be the array and your value to be the
+needle; `oneOf` wants the field to be a single value and the *set* to be the thing you author. They are
+mirror images and the wrong one silently never matches.
+
+**Nothing is coerced.** `'1'` does not match `1`. Comparisons are strict in every operator.
+
+An empty `oneOf` set is a compile error, and `src/tests/features/condition-vocabulary.test.ts` rejects
+duplicates and non-literal payloads across every layer.
+
 ```typescript
 export const xxFilingLayer: RequirementLayer = {
   id: 'xx-filing',

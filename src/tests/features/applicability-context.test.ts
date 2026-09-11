@@ -187,3 +187,187 @@ describe('applicability context — every consumer asks the same question', () =
     expect(resolveGroupSlots(template, [], context).length).toBeGreaterThan(0)
   })
 })
+
+/**
+ * `oneOf` — is the scalar at `field` one of an authored set?
+ *
+ * Added with no production caller (H4c2d1). Two rows need it — the Greek
+ * signature circular reaches three occupational categories and the German tax
+ * plate two — but narrowing either is blocked until the occupational question
+ * is one an applicant is actually asked, so the operator ships first and alone.
+ *
+ * The semantics that matter are the refusals. An operator that answered `true`
+ * on an unanswered field, or coerced `'1'` into `1`, would put documents in
+ * front of people the source never named — which is the failure the whole
+ * applicability capability is built around.
+ */
+describe('applicability — oneOf matches a scalar against an authored set', () => {
+  const oneOf = (
+    values: readonly [
+      string | number | boolean,
+      ...(string | number | boolean)[],
+    ],
+    field = 'applicant.nationality'
+  ): DocumentRequirement => requirement({ field, operator: 'oneOf', values })
+
+  it('matches a member, wherever it sits in the set', () => {
+    expect({
+      first: isApplicable(oneOf(['TR', 'DE', 'FR']), ctx('TR')),
+      last: isApplicable(oneOf(['TR', 'DE', 'FR']), ctx('FR')),
+      single: isApplicable(oneOf(['TR']), ctx('TR')),
+    }).toEqual({ first: true, last: true, single: true })
+  })
+
+  it('does not match a value outside the set', () => {
+    expect(isApplicable(oneOf(['TR', 'DE']), ctx('FR'))).toBe(false)
+  })
+
+  it.each([
+    ['no value at all', undefined],
+    ['an unanswered field', ''],
+  ])('does not match %s', (_label, nationality) => {
+    // The same rule `equals` follows. It is also why an unknown or
+    // contradictory occupational code is inert without this operator knowing
+    // occupation exists: the context carries a resolved value or nothing.
+    expect(isApplicable(oneOf(['TR', 'DE']), ctx(nationality))).toBe(false)
+  })
+
+  it('does not match an unresolvable path', () => {
+    expect(isApplicable(oneOf(['TR'], 'applicant.nationalty'), ctx('TR'))).toBe(
+      false
+    )
+  })
+
+  it('compares strictly, and never coerces', () => {
+    /**
+     * `'1'` must not match `1`. A coercing set is how a condition written for
+     * one vocabulary quietly starts matching another — and the authored side is
+     * literal text a maintainer typed, so there is no case where coercion is
+     * the kind thing to do.
+     */
+    const numeric = requirement({
+      field: 'employment.employmentStatus',
+      operator: 'oneOf',
+      values: [1, true],
+    })
+    const stringly = buildApplicabilityContext({
+      applicant: null,
+      application: {
+        employment: { employmentStatus: '1' },
+      } as unknown as Application,
+    })
+    expect(isApplicable(numeric, stringly)).toBe(false)
+  })
+
+  it('matches booleans and numbers by identity', () => {
+    const numeric = requirement({
+      field: 'employment.employmentStatus',
+      operator: 'oneOf',
+      values: [1, 2],
+    })
+    const one = buildApplicabilityContext({
+      applicant: null,
+      application: {
+        employment: { employmentStatus: 1 },
+      } as unknown as Application,
+    })
+    expect(isApplicable(numeric, one)).toBe(true)
+  })
+
+  it('reads a nested path exactly as the other operators do', () => {
+    expect(
+      isApplicable(
+        oneOf(['employed', 'self_employed'], 'employment.employmentStatus'),
+        buildApplicabilityContext({
+          applicant: null,
+          application: {
+            employment: { employmentStatus: 'self_employed' },
+          } as unknown as Application,
+        })
+      )
+    ).toBe(true)
+  })
+
+  it('is not includes, and does not become it', () => {
+    /**
+     * The mirror image, and the confusion worth pinning. `includes` wants the
+     * *field* to be the array and the authored value to be the needle; `oneOf`
+     * wants the field to be a single value and the set to be authored. A field
+     * that happens to hold an array satisfies neither reading of `oneOf`.
+     */
+    const arrayField = buildApplicabilityContext({
+      applicant: null,
+      application: {
+        employment: { employmentStatus: ['employed'] },
+      } as unknown as Application,
+    })
+    expect(
+      isApplicable(
+        oneOf(['employed'], 'employment.employmentStatus'),
+        arrayField
+      )
+    ).toBe(false)
+  })
+
+  it('still lets includes behave exactly as it did', () => {
+    // Guards the other half: adding an operator must not disturb the one it is
+    // most easily confused with.
+    const needle = requirement({
+      field: 'employment.employmentStatus',
+      operator: 'includes',
+      value: 'employed',
+    })
+    const arrayField = buildApplicabilityContext({
+      applicant: null,
+      application: {
+        employment: { employmentStatus: ['employed', 'student'] },
+      } as unknown as Application,
+    })
+    expect({
+      arrayContainsNeedle: isApplicable(needle, arrayField),
+      scalarDoesNot: isApplicable(
+        needle,
+        buildApplicabilityContext({
+          applicant: null,
+          application: {
+            employment: { employmentStatus: 'employed' },
+          } as unknown as Application,
+        })
+      ),
+    }).toEqual({ arrayContainsNeedle: true, scalarDoesNot: false })
+  })
+
+  it('refuses an empty set at compile time', () => {
+    /**
+     * A set that matches nothing is never what an author meant, and it is
+     * invisible when it happens — the requirement simply stops appearing. The
+     * non-empty tuple makes it a type error rather than something a runtime
+     * guard has to notice.
+     */
+    const empty: DocumentRequirement['conditionalOn'] = {
+      field: 'applicant.nationality',
+      operator: 'oneOf',
+      // @ts-expect-error an authored oneOf set may not be empty
+      values: [],
+    }
+    expect(empty).toBeDefined()
+  })
+
+  it('refuses a scalar value on oneOf, and a set on equals', () => {
+    const scalarOnOneOf: DocumentRequirement['conditionalOn'] = {
+      field: 'applicant.nationality',
+      operator: 'oneOf',
+      values: ['TR'],
+      // @ts-expect-error oneOf carries a set, never a scalar
+      value: 'TR',
+    }
+    const setOnEquals: DocumentRequirement['conditionalOn'] = {
+      field: 'applicant.nationality',
+      operator: 'equals',
+      value: 'TR',
+      // @ts-expect-error equals carries a scalar, never a set
+      values: ['TR'],
+    }
+    expect([scalarOnOneOf, setOnEquals]).toHaveLength(2)
+  })
+})

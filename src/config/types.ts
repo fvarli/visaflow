@@ -23,11 +23,43 @@ import type {
  * language-independent. Everything a user reads is a translation key.
  */
 
-export interface ConditionalRequirement {
-  field: string
-  operator: 'equals' | 'notEquals' | 'exists' | 'notExists' | 'includes'
-  value?: string | boolean | number
-}
+/** What a condition may be authored against. Literal primitives only. */
+export type ConditionValue = string | number | boolean
+
+/**
+ * When a requirement applies, as a discriminated union rather than one shape
+ * with optional payloads.
+ *
+ * The looser form — `value?` and `values?` side by side — lets a pack author
+ * `oneOf` with a scalar, `equals` with a set, a presence operator carrying
+ * either, or an empty set, and leaves all four to be caught at runtime by a
+ * test somebody has to remember to write. Discriminating on the operator makes
+ * them unrepresentable instead.
+ *
+ * THIS IS NOT THE THING ADR-053 REJECTED. That decision refused a discriminated
+ * union at the **persisted** boundary, because an inconsistent file must never
+ * fail its whole slice on the way in. Nothing here is parsed, persisted or
+ * round-tripped: this is a config-authoring type, read only from source a
+ * maintainer wrote, and compile-time strictness costs a user nothing.
+ */
+export type ConditionalRequirement =
+  | {
+      field: string
+      operator: 'equals' | 'notEquals' | 'includes'
+      value: ConditionValue
+    }
+  | { field: string; operator: 'exists' | 'notExists' }
+  | {
+      field: string
+      operator: 'oneOf'
+      /**
+       * Non-empty by type. An empty set matches nothing, which is never what an
+       * author meant and is invisible when it happens — so a tuple makes
+       * `values: []` a compile error, and the config invariant covers what the
+       * type cannot (duplicates, non-literals).
+       */
+      values: readonly [ConditionValue, ...ConditionValue[]]
+    }
 
 /**
  * The one way a pack asks about occupation.
@@ -496,20 +528,45 @@ export function isRequirementApplicable(
 ): boolean {
   if (!requirement.conditionalOn) return true
 
-  const { field, operator, value } = requirement.conditionalOn
-  const fieldValue = getNestedValue(context as Record<string, unknown>, field)
+  const condition = requirement.conditionalOn
+  const fieldValue = getNestedValue(
+    context as Record<string, unknown>,
+    condition.field
+  )
 
-  switch (operator) {
+  // Destructured per arm rather than up front: the switch narrows the union, so
+  // each case can read only the payload its own operator declares.
+  switch (condition.operator) {
     case 'equals':
-      return !isAbsent(fieldValue) && fieldValue === value
+      return !isAbsent(fieldValue) && fieldValue === condition.value
     case 'notEquals':
-      return !isAbsent(fieldValue) && fieldValue !== value
+      return !isAbsent(fieldValue) && fieldValue !== condition.value
     case 'exists':
       return !isAbsent(fieldValue)
     case 'notExists':
       return isAbsent(fieldValue)
     case 'includes':
-      return Array.isArray(fieldValue) && fieldValue.includes(value)
+      return Array.isArray(fieldValue) && fieldValue.includes(condition.value)
+    /**
+     * Is the scalar at `field` one of an authored set?
+     *
+     * The mirror of `includes`, and deliberately not an alias for it:
+     * `includes` wants the *field* to be the array and the value to be the
+     * needle. Here the set is authored and the field is a single value.
+     *
+     * `isAbsent` first, so an unanswered field matches nothing — the same rule
+     * `equals` follows, and the reason an unknown or contradictory occupational
+     * code is inert without this operator knowing occupation exists: the
+     * context carries a resolved value or nothing at all.
+     *
+     * `includes` on the authored array is a strict `===` search, so no
+     * coercion: `'1'` does not match `1`.
+     */
+    case 'oneOf':
+      return (
+        !isAbsent(fieldValue) &&
+        condition.values.includes(fieldValue as ConditionValue)
+      )
     default:
       return true
   }
