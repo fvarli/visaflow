@@ -88,6 +88,54 @@ export function occupationIs(
 }
 
 /**
+ * Ask about occupation with a set of known codes.
+ *
+ * `oneOf`'s own tuple only guarantees non-emptiness, and its members are
+ * `ConditionValue` — so `values: ['farmr']` compiles. This narrows both: the
+ * argument is a non-empty tuple of `KnownOccupationCode`, so an empty set and a
+ * typo are each a compile error at the site where they are written, and the
+ * field is fixed to the resolved value rather than the raw persisted one.
+ */
+export function occupationOneOf(
+  codes: readonly [KnownOccupationCode, ...KnownOccupationCode[]]
+): ConditionalRequirement {
+  return { field: 'employment.occupation', operator: 'oneOf', values: codes }
+}
+
+/**
+ * How a requirement behaves for an applicant who has no usable occupational
+ * classification — the compatibility half of a coarse→fine migration (ADR-053a).
+ *
+ * WHY THIS SITS BESIDE `conditionalOn` RATHER THAN INSIDE IT. They answer
+ * different questions. `conditionalOn` says *when does this requirement apply*;
+ * this says *what did it used to say, and for whom, while we wait for the
+ * applicant to tell us something the old contract never needed*. Folding the
+ * second into the condition language would mean a nested condition inside a
+ * condition — general machinery built for one narrow case, and a shape in which
+ * the ordinary reading of a requirement's applicability is no longer a single
+ * expression.
+ *
+ * IT IS NOT AN ENTITLEMENT. Carrying this object does not make a requirement
+ * entitled to it: a row written tomorrow could quote any prior contract it
+ * liked. `APPLICABILITY_MIGRATIONS` is the authoritative gate and this is its
+ * executable representation, held in agreement by an invariant that checks both
+ * directions — exactly how `REQUIREMENT_REVISIONS` relates to `revision`, which
+ * likewise has no runtime accessor.
+ */
+export interface ApplicabilityMigration {
+  /**
+   * The accepted coarse condition this requirement applied under before its
+   * applicability moved to the occupational axis.
+   *
+   * Evaluated verbatim while classification is unavailable — *evaluated*, not
+   * treated as "applies to everyone unclassified". A row whose prior contract
+   * was `employmentStatus = employed` must still not reach a self-employed
+   * applicant, which is the case that ruled out a flat sentinel (ADR-053a).
+   */
+  priorCondition: ConditionalRequirement
+}
+
+/**
  * Where a requirement came from.
  *
  * VisaFlow does not scrape or call official websites. A source record is a
@@ -139,6 +187,16 @@ export interface DocumentRequirement {
   ownerType: OwnerType
   required: boolean
   conditionalOn?: ConditionalRequirement
+  /**
+   * Present only on a requirement whose applicability is being migrated from
+   * the coarse employment axis to the occupational one, and only where
+   * `APPLICABILITY_MIGRATIONS` records the entitlement (ADR-053a).
+   *
+   * Absent on every requirement that was authored against the fine axis to
+   * begin with — those have no prior contract to preserve and must keep failing
+   * closed until the applicant classifies themselves.
+   */
+  applicabilityMigration?: ApplicabilityMigration
   /**
    * @deprecated Non-authoritative. Do not read this in production code.
    *
@@ -528,7 +586,26 @@ export function isRequirementApplicable(
 ): boolean {
   if (!requirement.conditionalOn) return true
 
-  const condition = requirement.conditionalOn
+  /**
+   * A migrated requirement answers with its prior contract until the applicant
+   * has an occupation this build can route from, and with its corrected one
+   * afterwards (ADR-053a).
+   *
+   * The test is the **effective** value, so absent, unknown-to-this-build and
+   * known-but-stale all land here together — they are one state with three
+   * causes, and the resolver has already collapsed them. Nothing reads the raw
+   * persisted code, and nothing is inferred from its absence.
+   *
+   * Once classified the prior contract is not consulted at all, which is what
+   * lets a migration subtract as well as add: a self-employed farmer stops
+   * matching a company-document row the moment they say so.
+   */
+  const migration = requirement.applicabilityMigration
+  const condition =
+    migration && context.employment?.occupation === undefined
+      ? migration.priorCondition
+      : requirement.conditionalOn
+
   const fieldValue = getNestedValue(
     context as Record<string, unknown>,
     condition.field
