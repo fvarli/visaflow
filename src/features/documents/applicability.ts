@@ -1,14 +1,6 @@
 import type { Applicant } from '@/domain/schemas/applicant.schema'
 import type { Application } from '@/domain/schemas/application.schema'
-import type { Employment } from '@/domain/schemas/employment.schema'
-import type {
-  EmploymentStatus,
-  KnownOccupationCode,
-} from '@/domain/types/common'
-import {
-  OCCUPATIONS_BY_STATUS,
-  isKnownOccupationCode,
-} from '@/domain/types/common'
+import { resolveOccupation } from '@/domain/types/common'
 import type { ApplicabilityContext, DocumentRequirement } from '@/config/types'
 import { isRequirementApplicable } from '@/config/types'
 
@@ -79,72 +71,6 @@ export function buildApplicabilityContext({
      */
     ...(applicant ? { applicant: { nationality: applicant.nationality } } : {}),
   }
-}
-
-/**
- * The effective occupational code, or nothing.
- *
- * Three concepts, kept apart (ADR-053). The **raw** value is whatever
- * `employment.occupationCode` holds — an opaque string this build may not
- * recognise. **Known** means it is in `KNOWN_OCCUPATION_CODES`. **Effective**
- * means it is known *and* legal for the recorded `employmentStatus`, and it is
- * the only one of the three that applicability is allowed to see.
- *
- * WHY THIS IS THE INVARIANT, RATHER THAN A SCHEMA RULE. Enforcing the pair at
- * the persisted boundary — a discriminated union, a `superRefine` — would make
- * an inconsistent file fail its whole application slice, which is the import
- * hazard the open string exists to avoid. Normalizing at parse instead would
- * erase unknown future codes, which is the data loss it exists to avoid. So
- * enforcement is non-destructive and lives at the point of use: permissive
- * everywhere, strict here.
- *
- * One place is enough because this is the only context builder, and a source
- * scan forbids any other. That covers every route a bad pair can take — an
- * imported file, the IndexedDB payload (which is validated by a structural
- * check and never by Zod), a programmatic update, and a stale value the UI
- * failed to clear. An enforcement point in the editor would cover none of them,
- * which is exactly how the reverted first attempt shipped three required farmer
- * documents to a retiree.
- *
- * Pure, and it never mutates what it is given: the raw value stays in the
- * dossier and round-trips intact, whatever this build makes of it.
- */
-export function resolveOccupation(
-  employment: Employment | null | undefined
-): KnownOccupationCode | undefined {
-  const raw = employment?.occupationCode
-  if (!isKnownOccupationCode(raw)) return undefined
-
-  const status = employment?.employmentStatus
-  const legal = status ? OCCUPATIONS_BY_STATUS[status] : undefined
-  return legal?.includes(raw) ? raw : undefined
-}
-
-/**
- * What becomes of the occupational code when the applicant changes status.
- *
- * A rule, not a rendering concern, which is why it is here rather than inline
- * in the step. The two cases differ and the difference is the whole point:
- *
- *  - a **known** code the new status does not allow is a contradiction this
- *    build can see, so it goes, and the user watches it go;
- *  - an **unknown** code is kept. This build cannot tell whether it is illegal
- *    under the new status, and destroying somebody's answer on a guess is
- *    precisely what the open representation exists to prevent (ADR-053).
- *
- * Nothing depends on this for correctness. `resolveOccupation` already refuses
- * a contradictory pair, so a clear that never happens — because the value
- * arrived by import, or the applicant never revisits the step — costs nothing.
- * This is the screen agreeing with the behaviour, not the behaviour itself.
- */
-export function occupationAfterStatusChange(
-  employment: Employment | null | undefined,
-  next: EmploymentStatus
-): string | undefined {
-  const raw = employment?.occupationCode
-  if (raw === undefined) return undefined
-  if (!isKnownOccupationCode(raw)) return raw
-  return OCCUPATIONS_BY_STATUS[next]?.includes(raw) ? raw : undefined
 }
 
 /**

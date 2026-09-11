@@ -123,6 +123,98 @@ export const OCCUPATIONS_BY_STATUS: Partial<
   self_employed: ['company_owner', 'independent_professional', 'farmer'],
 }
 
+/**
+ * Does this coarse status open an occupational branch at all?
+ *
+ * Derived from the map rather than written out again. A second list — the
+ * `status === 'employed' || status === 'self_employed'` anybody would reach for
+ * — is the drift this project keeps correcting: it reads as obviously right and
+ * stops agreeing with the registry the first time a status gains a branch.
+ */
+export function occupationIsRequiredFor(
+  status: EmploymentStatus | undefined
+): boolean {
+  return status !== undefined && OCCUPATIONS_BY_STATUS[status] !== undefined
+}
+
+/**
+ * The two employment facts an occupational rule reads.
+ *
+ * Structural rather than `Employment`, because `employment.schema.ts` imports
+ * this module and the reverse would be a cycle — and because these rules want
+ * exactly two fields, which is worth saying in the signature.
+ */
+export interface EmploymentFacts {
+  employmentStatus?: EmploymentStatus
+  occupationCode?: string
+}
+
+/**
+ * The effective occupational code, or nothing.
+ *
+ * Three concepts, kept apart (ADR-053). The **raw** value is whatever
+ * `employment.occupationCode` holds — an opaque string this build may not
+ * recognise. **Known** means it is in `KNOWN_OCCUPATION_CODES`. **Effective**
+ * means it is known *and* legal for the recorded `employmentStatus`, and it is
+ * the only one of the three that applicability is allowed to see.
+ *
+ * WHY THIS IS THE INVARIANT, RATHER THAN A SCHEMA RULE. Enforcing the pair at
+ * the persisted boundary — a discriminated union, a `superRefine` — would make
+ * an inconsistent file fail its whole application slice, which is the import
+ * hazard the open string exists to avoid. Normalizing at parse instead would
+ * erase unknown future codes, which is the data loss it exists to avoid. So
+ * enforcement is non-destructive and lives at the point of use: permissive
+ * everywhere, strict here.
+ *
+ * One place is enough because every consumer asks this one function, and a
+ * source scan forbids anything else from naming the raw field. That covers every route a bad pair can take — an
+ * imported file, the IndexedDB payload (which is validated by a structural
+ * check and never by Zod), a programmatic update, and a stale value the UI
+ * failed to clear. An enforcement point in the editor would cover none of them,
+ * which is exactly how the reverted first attempt shipped three required farmer
+ * documents to a retiree.
+ *
+ * Pure, and it never mutates what it is given: the raw value stays in the
+ * dossier and round-trips intact, whatever this build makes of it.
+ */
+export function resolveOccupation(
+  employment: EmploymentFacts | null | undefined
+): KnownOccupationCode | undefined {
+  const raw = employment?.occupationCode
+  if (!isKnownOccupationCode(raw)) return undefined
+
+  const status = employment?.employmentStatus
+  const legal = status ? OCCUPATIONS_BY_STATUS[status] : undefined
+  return legal?.includes(raw) ? raw : undefined
+}
+
+/**
+ * What becomes of the occupational code when the applicant changes status.
+ *
+ * A rule, not a rendering concern, which is why it is here rather than inline
+ * in the step. The two cases differ and the difference is the whole point:
+ *
+ *  - a **known** code the new status does not allow is a contradiction this
+ *    build can see, so it goes, and the user watches it go;
+ *  - an **unknown** code is kept. This build cannot tell whether it is illegal
+ *    under the new status, and destroying somebody's answer on a guess is
+ *    precisely what the open representation exists to prevent (ADR-053).
+ *
+ * Nothing depends on this for correctness. `resolveOccupation` already refuses
+ * a contradictory pair, so a clear that never happens — because the value
+ * arrived by import, or the applicant never revisits the step — costs nothing.
+ * This is the screen agreeing with the behaviour, not the behaviour itself.
+ */
+export function occupationAfterStatusChange(
+  employment: EmploymentFacts | null | undefined,
+  next: EmploymentStatus
+): string | undefined {
+  const raw = employment?.occupationCode
+  if (raw === undefined) return undefined
+  if (!isKnownOccupationCode(raw)) return raw
+  return OCCUPATIONS_BY_STATUS[next]?.includes(raw) ? raw : undefined
+}
+
 // Document status
 export const DocumentStatusSchema = z.enum([
   'not_started',

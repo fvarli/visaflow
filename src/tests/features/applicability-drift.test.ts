@@ -109,7 +109,11 @@ describe('applicability — one builder, and only one', () => {
      */
     const OWNERS = [
       '/src/domain/schemas/employment.schema.ts',
-      '/src/features/documents/applicability.ts',
+      // The rules that turn a raw code into an effective one live here since
+      // H4c2d3 — they are statements about what an employment record means, not
+      // about documents, and the employment step's completeness must not depend
+      // on the documents feature to ask them.
+      '/src/domain/types/common.ts',
       '/src/components/employment/StatusStep.tsx',
       '/src/components/employment/OccupationSelector.tsx',
     ]

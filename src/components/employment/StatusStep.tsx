@@ -5,10 +5,10 @@ import { GuidanceNote } from '@/components/ui/guidance-note'
 import { dynamicT } from '@/lib/i18n-dynamic'
 import {
   OCCUPATIONS_BY_STATUS,
+  occupationAfterStatusChange,
   type EmploymentStatus,
   type KnownOccupationCode,
 } from '@/domain/types/common'
-import { occupationAfterStatusChange } from '@/features/documents/applicability'
 import { EmploymentStatusSelector } from './EmploymentStatusSelector'
 import { OccupationSelector } from './OccupationSelector'
 

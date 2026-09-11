@@ -3,10 +3,7 @@ import i18n from '@/i18n'
 import { dynamicT } from '@/lib/i18n-dynamic'
 import { ctxFor } from '@/tests/support/applicability'
 import { applicableRequirements } from '@/features/documents/template-sync'
-import {
-  occupationAfterStatusChange,
-  resolveOccupation,
-} from '@/features/documents/applicability'
+
 import { resolveVisaTemplate } from '@/config/countries'
 import { requiredRequirementCodes } from '@/features/readiness/requirement-readiness'
 import { runValidation } from '@/domain/rules/runner'
@@ -20,6 +17,8 @@ import {
   KNOWN_OCCUPATION_CODES,
   OCCUPATIONS_BY_STATUS,
   isKnownOccupationCode,
+  occupationAfterStatusChange,
+  resolveOccupation,
   type EmploymentStatus,
 } from '@/domain/types/common'
 import type { Application } from '@/domain/schemas/application.schema'
@@ -903,5 +902,88 @@ describe('FARMER_CERTIFICATE flows through the ordinary pipeline', () => {
     }).findings.flatMap((f) => f.messageParams?.documentCodes?.documents ?? [])
 
     expect(findings).not.toContain('FARMER_CERTIFICATE')
+  })
+})
+
+/**
+ * Workflow requiredness changes the rail and nothing else (H4c2d3).
+ *
+ * A legacy dossier that has never answered the occupational question is now
+ * visibly incomplete. It must still be asked for exactly the documents it was
+ * asked for yesterday — the whole point of making the step incomplete is to put
+ * the question in front of somebody *before* the corrections that will change
+ * their checklist, not to change it now.
+ *
+ * So this is the guard against the change leaking one layer down: step
+ * completeness is a workflow fact, and applicability must not learn about it.
+ */
+describe('requiredness is a workflow fact, not an applicability one', () => {
+  const LEGACY = ['employed', 'self_employed'] as const
+
+  it.each(LEGACY)(
+    'a legacy %s dossier with no occupation is asked for exactly what it always was',
+    (status) => {
+      for (const [cc, template] of [
+        ['GR', GREECE],
+        ['DE', GERMANY],
+      ] as const) {
+        expect({
+          cc,
+          status,
+          codes: codesFor(status, undefined, template),
+        }).toEqual({ cc, status, codes: BEFORE_H4C2B1[cc][status] })
+      }
+    }
+  )
+
+  it.each(LEGACY)(
+    'and its required obligation set is unchanged for %s',
+    (status) => {
+      const app = {
+        destinationCountry: 'GR',
+        visaType: 'short_stay_tourism',
+        employment: employment(status),
+      } as unknown as Application
+      const required = requiredRequirementCodes(GREECE, ctxFor(app))
+
+      // Derived from the frozen baseline rather than from today's resolution,
+      // so a change that moved both sides together could not hide here.
+      const expected = BEFORE_H4C2B1.GR[status].filter(
+        (code) =>
+          GREECE.documentRequirements.find((r) => r.code === code)?.required
+      )
+      expect(required).toEqual(expected)
+    }
+  )
+
+  it('names the same missing documents to a legacy dossier as before', () => {
+    const app = {
+      destinationCountry: 'GR',
+      visaType: 'short_stay_tourism',
+      employment: employment('self_employed'),
+    } as unknown as Application
+
+    const named = runValidation({
+      dossier: {
+        applicant: { id: 'a1', nationality: 'TR' },
+        application: app,
+        documents: [],
+        sponsors: [],
+      } as unknown as Dossier,
+      template: GREECE,
+      applicability: ctxFor(app),
+    }).findings.flatMap((f) => f.messageParams?.documentCodes?.documents ?? [])
+
+    // The company block is still asked of an unclassified self-employed
+    // applicant. That over-ask is known and deliberate until H4c2e; what must
+    // not happen is it disappearing now, silently, as a side effect of the rail.
+    expect(named).toEqual(
+      expect.arrayContaining([
+        'EMPLOYER_TRADE_REGISTRY',
+        'COMPANY_ACTIVITY_CERTIFICATE',
+        'TAX_PAYMENT_STATEMENT',
+      ])
+    )
+    expect(named).not.toContain('FARMER_CERTIFICATE')
   })
 })

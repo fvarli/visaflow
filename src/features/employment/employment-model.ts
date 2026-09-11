@@ -24,6 +24,7 @@ import {
   isEmployerComplete,
   isIncomeComplete,
   isLeaveComplete,
+  isStatusComplete,
   leaveApplies,
 } from './employment-wizard'
 
@@ -102,7 +103,13 @@ function buildReview(
 ): EmploymentReviewSection[] {
   const status = employment?.employmentStatus
   const sections: EmploymentReviewSection[] = [
-    { id: 'status', status: status ? 'captured' : 'incomplete' },
+    // The same question the rail asks, through the same helper. It used to be
+    // `status ? 'captured' : 'incomplete'` here — a second answer that agreed
+    // with the rail only until the rail learned about occupation.
+    {
+      id: 'status',
+      status: isStatusComplete(employment) ? 'captured' : 'incomplete',
+    },
   ]
 
   if (hasEmployer(status)) {
