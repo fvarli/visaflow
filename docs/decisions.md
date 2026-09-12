@@ -2307,6 +2307,11 @@ country-pack-provenance,workspace-repository}.test.ts`, `docs/country-pack-guide
 > remains forbidden is unchanged — no override of identity, requiredness, applicability, owner or
 > base prose, and no suppression or replacement. The text is kept as written.
 
+> **Narrowed by [ADR-052c](#adr-052c) (2026-09-13).** One word of the blockquote above no longer
+> holds: *applicability* is no longer wholly unoverridable by a later layer. A refinement may append a
+> bounded occupational **widening** — never a narrowing, never a replacement, and never any other
+> axis. Everything else in that sentence stands. The text is kept as written.
+
 **Decision:**
 
 1. A visa-type template is **composed** from ordered ownership layers —
@@ -2737,6 +2742,16 @@ the layer decides is scope, and what the citations decide is evidence.
 
 **Status:** Accepted · 2026-09-08 · restates Rule 1 of [ADR-052a](#adr-052a), amends
 [ADR-052](#adr-052)
+
+> **Amended by [ADR-052c](#adr-052c) (2026-09-13).** Decision 6's list loses one item, narrowly.
+> **Applicability** may now be *widened* by a refinement — and only widened, and only along the
+> occupational axis, through a typed set of known occupation codes that cannot express a narrowing or
+> any other field. Identity, requiredness, owner, base prose, suppression and replacement remain
+> forbidden exactly as written, and so does replacing or narrowing applicability. The reason the item
+> could not simply stay is a real shape the model could not hold: a mission asking a jurisdiction
+> requirement of a wider population than the jurisdiction instrument names, which Article 14(3)
+> expressly permits and which ADR-052a already says the model must be able to express. The text is
+> kept as written.
 
 ADR-052a Rule 1 exists to stop one requirement `code` from ambiguously representing two different
 obligations, and that purpose is untouched. Its *premise* is gone. It reasoned that "`revision` is
@@ -3220,3 +3235,121 @@ reviewable without the next.
 
 **Implementation:** documentation only — `docs/decisions.md`. Nothing here is built. The read-time
 routing this decision assumes shipped in `d4f4697` and changed no requirement.
+
+---
+
+## ADR-052c: A Mission May Widen Whom a Jurisdiction Requirement Asks
+
+**Status:** Accepted · 2026-09-13 · amends [ADR-052b](#adr-052b) and [ADR-052](#adr-052), extends
+[ADR-053a](#adr-053a) and [ADR-049a](#adr-049a)
+
+Article 14(3) leaves the harmonised list non-exhaustive, and [ADR-052a](#adr-052a) already says that a
+mission asking for more than the jurisdiction instrument "is a shape the model must be able to
+express". It is — for a requirement the **mission owns**. There was no shape at all for the other case:
+a **jurisdiction-owned** requirement that one mission asks of a wider population than the instrument
+names.
+
+Two rows need it, and the gap is not theoretical. Annex III I.5(c) files the company activity
+certificate and the chamber/trade-register documents under *Company owners*. The German mission's sheet
+files the second of those under *"Firma sahipleri / Serbest meslek sahipleri"*, and the Greek visa
+centre's checklist puts both in a company-document block it publishes for employees, company owners and
+independent professionals alike. Correcting the shared rows to their citation would withdraw documents
+from a Greek freelancer whom the checklist does ask — which
+[H4c2d2n adjudicated as a blocker](#adr-053a), because withdrawing a document the source does name is
+the same harm as inventing one.
+
+**Decision:**
+
+1. **A refinement may append occupations, and nothing else.** The vocabulary is a typed set:
+   conceptually `addApplicableOccupations?: readonly KnownOccupationCode[]`, declared beside
+   `addSourceRefs` and `addDetail` and scoped to the compositions that include the declaring layer.
+   This does **not** authorise an arbitrary condition, nor widening by employment status, nationality
+   or financing source; a different axis takes its own decision. The narrowness is the point rather
+   than a convenience: a general condition could express `employmentStatus = employed`, which would
+   sweep in a public servant — whom every source consulted excludes from this block — and a typed list
+   of occupations cannot state that sentence at all.
+2. **The law.** For a classified applicant, effective applicability is the base condition **or**
+   membership of the appended set. The widening is consulted on that path only.
+3. **It may only decorate an occupational base.** Permitted where the requirement's own condition
+   already reads `employment.occupation`, by `equals` or `oneOf`. A widening may not be attached to an
+   unrelated condition, which also fixes the order of work: a row is corrected to its citation first
+   and widened second, never the reverse.
+4. **Additive by construction, not by discipline.** It cannot narrow, suppress or replace, and it
+   cannot touch identity, requiredness, owner or prose. Four authoring rules make the set readable as
+   what it is: it must be non-empty, every member must be a known occupation code, members must be
+   unique, and it must be **disjoint from the base population**. A widening is a *delta*. Restating an
+   occupation the base already names is refused, so that a census of widenings is a census of genuine
+   differences rather than a mixture of differences and noise.
+5. **`contractKey` does not move, and this is the decision's sharpest edge.** A widening contributes to
+   no requirement revision, no fragment revision and no contract key. It changes *who is asked*, not
+   *what satisfies the ask*, which [ADR-051a](#adr-051a) already excludes from a bump — so persisted
+   completion identity `(code, contractKey)` is untouched and a satisfied claim stays satisfied when
+   the applicant is still applicable.
+
+   The counter-example is concrete rather than hypothetical. `EMPLOYER_TRADE_REGISTRY` already carries
+   a `de-tr-mission` acceptance fragment at revision 1. Carrying the widening inside `addDetail` — the
+   obvious economy, since that fragment exists and is already composition-scoped — would push
+   `EMPLOYER_TRADE_REGISTRY@2+de-tr-mission:1` to `:2` and ask **every German applicant who had marked
+   that document ready to check it again**, because we corrected the population. That is the failure
+   ADR-051a's directional test exists to prevent, arriving through the composition axis. No arithmetic
+   revision composition, and no piggybacking.
+6. **A widening never grants legacy entitlement.** [ADR-053a](#adr-053a)'s fallback evaluates the
+   **recorded prior coarse condition alone**; the widening is not consulted while an applicant is
+   unclassified. Worked through on `COMPANY_ACTIVITY_CERTIFICATE`, whose base becomes `company_owner`
+   with a recorded prior condition of `self_employed` and a Greek widening of employee and independent
+   professional:
+
+   | Greek applicant | result | by |
+   |---|---|---|
+   | classified `company_owner` | applies | base |
+   | classified `independent_professional` | applies | widening |
+   | classified `employee` | applies | widening |
+   | classified `farmer` | not applicable | — |
+   | `self_employed`, no usable occupation | applies | prior condition |
+   | `employed`, no usable occupation | **not applicable** | — |
+
+   The last row is the one worth stating. A Greek employee is a **new** obligation for that population,
+   so it fails closed until they answer, exactly as a new fine-axis obligation must. Preserving an old
+   contract and extending a new one are different entitlements and must not leak into each other.
+7. **Ownership is an independent axis.** `ownerByOccupation` stays with the requirement's owner and
+   **may name an occupation reached only through another composition's widening** — inert in a pack
+   that does not widen, correct in one that does. Its keys are deliberately **not** constrained to the
+   base population; requiring that would couple two mechanisms that have no reason to know about each
+   other. Applicability does not derive ownership, ownership does not derive applicability, and neither
+   derives financing placement ([ADR-049a](#adr-049a) decision 6).
+8. **The census is evidence-specific, and is not a family default.**
+
+   | row | base | Greece | Germany |
+   |---|---|---|---|
+   | `COMPANY_ACTIVITY_CERTIFICATE` | `company_owner` | + employee, + independent professional | — |
+   | `EMPLOYER_TRADE_REGISTRY` | `company_owner` | + employee, + independent professional | + independent professional |
+
+   The two deltas differ, which is why they are written out rather than shared. Every other row stands
+   on its own evidence: `TAX_PAYMENT_STATEMENT` is named by nothing beyond Annex III and needs no
+   widening at all, and a row a mission owns outright never needed this mechanism.
+
+**Rejected alternatives.**
+
+- **A generic additive `ConditionalRequirement`.** Expresses every demonstrated case and the one
+  dangerous undemonstrated one. Decision 1 is the whole argument.
+- **Widening through `addDetail`.** Decision 5 is the whole argument, and it costs real users a
+  re-check.
+- **A pack-specific second code.** Two codes for one document, which [ADR-052a](#adr-052a) names as a
+  failure in its own right and which multiplies across the whole company-document block.
+- **Override, replace or suppress.** The prohibition ADR-052b states is narrowed by exactly one word
+  and otherwise untouched; nothing here lets a later layer take anything away.
+- **Reusing the migration fallback to carry a newly widened population.** It would hand an obligation
+  to people who never had it on the strength of their not having answered a question, which is the
+  sentinel failure ADR-053a refused.
+
+**What this does not decide.** Requiredness on either row; whether the Greek checklist's own evidence
+should eventually cite more rows than it does today; and any widening on an axis other than occupation.
+
+**Consequences.** No version moves here: this is a decision record, and the capability it authorises
+has no production user until it is built. When it is, the order is fixed — the capability with zero
+production usage; then `COMPANY_ACTIVITY_CERTIFICATE` **corrected and widened in one commit**, because
+narrowing it alone would strip the row from a Greek independent professional for the length of a
+commit and the main branch must not carry that state; then `EMPLOYER_TRADE_REGISTRY` with both its
+deltas.
+
+**Implementation:** documentation only — `docs/decisions.md`. Nothing here is built.
