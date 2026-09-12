@@ -210,44 +210,41 @@ describe('owner semantics — every surface agrees', () => {
   })
 })
 
-describe('owner semantics — the Finance coupling, pinned as it stands', () => {
+describe('owner semantics — Finance no longer consults the subject', () => {
   /**
-   * `financeDocGroup` reads `ownerType === 'employer'` as "employer-funded
-   * evidence". `ownerType` means *whose situation the document describes*, and
-   * those are different claims — a self-employed applicant's own tax plate is
-   * not an employer-funded trip. That coupling predates this routing and is
-   * deliberately unchanged here.
-   *
-   * These assertions exist so it cannot move by accident: the slice that makes
-   * ownership profile-dependent must decide the Finance placement explicitly,
-   * and will see these fail if it does not.
+   * The coupling this block used to pin is gone. `financeDocGroup` read
+   * `ownerType === 'employer'` as "employer-funded evidence" — a claim about
+   * who pays, made from a field that says whose situation the document
+   * describes (ADR-049a decision 6). H4c2d2g removed the parameter, so the
+   * firewall is structural: a subject that resolves differently per applicant
+   * cannot move a row between finance groups.
    */
-  it('membership follows the resolved owner, not the stored one', () => {
-    // `financeDocGroup` returning null is the one consumer that hides a
-    // document outright, and for an `employment`-category row only the owner
-    // decides. So a record seeded with the wrong subject used to be dropped
-    // from the Finance workspace entirely; the pack's answer now decides.
+  it('a stale snapshot no longer decides Finance membership, because no owner does', () => {
     const employedCtx = ctxFor(applicationFor('GR', 'employed'))
     const stale = record('EMPLOYER_SIGNATURE_CIRCULAR', 'applicant')
 
-    expect(
-      buildFinanceDocuments([stale], employedCtx, grTemplate).rows.find(
-        (r) => r.code === 'EMPLOYER_SIGNATURE_CIRCULAR'
-      )?.group
-    ).toBe('employer')
+    // Resolved subject and stored subject disagree...
+    expect(stale.ownerType).toBe('applicant')
     expect(
       resolveDocumentSemantics(stale, grTemplate, employedCtx).ownerType
     ).toBe('employer')
+
+    // ...and Finance is indifferent to both.
+    expect(
+      buildFinanceDocuments([stale], employedCtx, grTemplate).rows.some(
+        (r) => r.code === 'EMPLOYER_SIGNATURE_CIRCULAR'
+      )
+    ).toBe(false)
   })
 
-  it('an employer-subject requirement still lands in the employer group', () => {
+  it('an employer-subject requirement is no longer admitted by its subject', () => {
     const view = buildFinanceDocuments(
       [],
       ctxFor(applicationFor('DE', 'self_employed')),
       compositionFor('DE').template
     )
-    const plate = view.rows.find((r) => r.code === 'EMPLOYER_TAX_PLATE')
-    expect(plate?.group).toBe('employer')
+    expect(view.rows.some((r) => r.code === 'EMPLOYER_TAX_PLATE')).toBe(false)
+    expect(view.groups.some((g) => g.id === 'employer')).toBe(false)
   })
 })
 

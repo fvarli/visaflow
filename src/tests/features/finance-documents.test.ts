@@ -46,20 +46,22 @@ const application = (
 })
 
 describe('financeDocGroup — pure grouping', () => {
-  const cases: [string, DocumentCategory, 'applicant' | 'employer', unknown][] =
-    [
-      ['BANK_STATEMENTS', 'financial', 'applicant', 'bank'],
-      ['PAYSLIPS', 'employment', 'applicant', 'income'],
-      ['TAX_RETURNS', 'financial', 'applicant', 'income'], // income beats bank by code
-      ['SPONSOR_LETTER', 'sponsor', 'sponsor' as 'applicant', 'sponsor'],
-      ['RELATIONSHIP_PROOF', 'civil_registry', 'applicant', 'sponsor'],
-      ['EMPLOYER_TAX_PLATE', 'employment', 'employer', 'employer'],
-      ['PROPERTY_DEED', 'supporting', 'applicant', 'other'],
-      ['PASSPORT_CURRENT', 'passport', 'applicant', null],
-      ['TRAVEL_INSURANCE', 'insurance', 'applicant', null],
-    ]
-  it.each(cases)('%s → %s', (code, category, owner, expected) => {
-    expect(financeDocGroup(code, category, owner)).toBe(expected)
+  const cases: [string, DocumentCategory, unknown][] = [
+    ['BANK_STATEMENTS', 'financial', 'bank'],
+    ['PAYSLIPS', 'employment', 'income'],
+    ['TAX_RETURNS', 'financial', 'income'], // income beats bank by code
+    ['SPONSOR_LETTER', 'sponsor', 'sponsor'],
+    ['RELATIONSHIP_PROOF', 'civil_registry', 'sponsor'],
+    ['PROPERTY_DEED', 'supporting', 'other'],
+    ['PASSPORT_CURRENT', 'passport', null],
+    ['TRAVEL_INSURANCE', 'insurance', null],
+    // The two the owner clause used to admit. Neither is financial evidence:
+    // one proves who may sign for a company, the other that one is registered.
+    ['EMPLOYER_TAX_PLATE', 'employment', null],
+    ['EMPLOYER_SIGNATURE_CIRCULAR', 'employment', null],
+  ]
+  it.each(cases)('%s → %s', (code, category, expected) => {
+    expect(financeDocGroup(code, category)).toBe(expected)
   })
 })
 

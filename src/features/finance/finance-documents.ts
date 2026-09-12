@@ -1,7 +1,6 @@
 import { buildDocumentReadiness } from '@/features/readiness/document-readiness'
 import type { DocumentReadiness } from '@/features/readiness/readiness-types'
 import { applicableRequirements } from '@/features/documents/template-sync'
-import { resolveDocumentSemantics } from '@/features/documents/document-semantics'
 import type { Document } from '@/domain/schemas/document.schema'
 import type { ApplicabilityContext, VisaTypeTemplate } from '@/config/types'
 import { RETIRED_REQUIREMENTS } from '@/config/countries/retired'
@@ -116,15 +115,36 @@ const GATHER_STATUSES = new Set<FinanceDocStatus>([
  * Which finance display group a document/requirement belongs to, or null when it
  * is not financial evidence at all. Order matters: income evidence is grouped by
  * code even when its category is `financial`.
+ *
+ * **It does not take an owner, and that is the point.** This used to read
+ * `ownerType === 'employer'` as "employer-funded evidence", which is a claim
+ * about who pays; `ownerType` says whose situation the document describes
+ * ([ADR-049a](../../../docs/decisions.md) decision 6). One signal was feeding
+ * two different meanings, visibly: the same rows render under *Employer
+ * evidence* in the summary and under *Employer-funded evidence* in the gather
+ * list the applicant copies to their clipboard.
+ *
+ * The clause served exactly two requirements — `EMPLOYER_SIGNATURE_CIRCULAR`
+ * and `EMPLOYER_TAX_PLATE` — and was the only reason either reached this
+ * workspace. Neither is financial evidence: one proves who may sign for a
+ * company, the other that a company is registered. Both keep their place in
+ * Documents and in the Employment workspace, where their category puts them.
+ *
+ * The `employer` group stays in the vocabulary. What belongs in it is the
+ * employer's confirmation that it covers the trip — which this pack's own
+ * guidance prose already describes and which no requirement declares yet. When
+ * one is authored it joins by code, like every other row here.
+ *
+ * Keeping the owner out is also what makes profile-dependent ownership safe: a
+ * subject that resolves differently per applicant cannot move a document
+ * between finance groups if the subject is not an input.
  */
 export function financeDocGroup(
   code: string,
-  category: DocumentCategory,
-  ownerType: OwnerType
+  category: DocumentCategory
 ): FinanceDocGroupId | null {
   if (category === 'sponsor' || code === 'RELATIONSHIP_PROOF') return 'sponsor'
   if (INCOME_CODES.has(code)) return 'income'
-  if (ownerType === 'employer') return 'employer'
   if (category === 'financial') return 'bank'
   if (code === 'PROPERTY_DEED') return 'other'
   return null
@@ -143,29 +163,12 @@ export function buildFinanceDocuments(
   template: VisaTypeTemplate | undefined
 ): FinanceDocumentsView {
   /**
-   * Owner through the shared resolver, not the seeded snapshot (ADR-049).
-   *
-   * This filter decides which documents reach the Finance workspace at all, so
-   * a stale snapshot would keep a row on — or off — a screen its own label
-   * contradicts. The resolver preserves the snapshot for a retired, custom or
-   * unrecognised code, which is what keeps a person's filed documents visible
-   * on the screen they filed them under.
-   *
-   * WHAT THIS DEPENDENCY IS NOT. `financeDocGroup` reads `ownerType ===
-   * 'employer'` as "employer-funded evidence", and `ownerType` means *whose
-   * situation the document describes* — the applicant's employer's tax plate
-   * and an employer-funded trip are different claims. The coupling predates
-   * this routing and is left exactly as it behaves; it is named here so that
-   * when ownership becomes profile-dependent, nobody moves a row between
-   * Finance groups as a side effect of resolving its subject.
+   * One classifier, three consumers. Membership, the required-requirement
+   * filter below and the row builder all ask the same question of the same
+   * facts, so none of them can drift into reinterpreting what belongs here.
    */
   const financeDocs = documents.filter(
-    (d) =>
-      financeDocGroup(
-        d.code,
-        d.category,
-        resolveDocumentSemantics(d, template, context).ownerType
-      ) !== null
+    (d) => financeDocGroup(d.code, d.category) !== null
   )
   const applicable = template ? applicableRequirements(template, context) : []
 
@@ -176,8 +179,7 @@ export function buildFinanceDocuments(
     requiredRequirementCodes: applicable
       .filter(
         (req) =>
-          req.required &&
-          financeDocGroup(req.code, req.category, req.ownerType) !== null
+          req.required && financeDocGroup(req.code, req.category) !== null
       )
       .map((req) => req.code),
     template,
@@ -187,7 +189,7 @@ export function buildFinanceDocuments(
   const byCode = new Map(financeDocs.map((d) => [d.code, d]))
 
   const rows: FinanceDocRow[] = applicable.flatMap((req) => {
-    const group = financeDocGroup(req.code, req.category, req.ownerType)
+    const group = financeDocGroup(req.code, req.category)
     if (group === null) return []
     const instance = byCode.get(req.code)
     return [
