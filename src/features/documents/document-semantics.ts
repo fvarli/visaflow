@@ -1,5 +1,5 @@
 import type { ApplicabilityContext } from '@/config/types'
-import { isApplicable } from './applicability'
+import { isApplicable, effectiveOwner } from './applicability'
 import { isRetiredRequirement } from '@/config/countries/retired'
 import { isCustomCode } from '@/features/documents/template-sync'
 import type { DocumentRequirement, VisaTypeTemplate } from '@/config/types'
@@ -113,7 +113,13 @@ export function resolveDocumentSemantics(
   return {
     required: requirement.required,
     category: requirement.category,
-    ownerType: requirement.ownerType,
+    // The declared subject unless this applicant's effective occupation is one
+    // the requirement maps differently. Without a context there is nothing to
+    // resolve against, and the declared value is already the right answer.
+    ownerType:
+      context === undefined
+        ? requirement.ownerType
+        : effectiveOwner(requirement, context),
     isApplicable: applicable,
     membership: 'active',
     requirement,

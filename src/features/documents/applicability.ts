@@ -1,8 +1,9 @@
 import type { Applicant } from '@/domain/schemas/applicant.schema'
 import type { Application } from '@/domain/schemas/application.schema'
 import { resolveOccupation } from '@/domain/types/common'
+import type { OwnerType } from '@/domain/types/common'
 import type { ApplicabilityContext, DocumentRequirement } from '@/config/types'
-import { isRequirementApplicable } from '@/config/types'
+import { isRequirementApplicable, effectiveOwnerType } from '@/config/types'
 
 /**
  * The one place an applicability context is built, and the one place the
@@ -84,4 +85,19 @@ export function isApplicable(
   context: ApplicabilityContext
 ): boolean {
   return isRequirementApplicable(requirement, context)
+}
+
+/**
+ * Whose situation this requirement's evidence describes, for this dossier.
+ *
+ * A wrapper for the same reason as `isApplicable`: one importer, so the rule
+ * has a single production door and the drift guard has something to key on. The
+ * only caller is `resolveDocumentSemantics`, which is where ADR-049 says
+ * template-owned metadata is re-derived.
+ */
+export function effectiveOwner(
+  requirement: DocumentRequirement,
+  context: ApplicabilityContext
+): OwnerType {
+  return effectiveOwnerType(requirement, context)
 }

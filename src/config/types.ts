@@ -184,7 +184,36 @@ export interface DocumentRequirement {
   descriptionKey?: string
   notesKey?: string
   category: DocumentCategory
+  /**
+   * Whose situation this evidence describes — the **declared default**, and the
+   * answer for everyone unless `ownerByOccupation` names their occupation.
+   *
+   * Required, and deliberately not made optional by the contextual map beside
+   * it. It is what a seeded record copies, what an unclassified applicant gets,
+   * and what an unresolvable code falls back to ([ADR-049a](#adr-049a)).
+   */
   ownerType: OwnerType
+  /**
+   * The subject, where a source asks the same document of populations it
+   * belongs to differently.
+   *
+   * The Greek visa centre asks an employee, a company owner and a freelancer
+   * for the same `İmza Sirküleri`: the employer's company in the first case and
+   * the applicant's own in the other two. One evidence identity, one code, one
+   * acceptance bar — and two subjects. ADR-049a settles that a subject is not
+   * identity, so this is metadata rather than a second requirement.
+   *
+   * **An object map rather than a list, for what the compiler gets from it.** A
+   * repeated occupation is unstateable in an object literal; a misspelled one is
+   * caught by excess-property checking at the authoring site; and
+   * `noUncheckedIndexedAccess` types the lookup as possibly-undefined, so the
+   * fallback below is forced rather than remembered.
+   *
+   * Only occupation, deliberately. ADR-049a authorises a bounded profile
+   * dependence and this is the narrowest form of it — no nationality, no
+   * financing, no sponsor, no condition tree, no raw dossier access.
+   */
+  ownerByOccupation?: Partial<Record<KnownOccupationCode, OwnerType>>
   required: boolean
   conditionalOn?: ConditionalRequirement
   /**
@@ -558,6 +587,29 @@ export interface ApplicabilityContext {
  */
 function isAbsent(fieldValue: unknown): boolean {
   return fieldValue === undefined || fieldValue === null || fieldValue === ''
+}
+
+/**
+ * Whose situation this requirement's evidence describes, for this applicant.
+ *
+ * The declared `ownerType` unless the applicant has an effective occupation the
+ * requirement maps differently. *Effective* is the whole safety property: the
+ * context carries only a code this build knows **and** that is legal for the
+ * recorded status, so an absent answer, a code from a newer version and a stale
+ * code left behind by a status change are already indistinguishable here — all
+ * three arrive as `undefined` and all three get the declared default. The raw
+ * persisted string is not reachable from this function and must never become so
+ * ([ADR-053](#adr-053), [ADR-049a](#adr-049a)).
+ *
+ * Pure, and total: there is no state in which this returns nothing.
+ */
+export function effectiveOwnerType(
+  requirement: DocumentRequirement,
+  context: ApplicabilityContext
+): OwnerType {
+  const occupation = context.employment?.occupation
+  if (occupation === undefined) return requirement.ownerType
+  return requirement.ownerByOccupation?.[occupation] ?? requirement.ownerType
 }
 
 /**
