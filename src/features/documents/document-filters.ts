@@ -78,7 +78,19 @@ export function filterDocuments(
    * A callback for the same reason as `requiredOf`: the derived answer needs
    * the country pack, and this primitive stays domain-free.
    */
-  statusOf: (doc: Document) => DocumentStatus = (doc) => doc.status
+  statusOf: (doc: Document) => DocumentStatus = (doc) => doc.status,
+  /**
+   * Whose situation the document describes, as the pack says it **now**.
+   *
+   * The third callback for the same reason as the two above. `ownerType` is
+   * template-owned metadata that ADR-049 re-derives on read, and the chip a
+   * filter is named after is rendered from the same resolved answer — so
+   * reading the seeded snapshot here would hide a row under an owner its own
+   * label no longer shows. The default keeps this primitive usable without a
+   * country pack and matches ADR-049's fallback: a code the template cannot
+   * resolve describes itself from its own snapshot.
+   */
+  ownerOf: (doc: Document) => OwnerType = (doc) => doc.ownerType
 ): Document[] {
   const q = filters.search.trim().toLocaleLowerCase()
   return documents.filter((doc) => {
@@ -93,7 +105,7 @@ export function filterDocuments(
       return false
     if (filters.category !== 'all' && doc.category !== filters.category)
       return false
-    if (filters.owner !== 'all' && doc.ownerType !== filters.owner) return false
+    if (filters.owner !== 'all' && ownerOf(doc) !== filters.owner) return false
     if (filters.requirement === 'required' && !requiredOf(doc)) return false
     if (filters.requirement === 'optional' && requiredOf(doc)) return false
     return true

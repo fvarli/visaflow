@@ -1,6 +1,7 @@
 import { buildDocumentReadiness } from '@/features/readiness/document-readiness'
 import type { DocumentReadiness } from '@/features/readiness/readiness-types'
 import { applicableRequirements } from '@/features/documents/template-sync'
+import { resolveDocumentSemantics } from '@/features/documents/document-semantics'
 import type { Document } from '@/domain/schemas/document.schema'
 import type { ApplicabilityContext, VisaTypeTemplate } from '@/config/types'
 import { RETIRED_REQUIREMENTS } from '@/config/countries/retired'
@@ -141,8 +142,30 @@ export function buildFinanceDocuments(
   context: ApplicabilityContext,
   template: VisaTypeTemplate | undefined
 ): FinanceDocumentsView {
+  /**
+   * Owner through the shared resolver, not the seeded snapshot (ADR-049).
+   *
+   * This filter decides which documents reach the Finance workspace at all, so
+   * a stale snapshot would keep a row on — or off — a screen its own label
+   * contradicts. The resolver preserves the snapshot for a retired, custom or
+   * unrecognised code, which is what keeps a person's filed documents visible
+   * on the screen they filed them under.
+   *
+   * WHAT THIS DEPENDENCY IS NOT. `financeDocGroup` reads `ownerType ===
+   * 'employer'` as "employer-funded evidence", and `ownerType` means *whose
+   * situation the document describes* — the applicant's employer's tax plate
+   * and an employer-funded trip are different claims. The coupling predates
+   * this routing and is left exactly as it behaves; it is named here so that
+   * when ownership becomes profile-dependent, nobody moves a row between
+   * Finance groups as a side effect of resolving its subject.
+   */
   const financeDocs = documents.filter(
-    (d) => financeDocGroup(d.code, d.category, d.ownerType) !== null
+    (d) =>
+      financeDocGroup(
+        d.code,
+        d.category,
+        resolveDocumentSemantics(d, template, context).ownerType
+      ) !== null
   )
   const applicable = template ? applicableRequirements(template, context) : []
 

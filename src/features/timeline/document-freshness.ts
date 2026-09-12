@@ -27,6 +27,17 @@ export interface FreshnessRow {
   code: string
   name?: string
   category: DocumentCategory
+  /**
+   * The **persisted** snapshot, deliberately, because nothing reads it.
+   *
+   * Every other surface that shows an owner resolves it through
+   * `resolveDocumentSemantics` (ADR-049); this row carries the field and no
+   * Timeline component renders it, so threading a template and an applicability
+   * context through `buildFreshness` would add plumbing for a value with no
+   * consumer. The moment something does render it, it must take the resolved
+   * answer instead — the owner-semantics census guard fails if a production
+   * module starts reading a `Document.ownerType` outside the resolver.
+   */
   ownerType: OwnerType
   status: DocumentStatus
   freshness: FreshnessClass

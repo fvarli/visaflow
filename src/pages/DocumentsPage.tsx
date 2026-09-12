@@ -48,6 +48,7 @@ import {
 import {
   countsTowardReadiness,
   effectiveStatus,
+  resolveDocumentSemantics,
 } from '@/features/documents/document-semantics'
 import { DocumentsHero } from '@/components/documents/DocumentsHero'
 import {
@@ -204,10 +205,34 @@ export default function DocumentsPage() {
     [template]
   )
 
+  /**
+   * Whose situation the document describes, as the pack says it now.
+   *
+   * ADR-049 puts `ownerType` beside `required` and `category` as template-owned
+   * metadata that is re-derived on read; it was the one of the three still read
+   * from the seeded snapshot here. A dossier seeded before a pack corrected an
+   * owner — `EMPLOYER_TRADE_REGISTRY` moved from the employer to the applicant
+   * in ADR-048 — carried the old answer on its label and in the filter forever,
+   * while the Final Review checklist, which already used the resolver, showed
+   * the new one. One resolver, so the two cannot disagree.
+   */
+  const ownerOf = useMemo(
+    () => (doc: Document) =>
+      resolveDocumentSemantics(doc, template, applicability).ownerType,
+    [template, applicability]
+  )
+
   const filtered = useMemo(
     () =>
-      filterDocuments(state.documents, filters, labelOf, requiredOf, statusOf),
-    [state.documents, filters, labelOf, requiredOf, statusOf]
+      filterDocuments(
+        state.documents,
+        filters,
+        labelOf,
+        requiredOf,
+        statusOf,
+        ownerOf
+      ),
+    [state.documents, filters, labelOf, requiredOf, statusOf, ownerOf]
   )
   const groups = useMemo(() => groupByCategory(filtered), [filtered])
 
@@ -216,8 +241,8 @@ export default function DocumentsPage() {
     [state.documents]
   )
   const presentOwners = useMemo(
-    () => Array.from(new Set(state.documents.map((d) => d.ownerType))),
-    [state.documents]
+    () => Array.from(new Set(state.documents.map(ownerOf))),
+    [state.documents, ownerOf]
   )
 
   const availableToAdd = useMemo(
@@ -306,7 +331,7 @@ export default function DocumentsPage() {
     return {
       label: labelOf(doc),
       categoryLabel: td(`visa-domain:documentCategory.${doc.category}`),
-      ownerLabel: td(`visa-domain:ownerType.${doc.ownerType}`),
+      ownerLabel: td(`visa-domain:ownerType.${ownerOf(doc)}`),
       // The status the dossier is *counted* by, so a card cannot read "Ready"
       // inside the "Needs update" bucket that revealed it. The stored status is
       // untouched and the detail panel still edits it (ADR-051).
@@ -497,7 +522,7 @@ export default function DocumentsPage() {
                     {td(`visa-domain:documentCategory.${doc.category}`)}
                   </TableCell>
                   <TableCell>
-                    {td(`visa-domain:ownerType.${doc.ownerType}`)}
+                    {td(`visa-domain:ownerType.${ownerOf(doc)}`)}
                   </TableCell>
                   <TableCell>
                     <StatusBadge tone={DOCUMENT_STATUS_TONE[doc.status]} dot>
@@ -546,7 +571,7 @@ export default function DocumentsPage() {
                         key={doc.id}
                         label={labelOf(doc)}
                         metaLabel={`${td(`visa-domain:documentCategory.${doc.category}`)} · ${td(
-                          `visa-domain:ownerType.${doc.ownerType}`
+                          `visa-domain:ownerType.${ownerOf(doc)}`
                         )}`}
                         statusLabel={td(
                           `visa-domain:documentStatus.${statusOf(doc)}`

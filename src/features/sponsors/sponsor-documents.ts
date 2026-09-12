@@ -1,4 +1,5 @@
 import { applicableRequirements } from '@/features/documents/template-sync'
+import { resolveDocumentSemantics } from '@/features/documents/document-semantics'
 import type { Document } from '@/domain/schemas/document.schema'
 import type { Sponsor } from '@/domain/schemas/sponsor.schema'
 import type { ApplicabilityContext, VisaTypeTemplate } from '@/config/types'
@@ -65,13 +66,23 @@ export interface SponsorDocumentsView {
   linkedCount: number
 }
 
-function toRow(doc: Document, linked: boolean): SponsorDocRow {
+/**
+ * `ownerType` is passed in rather than read off the record: it is template-owned
+ * metadata the shared resolver derives on read (ADR-049), and the linker renders
+ * it as a label beside the document's name. Reading the seeded snapshot here
+ * would show a sponsor an owner the Documents workspace no longer shows.
+ */
+function toRow(
+  doc: Document,
+  linked: boolean,
+  ownerType: OwnerType
+): SponsorDocRow {
   return {
     docId: doc.id,
     code: doc.code,
     name: doc.name,
     category: doc.category,
-    ownerType: doc.ownerType,
+    ownerType,
     status: doc.status,
     linked,
   }
@@ -86,6 +97,8 @@ export function buildSponsorDocuments(
   const eligible = allDocuments.filter((d) =>
     isSponsorEvidence(d.code, d.category)
   )
+  const ownerOf = (doc: Document) =>
+    resolveDocumentSemantics(doc, template, context).ownerType
   const byId = new Map(allDocuments.map((d) => [d.id, d]))
   const linkedIds = new Set(sponsor.documentIds)
 
@@ -94,7 +107,7 @@ export function buildSponsorDocuments(
   for (const id of sponsor.documentIds) {
     const doc = byId.get(id)
     if (doc && isSponsorEvidence(doc.code, doc.category)) {
-      linked.push(toRow(doc, true))
+      linked.push(toRow(doc, true, ownerOf(doc)))
     } else {
       // Missing entirely, or points at a now-ineligible document.
       stale.push(id)
@@ -103,7 +116,7 @@ export function buildSponsorDocuments(
 
   const eligibleUnlinked = eligible
     .filter((d) => !linkedIds.has(d.id))
-    .map((d) => toRow(d, false))
+    .map((d) => toRow(d, false, ownerOf(d)))
 
   const presentCodes = new Set(allDocuments.map((d) => d.code))
   const missingRequirements: SponsorMissingRequirement[] = template
