@@ -1,5 +1,6 @@
 import { grTrMissionSources } from '../../sources/gr-tr-mission.sources'
 import type { RequirementLayer } from '../../types'
+import { occupationOneOf } from '../../types'
 
 /**
  * The Greek mission's authority over applications lodged in Türkiye.
@@ -60,14 +61,34 @@ export const grTrMissionLayer: RequirementLayer = {
      * Türkiye, and from the German mission's own sheet. ADR-048 already
      * declined to re-point it.
      *
-     * The Greek visa centre's checklist does list it, in all four consular
-     * jurisdictions, inside the company-document block on the employed branch
-     * — and not on the public-servant branch, which carries no such block. That
-     * is support for the document and a contradiction of the nationality note
-     * this requirement used to render, which H4b removed. It is not yet support
-     * for the contract: `employed` cannot separate an ordinary employee from a
-     * public servant, so both the requiredness and the condition stay as they
-     * are until the occupational vocabulary can express the distinction.
+     * THE CONTRACT THIS ROW USED TO RENDER WAS WRONG IN BOTH DIRECTIONS.
+     * `employed` over-asked the public servant, whose branch carries no company
+     * block at all, and missed the company owner and the freelancer, whose
+     * branches carry the same block. ADR-047's fourth evidence pass read all
+     * five occupational branches at all four consular jurisdictions and they
+     * agree: the block is asked of *Çalışan*, *Şirket Sahibi* and *Serbest
+     * Meslek*, and not of *Kamu Çalışanı* or *Çiftçi*. The earlier comment here
+     * said the condition would stay as it was "until the occupational
+     * vocabulary can express the distinction". It can now.
+     *
+     * ONE CODE, TWO SUBJECTS. On the employed branch the company documents are
+     * the employer's; on the two self-employed branches they are the
+     * applicant's own. The source names the same instrument on every branch and
+     * never says whose, so this is one evidence identity whose subject depends
+     * on the profile, not two requirements ([ADR-049a](#adr-049a),
+     * [ADR-052b](#adr-052b)).
+     *
+     * AND THE PRIOR CONTRACT IS KEPT, NOT ASSUMED. An applicant who has not
+     * said what kind of work they do is evaluated against the exact coarse
+     * condition this row used to carry — so an employed dossier keeps the row
+     * and a self-employed one still does not get it, which a membership test on
+     * some "unclassified" token could not have expressed
+     * ([ADR-053a](#adr-053a)). The entitlement to do that lives in
+     * `APPLICABILITY_MIGRATIONS`, not in this file.
+     *
+     * Still uncited, and for a smaller reason than before: the checklist that
+     * supports it has no source record, so there is nothing to cite it to.
+     * Requiredness is untouched and remains its own question.
      */
     {
       code: 'EMPLOYER_SIGNATURE_CIRCULAR',
@@ -75,12 +96,29 @@ export const grTrMissionLayer: RequirementLayer = {
       descriptionKey:
         'visa-domain:requirements.EMPLOYER_SIGNATURE_CIRCULAR.description',
       category: 'employment',
+      /**
+       * The employer's, by default — which is the answer for an employee and
+       * the answer for anyone who has not classified themselves, since the
+       * contract they are held to is the employed one.
+       */
       ownerType: 'employer',
+      ownerByOccupation: {
+        employee: 'employer',
+        company_owner: 'applicant',
+        independent_professional: 'applicant',
+      },
       required: false,
-      conditionalOn: {
-        field: 'employment.employmentStatus',
-        operator: 'equals',
-        value: 'employed',
+      conditionalOn: occupationOneOf([
+        'employee',
+        'company_owner',
+        'independent_professional',
+      ]),
+      applicabilityMigration: {
+        priorCondition: {
+          field: 'employment.employmentStatus',
+          operator: 'equals',
+          value: 'employed',
+        },
       },
       revision: 1,
     },

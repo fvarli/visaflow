@@ -49,22 +49,48 @@ export interface ApplicabilityMigrationEntry {
 }
 
 /**
- * **Deliberately empty.**
+ * One entry, and the gate is what makes it mean anything.
  *
- * H4c2d4c built the capability and migrated nothing, so no requirement is
- * entitled yet and none carries `applicabilityMigration`. The five motivating
- * rows — `EMPLOYER_SIGNATURE_CIRCULAR`, `EMPLOYER_TRADE_REGISTRY`,
- * `COMPANY_ACTIVITY_CERTIFICATE`, `TAX_PAYMENT_STATEMENT` and
- * `EMPLOYER_TAX_PLATE` — are **not** listed here: each needs its corrected
- * occupational population adjudicated on its own evidence first, and an entry
- * written before that adjudication would be a claim nobody had checked.
+ * A requirement that *quotes* a prior contract proves nothing — a row written
+ * tomorrow could quote a fiction. This ledger is where the entitlement lives,
+ * and an invariant cross-checks it against the pack in both directions: a
+ * config claim with no entry fails, an entry with no config fails, and a prior
+ * condition the two disagree about fails.
+ *
+ * The four other rows from the same company-document block —
+ * `EMPLOYER_TRADE_REGISTRY`, `COMPANY_ACTIVITY_CERTIFICATE`,
+ * `TAX_PAYMENT_STATEMENT` and `EMPLOYER_TAX_PLATE` — are still **not** listed.
+ * Each needs its corrected occupational population adjudicated on its own
+ * evidence first, and an entry written before that adjudication would be a
+ * claim nobody had checked.
  *
  * `FARMER_CERTIFICATE` will never appear. It was authored against the
  * occupational axis and has no prior coarse contract to preserve, which is
- * exactly the case the entitlement gate exists to refuse.
- *
- * An empty ledger makes the production half of the two-way invariant vacuous,
- * so the invariant is exercised against fixtures instead — weakening it to suit
- * the emptiness would defeat the reason it exists.
+ * exactly the case this gate exists to refuse.
  */
-export const APPLICABILITY_MIGRATIONS: ApplicabilityMigrationEntry[] = []
+export const APPLICABILITY_MIGRATIONS: ApplicabilityMigrationEntry[] = [
+  {
+    code: 'EMPLOYER_SIGNATURE_CIRCULAR',
+    priorCondition: {
+      field: 'employment.employmentStatus',
+      operator: 'equals',
+      value: 'employed',
+    },
+    reason:
+      'The row asked every employed applicant for the company-document block ' +
+      "on the strength of their coarse status. ADR-047's fourth evidence pass " +
+      'read all five occupational branches at all four consular jurisdictions: ' +
+      'the block belongs to an employee, a company owner and an independent ' +
+      'professional, and not to a public servant or a farmer. Correcting it ' +
+      'both adds and withdraws, so an applicant who has not yet said what kind ' +
+      'of work they do must keep being held to exactly the contract they were ' +
+      'shown — not to a widened one, and not to nothing.',
+    retirement:
+      'Remove once the corrected condition can stand alone, which means every ' +
+      'dossier reaching it carries a usable occupation. VisaFlow is ' +
+      'local-first with no migration telemetry, so that is a reviewed decision ' +
+      'and never an elapsed interval or an assumed adoption rate. Deleting it ' +
+      'early withdraws a document the source does ask of the people who have ' +
+      'not answered yet.',
+  },
+]

@@ -108,9 +108,16 @@ describe('owner semantics — the record matrix', () => {
   })
 })
 
-describe('owner semantics — zero behavioural delta for production data', () => {
+describe('owner semantics — the declared owner is the unclassified answer', () => {
+  /**
+   * The fixture carries no occupation, which is the case this asserts: whatever
+   * a requirement may say per occupation, an applicant who has not classified
+   * themselves sees the declared owner. The per-occupation matrix lives in
+   * `contextual-owner.test.ts`; this is the invariant that stops a mapping from
+   * changing what an unanswered dossier is told.
+   */
   it.each(PRODUCTION_COMPOSITIONS.map((p) => [p.countryCode, p] as const))(
-    '%s: every requirement resolves to exactly its declared ownerType',
+    '%s: every requirement resolves to its declared ownerType when unclassified',
     (_code, entry) => {
       const template = entry.composition.template
       for (const req of template.documentRequirements) {
@@ -141,13 +148,14 @@ describe('owner semantics — zero behavioural delta for production data', () =>
     expect(circular?.ownerType).toBe('employer')
   })
 
-  it('no requirement carries contextual owner behaviour yet', () => {
-    // The capability does not exist. When it arrives it must arrive with its
-    // own decision record, not as a field that appeared during a routing slice.
+  it('and no requirement reaches for a shape the model does not have', () => {
+    // Which requirements legitimately carry `ownerByOccupation` is censused in
+    // `contextual-owner.test.ts`. What stays forbidden everywhere is an
+    // alternative spelling arriving without a decision behind it.
     for (const entry of PRODUCTION_COMPOSITIONS) {
       for (const req of entry.composition.template.documentRequirements) {
-        expect(Object.keys(req)).not.toContain('ownerByOccupation')
         expect(Object.keys(req)).not.toContain('ownerOverrides')
+        expect(Object.keys(req)).not.toContain('ownerByStatus')
       }
     }
   })

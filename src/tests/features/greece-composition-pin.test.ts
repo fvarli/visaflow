@@ -429,12 +429,27 @@ const PINNED_REQUIREMENTS: Record<string, DocumentRequirement> = {
       'visa-domain:requirements.EMPLOYER_SIGNATURE_CIRCULAR.description',
     category: 'employment',
     ownerType: 'employer',
+    ownerByOccupation: {
+      employee: 'employer',
+      company_owner: 'applicant',
+      independent_professional: 'applicant',
+    },
     required: false,
     conditionalOn: {
-      field: 'employment.employmentStatus',
-      operator: 'equals',
-      value: 'employed',
+      field: 'employment.occupation',
+      operator: 'oneOf',
+      values: ['employee', 'company_owner', 'independent_professional'],
     },
+    applicabilityMigration: {
+      priorCondition: {
+        field: 'employment.employmentStatus',
+        operator: 'equals',
+        value: 'employed',
+      },
+    },
+    // Unmoved, and that is the claim: applicability and subject are not the
+    // acceptance bar, so no stored `ready` claim is superseded by this
+    // correction (ADR-051a).
     revision: 1,
     contractKey: 'EMPLOYER_SIGNATURE_CIRCULAR@1',
   },
@@ -579,7 +594,7 @@ const PINNED_ENVELOPE = {
   id: 'schengen-short-stay-tourism',
   visaType: 'short_stay_tourism',
   nameKey: 'visa-domain:visaTypes.schengen-short-stay-tourism',
-  templateVersion: '1.11.0',
+  templateVersion: '1.12.0',
   lastReviewedAt: '2026-09-07',
   reviewStatus: 'partially_verified',
   sourceIds: ['gr-mfa-general'],

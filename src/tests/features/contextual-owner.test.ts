@@ -248,31 +248,34 @@ describe('contextual owner — Finance cannot notice', () => {
   })
 })
 
-describe('contextual owner — nothing in production uses it', () => {
-  it.each(PRODUCTION_COMPOSITIONS.map((p) => [p.countryCode, p] as const))(
-    '%s declares no contextual ownership',
-    (_code, entry) => {
-      const carriers = entry.composition.template.documentRequirements
-        .filter((req) => req.ownerByOccupation !== undefined)
-        .map((req) => req.code)
-      expect(carriers).toEqual([])
-    }
-  )
+describe('contextual owner — exactly one production carrier', () => {
+  const carriersIn = (countryCode: string) =>
+    (
+      PRODUCTION_COMPOSITIONS.find((p) => p.countryCode === countryCode)
+        ?.composition.template.documentRequirements ?? []
+    )
+      .filter((req) => req.ownerByOccupation !== undefined)
+      .map((req) => req.code)
 
-  it('the two motivating rows are still plainly employer-owned', () => {
-    for (const entry of PRODUCTION_COMPOSITIONS) {
-      for (const code of [
-        'EMPLOYER_SIGNATURE_CIRCULAR',
-        'EMPLOYER_TAX_PLATE',
-      ]) {
-        const req = entry.composition.template.documentRequirements.find(
-          (r) => r.code === code
-        )
-        if (!req) continue
-        expect(req.ownerType).toBe('employer')
-        expect(req.ownerByOccupation).toBeUndefined()
-      }
-    }
+  it('Greece carries it on the corrected circular and nothing else', () => {
+    expect(carriersIn('GR')).toEqual(['EMPLOYER_SIGNATURE_CIRCULAR'])
+  })
+
+  it('Germany carries none — the layer that declares it is Greece-composed', () => {
+    expect(carriersIn('DE')).toEqual([])
+  })
+
+  it('EMPLOYER_TAX_PLATE is still plainly employer-owned', () => {
+    // Known debt from H4c2d2c: a self-employed-only row declaring an employer
+    // subject. Its correction is its own slice, and pinning it here means
+    // fixing it in passing fails loudly.
+    const req = PRODUCTION_COMPOSITIONS.find(
+      (p) => p.countryCode === 'DE'
+    )?.composition.template.documentRequirements.find(
+      (r) => r.code === 'EMPLOYER_TAX_PLATE'
+    )
+    expect(req?.ownerType).toBe('employer')
+    expect(req?.ownerByOccupation).toBeUndefined()
   })
 
   it('every authored mapping names a known occupation and a real owner', () => {
@@ -317,8 +320,12 @@ describe('contextual owner — one production interpreter', () => {
   })
 
   it('no other module reads the mapping or the rule', () => {
+    // A pack may *declare* a mapping — that is authoring, not interpretation —
+    // so the country packs are excluded from the read census. Everything else
+    // must go through the resolver.
+    const isPack = (path: string) => path.startsWith('/src/config/countries/')
     const offenders = Object.entries(SOURCES)
-      .filter(([path]) => !isTest(path) && !ALLOWED.has(path))
+      .filter(([path]) => !isTest(path) && !isPack(path) && !ALLOWED.has(path))
       .filter(([, contents]) =>
         /ownerByOccupation|effectiveOwnerType/.test(code(contents))
       )

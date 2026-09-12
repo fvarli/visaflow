@@ -92,43 +92,40 @@ describe('Greece evidence pass — the contracts it deliberately left alone', ()
     }
   )
 
-  it('leaves requiredness and applicability exactly where it found them', () => {
+  it('left requiredness and applicability where it found them', () => {
     /**
-     * The evidence supports moving both — the checklist lists the signature
-     * circular without qualification, and raises the sponsor block from
-     * occupation rather than from a funding election. Neither move is made,
-     * because `employed` cannot separate a public servant from an ordinary
-     * employee and `conditionalOn` cannot see a sponsor's occupation at all.
-     * Making them anyway would trade one wrong population for another.
+     * The evidence pass declined two moves it could see support for, because
+     * `employed` could not separate a public servant from an ordinary employee
+     * and `conditionalOn` cannot see a sponsor's occupation at all. Making them
+     * then would have traded one wrong population for another.
+     *
+     * The first of the two has since been made, on evidence this pass did not
+     * have: H4c2d2b read all five occupational branches at all four consular
+     * jurisdictions, and H4c2d2i corrected the circular's population with a
+     * fallback that preserves the contract for anyone who has not classified
+     * themselves. What this pass declined to do on inadequate evidence is
+     * therefore recorded here, not asserted as current — the live matrix lives
+     * in `signature-circular.test.ts`.
+     *
+     * The sponsor half still stands exactly as written: the condition is still
+     * a funding election the checklist does not use, and nothing has changed
+     * that.
      */
     const circular = requirement('EMPLOYER_SIGNATURE_CIRCULAR')
     const sponsorBank = requirement('SPONSOR_BANK_STATEMENTS')
 
+    // Requiredness was out of scope then and is still untouched now.
+    expect(circular.required).toBe(false)
+
     expect({
-      circular: {
-        required: circular.required,
-        conditionalOn: circular.conditionalOn,
-      },
-      sponsorBank: {
-        required: sponsorBank.required,
-        conditionalOn: sponsorBank.conditionalOn,
-      },
+      required: sponsorBank.required,
+      conditionalOn: sponsorBank.conditionalOn,
     }).toEqual({
-      circular: {
-        required: false,
-        conditionalOn: {
-          field: 'employment.employmentStatus',
-          operator: 'equals',
-          value: 'employed',
-        },
-      },
-      sponsorBank: {
-        required: true,
-        conditionalOn: {
-          field: 'financing.source',
-          operator: 'equals',
-          value: 'sponsor',
-        },
+      required: true,
+      conditionalOn: {
+        field: 'financing.source',
+        operator: 'equals',
+        value: 'sponsor',
       },
     })
   })

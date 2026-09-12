@@ -327,16 +327,27 @@ describe('production: nothing is migrated, and the guards say so', () => {
     ).toEqual([])
   })
 
-  it('no production requirement carries migration metadata yet', () => {
-    // H4c2d2 changes this line, deliberately and visibly.
+  it('exactly one requirement carries migration metadata', () => {
+    // H4c2d2i made this list non-empty, deliberately and visibly. It stays a
+    // list rather than a boolean so the next migration is also a reviewed line
+    // in a diff rather than a guard that had already stopped saying anything.
     const claiming = owned
       .filter(({ r }) => r.applicabilityMigration)
       .map(({ layer, r }) => `${layer} -> ${r.code}`)
-    expect(claiming).toEqual([])
+    expect(claiming).toEqual(['gr-tr-mission -> EMPLOYER_SIGNATURE_CIRCULAR'])
   })
 
-  it('and the ledger is empty, so no entitlement exists to be used', () => {
-    expect(APPLICABILITY_MIGRATIONS).toEqual([])
+  it('and the ledger entitles exactly that one, with its prior contract', () => {
+    expect(APPLICABILITY_MIGRATIONS.map((e) => e.code)).toEqual([
+      'EMPLOYER_SIGNATURE_CIRCULAR',
+    ])
+    expect(APPLICABILITY_MIGRATIONS[0]?.priorCondition).toEqual({
+      field: 'employment.employmentStatus',
+      operator: 'equals',
+      value: 'employed',
+    })
+    // Never a date, never an assumed adoption rate — ADR-053a decision 8.
+    expect(APPLICABILITY_MIGRATIONS[0]?.retirement).not.toMatch(/\d{4}-\d{2}/)
   })
 
   it('FARMER_CERTIFICATE has no entitlement and no metadata', () => {
@@ -380,14 +391,15 @@ describe('a later layer cannot grant itself a migration', () => {
   })
 
   it('and the owner is the only layer that declares one', () => {
-    // Every migration claim, if any existed, would sit on a requirement in its
-    // owner's `add` list — the only place applicability may be declared.
+    // Every migration claim sits on a requirement in its owner's `add` list —
+    // the only place applicability may be declared. A refinement carrying one
+    // is refused by the composer, which the case above proves.
     const declared = ALL_REQUIREMENT_LAYERS.flatMap((layer) =>
       (layer.add ?? [])
         .filter((r) => r.applicabilityMigration)
         .map((r) => `${layer.id} -> ${r.code}`)
     )
-    expect(declared).toEqual([])
+    expect(declared).toEqual(['gr-tr-mission -> EMPLOYER_SIGNATURE_CIRCULAR'])
   })
 })
 

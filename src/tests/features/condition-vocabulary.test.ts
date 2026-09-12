@@ -79,28 +79,24 @@ describe('condition vocabulary — every authored condition is well formed', () 
 })
 
 describe('condition vocabulary — the operators production actually uses', () => {
-  it('uses only equals and notEquals today', () => {
+  it('uses equals, notEquals and oneOf today', () => {
     /**
-     * A census rather than a prohibition. `oneOf` ships in this slice with no
-     * caller — two rows need it and both are blocked behind making the
-     * occupational question one an applicant is actually asked — so this list
-     * is expected to gain it, in the slice that adds the first use and argues
-     * for it.
-     *
-     * The point of pinning it is that the operator cannot acquire a production
-     * caller quietly. `notEquals` in particular is worth seeing arrive: under
-     * fail-closed semantics it is false for every dossier that has not answered
-     * the field, so a pack reaching for it is making a subtractive change.
+     * A census rather than a prohibition, so that an operator cannot acquire a
+     * production caller quietly. `oneOf` arrived in H4c2d2i with one caller and
+     * an argument for it; `notEquals` is the one still worth seeing arrive,
+     * because under fail-closed semantics it is false for every dossier that
+     * has not answered the field, so a pack reaching for it is making a
+     * subtractive change.
      */
     const used = [...new Set(CONDITIONS.map(({ on }) => on.operator))].sort()
-    expect(used).toEqual(['equals', 'notEquals'])
+    expect(used).toEqual(['equals', 'notEquals', 'oneOf'])
   })
 
-  it('has no production oneOf condition yet', () => {
-    // The zero-usage guard this slice is defined by. H4c2d2 changes it.
+  it('has exactly one oneOf condition, and it is the corrected circular', () => {
     const using = CONDITIONS.filter(({ on }) => on.operator === 'oneOf').map(
       label
     )
-    expect(using).toEqual([])
+    expect(using).toHaveLength(1)
+    expect(using[0]).toContain('EMPLOYER_SIGNATURE_CIRCULAR')
   })
 })

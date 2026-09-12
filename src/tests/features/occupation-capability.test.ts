@@ -637,7 +637,8 @@ describe('the capability changes nothing for anybody', () => {
      * That is the property worth restating rather than deleting: farmer is
      * never *inferred* from `self_employed`.
      */
-    expect(OCCUPATION_CONDITIONED.map((r) => r.code)).toEqual([
+    expect(OCCUPATION_CONDITIONED.map((r) => r.code).sort()).toEqual([
+      'EMPLOYER_SIGNATURE_CIRCULAR',
       'FARMER_CERTIFICATE',
     ])
   })
@@ -663,27 +664,41 @@ describe('every occupational condition names a code this build knows', () => {
    * stop. An occupational condition that is not `equals` has no single value to
    * check, and the test below is what requires it to be `equals` today.
    */
-  const authoredValue = (r: (typeof OCCUPATION_CONDITIONED)[number]) => {
+  const authoredCodes = (r: (typeof OCCUPATION_CONDITIONED)[number]) => {
     const c = r.conditionalOn
-    return c && 'value' in c ? c.value : undefined
+    if (!c) return []
+    if ('values' in c) return [...c.values]
+    return 'value' in c ? [c.value] : []
   }
 
   it('uses only known codes', () => {
-    const unknown = OCCUPATION_CONDITIONED.filter(
-      (r) => !isKnownOccupationCode(authoredValue(r))
-    ).map((r) => `${r.code} -> ${String(authoredValue(r))}`)
+    const unknown = OCCUPATION_CONDITIONED.flatMap((r) =>
+      authoredCodes(r)
+        .filter((v) => !isKnownOccupationCode(v))
+        .map((v) => `${r.code} -> ${String(v)}`)
+    )
     expect(unknown).toEqual([])
   })
 
-  it('uses only the operator occupational conditions are defined for', () => {
-    // `equals` is the whole vocabulary today. A pack reaching for `notEquals`
-    // would be expressing "not a farmer", which under fail-closed semantics is
-    // false for every dossier that has not answered — a subtractive change
-    // needing its own decision, not a condition someone slips in.
+  it('names at least one code, so no condition matches nothing', () => {
+    // `oneOf` is typed as a non-empty tuple, which makes an empty population a
+    // compile error rather than a row that silently applies to nobody. This is
+    // the runtime half, for a set built dynamically.
+    for (const r of OCCUPATION_CONDITIONED) {
+      expect(authoredCodes(r).length, r.code).toBeGreaterThan(0)
+    }
+  })
+
+  it('uses only the operators occupational conditions are defined for', () => {
+    // `equals` for a single category, `oneOf` for a corrected population — both
+    // positive membership tests. A pack reaching for `notEquals` would be
+    // expressing "not a farmer", which under fail-closed semantics is false for
+    // every dossier that has not answered: a subtractive change needing its own
+    // decision, not a condition someone slips in.
     const operators = [
       ...new Set(OCCUPATION_CONDITIONED.map((r) => r.conditionalOn?.operator)),
-    ]
-    expect(operators).toEqual(['equals'])
+    ].sort()
+    expect(operators).toEqual(['equals', 'oneOf'])
   })
 
   it('never reads the raw persisted code, or a path near it', () => {
