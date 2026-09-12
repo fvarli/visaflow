@@ -53,6 +53,7 @@ export type CompositionErrorKind =
   | 'self-refine'
   | 'forward-refine'
   | 'invalid-refinement'
+  | 'invalid-widening'
   | 'dangling-source-ref'
   | 'order-mismatch'
   | 'invalid-group'
@@ -133,8 +134,88 @@ const KIND_RANK: Record<LayerKind, number> = {
  * cheapest way to smuggle an override in would be through the fragment rather
  * than past this set.
  */
-const ALLOWED_REFINEMENT_KEYS = new Set(['code', 'addSourceRefs', 'addDetail'])
+const ALLOWED_REFINEMENT_KEYS = new Set([
+  'code',
+  'addSourceRefs',
+  'addDetail',
+  'addApplicableOccupations',
+])
 const ALLOWED_DETAIL_KEYS = new Set(['detailKeys', 'revision'])
+
+/**
+ * The occupations a requirement's own condition already names.
+ *
+ * Only an occupational condition has any, which is the point: a widening may
+ * only decorate a row that already routes on occupation, so the effective
+ * population is a set union rather than a disjunction across two different
+ * fields — and a row is corrected to its own citation before it is widened,
+ * never the other way round.
+ */
+function baseOccupations(
+  requirement: DocumentRequirement
+): readonly string[] | undefined {
+  const condition = requirement.conditionalOn
+  if (!condition || condition.field !== 'employment.occupation')
+    return undefined
+  if (condition.operator === 'equals') return [String(condition.value)]
+  if (condition.operator === 'oneOf') return condition.values.map(String)
+  return undefined
+}
+
+/**
+ * A widening is a **delta**, and every rule here exists to keep it one.
+ *
+ * The type already refuses an unknown occupation; these are the failures a type
+ * cannot see — an empty list, a repeat, a restatement of what the base already
+ * asks, or a widening bolted onto a condition that does not route on occupation
+ * at all ([ADR-052c](#adr-052c) decisions 3 and 4).
+ */
+function assertWideningShape(
+  layerId: string,
+  code: string,
+  base: DocumentRequirement,
+  added: readonly string[]
+): void {
+  const refuse = (why: string): never => {
+    throw new CompositionError(
+      'invalid-widening',
+      `Layer "${layerId}" widens "${code}" ${why}`
+    )
+  }
+
+  if (added.length === 0) {
+    refuse(
+      'with an empty list. A widening that adds nobody is either a mistake or ' +
+        'a leftover; remove the field instead.'
+    )
+  }
+
+  const duplicates = added.filter((o, i) => added.indexOf(o) !== i)
+  if (duplicates.length > 0) {
+    refuse(
+      `and names ${duplicates[0]} twice. The list is a set, and a repeat hides ` +
+        'whichever entry was meant.'
+    )
+  }
+
+  const owned = baseOccupations(base)
+  if (owned === undefined) {
+    refuse(
+      'whose own condition does not route on occupation. A widening may only ' +
+        'extend an occupational population, so correct the requirement to its ' +
+        'own citation first and widen it after.'
+    )
+  }
+
+  const overlap = added.filter((o) => owned?.includes(o))
+  if (overlap.length > 0) {
+    refuse(
+      `and re-states ${overlap[0]}, which its own condition already names. A ` +
+        'widening is a delta — restating the base makes a census of widenings ' +
+        'read as a mixture of differences and noise.'
+    )
+  }
+}
 
 function refuseRefinement(
   layerId: string,
@@ -443,6 +524,15 @@ export function composeVisaTemplate(
       // recomputed from the owner's number and every fragment so far. Both are
       // append-only: a second refining layer can add to what the first
       // attached, and neither can take anything away.
+      if (refinement.addApplicableOccupations) {
+        assertWideningShape(
+          layer.id,
+          refinement.code,
+          current,
+          refinement.addApplicableOccupations
+        )
+      }
+
       if (refinement.addDetail) {
         fragmentsFor.set(refinement.code, [
           ...(fragmentsFor.get(refinement.code) ?? []),
@@ -463,6 +553,18 @@ export function composeVisaTemplate(
                 current.detailKeys,
                 refinement.addDetail.detailKeys
               ),
+            }
+          : {}),
+        // Merged here and nowhere else, which is what keeps it out of the
+        // contract key: the key is built below from acceptance fragments alone,
+        // and a widening registers none. It changes who is asked, not what
+        // satisfies the ask (ADR-052c decision 5).
+        ...(refinement.addApplicableOccupations
+          ? {
+              applicableOccupations: [
+                ...(current.applicableOccupations ?? []),
+                ...refinement.addApplicableOccupations,
+              ],
             }
           : {}),
       })

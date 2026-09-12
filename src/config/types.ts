@@ -260,6 +260,21 @@ export interface DocumentRequirement {
    */
   detailKeys?: string[]
   /**
+   * Occupations *this composition* adds to the population the owner declared —
+   * set by the composer from `addApplicableOccupations`, never authored on a
+   * requirement directly ([ADR-052c](#adr-052c)).
+   *
+   * It widens **who is asked** and says nothing about what satisfies the ask,
+   * which is why it reaches no revision and no `contractKey`: the same document
+   * meets the same bar in both compositions, so a claim made in one stays valid
+   * in the other and a dossier that changes destination is told the row no
+   * longer applies rather than that its evidence went stale.
+   *
+   * That independence is structural rather than a rule to remember. The key is
+   * built from acceptance fragments alone, and a widening registers none.
+   */
+  applicableOccupations?: readonly KnownOccupationCode[]
+  /**
    * The identity of the acceptance contract *this composition* renders — set by
    * the composer, never authored in a layer.
    *
@@ -504,6 +519,33 @@ export interface CitationRefinement {
   code: string
   addSourceRefs?: string[]
   addDetail?: AcceptanceDetailFragment
+  /**
+   * Occupations this composition asks the requirement of, beyond the population
+   * its owner declares ([ADR-052c](#adr-052c)).
+   *
+   * The one thing a refinement may now do to applicability, and only in one
+   * direction. Article 14(3) leaves the harmonised list non-exhaustive, so a
+   * mission asking a jurisdiction requirement of a wider population than the
+   * instrument names is real — the Greek visa centre publishes the
+   * company-document block to employees, company owners and freelancers alike
+   * while Annex III files it under company owners — and there was no shape for
+   * it: a mission may own a requirement outright, but could not reach one it
+   * did not own.
+   *
+   * **A typed set of occupations rather than a condition, deliberately.** A
+   * general condition could express `employmentStatus = employed`, which sweeps
+   * in a public servant — whom every source consulted excludes from this block
+   * — and this cannot state that sentence at all. Narrowing is not forbidden
+   * here so much as unspeakable: there is no way to remove an occupation with a
+   * list that only adds.
+   *
+   * It is a **delta**. The composer refuses an empty list, a duplicate, a base
+   * whose own condition is not occupational, and any overlap with the
+   * population the base already names — so a census of widenings reads as the
+   * set of genuine differences rather than a mixture of differences and
+   * restatement.
+   */
+  addApplicableOccupations?: readonly KnownOccupationCode[]
 }
 
 /**
@@ -653,8 +695,30 @@ export function isRequirementApplicable(
    * matching a company-document row the moment they say so.
    */
   const migration = requirement.applicabilityMigration
+  const occupation = context.employment?.occupation
+
+  /**
+   * A composition may have widened the population ([ADR-052c](#adr-052c)), and
+   * the widening is consulted **here only** — never on the fallback branch
+   * below.
+   *
+   * Preserving an old contract and extending a new one are different
+   * entitlements. An applicant who has not classified themselves is held to
+   * exactly what their own dossier was shown; a widened occupation is a *new*
+   * obligation for that population and must fail closed until they answer, the
+   * same way any new fine-axis requirement does. Letting the widening reach the
+   * fallback would hand the row to people on the strength of their not having
+   * answered a question.
+   */
+  if (
+    occupation !== undefined &&
+    requirement.applicableOccupations?.includes(occupation)
+  ) {
+    return true
+  }
+
   const condition =
-    migration && context.employment?.occupation === undefined
+    migration && occupation === undefined
       ? migration.priorCondition
       : requirement.conditionalOn
 

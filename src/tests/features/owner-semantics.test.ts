@@ -156,6 +156,11 @@ describe('owner semantics — the declared owner is the unclassified answer', ()
       for (const req of entry.composition.template.documentRequirements) {
         expect(Object.keys(req)).not.toContain('ownerOverrides')
         expect(Object.keys(req)).not.toContain('ownerByStatus')
+        // Composition-scoped widening has its own census in
+        // `applicability-widening.test.ts`; what stays forbidden here is a row
+        // authoring the composed field directly instead of a layer appending
+        // to it.
+        expect(Object.keys(req)).not.toContain('addApplicableOccupations')
       }
     }
   })
