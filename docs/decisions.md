@@ -1880,6 +1880,15 @@ Destination pack → Jurisdiction overlay** — before country pack #2.
 
 **Status:** Accepted · 2026-08-29 · corrects [ADR-048](#adr-048), extends [ADR-012](#adr-012)
 
+> **Extended by [ADR-049a](#adr-049a) (2026-09-12).** Decision 2 stands, and `ownerType` is the field
+> it took longest to reach: six production readers were still using the seeded copy until H4c2d2d
+> routed them through the resolver. What this decision did not say is what `ownerType` *means* or
+> whether its effective value may differ between two applicants reading the same pack. ADR-049a
+> settles both — it is the evidence **subject**, it is not identity, and it may be resolved from the
+> same bounded applicability context that decides whether the requirement applies at all. The
+> snapshot's role is unchanged: an unresolvable code still describes itself from its own record. The
+> text is kept as written.
+
 **Decision:**
 
 1. **A document `code` may not change meaning.** Wording, translations, citations and narrowing that
@@ -3124,3 +3133,90 @@ finally landing.
 **Implementation:** documentation only — `docs/decisions.md`. Nothing here is built. The condition
 shape, the ledger and their invariants are one slice; the first migrated requirement is another after
 it.
+
+---
+
+## ADR-049a: `ownerType` Is the Evidence Subject
+
+**Status:** Accepted · 2026-09-12 · extends [ADR-049](#adr-049), applies [ADR-052b](#adr-052b) and
+[ADR-051a](#adr-051a)
+
+Three audits in the occupational track needed facts about `ownerType` that no decision records. What
+it means was written once, in a source comment on `FARMER_CERTIFICATE`: *"a chamber of agriculture
+issues it, but an issuer is not an owner — `ownerType` says whose situation the document describes."*
+Whether the subject is part of evidence identity was never stated at all, and the question is live: the
+Greek visa centre's checklist asks an employee, a company owner and a freelancer for the same
+`İmza Sirküleri`, and it is the employer's company in the first case and the applicant's own in the
+other two. And [ADR-049](#adr-049) Decision 2 says template-owned metadata is *re-derived on read* —
+not that a displayed field may differ between two applicants reading the same pack.
+
+**Decision:**
+
+1. **`ownerType` is the evidence subject** — whose situation or entity the document describes. It is
+   **not** the issuer, **not** the provider or uploader, **not** the financing source, and **not** a
+   workspace or display group. On many rows several of those coincide; coincidence is not equivalence,
+   and every consumer that treats one as evidence of another is making a claim this field does not
+   support.
+2. **The subject is not identity.** One evidence concept whose subject depends on the applicant's
+   profile remains **one code**. [ADR-052b](#adr-052b)'s test asks whether two things are *distinct
+   evidence obligations* rather than *the same evidence identity*, and a signature circular is one
+   instrument with one acceptance bar whichever company it concerns — the source names it identically
+   on every branch and never says whose. Minting a second code would be the two-codes-one-document
+   failure [ADR-052a](#adr-052a) names, and it multiplies: the same checklist asks an employee for the
+   whole four-document company block. `contractKey` carries no owner, and ADR-052b Decision 6 already
+   lists owner *beside* identity rather than inside it.
+3. **Persisted and effective are different roles.** The **persisted** `ownerType` is a historical
+   fallback snapshot. The **effective** `ownerType` is what the current pack says, resolved at read
+   time. For a resolvable requirement the effective value wins; for an unknown, retired or custom code
+   the snapshot stays authoritative, because ADR-049's *"An unresolvable code describes itself from its
+   own snapshot, always"* is unchanged. This reaffirms Decision 2 rather than replacing it. **Mixed
+   semantics is invalid** — some readers on the snapshot and others on the resolver is not a
+   compromise, it is two answers to one question, and it was live until H4c2d2d.
+4. **Effective ownership may be profile-dependent.** A requirement may declare a default subject and a
+   structured override resolved from the **same bounded `ApplicabilityContext`** that decides whether
+   the requirement applies at all. No syntax is fixed here. *Bounded* carries the limits
+   [ADR-053](#adr-053) already placed on the occupational axis: the raw persisted `occupationCode` is
+   never inspected, nothing is inferred from free text, no arbitrary dossier field is reachable, and no
+   general expression language is introduced. A subject that cannot be resolved falls back to the
+   declared default, never to a guess.
+5. **The motivating example, and it is not implemented.** `EMPLOYER_SIGNATURE_CIRCULAR`'s intended
+   target is `employee` → `employer`, `company_owner` → `applicant`, `independent_professional` →
+   `applicant`, under one code throughout. **This decision changes no pack.** The capability does not
+   exist, the applicability migration is [ADR-053a](#adr-053a)'s work, and the row still renders its
+   coarse `employed` condition today.
+6. **`ownerType` is never evidence of a financing source.** A document about an employer does not make
+   a trip employer-funded, and an applicant-owned company document implies no funding source either.
+   `financeDocGroup` reads `ownerType === 'employer'` to build the *Employer-funded evidence* list;
+   that is **pre-existing consumer debt**, recorded here rather than fixed, and it is already visible —
+   `EMPLOYER_TAX_PLATE` is self-employed-only and lands under employer funding. Introducing
+   profile-dependent ownership **must not** move a row between Finance groups as a side effect of
+   resolving its subject. Finance semantics need their own decision.
+7. **No persistence change is required.** Effective contextual ownership needs no schema move, no new
+   `OwnerType` member and no rewriting of stored records. A new enum member would be the closed-enum
+   persistence hazard ADR-053 Decision 2 refused, and worse per record: `DocumentSchema` is parsed per
+   document, so an older build reading an unknown owner loses that whole record — its status, dates,
+   notes and file reference — not merely a field. The persisted value stays written and exported
+   because it is the fallback Decision 3 depends on.
+8. **Owner metadata alone moves no revision.** Correcting `ownerType` changes neither `revision`, nor
+   `contractKey`, nor any satisfaction claim. [ADR-051a](#adr-051a) excludes applicability-shaped
+   changes from a bump, and its own precedent is this field: `EMPLOYER_TRADE_REGISTRY` moved from the
+   employer to the applicant in [ADR-048](#adr-048) and the ledger attributes its bump to the added
+   chamber registration, *"NOT for the employed-to-self-employed applicability correction."* Owner is
+   not the acceptance bar. **Kept separate:** changing an applicant-facing name or prose is a different
+   question and takes the directional test on its own, every time. Nothing here declares label changes
+   revision-free.
+
+**What this decision does not decide.** `EMPLOYER_SIGNATURE_CIRCULAR`'s requiredness, which stays
+`false` and out of scope; its final rendered name; the Finance grouping redesign;
+`EMPLOYER_TAX_PLATE`'s remediation; the contents of the migration ledger; the corrected populations of
+the other company rows; new `OwnerType` values; any schema or storage migration.
+
+**Sequence.** This decision; then the contextual effective-owner capability with **zero** production
+use, the shape [ADR-053a](#adr-053a)'s own capability slice used; then
+`EMPLOYER_SIGNATURE_CIRCULAR`'s full three-category migration together with its owner semantics — the
+population corroborated at all four consular jurisdictions in ADR-047's fourth evidence pass, never a
+narrower intermediate; then Finance and `EMPLOYER_TAX_PLATE` as their own cleanup. Each step is
+reviewable without the next.
+
+**Implementation:** documentation only — `docs/decisions.md`. Nothing here is built. The read-time
+routing this decision assumes shipped in `d4f4697` and changed no requirement.
