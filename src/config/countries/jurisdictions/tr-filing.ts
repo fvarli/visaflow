@@ -1,5 +1,5 @@
 import { trFilingSources } from '../../sources/tr-filing.sources'
-import { occupationIs } from '../../types'
+import { occupationIs, occupationOneOf } from '../../types'
 import type {
   DocumentRequirement,
   RequirementLayer,
@@ -284,10 +284,31 @@ const trFilingDocuments: DocumentRequirement[] = [
     category: 'financial',
     ownerType: 'applicant',
     required: true,
-    conditionalOn: {
-      field: 'employment.employmentStatus',
-      operator: 'equals',
-      value: 'self_employed',
+    /**
+     * Company owners, which is what the comment below has said since the row
+     * was written — I.5(c) files the statement of taxes payment there. The
+     * condition said `self_employed`, so it also reached independent
+     * professionals and farmers, neither of whom the clause names.
+     *
+     * Nothing anywhere disagrees. The German mission's sheet lists no
+     * tax-payment document at all, and neither does the Greek visa centre's
+     * company block — the narrowest evidence position of the whole
+     * company-document family, and the reason this row moved before the two
+     * beside it.
+     *
+     * The migration is what makes a subtractive correction safe: an applicant
+     * who has not said what kind of work they do keeps being held to the coarse
+     * contract this row used to carry, rather than losing a required document
+     * because they have not answered a question yet ([ADR-053a](#adr-053a)).
+     * Both packs compose this layer, so both see the same change.
+     */
+    conditionalOn: occupationOneOf(['company_owner']),
+    applicabilityMigration: {
+      priorCondition: {
+        field: 'employment.employmentStatus',
+        operator: 'equals',
+        value: 'self_employed',
+      },
     },
     // Company owners: "statement of taxes payment" — a payment statement, not
     // the tax returns this requirement used to describe.

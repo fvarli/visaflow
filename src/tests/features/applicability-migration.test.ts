@@ -327,7 +327,7 @@ describe('production: what is migrated, and the guards that say so', () => {
     ).toEqual([])
   })
 
-  it('two requirements carry migration metadata, one per pack', () => {
+  it('three requirements carry migration metadata', () => {
     // H4c2d2i made this list non-empty and H4c2d2k added the second, each
     // deliberately and visibly. It stays a list rather than a count so the
     // next migration is a reviewed line in a diff rather than a guard that had
@@ -338,11 +338,13 @@ describe('production: what is migrated, and the guards that say so', () => {
     expect(claiming.sort()).toEqual([
       'de-tr-mission -> EMPLOYER_TAX_PLATE',
       'gr-tr-mission -> EMPLOYER_SIGNATURE_CIRCULAR',
+      'tr-filing -> TAX_PAYMENT_STATEMENT',
     ])
   })
 
   it('and the ledger entitles exactly those, each with its own prior contract', () => {
-    // The two prior contracts differ, which is the point: an entitlement is a
+    // The prior contracts are not all the same, which is the point: an
+    // entitlement is a
     // record of what *this* row used to ask, not a shared licence to fall back.
     expect(
       Object.fromEntries(
@@ -355,6 +357,11 @@ describe('production: what is migrated, and the guards that say so', () => {
         value: 'employed',
       },
       EMPLOYER_TAX_PLATE: {
+        field: 'employment.employmentStatus',
+        operator: 'equals',
+        value: 'self_employed',
+      },
+      TAX_PAYMENT_STATEMENT: {
         field: 'employment.employmentStatus',
         operator: 'equals',
         value: 'self_employed',
@@ -418,6 +425,7 @@ describe('a later layer cannot grant itself a migration', () => {
     expect(declared.sort()).toEqual([
       'de-tr-mission -> EMPLOYER_TAX_PLATE',
       'gr-tr-mission -> EMPLOYER_SIGNATURE_CIRCULAR',
+      'tr-filing -> TAX_PAYMENT_STATEMENT',
     ])
   })
 })

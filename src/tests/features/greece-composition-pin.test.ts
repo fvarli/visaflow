@@ -491,11 +491,20 @@ const PINNED_REQUIREMENTS: Record<string, DocumentRequirement> = {
     ownerType: 'applicant',
     required: true,
     conditionalOn: {
-      field: 'employment.employmentStatus',
-      operator: 'equals',
-      value: 'self_employed',
+      field: 'employment.occupation',
+      operator: 'oneOf',
+      values: ['company_owner'],
+    },
+    applicabilityMigration: {
+      priorCondition: {
+        field: 'employment.employmentStatus',
+        operator: 'equals',
+        value: 'self_employed',
+      },
     },
     sourceRefs: ['eu-c2021-5156-turkey-annex3', 'gr-tr-harmonised-list'],
+    // Unmoved: narrowing to the population the citation names is an
+    // applicability correction, not a different acceptance bar (ADR-051a).
     revision: 1,
     contractKey: 'TAX_PAYMENT_STATEMENT@1',
   },
@@ -594,7 +603,7 @@ const PINNED_ENVELOPE = {
   id: 'schengen-short-stay-tourism',
   visaType: 'short_stay_tourism',
   nameKey: 'visa-domain:visaTypes.schengen-short-stay-tourism',
-  templateVersion: '1.12.0',
+  templateVersion: '1.13.0',
   lastReviewedAt: '2026-09-07',
   reviewStatus: 'partially_verified',
   sourceIds: ['gr-mfa-general'],

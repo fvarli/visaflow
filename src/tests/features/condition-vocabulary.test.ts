@@ -96,8 +96,13 @@ describe('condition vocabulary — the operators production actually uses', () =
     const using = CONDITIONS.filter(({ on }) => on.operator === 'oneOf').map(
       label
     )
-    expect(using).toHaveLength(2)
-    expect(using.join(' ')).toContain('EMPLOYER_SIGNATURE_CIRCULAR')
-    expect(using.join(' ')).toContain('EMPLOYER_TAX_PLATE')
+    expect(using).toHaveLength(3)
+    for (const code of [
+      'EMPLOYER_SIGNATURE_CIRCULAR',
+      'EMPLOYER_TAX_PLATE',
+      'TAX_PAYMENT_STATEMENT',
+    ]) {
+      expect(using.join(' '), code).toContain(code)
+    }
   })
 })

@@ -143,7 +143,7 @@ export const germanyTourismComposition = composeVisaTemplate({
      * Greece's number counts its own history and the two are unrelated —
      * `templateVersion` is per pack, not repository-wide.
      */
-    templateVersion: '1.10.0',
+    templateVersion: '1.11.0',
     lastReviewedAt: '2026-09-07',
     /**
      * `verified`, and the word means exactly one thing here: **every** composed

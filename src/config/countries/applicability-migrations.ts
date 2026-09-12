@@ -116,4 +116,28 @@ export const APPLICABILITY_MIGRATIONS: ApplicabilityMigrationEntry[] = [
       'deleting it withdraws a required document from applicants the source ' +
       'has not stopped asking.',
   },
+  {
+    code: 'TAX_PAYMENT_STATEMENT',
+    priorCondition: {
+      field: 'employment.employmentStatus',
+      operator: 'equals',
+      value: 'self_employed',
+    },
+    reason:
+      'Annex III I.5(c) files the statement of taxes payment under Company ' +
+      'owners, and the row reached every self-employed applicant — ' +
+      'independent professionals and farmers included. Nothing anywhere ' +
+      'disagrees: no tax-payment document appears on the German mission sheet ' +
+      "or in the Greek visa centre's company block. The correction is purely " +
+      'subtractive, so the only people it can harm are the ones who have not ' +
+      'yet classified themselves, and they keep the coarse contract until ' +
+      'they do.',
+    retirement:
+      'Remove once every dossier reaching this row carries a usable ' +
+      'occupation — a reviewed decision, never an elapsed interval, because ' +
+      'there is no migration telemetry to read one from. This row is required, ' +
+      'so deleting the fallback early drops a required document out of a ' +
+      "self-employed applicant's checklist without them having changed " +
+      'anything.',
+  },
 ]

@@ -641,6 +641,7 @@ describe('the capability changes nothing for anybody', () => {
       'EMPLOYER_SIGNATURE_CIRCULAR',
       'EMPLOYER_TAX_PLATE',
       'FARMER_CERTIFICATE',
+      'TAX_PAYMENT_STATEMENT',
     ])
   })
 })

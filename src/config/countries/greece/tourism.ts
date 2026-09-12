@@ -145,7 +145,7 @@ export const greeceTourismComposition = composeVisaTemplate({
      * which layer owns those four requirements, not what Greece asks for, so
      * the composed output was identical and the number held.
      */
-    templateVersion: '1.12.0',
+    templateVersion: '1.13.0',
     lastReviewedAt: '2026-09-07',
     /**
      * Still derived from evidence rather than chosen: 19 of the 24 requirements
