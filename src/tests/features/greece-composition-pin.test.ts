@@ -492,8 +492,8 @@ const PINNED_REQUIREMENTS: Record<string, DocumentRequirement> = {
     required: true,
     conditionalOn: {
       field: 'employment.occupation',
-      operator: 'oneOf',
-      values: ['company_owner'],
+      operator: 'equals',
+      value: 'company_owner',
     },
     applicabilityMigration: {
       priorCondition: {

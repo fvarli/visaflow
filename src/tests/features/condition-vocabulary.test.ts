@@ -83,7 +83,8 @@ describe('condition vocabulary — the operators production actually uses', () =
     /**
      * A census rather than a prohibition, so that an operator cannot acquire a
      * production caller quietly. `oneOf` arrived in H4c2d2i with one caller and
-     * an argument for it; `notEquals` is the one still worth seeing arrive,
+     * an argument for it, and is used only where a population has more than one
+     * member; `notEquals` is the one still worth seeing arrive,
      * because under fail-closed semantics it is false for every dossier that
      * has not answered the field, so a pack reaching for it is making a
      * subtractive change.
@@ -92,17 +93,30 @@ describe('condition vocabulary — the operators production actually uses', () =
     expect(used).toEqual(['equals', 'notEquals', 'oneOf'])
   })
 
-  it('has one oneOf condition per corrected population, and no others', () => {
+  it('uses oneOf only where a population genuinely has several members', () => {
     const using = CONDITIONS.filter(({ on }) => on.operator === 'oneOf').map(
       label
     )
-    expect(using).toHaveLength(3)
-    for (const code of [
-      'EMPLOYER_SIGNATURE_CIRCULAR',
-      'EMPLOYER_TAX_PLATE',
-      'TAX_PAYMENT_STATEMENT',
-    ]) {
+    expect(using).toHaveLength(2)
+    for (const code of ['EMPLOYER_SIGNATURE_CIRCULAR', 'EMPLOYER_TAX_PLATE']) {
       expect(using.join(' '), code).toContain(code)
     }
+  })
+
+  it('never writes a one-member oneOf where equals is the same statement', () => {
+    /**
+     * `TAX_PAYMENT_STATEMENT` shipped in H4c2d2m as `oneOf(['company_owner'])`
+     * and was normalised to `occupationIs` afterwards. Behaviour was identical
+     * either way — the migration router swaps the whole condition before it
+     * reads an operator — so nothing failed, and the only cost was a census
+     * that said three rows route on several occupations when two do.
+     *
+     * That is what this guard protects: the census is only worth reading if a
+     * `oneOf` means what it says.
+     */
+    const singletons = CONDITIONS.filter(
+      ({ on }) => on.operator === 'oneOf' && on.values.length === 1
+    ).map(label)
+    expect(singletons).toEqual([])
   })
 })

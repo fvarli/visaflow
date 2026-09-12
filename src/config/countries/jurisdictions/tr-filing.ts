@@ -1,5 +1,5 @@
 import { trFilingSources } from '../../sources/tr-filing.sources'
-import { occupationIs, occupationOneOf } from '../../types'
+import { occupationIs } from '../../types'
 import type {
   DocumentRequirement,
   RequirementLayer,
@@ -302,7 +302,7 @@ const trFilingDocuments: DocumentRequirement[] = [
      * because they have not answered a question yet ([ADR-053a](#adr-053a)).
      * Both packs compose this layer, so both see the same change.
      */
-    conditionalOn: occupationOneOf(['company_owner']),
+    conditionalOn: occupationIs('company_owner'),
     applicabilityMigration: {
       priorCondition: {
         field: 'employment.employmentStatus',

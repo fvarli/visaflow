@@ -93,14 +93,17 @@ describe('tax payment statement — the population I.5(c) names', () => {
     ).toBe(expected)
   })
 
-  it.each(PACKS)('%s names exactly one occupation', (pack) => {
+  it.each(PACKS)('%s names one occupation, as an equality', (pack) => {
+    // One occupation is an equality, not a set with one member. `oneOf` is for
+    // the rows that genuinely route on several — keeping the distinction is
+    // what lets the production census of `oneOf` mean something.
     const req = compositionFor(pack).template.documentRequirements.find(
       (r) => r.code === CODE
     )
     expect(req?.conditionalOn).toEqual({
       field: 'employment.occupation',
-      operator: 'oneOf',
-      values: ['company_owner'],
+      operator: 'equals',
+      value: 'company_owner',
     })
   })
 
