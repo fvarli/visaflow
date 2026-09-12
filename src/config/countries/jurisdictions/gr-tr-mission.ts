@@ -86,8 +86,13 @@ export const grTrMissionLayer: RequirementLayer = {
      * ([ADR-053a](#adr-053a)). The entitlement to do that lives in
      * `APPLICABILITY_MIGRATIONS`, not in this file.
      *
-     * Still uncited, and for a smaller reason than before: the checklist that
-     * supports it has no source record, so there is nothing to cite it to.
+     * AND IT IS CITED NOW. The checklist that supports it gained a source
+     * record in H4c2d2o, so the row carries the reference it had nowhere to put
+     * before. That is only honest because the correction above came first: a
+     * citation vouches for the condition as well as the document (ADR-048), and
+     * this reference could not have been attached while the row still rendered
+     * the coarse `employed` contract the checklist contradicts.
+     *
      * Requiredness is untouched and remains its own question.
      */
     {
@@ -120,6 +125,7 @@ export const grTrMissionLayer: RequirementLayer = {
           value: 'employed',
         },
       },
+      sourceRefs: ['gr-tr-visa-centre-checklist'],
       revision: 1,
     },
     /**
@@ -282,6 +288,18 @@ export const grTrMissionLayer: RequirementLayer = {
       addSourceRefs: ['gr-tr-harmonised-list'],
     },
     { code: 'TAX_PAYMENT_STATEMENT', addSourceRefs: ['gr-tr-harmonised-list'] },
+    {
+      /**
+       * The visa centre's *Çiftçi* branch asks for the chamber-of-agriculture
+       * certificate at every post ADR-047's fourth pass read, which is the same
+       * document this row already carries on Annex III I.5(b) and for the same
+       * population. A second authority agreeing, recorded in the model rather
+       * than only in the decision record, and Greece-scoped because that is
+       * whose applicants it describes.
+       */
+      code: 'FARMER_CERTIFICATE',
+      addSourceRefs: ['gr-tr-visa-centre-checklist'],
+    },
     { code: 'PENSIONER_BOOKLET', addSourceRefs: ['gr-tr-harmonised-list'] },
     {
       code: 'FILING_COUNTRY_RESIDENCE_PERMIT',

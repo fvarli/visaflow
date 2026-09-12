@@ -400,7 +400,7 @@ const PINNED_REQUIREMENTS: Record<string, DocumentRequirement> = {
       operator: 'equals',
       value: 'farmer',
     },
-    sourceRefs: ['eu-c2021-5156-turkey-annex3'],
+    sourceRefs: ['eu-c2021-5156-turkey-annex3', 'gr-tr-visa-centre-checklist'],
     revision: 1,
     contractKey: 'FARMER_CERTIFICATE@1',
   },
@@ -447,6 +447,10 @@ const PINNED_REQUIREMENTS: Record<string, DocumentRequirement> = {
         value: 'employed',
       },
     },
+    // Cited in H4c2d2o, once the condition above had been corrected to what the
+    // visa centre's checklist actually says. The order was the point: a
+    // citation vouches for the condition as well as the document (ADR-048).
+    sourceRefs: ['gr-tr-visa-centre-checklist'],
     // Unmoved, and that is the claim: applicability and subject are not the
     // acceptance bar, so no stored `ready` claim is superseded by this
     // correction (ADR-051a).
@@ -625,6 +629,9 @@ const PINNED_SOURCE_IDS = [
   'eu-c2021-5156-turkey-annex3',
   'gr-tr-harmonised-list',
   'gr-mfa-tr-visa-page',
+  // The first source in this pack the mission does not publish: the checklist
+  // its authorized visa centre operates and the mission directs applicants to.
+  'gr-tr-visa-centre-checklist',
 ]
 
 /**

@@ -511,7 +511,7 @@ describe('country packs — Greece composition and citations', () => {
     // removed carried none.
     expect(computeVerificationCoverage(greece!, tourism!)).toEqual({
       total: 27,
-      verified: 22,
+      verified: 23,
       isComplete: false,
     })
     expect(tourism!.reviewStatus).toBe('partially_verified')
@@ -1236,22 +1236,6 @@ const JURISDICTION_EVIDENCE_GAPS: Record<string, string> = {
     'open, since siblings are not among the entries the extract guarantees. ' +
     'Annex II C.2 and B.5 remain about ties to a host and to the country of ' +
     'residence, neither of which is a financial sponsor.',
-  EMPLOYER_SIGNATURE_CIRCULAR:
-    'İmza Sirküleri. Absent from Visa Code Annex II, from Annex III and from ' +
-    "the German mission sheet, and the Greek mission's own pages are silent " +
-    'on it. The visa centre checklist those pages direct applicants to does ' +
-    "list it, and ADR-047's fourth evidence pass read that block on every " +
-    'occupational branch at all four jurisdictions: an employee, a company ' +
-    'owner and an independent professional are asked for it; a public servant ' +
-    'and a farmer are not. H4c2d2i corrected the condition and the subject to ' +
-    'match, so neither of the blockers recorded here before still stands. ' +
-    'What remains is smaller and structural: the checklist is a generator ' +
-    'with no stable per-combination URL and no source record in this ' +
-    'repository, so there is nothing to cite it to. Minting one is a ' +
-    'provenance decision of its own, and a citation vouches for the contract ' +
-    'as well as the document (ADR-048) — which is why the row is carried here ' +
-    'rather than quietly promoted. The nationality note this row used to ' +
-    'render was contradicted by that same checklist and has been removed.',
 }
 
 describe('country packs — the jurisdiction evidence gap is bounded', () => {

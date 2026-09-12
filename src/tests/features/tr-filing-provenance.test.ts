@@ -22,7 +22,11 @@ import { greeceTourismComposition } from '@/config/countries/greece/tourism'
  */
 
 const COMMISSION = 'eu-c2021-5156-turkey-annex3'
-const GREEK_MISSION = ['gr-tr-harmonised-list', 'gr-mfa-tr-visa-page']
+const GREEK_MISSION = [
+  'gr-tr-harmonised-list',
+  'gr-mfa-tr-visa-page',
+  'gr-tr-visa-centre-checklist',
+]
 
 /**
  * Every requirement the Commission act actually supports, and where.
@@ -176,15 +180,25 @@ describe('Greek mission authority arrives only by destination refinement', () =>
     expect([...new Set(refined)].sort()).toEqual([...GREEK_MISSION].sort())
   })
 
-  it('does not let its own quarantined requirements claim Greek authority', () => {
-    // The five it owns are held because their contracts do not yet match the
-    // evidence, not because no evidence exists — see the gap register.
-    // Attaching one of the mission citations to either would convert a recorded
-    // evidence gap into a claim of authority — the failure mode the allowlist in
-    // `country-pack-provenance.test.ts` exists to prevent.
-    for (const requirement of grTrMissionLayer.add ?? []) {
-      expect(requirement.sourceRefs ?? []).toEqual([])
-    }
+  it('lets a quarantined requirement claim Greek authority only once its contract earns it', () => {
+    /**
+     * The rule has not moved; the rows have. A quarantined requirement is held
+     * because its *contract* does not match the evidence, not because no
+     * evidence exists, so attaching a mission citation to one in that state
+     * would convert a recorded evidence gap into a claim of authority — the
+     * failure the allowlist in `country-pack-provenance.test.ts` exists to
+     * prevent.
+     *
+     * `EMPLOYER_SIGNATURE_CIRCULAR` left that state by being corrected: its
+     * population now says what the visa centre's checklist says, which is what
+     * makes the reference a citation rather than a promotion. The four sponsor
+     * rows are still in it — they fire on a funding election the checklist does
+     * not use — and stay uncited.
+     */
+    const cited = (grTrMissionLayer.add ?? [])
+      .filter((r) => (r.sourceRefs ?? []).length > 0)
+      .map((r) => r.code)
+    expect(cited).toEqual(['EMPLOYER_SIGNATURE_CIRCULAR'])
   })
 
   it('composes after the jurisdiction layer, so it refines forwards', () => {

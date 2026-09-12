@@ -195,8 +195,12 @@ describe('signature circular — what this slice deliberately did not move', () 
     expect(circulars.map((r) => r.code)).toEqual([CODE])
   })
 
-  it('the citation, which needs a source record that does not exist', () => {
-    expect(req?.sourceRefs ?? []).toEqual([])
+  it('and the citation it could not carry then, which it carries now', () => {
+    // This slice left the row uncited because the checklist supporting it had
+    // no source record. H4c2d2o registered one and attached it — in that order,
+    // because a citation vouches for the condition as well as the document
+    // (ADR-048), and the condition had to be right first.
+    expect(req?.sourceRefs).toEqual(['gr-tr-visa-centre-checklist'])
   })
 
   it('and Germany, which does not compose this layer', () => {

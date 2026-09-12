@@ -68,6 +68,10 @@ const GREEK_SOURCE_IDS = [
   'gr-mfa-general',
   'gr-tr-harmonised-list',
   'gr-mfa-tr-visa-page',
+  // Operated by the Greek mission's authorized visa centre. Germany must never
+  // compose it — the strongest form of "one destination's evidence is not
+  // another's", because this one is not even published by a ministry.
+  'gr-tr-visa-centre-checklist',
 ]
 
 const codeOf = (composition: typeof germany, code: string) =>
@@ -511,7 +515,7 @@ describe('Germany pack — Greece is untouched by its arrival', () => {
     expect(greece.template.documentRequirements).toHaveLength(27)
     expect(computeVerificationCoverage(greeceConfig, greece.template)).toEqual({
       total: 27,
-      verified: 22,
+      verified: 23,
       isComplete: false,
     })
   })

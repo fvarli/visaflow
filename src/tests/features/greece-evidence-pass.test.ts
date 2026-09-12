@@ -85,12 +85,26 @@ describe('Greece evidence pass — the contracts it deliberately left alone', ()
    * — and it is here because the reason differs per row and belongs beside the
    * evidence-pass record.
    */
-  it.each(['SPONSOR_BANK_STATEMENTS', 'EMPLOYER_SIGNATURE_CIRCULAR'])(
-    '%s stays uncited while its condition is unsupported',
-    (code) => {
-      expect(requirement(code).sourceRefs ?? []).toEqual([])
-    }
-  )
+  it('SPONSOR_BANK_STATEMENTS stays uncited while its condition is unsupported', () => {
+    // Still true, and for the reason the pass gave: the row fires on a funding
+    // election the checklist does not use, so the checklist cannot vouch for
+    // its contract however well it supports the document.
+    expect(requirement('SPONSOR_BANK_STATEMENTS').sourceRefs ?? []).toEqual([])
+  })
+
+  it('EMPLOYER_SIGNATURE_CIRCULAR is cited now, and only because its condition moved first', () => {
+    /**
+     * The other half of that pair, no longer true and deliberately so. The pass
+     * left this row uncited because `employed` could not separate a public
+     * servant from an ordinary employee — a citation vouches for the condition
+     * as well as the document (ADR-048). H4c2d2i corrected the population and
+     * H4c2d2o gave the checklist a source record, in that order, which is what
+     * makes the reference honest rather than a quiet promotion.
+     */
+    expect(requirement('EMPLOYER_SIGNATURE_CIRCULAR').sourceRefs).toEqual([
+      'gr-tr-visa-centre-checklist',
+    ])
+  })
 
   it('left requiredness and applicability where it found them', () => {
     /**
@@ -130,23 +144,33 @@ describe('Greece evidence pass — the contracts it deliberately left alone', ()
     })
   })
 
-  it('moves no coverage, because a prose correction is not a verification', () => {
-    // The pack reads the same to a user as it did before: twenty of twenty-five
-    // requirements carry their own dated evidence, and the five quarantined
-    // rows still show the unverified notice.
+  it('moved no coverage itself, because a prose correction is not a verification', () => {
+    /**
+     * The pass left the pack reading exactly as it had: its corrections were to
+     * prose and to one invented date range, and none of them turned an
+     * uncited row into a cited one.
+     *
+     * The figure has moved once since, by one, and not by this pass: H4c2d2o
+     * registered the visa centre's checklist as a source and attached it to the
+     * single row whose corrected contract that checklist actually supports.
+     */
     const greece = getCountryConfig('GR')
     expect(computeVerificationCoverage(greece!, template)).toEqual({
       total: 27,
-      verified: 22,
+      verified: 23,
       isComplete: false,
     })
   })
 
   it('keeps every quarantined mission requirement uncited', () => {
+    // The four sponsor rows, which is what "quarantined" meant: rows moved to
+    // this layer for containment with no evidence for their contracts. The
+    // signature circular left that set by earning a citation, not by being
+    // excused from the rule.
     const cited = (grTrMissionLayer.add ?? [])
       .filter((r) => (r.sourceRefs ?? []).length > 0)
       .map((r) => r.code)
-    expect(cited).toEqual([])
+    expect(cited).toEqual(['EMPLOYER_SIGNATURE_CIRCULAR'])
   })
 })
 
@@ -230,13 +254,15 @@ describe('Annex III I.5(g) — the obligation the evidence work produced', () =>
     ])
   })
 
-  it('moves Greece to twenty-two of twenty-seven', () => {
+  it('moved Greece to twenty-two of twenty-seven, and it is twenty-three now', () => {
     // The first row this evidence effort added rather than corrected, and it
-    // arrives cited — so the numerator and denominator move together.
+    // arrived cited — so the numerator and denominator moved together, to
+    // 22/27. The twenty-third is the signature circular, cited in H4c2d2o once
+    // its condition had been corrected to what the checklist actually says.
     const greece = getCountryConfig('GR')
     expect(computeVerificationCoverage(greece!, template)).toEqual({
       total: 27,
-      verified: 22,
+      verified: 23,
       isComplete: false,
     })
   })

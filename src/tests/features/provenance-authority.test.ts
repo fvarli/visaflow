@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest'
 import { composeVisaTemplate } from '@/config/composition'
 import { getAllCountryConfigs } from '@/config/countries'
 import { greeceTourismComposition } from '@/config/countries/greece/tourism'
+import { trFilingLayer } from '@/config/countries/jurisdictions/tr-filing'
 import { compositionFor } from '@/tests/support/production-compositions'
 import {
   soleForeignAuthorityCodes,
@@ -63,6 +64,11 @@ const PRODUCTION_PUBLISHER: Record<string, PublishingAuthority> = {
   // field, and only this map tells them apart. The statute carries `DE`, which
   // still says nothing about who published it: a member state can publish a
   // regulation, which is why `sourceType` cannot answer this either.
+  // Operated by a contractor rather than by the ministry, and classified by
+  // whose authority it rests on rather than by who typed it: the Greek mission
+  // directs applicants to this checklist, so it vouches for Greece and for
+  // nobody else.
+  'gr-tr-visa-centre-checklist': { kind: 'destination', countryCode: 'GR' },
   'de-tr-tourism-checklist': { kind: 'destination', countryCode: 'DE' },
   'de-tr-schengen-general': { kind: 'destination', countryCode: 'DE' },
   'de-aufenthg-54': { kind: 'destination', countryCode: 'DE' },
@@ -137,8 +143,25 @@ describe('provenance authority — production packs', () => {
     // would have passed regardless, because it already cited Annex II. The
     // number is measured by reverting the citations and re-running, not
     // reasoned from the count of requirements that changed.
+    //
+    // One row is named, and it is the one that proves the claim rather than
+    // weakening it: `EMPLOYER_SIGNATURE_CIRCULAR` is owned by the *Greek
+    // mission* layer, cites only the Greek visa centre's checklist, and is
+    // composed by no other destination. A requirement that exists because one
+    // mission asks for it is exactly what should stop vouching when the
+    // destination changes. Everything in `tr-filing` — the part a second pack
+    // actually inherits — still leads with the Commission act.
     expect(
       soleForeignAuthorityCodes(greeceTourismComposition, 'DE', publisherOf)
+    ).toEqual(['EMPLOYER_SIGNATURE_CIRCULAR'])
+
+    const trFilingCodes = new Set((trFilingLayer.add ?? []).map((r) => r.code))
+    expect(
+      soleForeignAuthorityCodes(
+        greeceTourismComposition,
+        'DE',
+        publisherOf
+      ).filter((code) => trFilingCodes.has(code))
     ).toEqual([])
   })
 })
