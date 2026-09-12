@@ -313,7 +313,7 @@ describe('entitlement is cross-checked in both directions', () => {
   })
 })
 
-describe('production: nothing is migrated, and the guards say so', () => {
+describe('production: what is migrated, and the guards that say so', () => {
   const owned = ALL_REQUIREMENT_LAYERS.flatMap((layer) =>
     (layer.add ?? []).map((r) => ({ layer: layer.id, r }))
   )
@@ -327,27 +327,43 @@ describe('production: nothing is migrated, and the guards say so', () => {
     ).toEqual([])
   })
 
-  it('exactly one requirement carries migration metadata', () => {
-    // H4c2d2i made this list non-empty, deliberately and visibly. It stays a
-    // list rather than a boolean so the next migration is also a reviewed line
-    // in a diff rather than a guard that had already stopped saying anything.
+  it('two requirements carry migration metadata, one per pack', () => {
+    // H4c2d2i made this list non-empty and H4c2d2k added the second, each
+    // deliberately and visibly. It stays a list rather than a count so the
+    // next migration is a reviewed line in a diff rather than a guard that had
+    // quietly stopped saying anything.
     const claiming = owned
       .filter(({ r }) => r.applicabilityMigration)
       .map(({ layer, r }) => `${layer} -> ${r.code}`)
-    expect(claiming).toEqual(['gr-tr-mission -> EMPLOYER_SIGNATURE_CIRCULAR'])
+    expect(claiming.sort()).toEqual([
+      'de-tr-mission -> EMPLOYER_TAX_PLATE',
+      'gr-tr-mission -> EMPLOYER_SIGNATURE_CIRCULAR',
+    ])
   })
 
-  it('and the ledger entitles exactly that one, with its prior contract', () => {
-    expect(APPLICABILITY_MIGRATIONS.map((e) => e.code)).toEqual([
-      'EMPLOYER_SIGNATURE_CIRCULAR',
-    ])
-    expect(APPLICABILITY_MIGRATIONS[0]?.priorCondition).toEqual({
-      field: 'employment.employmentStatus',
-      operator: 'equals',
-      value: 'employed',
+  it('and the ledger entitles exactly those, each with its own prior contract', () => {
+    // The two prior contracts differ, which is the point: an entitlement is a
+    // record of what *this* row used to ask, not a shared licence to fall back.
+    expect(
+      Object.fromEntries(
+        APPLICABILITY_MIGRATIONS.map((e) => [e.code, e.priorCondition])
+      )
+    ).toEqual({
+      EMPLOYER_SIGNATURE_CIRCULAR: {
+        field: 'employment.employmentStatus',
+        operator: 'equals',
+        value: 'employed',
+      },
+      EMPLOYER_TAX_PLATE: {
+        field: 'employment.employmentStatus',
+        operator: 'equals',
+        value: 'self_employed',
+      },
     })
     // Never a date, never an assumed adoption rate — ADR-053a decision 8.
-    expect(APPLICABILITY_MIGRATIONS[0]?.retirement).not.toMatch(/\d{4}-\d{2}/)
+    for (const entry of APPLICABILITY_MIGRATIONS) {
+      expect(entry.retirement, entry.code).not.toMatch(/\d{4}-\d{2}/)
+    }
   })
 
   it('FARMER_CERTIFICATE has no entitlement and no metadata', () => {
@@ -399,7 +415,10 @@ describe('a later layer cannot grant itself a migration', () => {
         .filter((r) => r.applicabilityMigration)
         .map((r) => `${layer.id} -> ${r.code}`)
     )
-    expect(declared).toEqual(['gr-tr-mission -> EMPLOYER_SIGNATURE_CIRCULAR'])
+    expect(declared.sort()).toEqual([
+      'de-tr-mission -> EMPLOYER_TAX_PLATE',
+      'gr-tr-mission -> EMPLOYER_SIGNATURE_CIRCULAR',
+    ])
   })
 })
 

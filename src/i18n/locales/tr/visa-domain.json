@@ -226,7 +226,7 @@
       "description": "Varsa daha önce alınmış Schengen vizelerinin fotokopileri"
     },
     "EMPLOYER_TAX_PLATE": {
-      "name": "İşveren Vergi Levhası",
+      "name": "Vergi Levhası",
       "description": "Şirkete ait güncel vergi levhası"
     },
     "EMPLOYER_TRADE_REGISTRY": {

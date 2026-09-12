@@ -1,5 +1,6 @@
 import { deTrMissionSources } from '../../sources/de-tr-mission.sources'
 import type { RequirementLayer } from '../../types'
+import { occupationOneOf } from '../../types'
 
 /**
  * The German missions' authority over applications for Germany lodged in
@@ -116,12 +117,44 @@ export const deTrMissionLayer: RequirementLayer = {
       nameKey: 'visa-domain:requirements.EMPLOYER_TAX_PLATE.name',
       descriptionKey: 'visa-domain:requirements.EMPLOYER_TAX_PLATE.description',
       category: 'employment',
-      ownerType: 'employer',
+      /**
+       * The applicant's own, which is what section 4(c) has always said:
+       * *"Firma sahipleri / Serbest meslek sahipleri"* is a company owner's own
+       * firm and a professional's own practice. `employer` was left over from
+       * the shared-layer row this replaced, and it was rendered to the
+       * applicant as a label — so a self-employed applicant was told their
+       * employer supplied a document about their own business.
+       *
+       * Static rather than per-occupation. Every occupation section 4(c) names
+       * has the same subject, and so does the whole coarse population the
+       * migration below preserves — a farmer's tax plate is equally their own.
+       * There is no cell where the subject differs, so a map would be using the
+       * capability because it exists rather than because the source asks for it.
+       */
+      ownerType: 'applicant',
       required: true,
-      conditionalOn: {
-        field: 'employment.employmentStatus',
-        operator: 'equals',
-        value: 'self_employed',
+      /**
+       * Section 4(c) names two occupations, and `self_employed` reached four.
+       * Purely subtractive: the corrected set is a strict subset, so nobody
+       * gains the row and a farmer stops being asked for a document filed under
+       * company owners and independent professionals.
+       *
+       * Which is exactly why the migration below is needed. An applicant who
+       * has not said what kind of work they do is evaluated against the coarse
+       * condition this row used to carry, so a self-employed dossier keeps the
+       * document until it can be routed properly ([ADR-053a](#adr-053a)). The
+       * entitlement lives in `APPLICABILITY_MIGRATIONS`, not here.
+       */
+      conditionalOn: occupationOneOf([
+        'company_owner',
+        'independent_professional',
+      ]),
+      applicabilityMigration: {
+        priorCondition: {
+          field: 'employment.employmentStatus',
+          operator: 'equals',
+          value: 'self_employed',
+        },
       },
       sourceRefs: ['de-tr-tourism-checklist'],
       revision: 1,

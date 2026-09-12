@@ -133,19 +133,19 @@ describe('owner semantics — the declared owner is the unclassified answer', ()
     }
   )
 
-  it('the two rows this track is about are untouched here', () => {
-    // Known debt, deliberately not fixed in this slice: EMPLOYER_TAX_PLATE is
-    // self-employed-only and still declares an employer subject. Pinning it
-    // means a well-meaning "fix while here" fails loudly.
-    const plate = compositionFor('DE').template.documentRequirements.find(
+  it('the two rows this track corrected declare the subject they evidence', () => {
+    const de = compositionFor('DE').template.documentRequirements.find(
       (r) => r.code === 'EMPLOYER_TAX_PLATE'
     )
-    expect(plate?.ownerType).toBe('employer')
+    // Corrected in H4c2d2k: its population is the applicant's own business.
+    expect(de?.ownerType).toBe('applicant')
 
-    const circular = compositionFor('GR').template.documentRequirements.find(
+    const gr = compositionFor('GR').template.documentRequirements.find(
       (r) => r.code === 'EMPLOYER_SIGNATURE_CIRCULAR'
     )
-    expect(circular?.ownerType).toBe('employer')
+    // Declared `employer`, which is the answer for an employee and for anyone
+    // not yet classified; the two self-employed categories are mapped.
+    expect(gr?.ownerType).toBe('employer')
   })
 
   it('and no requirement reaches for a shape the model does not have', () => {

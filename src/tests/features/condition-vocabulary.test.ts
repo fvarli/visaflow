@@ -92,11 +92,12 @@ describe('condition vocabulary — the operators production actually uses', () =
     expect(used).toEqual(['equals', 'notEquals', 'oneOf'])
   })
 
-  it('has exactly one oneOf condition, and it is the corrected circular', () => {
+  it('has one oneOf condition per corrected population, and no others', () => {
     const using = CONDITIONS.filter(({ on }) => on.operator === 'oneOf').map(
       label
     )
-    expect(using).toHaveLength(1)
-    expect(using[0]).toContain('EMPLOYER_SIGNATURE_CIRCULAR')
+    expect(using).toHaveLength(2)
+    expect(using.join(' ')).toContain('EMPLOYER_SIGNATURE_CIRCULAR')
+    expect(using.join(' ')).toContain('EMPLOYER_TAX_PLATE')
   })
 })

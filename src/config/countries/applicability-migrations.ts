@@ -93,4 +93,27 @@ export const APPLICABILITY_MIGRATIONS: ApplicabilityMigrationEntry[] = [
       'early withdraws a document the source does ask of the people who have ' +
       'not answered yet.',
   },
+  {
+    code: 'EMPLOYER_TAX_PLATE',
+    priorCondition: {
+      field: 'employment.employmentStatus',
+      operator: 'equals',
+      value: 'self_employed',
+    },
+    reason:
+      "Section 4(c) of the German mission's checklist files the tax plate " +
+      'under "Firma sahipleri / Serbest meslek sahipleri" — company owners and ' +
+      'independent professionals — and the row reached every self-employed ' +
+      'applicant, a farmer included. Correcting it is purely subtractive, so ' +
+      'the only people it can harm are the ones who have not yet said what ' +
+      'kind of work they do: without this, the document would disappear from ' +
+      'a self-employed dossier that had answered nothing, which the checklist ' +
+      'does ask of most of them.',
+    retirement:
+      'Remove once every dossier reaching this row carries a usable ' +
+      'occupation, which is a reviewed decision and never an elapsed interval ' +
+      '— there is no migration telemetry to read it from. Until then, ' +
+      'deleting it withdraws a required document from applicants the source ' +
+      'has not stopped asking.',
+  },
 ]

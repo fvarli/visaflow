@@ -639,6 +639,7 @@ describe('the capability changes nothing for anybody', () => {
      */
     expect(OCCUPATION_CONDITIONED.map((r) => r.code).sort()).toEqual([
       'EMPLOYER_SIGNATURE_CIRCULAR',
+      'EMPLOYER_TAX_PLATE',
       'FARMER_CERTIFICATE',
     ])
   })

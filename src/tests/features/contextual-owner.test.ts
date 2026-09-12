@@ -265,16 +265,17 @@ describe('contextual owner — exactly one production carrier', () => {
     expect(carriersIn('DE')).toEqual([])
   })
 
-  it('EMPLOYER_TAX_PLATE is still plainly employer-owned', () => {
-    // Known debt from H4c2d2c: a self-employed-only row declaring an employer
-    // subject. Its correction is its own slice, and pinning it here means
-    // fixing it in passing fails loudly.
+  it('EMPLOYER_TAX_PLATE takes a static subject, not a map', () => {
+    // H4c2d2k corrected it to `applicant` without a per-occupation map: every
+    // occupation its source names, and the whole coarse population its
+    // migration preserves, has the same subject. Declaring a map there would
+    // have been the capability used because it exists.
     const req = PRODUCTION_COMPOSITIONS.find(
       (p) => p.countryCode === 'DE'
     )?.composition.template.documentRequirements.find(
       (r) => r.code === 'EMPLOYER_TAX_PLATE'
     )
-    expect(req?.ownerType).toBe('employer')
+    expect(req?.ownerType).toBe('applicant')
     expect(req?.ownerByOccupation).toBeUndefined()
   })
 

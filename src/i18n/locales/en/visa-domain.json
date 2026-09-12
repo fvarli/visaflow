@@ -226,7 +226,7 @@
       "description": "Copies of previous Schengen visas if applicable"
     },
     "EMPLOYER_TAX_PLATE": {
-      "name": "Employer Tax Registration",
+      "name": "Tax Registration Certificate",
       "description": "Company tax registration certificate"
     },
     "EMPLOYER_TRADE_REGISTRY": {
