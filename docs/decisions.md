@@ -1557,6 +1557,13 @@ a contract that is now enforced, before a second author depends on it.
 
 **Status:** Accepted · 2026-08-28 · extends [ADR-015](#adr-015), [ADR-046](#adr-046)
 
+> **Narrowed by [ADR-048a](#adr-048a) (2026-09-13).** *"A citation vouches for everything the
+> requirement says"* holds for a requirement no later layer has refined, which is every requirement
+> this pass was written about, and its four-of-twenty-seven example is untouched. It does not survive
+> composition: once a mission may append acceptance criteria the owner's source never stated, the
+> citations on a composed row are read **together** — each vouching for the portion it is attached
+> for, the set leaving none of the contract unsupported. The text is kept as written.
+
 **Decision:**
 
 1. **`reviewStatus` is checked against coverage, not asserted.** `verified` requires *every*
@@ -1784,6 +1791,13 @@ models, `src/tests/features/country-pack-provenance.test.ts`,
 ## ADR-048: The Greece Pack Is Greece-from-Türkiye, and the Shared Array Is Quarantined
 
 **Status:** Accepted · 2026-08-29 · extends [ADR-046](#adr-046), [ADR-047](#adr-047)
+
+> **Narrowed by [ADR-048a](#adr-048a) (2026-09-13).** Decision 2's reason — *a condition is part of
+> what a requirement asserts* — still holds, and is why a source that contradicts a row's population
+> cannot cite it. What changed is the unit: on a composed requirement the condition may itself be
+> composed, so the source supporting a base population and the source supporting a composition's
+> widening are read together rather than each being required to carry the whole. The text is kept as
+> written.
 
 **Decision:**
 
@@ -3351,5 +3365,73 @@ production usage; then `COMPANY_ACTIVITY_CERTIFICATE` **corrected and widened in
 narrowing it alone would strip the row from a Greek independent professional for the length of a
 commit and the main branch must not carry that state; then `EMPLOYER_TRADE_REGISTRY` with both its
 deltas.
+
+**Implementation:** documentation only — `docs/decisions.md`. Nothing here is built.
+
+---
+
+## ADR-048a: A Composed Requirement's Citations Are Read Together
+
+**Status:** Accepted · 2026-09-13 · amends [ADR-047](#adr-047) and [ADR-048](#adr-048), applies
+[ADR-052b](#adr-052b) and [ADR-052c](#adr-052c)
+
+The rule was written for a requirement with one layer, and it is split across two records: ADR-047
+says a citation vouches for everything a requirement *says*, and ADR-048 decision 2 adds that a
+condition is part of what it asserts. Both were true of a pack in which every requirement had exactly
+one author.
+
+C1 ended that and nobody went back to the sentence. A mission may append acceptance criteria the
+owner's source never stated, and since [ADR-052c](#adr-052c) it may append occupations the owner's
+source never named — so the rule has been describing a model the repository stopped running three
+phases ago.
+
+**It is not a near-miss.** Germany composes twelve rows with more than one source, and on three of them
+the base citation plainly does not support the composed contract: `PASSPORT_CURRENT` cites Article 12
+while rendering the mission's rule that an extended passport is refused, which the Visa Code does not
+state; `PHOTOS` cites Article 13, which delegates to ICAO 9303, while rendering the mission's
+millimetres; `TRAVEL_INSURANCE` cites Article 15 while rendering an exclusion of a policy
+[ADR-052b](#adr-052b) records as *satisfying* the Visa Code and being refused at that counter. Read
+per-source, all three have been invalid since they shipped. They are not invalid — they are the design
+ADR-052b argued for, and the sentence is what is out of date.
+
+**Decision:**
+
+1. **For an unrefined requirement, nothing changes.** Every source cited must support the whole
+   contract it is cited for. That is the case ADR-047 was written about, and its four-of-twenty-seven
+   example stands exactly as recorded.
+2. **For a composed requirement, the citations are read as a set.** Each source must support the
+   specific portion it is attached for — the owner's base, or the criteria or population a later layer
+   appended — and the set must leave **no part** of the effective rendered contract unsupported.
+3. **This licenses nothing it is not meant to.** It does not permit accumulating unrelated citations;
+   it does not permit attaching a source that states nothing about any portion, which would be
+   laundering a claim through a list; it does not permit a source standing behind a condition or a
+   criterion it does not state; and *"some source supports something"* is never sufficient. A portion
+   of a contract with no source behind it is uncited, however many citations sit beside it.
+4. **What the reading does not touch.** A citation remains a claim of support, never of exactness —
+   ADR-015's honesty rule is unchanged. Source notes stay maintainer-facing. And verification coverage
+   stays a **maintenance** measure: `hasOwnVerifiedSource` asks whether *one* of a row's own sources
+   carries a recent `lastVerifiedAt`, so it answers how lately somebody checked and proves nothing
+   about semantic completeness — in either direction, for either model.
+5. **The two shapes, worked.**
+
+   | requirement | base portion | appended portion |
+   |---|---|---|
+   | `PASSPORT_CURRENT` (DE) | Visa Code Article 12 | the mission's page, for the refusal of an extended passport |
+   | `COMPANY_ACTIVITY_CERTIFICATE` (GR) | Annex III I.5(c) and the Greek ministry's copy of it, for company owners | the visa centre's checklist, for the widening to employees and independent professionals |
+
+   The second is the one that made this legible. While composition only added *prose*, nobody read a
+   citation as a statement about who is asked; the moment a composition could widen a population, the
+   same arrangement became a claim about people.
+
+6. **A clarification, not a relaxation.** Nothing in the packs changes because of this record, and
+   nothing was permitted by it that was not already shipped and argued. What changes is that a reader
+   of the decision log is no longer told a rule the code has not followed since C1.
+
+**Consequences.** Documentation only. No `sourceRefs`, coverage logic, requirement, `revision`,
+`contractKey`, `templateVersion`, schema or storage movement. The invariants are unchanged too, and
+deliberately: `country-pack-provenance` asks whether a jurisdiction row is cited **at all** and
+`tr-filing-provenance` pins each layer-owned declaration to the Annex III clause supporting it —
+neither ever asserted the per-source reading this narrows, which is part of why the drift went
+unnoticed.
 
 **Implementation:** documentation only — `docs/decisions.md`. Nothing here is built.
