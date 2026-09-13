@@ -1,3 +1,4 @@
+import { isKnownOccupationCode } from '@/domain/types/common'
 import type {
   AcceptanceDetailFragment,
   CitationRefinement,
@@ -187,6 +188,25 @@ function assertWideningShape(
     refuse(
       'with an empty list. A widening that adds nobody is either a mistake or ' +
         'a leftover; remove the field instead.'
+    )
+  }
+
+  /**
+   * Checked before the relational rules below, because a value that is not an
+   * occupation cannot meaningfully duplicate or overlap anything.
+   *
+   * The type says this already and the type is not enough: the composer takes
+   * runtime objects, and a misspelling would otherwise merge cleanly and then
+   * match nobody — the effective occupation it is compared against is always a
+   * known code. A widening that silently adds no one, reading in a census as
+   * though it added someone.
+   */
+  const unknown = added.filter((o) => !isKnownOccupationCode(o))
+  if (unknown.length > 0) {
+    refuse(
+      `with "${unknown[0]}", which is not an occupation this build knows. The ` +
+        'vocabulary lives in `domain/types/common`; a widening naming anything ' +
+        'else would merge and then match nobody.'
     )
   }
 

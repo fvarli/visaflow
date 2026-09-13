@@ -305,6 +305,26 @@ describe('widening — a delta, and the composer refuses anything else', () => {
     )
   })
 
+  it('refuses an occupation this build does not know', () => {
+    /**
+     * The type says this and the type is not enough. Composition takes runtime
+     * objects — this suite builds its own layers through a cast, and a pack
+     * could assemble a list dynamically — so a misspelling would otherwise
+     * merge cleanly and match nobody, because the effective occupation it is
+     * compared against is always a known code. `tsc` is not the check here.
+     */
+    expectKind('invalid-widening', () =>
+      compose([owner(), wideningLayer(['company_owenr'])])
+    )
+  })
+
+  it('and still accepts a list of real ones, so it is not refusing everything', () => {
+    expect(
+      requirementIn([owner(), wideningLayer(['employee'])])
+        .applicableOccupations
+    ).toEqual(['employee'])
+  })
+
   it('refuses a base that does not route on occupation', () => {
     const coarse: DocumentRequirement = {
       ...OWNED,
