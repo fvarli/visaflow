@@ -199,16 +199,28 @@ function buildActiveRequirements(): Map<string, DocumentRequirement> {
           byCode.set(requirement.code, requirement)
           continue
         }
-        // Composition may append citations and, since C1, composition-scoped
-        // acceptance detail — so two compositions of one code can differ in
-        // `sourceRefs`, `detailKeys` and the `contractKey` that names which
-        // detail applied. Everything else is identity and must be identical,
-        // `revision` included: F1b gave it back to the owner, so a code that
-        // carries two different numbers is two declarations of one code.
+        /**
+         * Composition may append citations, composition-scoped acceptance
+         * detail since C1, and — since [ADR-052c] — occupations a composition
+         * asks the requirement of beyond the population its owner declared. So
+         * two compositions of one code can differ in `sourceRefs`,
+         * `detailKeys`, `applicableOccupations` and the `contractKey` that
+         * names which detail applied.
+         *
+         * Everything else is identity and must be identical, `revision`
+         * included: F1b gave it back to the owner, so a code carrying two
+         * different numbers is two declarations of one code.
+         *
+         * Widening is on that list because asking the same document of more
+         * people is not a different requirement — ADR-052c decision 5 — which
+         * is precisely why it is checked against the key below rather than
+         * waved through.
+         */
         const strip = ({
           sourceRefs: _refs,
           detailKeys: _detail,
           contractKey: _key,
+          applicableOccupations: _widened,
           ...rest
         }: DocumentRequirement) => JSON.stringify(rest)
         if (strip(seen) !== strip(requirement)) {
@@ -223,6 +235,21 @@ function buildActiveRequirements(): Map<string, DocumentRequirement> {
           JSON.stringify(requirement.detailKeys ?? [])
         const sameKey = seen.contractKey === requirement.contractKey
         if (sameDetail !== sameKey) {
+          conflicts.push(requirement.code)
+        }
+        /**
+         * And the mirror for widening, in the other direction: a population
+         * that differs between compositions must **not** move the key.
+         *
+         * A widening changes who is asked, not what satisfies the ask, so a
+         * claim made in one pack stays valid in the other and a dossier that
+         * changes destination is told the row no longer applies rather than
+         * that its evidence went stale (ADR-051a, ADR-052c decision 5).
+         */
+        const sameWidening =
+          JSON.stringify(seen.applicableOccupations ?? []) ===
+          JSON.stringify(requirement.applicableOccupations ?? [])
+        if (!sameWidening && !sameKey) {
           conflicts.push(requirement.code)
         }
       }

@@ -284,8 +284,22 @@ export const grTrMissionLayer: RequirementLayer = {
     },
     { code: 'STUDENT_CERTIFICATE', addSourceRefs: ['gr-tr-harmonised-list'] },
     {
+      /**
+       * Greece asks this of more people than the instrument names, which
+       * Article 14(3) permits and [ADR-052c](#adr-052c) is how it is now said.
+       * The visa centre's company-document block carries the *Faaliyet belgesi*
+       * on the *Çalışan*, *Şirket Sahibi* and *Serbest Meslek* branches at all
+       * four consular jurisdictions; Annex III files it under company owners
+       * alone, which is what the base renders and what Germany composes.
+       *
+       * With the widening the Greek contract is exactly what that checklist
+       * says, which is also what finally makes the checklist citable here — it
+       * was withheld in H4c2d2o precisely because the row then rendered a
+       * population the source contradicts (ADR-048).
+       */
       code: 'COMPANY_ACTIVITY_CERTIFICATE',
-      addSourceRefs: ['gr-tr-harmonised-list'],
+      addApplicableOccupations: ['employee', 'independent_professional'],
+      addSourceRefs: ['gr-tr-harmonised-list', 'gr-tr-visa-centre-checklist'],
     },
     { code: 'TAX_PAYMENT_STATEMENT', addSourceRefs: ['gr-tr-harmonised-list'] },
     {

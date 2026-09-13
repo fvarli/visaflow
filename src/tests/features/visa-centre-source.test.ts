@@ -91,20 +91,41 @@ describe('visa-centre source — attached only where the contract is supported',
     .map((r) => r.code)
     .sort()
 
-  it('reaches exactly the two rows whose evidence was established', () => {
+  it('reaches exactly the rows whose rendered contract it supports', () => {
     expect(carrying).toEqual([
+      'COMPANY_ACTIVITY_CERTIFICATE',
       'EMPLOYER_SIGNATURE_CIRCULAR',
       'FARMER_CERTIFICATE',
     ])
   })
 
-  it.each(['COMPANY_ACTIVITY_CERTIFICATE', 'EMPLOYER_TRADE_REGISTRY'])(
-    '%s shares the block and is still not cited to it',
-    (code) => {
-      const req = composed.find((r) => r.code === code)
-      expect(req?.sourceRefs ?? []).not.toContain(ID)
-    }
-  )
+  it('COMPANY_ACTIVITY_CERTIFICATE earned it by being corrected, not excused', () => {
+    /**
+     * Withheld when this file was written, with the reason that the row
+     * rendered `self_employed` while the checklist publishes the document to
+     * employees, owners and freelancers. H4c2d2s made Greece's *composed*
+     * contract exactly that population, so the citation now vouches for a
+     * condition the source states — the test ADR-048 sets, and the reason the
+     * attachment had to follow the correction rather than travel ahead of it.
+     *
+     * Germany's composition of the same row keeps Annex III alone and asks
+     * company owners alone. Both are honest; they are different contracts.
+     */
+    const gr = composed.find((r) => r.code === 'COMPANY_ACTIVITY_CERTIFICATE')
+    expect(gr?.sourceRefs).toContain(ID)
+    expect(gr?.applicableOccupations).toEqual([
+      'employee',
+      'independent_professional',
+    ])
+  })
+
+  it('EMPLOYER_TRADE_REGISTRY shares the block and is still not cited to it', () => {
+    // The row left over: it renders `self_employed` and cites Annex III, which
+    // names company owners only, so this source would vouch for a condition it
+    // does not state. Its own correction is its own slice.
+    const req = composed.find((r) => r.code === 'EMPLOYER_TRADE_REGISTRY')
+    expect(req?.sourceRefs ?? []).not.toContain(ID)
+  })
 
   it('the owned row declares it; the shared row receives it by refinement', () => {
     // Applicability may only be declared by the owning layer, and a citation

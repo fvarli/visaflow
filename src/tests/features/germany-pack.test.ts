@@ -351,14 +351,23 @@ describe('Germany pack — refinement adds citations and detail, and nothing els
     // code mean two different things — which is still forbidden, and is what
     // this measures.
     //
-    // `sourceRefs` and `detailKeys` are the additions a refinement may make,
-    // and `contractKey` names which of them applied. Everything else — the
-    // owner's `revision` now included, since F1b gave it back — is the identity
-    // of the requirement and must match exactly.
+    // `sourceRefs`, `detailKeys` and — since ADR-052c — `applicableOccupations`
+    // are the additions a refinement may make, and `contractKey` names which of
+    // the detail applied. Everything else — the owner's `revision` now
+    // included, since F1b gave it back — is the identity of the requirement and
+    // must match exactly.
+    //
+    // Widening joins that list because asking the same document of more people
+    // is not a different requirement: Greece asks COMPANY_ACTIVITY_CERTIFICATE
+    // of employees and freelancers as well, on a checklist Germany's mission
+    // does not publish, and both packs still render one document with one
+    // acceptance bar and one contract key. That last part is asserted directly
+    // below rather than assumed.
     const strip = ({
       sourceRefs: _refs,
       detailKeys: _detail,
       contractKey: _key,
+      applicableOccupations: _widened,
       ...rest
     }: DocumentRequirement) => JSON.stringify(rest)
     const shared = germany.template.documentRequirements.filter((r) =>
@@ -375,6 +384,25 @@ describe('Germany pack — refinement adds citations and detail, and nothing els
       })
       .map((r) => r.code)
     expect(diverged).toEqual([])
+
+    // A widened row is still one contract in both packs: where the two
+    // compositions attached the same acceptance detail — none, or the same
+    // fragments — the key must match, however differently the row is widened.
+    // `PASSPORT_CURRENT` is the case this must not catch: Germany's mission
+    // adds a real criterion to it, so that key is *supposed* to diverge.
+    //
+    // If a widening ever moved the key, a German claim would read as stale the
+    // moment Greece asked the same document of one more occupation.
+    for (const requirement of shared) {
+      const counterpart = codeOf(greece, requirement.code)
+      const sameDetail =
+        JSON.stringify(requirement.detailKeys ?? []) ===
+        JSON.stringify(counterpart?.detailKeys ?? [])
+      if (!sameDetail) continue
+      expect(requirement.contractKey, requirement.code).toBe(
+        counterpart?.contractKey
+      )
+    }
   })
 
   it('gives two different bars two different keys, and never one key', () => {

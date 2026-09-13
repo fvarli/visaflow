@@ -638,6 +638,7 @@ describe('the capability changes nothing for anybody', () => {
      * never *inferred* from `self_employed`.
      */
     expect(OCCUPATION_CONDITIONED.map((r) => r.code).sort()).toEqual([
+      'COMPANY_ACTIVITY_CERTIFICATE',
       'EMPLOYER_SIGNATURE_CIRCULAR',
       'EMPLOYER_TAX_PLATE',
       'FARMER_CERTIFICATE',

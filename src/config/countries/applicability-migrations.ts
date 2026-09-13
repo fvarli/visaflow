@@ -140,4 +140,26 @@ export const APPLICABILITY_MIGRATIONS: ApplicabilityMigrationEntry[] = [
       "self-employed applicant's checklist without them having changed " +
       'anything.',
   },
+  {
+    code: 'COMPANY_ACTIVITY_CERTIFICATE',
+    priorCondition: {
+      field: 'employment.employmentStatus',
+      operator: 'equals',
+      value: 'self_employed',
+    },
+    reason:
+      'Annex III I.5(c) files the activity certificate under Company owners ' +
+      'and the row reached every self-employed applicant. Correcting it is ' +
+      'subtractive against the instrument, and the Greek composition widens ' +
+      'back to the population its own checklist publishes — so the only people ' +
+      'the correction can reach are those who have not yet said what kind of ' +
+      'work they do, and they keep the coarse contract until they do.',
+    retirement:
+      'Remove once every dossier reaching this row carries a usable ' +
+      'occupation — a reviewed decision, never an elapsed interval, because ' +
+      'there is no migration telemetry to read one from. The row is required ' +
+      'in both packs, so deleting the fallback early drops a required document ' +
+      'out of a self-employed checklist without the applicant having changed ' +
+      'anything.',
+  },
 ]

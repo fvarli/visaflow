@@ -327,7 +327,7 @@ describe('production: what is migrated, and the guards that say so', () => {
     ).toEqual([])
   })
 
-  it('three requirements carry migration metadata', () => {
+  it('four requirements carry migration metadata', () => {
     // H4c2d2i made this list non-empty and H4c2d2k added the second, each
     // deliberately and visibly. It stays a list rather than a count so the
     // next migration is a reviewed line in a diff rather than a guard that had
@@ -338,6 +338,7 @@ describe('production: what is migrated, and the guards that say so', () => {
     expect(claiming.sort()).toEqual([
       'de-tr-mission -> EMPLOYER_TAX_PLATE',
       'gr-tr-mission -> EMPLOYER_SIGNATURE_CIRCULAR',
+      'tr-filing -> COMPANY_ACTIVITY_CERTIFICATE',
       'tr-filing -> TAX_PAYMENT_STATEMENT',
     ])
   })
@@ -366,6 +367,11 @@ describe('production: what is migrated, and the guards that say so', () => {
         operator: 'equals',
         value: 'self_employed',
       },
+      COMPANY_ACTIVITY_CERTIFICATE: {
+        field: 'employment.employmentStatus',
+        operator: 'equals',
+        value: 'self_employed',
+      },
     })
     // Never a date, never an assumed adoption rate — ADR-053a decision 8.
     for (const entry of APPLICABILITY_MIGRATIONS) {
@@ -389,24 +395,29 @@ describe('production: what is migrated, and the guards that say so', () => {
 })
 
 describe('a later layer cannot grant itself a migration', () => {
-  it('the composer refuses any refinement key but the three it allows', () => {
+  it('the composer refuses any refinement key but the four it allows', () => {
     /**
-     * ADR-052b forbids a refining layer from touching applicability, and
-     * migration metadata *is* applicability wearing a compatibility hat — so a
-     * destination or jurisdiction layer smuggling it onto a code it does not
-     * own would be the override this project has refused three times.
+     * A refining layer may not touch a migration, and migration metadata *is*
+     * applicability wearing a compatibility hat — so a destination or
+     * jurisdiction layer smuggling it onto a code it does not own would be the
+     * override this project has refused three times.
      *
      * It is already impossible: `composition.ts` allowlists refinement keys
      * rather than ignoring unknown ones, so the field cannot even be written.
      * Asserted here because the protection is one `Set` away from being lost by
      * somebody adding a key for an unrelated reason.
+     *
+     * The list gained `addApplicableOccupations` in H4c2d2r and that is the
+     * only relaxation: ADR-052c lets a refinement *widen* a population and
+     * nothing else — it cannot narrow, replace, suppress, or reach
+     * `applicabilityMigration`, which stays the owner's alone.
      */
     const refinementKeys = ALL_REQUIREMENT_LAYERS.flatMap((layer) =>
       (layer.refine ?? []).flatMap((r) => Object.keys(r))
     )
     expect([...new Set(refinementKeys)].sort()).toEqual(
-      ['addDetail', 'addSourceRefs', 'code'].filter((k) =>
-        refinementKeys.includes(k)
+      ['addApplicableOccupations', 'addDetail', 'addSourceRefs', 'code'].filter(
+        (k) => refinementKeys.includes(k)
       )
     )
     expect(refinementKeys).not.toContain('applicabilityMigration')
@@ -425,6 +436,7 @@ describe('a later layer cannot grant itself a migration', () => {
     expect(declared.sort()).toEqual([
       'de-tr-mission -> EMPLOYER_TAX_PLATE',
       'gr-tr-mission -> EMPLOYER_SIGNATURE_CIRCULAR',
+      'tr-filing -> COMPANY_ACTIVITY_CERTIFICATE',
       'tr-filing -> TAX_PAYMENT_STATEMENT',
     ])
   })

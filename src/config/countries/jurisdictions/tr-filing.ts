@@ -260,11 +260,47 @@ const trFilingDocuments: DocumentRequirement[] = [
       'visa-domain:requirements.COMPANY_ACTIVITY_CERTIFICATE.description',
     category: 'employment',
     ownerType: 'applicant',
+    /**
+     * The applicant's own company, which every authority agrees on. The one
+     * exception is an occupation only Greece reaches: on the visa centre's
+     * *Çalışan* branch the company-document block is the **employer's**, so
+     * the mapping is inert in a pack that does not widen and correct in the
+     * one that does ([ADR-049a](#adr-049a), [ADR-052c](#adr-052c) decision 7).
+     *
+     * A map states the exceptions. `company_owner` and
+     * `independent_professional` are not listed because they *are* the
+     * declared default, and a redundant entry reads later as though it meant
+     * something.
+     */
+    ownerByOccupation: { employee: 'employer' },
     required: true,
-    conditionalOn: {
-      field: 'employment.employmentStatus',
-      operator: 'equals',
-      value: 'self_employed',
+    /**
+     * I.5(c) says Company owners, and the comment below has said so since this
+     * row was written. `self_employed` reached independent professionals and
+     * farmers too.
+     *
+     * NARROWING THIS ALONE WOULD HAVE BEEN A WITHDRAWAL. The Greek visa
+     * centre's checklist publishes the *Faaliyet belgesi* to employees, company
+     * owners and freelancers alike, so correcting the base to its citation and
+     * stopping there would take the document from a Greek freelancer who is
+     * asked for it — which is why H4c2d2n blocked it and ADR-052c exists. The
+     * Greek composition widens back to what Greece actually asks, in the same
+     * commit; Germany, whose sheet names no activity certificate at all, keeps
+     * what its citation says. Nobody in either pack loses a document they are
+     * asked for, and the farmer over-ask everyone agrees on goes.
+     *
+     * The migration carries the rest: an applicant who has not said what kind
+     * of work they do is held to the coarse contract this row used to render,
+     * and the widening is never consulted there ([ADR-053a](#adr-053a),
+     * [ADR-052c](#adr-052c) decision 6).
+     */
+    conditionalOn: occupationIs('company_owner'),
+    applicabilityMigration: {
+      priorCondition: {
+        field: 'employment.employmentStatus',
+        operator: 'equals',
+        value: 'self_employed',
+      },
     },
     // Company owners: "company activity certificate (Faaliyet Belgesi)" and
     // the chamber-of-commerce registration.

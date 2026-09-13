@@ -371,16 +371,21 @@ describe('widening — a delta, and the composer refuses anything else', () => {
 })
 
 describe('widening — nothing in production uses it, and Finance cannot see it', () => {
-  it('no production refinement declares one', () => {
-    // Written to fail in the slice that adds the first use, which then replaces
-    // it with an explicit census — the shape every capability guard in this
-    // track has had.
+  it('exactly one production refinement declares one', () => {
+    // The zero-guard this suite shipped with, replaced by a census the slice
+    // that added the first use had to write out — so the second widening is a
+    // reviewed line in a diff rather than a guard that had stopped speaking.
     const declaring = ALL_REQUIREMENT_LAYERS.flatMap((layer) =>
       (layer.refine ?? [])
         .filter((r) => r.addApplicableOccupations !== undefined)
-        .map((r) => `${layer.id} -> ${r.code}`)
+        .map(
+          (r) =>
+            `${layer.id} -> ${r.code}: ${(r.addApplicableOccupations ?? []).join('+')}`
+        )
     )
-    expect(declaring).toEqual([])
+    expect(declaring).toEqual([
+      'gr-tr-mission -> COMPANY_ACTIVITY_CERTIFICATE: employee+independent_professional',
+    ])
   })
 
   it('the finance classifier still takes a code and a category', () => {

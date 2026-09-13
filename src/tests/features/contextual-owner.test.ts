@@ -257,12 +257,24 @@ describe('contextual owner — exactly one production carrier', () => {
       .filter((req) => req.ownerByOccupation !== undefined)
       .map((req) => req.code)
 
-  it('Greece carries it on the corrected circular and nothing else', () => {
-    expect(carriersIn('GR')).toEqual(['EMPLOYER_SIGNATURE_CIRCULAR'])
+  it('Greece carries it on the two rows whose subject varies', () => {
+    expect(carriersIn('GR').sort()).toEqual([
+      'COMPANY_ACTIVITY_CERTIFICATE',
+      'EMPLOYER_SIGNATURE_CIRCULAR',
+    ])
   })
 
-  it('Germany carries none — the layer that declares it is Greece-composed', () => {
-    expect(carriersIn('DE')).toEqual([])
+  it('Germany carries one of them, where it is inert', () => {
+    /**
+     * `COMPANY_ACTIVITY_CERTIFICATE` is a shared Türkiye row, so its
+     * `ownerByOccupation` reaches both packs — but only Greece widens the row
+     * to an employee, so in Germany the mapping is never consulted. That is
+     * ADR-052c decision 7 working: ownership may name an occupation another
+     * composition reaches, and stays inert where nobody does.
+     *
+     * The circular is Greece-owned and reaches Germany not at all.
+     */
+    expect(carriersIn('DE')).toEqual(['COMPANY_ACTIVITY_CERTIFICATE'])
   })
 
   it('EMPLOYER_TAX_PLATE takes a static subject, not a map', () => {

@@ -476,13 +476,31 @@ const PINNED_REQUIREMENTS: Record<string, DocumentRequirement> = {
       'visa-domain:requirements.COMPANY_ACTIVITY_CERTIFICATE.description',
     category: 'employment',
     ownerType: 'applicant',
+    ownerByOccupation: { employee: 'employer' },
     required: true,
     conditionalOn: {
-      field: 'employment.employmentStatus',
+      field: 'employment.occupation',
       operator: 'equals',
-      value: 'self_employed',
+      value: 'company_owner',
     },
-    sourceRefs: ['eu-c2021-5156-turkey-annex3', 'gr-tr-harmonised-list'],
+    applicabilityMigration: {
+      priorCondition: {
+        field: 'employment.employmentStatus',
+        operator: 'equals',
+        value: 'self_employed',
+      },
+    },
+    // Greece asks this of two occupations the instrument does not name, on its
+    // visa centre's own checklist. Germany composes the same row without the
+    // widening and asks company owners alone.
+    applicableOccupations: ['employee', 'independent_professional'],
+    sourceRefs: [
+      'eu-c2021-5156-turkey-annex3',
+      'gr-tr-harmonised-list',
+      'gr-tr-visa-centre-checklist',
+    ],
+    // Unmoved, with a population that now differs between the two packs: a
+    // widening changes who is asked, not what satisfies the ask (ADR-052c).
     revision: 1,
     contractKey: 'COMPANY_ACTIVITY_CERTIFICATE@1',
   },
@@ -607,7 +625,7 @@ const PINNED_ENVELOPE = {
   id: 'schengen-short-stay-tourism',
   visaType: 'short_stay_tourism',
   nameKey: 'visa-domain:visaTypes.schengen-short-stay-tourism',
-  templateVersion: '1.13.0',
+  templateVersion: '1.14.0',
   lastReviewedAt: '2026-09-07',
   reviewStatus: 'partially_verified',
   sourceIds: ['gr-mfa-general'],

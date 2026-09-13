@@ -252,8 +252,10 @@ describe('tax payment statement — both packs move together', () => {
      * correction has to move both — and a row authored once is exactly the
      * case where forgetting the second one is easy.
      */
-    expect(compositionFor('GR').template.templateVersion).toBe('1.13.0')
-    expect(compositionFor('DE').template.templateVersion).toBe('1.11.0')
+    // Both have moved again since, for COMPANY_ACTIVITY_CERTIFICATE — which
+    // is the same property being asserted, one slice later.
+    expect(compositionFor('GR').template.templateVersion).toBe('1.14.0')
+    expect(compositionFor('DE').template.templateVersion).toBe('1.12.0')
   })
 })
 
