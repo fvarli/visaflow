@@ -191,26 +191,55 @@ const trFilingDocuments: DocumentRequirement[] = [
     revision: 1,
   },
   {
+    /**
+     * The trade register gazette, and **only** the gazette.
+     *
+     * Revision 2 added the chamber-of-commerce registration beside it, so this
+     * code has been asking for two documents conjunctively ever since. Their
+     * populations come apart: the Greek visa centre publishes the *sicil
+     * gazetesi* on three branches and names no chamber document at all, while
+     * Annex III I.5(e)(iv) asks truck drivers for the chamber excerpt *without*
+     * the gazette. One code cannot carry both ([ADR-052b](#adr-052b) decision
+     * 7), so the chamber left for `CHAMBER_REGISTRATION_CERTIFICATE` below and
+     * this row returns to the document revision 1 was minted for — narrowing
+     * that keeps the same real-world document, which [ADR-049](#adr-049)
+     * decision 1 permits and which is why the identity is retained rather than
+     * retired.
+     *
+     * Dropping a conjunct cannot make a previously sufficient evidence set
+     * fail, so this is a **loosening** and the revision holds at 2
+     * ([ADR-051a](#adr-051a)). Bumping would demote every Greek claim for a
+     * change that excludes no evidence.
+     */
     code: 'EMPLOYER_TRADE_REGISTRY',
     nameKey: 'visa-domain:requirements.EMPLOYER_TRADE_REGISTRY.name',
     descriptionKey:
       'visa-domain:requirements.EMPLOYER_TRADE_REGISTRY.description',
-    notesKey: 'visa-domain:requirements.EMPLOYER_TRADE_REGISTRY.notes',
     category: 'employment',
     /**
      * Corrected from `employer` / `employed` (ADR-048).
      *
-     * The harmonised list files the chamber-of-commerce registration and trade
-     * register bulletin under **Company owners** — it is the applicant's own
-     * company, not their employer's. VisaFlow was asking employees for a
-     * document the authority asks of business owners.
+     * The harmonised list files the trade register bulletin under **Company
+     * owners** — it is the applicant's own company, not their employer's.
+     * VisaFlow was asking employees for a document the authority asks of
+     * business owners.
      */
     ownerType: 'applicant',
     /**
-     * Required, not optional. Annex III I.5(c) lists the chamber registration
-     * and trade-register bulletin for company owners without qualification, and
-     * the German mission's sheet lists them the same way — so both production
-     * compositions want the same answer and neither is made wrong by it.
+     * The one occupation where the subject differs, and only Greece reaches it.
+     * On the visa centre's *Çalışan* branch the company-document block is the
+     * **employer's**, so the mapping is inert in Germany, which does not widen
+     * to employees, and correct in Greece, which does ([ADR-049a](#adr-049a)).
+     *
+     * A map states the exceptions; the occupations that are already `applicant`
+     * are deliberately not listed.
+     */
+    ownerByOccupation: { employee: 'employer' },
+    /**
+     * Required, not optional. Annex III I.5(c) lists the trade-register
+     * bulletin for company owners without qualification, and the German
+     * mission's sheet lists it the same way — so both production compositions
+     * want the same answer and neither is made wrong by it.
      *
      * It sat at `false`, which meant readiness left it out of the denominator
      * entirely: a self-employed applicant could reach 100% ready while missing
@@ -219,14 +248,90 @@ const trFilingDocuments: DocumentRequirement[] = [
      * applicability-shaped changes.
      */
     required: true,
-    conditionalOn: {
-      field: 'employment.employmentStatus',
-      operator: 'equals',
-      value: 'self_employed',
+    /**
+     * I.5(c) says Company owners. `self_employed` reached independent
+     * professionals and farmers too, and the correction alone would have been a
+     * withdrawal — the Greek visa centre publishes the gazette to employees and
+     * freelancers as well, and the German sheet's section 4(c) to freelancers.
+     * Both compositions widen back to what their own sources ask, in this same
+     * commit ([ADR-052c](#adr-052c)).
+     *
+     * The migration carries the rest: an applicant who has not said what kind
+     * of work they do is held to the coarse contract this row rendered, and the
+     * widenings are never consulted there ([ADR-053a](#adr-053a)).
+     */
+    conditionalOn: occupationIs('company_owner'),
+    applicabilityMigration: {
+      priorCondition: {
+        field: 'employment.employmentStatus',
+        operator: 'equals',
+        value: 'self_employed',
+      },
     },
+    // Company owners: "a copy of the trade register bulletin". The chamber
+    // registration named in the same clause is a separate code.
     sourceRefs: ['eu-c2021-5156-turkey-annex3'],
-    // Added the chamber-of-commerce registration — see REQUIREMENT_REVISIONS.
     revision: 2,
+  },
+  {
+    /**
+     * The chamber-of-commerce registration, split out of
+     * `EMPLOYER_TRADE_REGISTRY` rather than renamed from it.
+     *
+     * A genuinely different instrument from a different registry
+     * ([ADR-052b](#adr-052b) decision 7): Annex III I.5(e)(iv) asks truck
+     * drivers for "excerpt of the Chamber of Commerce's company register" with
+     * no gazette beside it, which is the clearest proof the two are separable
+     * asks rather than one ask described twice.
+     *
+     * **It starts empty, and that is the decision rather than an oversight.**
+     * No persisted completion is projected into it from the code it split from
+     * ([ADR-051c](#adr-051c)): the record carries one date and one file for
+     * what were two documents, and Germany gates this row on a six-month bar —
+     * so a projected `issuedAt` could report a stale chamber copy as ready.
+     * Applicants in its population meet a fresh row and confirm it themselves.
+     */
+    code: 'CHAMBER_REGISTRATION_CERTIFICATE',
+    nameKey: 'visa-domain:requirements.CHAMBER_REGISTRATION_CERTIFICATE.name',
+    descriptionKey:
+      'visa-domain:requirements.CHAMBER_REGISTRATION_CERTIFICATE.description',
+    category: 'employment',
+    /**
+     * The applicant's own company. No `ownerByOccupation`: neither pack widens
+     * this row to an employee, so there is no cell in which the subject
+     * differs, and a map here would be using the capability because it exists
+     * rather than because a source asks for it.
+     */
+    ownerType: 'applicant',
+    required: true,
+    /**
+     * The same population the gazette's base names, and for the same clause.
+     * Germany widens to independent professionals because section 4(c) asks
+     * them for it; Greece does not, because no Greek-reachable source names a
+     * chamber document for anyone but a company owner — which it does reach,
+     * through the Annex III citation this row carries in both packs.
+     */
+    conditionalOn: occupationIs('company_owner'),
+    /**
+     * A new code, and still an entitled one. The chamber obligation was shipped
+     * to every `self_employed` applicant inside the conjunctive row, so this is
+     * preservation rather than invention — what VisaFlow published is ours to
+     * carry forward, even across a split ([ADR-051c](#adr-051c) decision 6,
+     * [ADR-053a](#adr-053a) decision 6). Without it an unclassified
+     * self-employed dossier would silently lose a document it was being asked
+     * for yesterday.
+     */
+    applicabilityMigration: {
+      priorCondition: {
+        field: 'employment.employmentStatus',
+        operator: 'equals',
+        value: 'self_employed',
+      },
+    },
+    // Company owners: "chamber of commerce registration"; truck drivers, at
+    // I.5(e)(iv), the chamber register excerpt on its own.
+    sourceRefs: ['eu-c2021-5156-turkey-annex3'],
+    revision: 1,
   },
   {
     code: 'STUDENT_CERTIFICATE',

@@ -49,6 +49,7 @@ const GERMANY_ORDER = [
   'APPROVED_LEAVE',
   'SOCIAL_SECURITY',
   'EMPLOYER_TRADE_REGISTRY',
+  'CHAMBER_REGISTRATION_CERTIFICATE',
   'EMPLOYER_TAX_PLATE',
   'TAX_PAYMENT_STATEMENT',
   'COMPANY_ACTIVITY_CERTIFICATE',
@@ -95,7 +96,7 @@ describe('Germany pack — composition', () => {
     )
   })
 
-  it('owns four requirements and inherits the other twenty-two', () => {
+  it('owns four requirements and inherits the other twenty-three', () => {
     const tally = new Map<string, number>()
     for (const [, layerId] of germany.ownership) {
       tally.set(layerId, (tally.get(layerId) ?? 0) + 1)
@@ -108,7 +109,11 @@ describe('Germany pack — composition', () => {
       // gains a requirement from a Greek evidence pass, and that is the layer
       // model working rather than a leak: the clause was always Annex III's,
       // and this sheet asks for the document itself at section 4(b).
-      'tr-filing': 14,
+      // Fifteen since the company registration split in two: the chamber
+      // certificate is an Annex III I.5(c) document like the gazette beside
+      // it, so it is declared where the instrument is and both packs compose
+      // it.
+      'tr-filing': 15,
       // Four since H3: the official undertaking is this mission's own
       // evidence, accepted in place of an accommodation document.
       'de-tr-mission': 4,
@@ -129,7 +134,10 @@ describe('Germany pack — composition', () => {
     // now supports. F0 moved both sides by one and completeness held, which is
     // the property worth pinning: a requirement may not join this pack without
     // its own source.
-    expect(coverage).toEqual({ total: 26, verified: 26, isComplete: true })
+    // The split moved both sides by one again, and completeness held again —
+    // the chamber row shipped cited to Annex III, which is the only way a new
+    // requirement may join a `verified` pack.
+    expect(coverage).toEqual({ total: 27, verified: 27, isComplete: true })
     expect(
       isReviewStatusSupported(germany.template.reviewStatus, coverage)
     ).toBe(true)
@@ -463,6 +471,7 @@ describe('Germany pack — refinement adds citations and detail, and nothing els
       'APPROVED_LEAVE',
       'SOCIAL_SECURITY',
       'EMPLOYER_TRADE_REGISTRY',
+      'CHAMBER_REGISTRATION_CERTIFICATE',
       'EMPLOYER_TAX_PLATE',
       'STUDENT_CERTIFICATE',
     ])
@@ -540,10 +549,10 @@ describe('Germany pack — refinement adds citations and detail, and nothing els
 
 describe('Germany pack — Greece is untouched by its arrival', () => {
   it('still composes its own requirements with its own coverage', () => {
-    expect(greece.template.documentRequirements).toHaveLength(27)
+    expect(greece.template.documentRequirements).toHaveLength(28)
     expect(computeVerificationCoverage(greeceConfig, greece.template)).toEqual({
-      total: 27,
-      verified: 23,
+      total: 28,
+      verified: 24,
       isComplete: false,
     })
   })

@@ -49,7 +49,7 @@ export interface ApplicabilityMigrationEntry {
 }
 
 /**
- * One entry, and the gate is what makes it mean anything.
+ * Six entries, and the gate is what makes them mean anything.
  *
  * A requirement that *quotes* a prior contract proves nothing — a row written
  * tomorrow could quote a fiction. This ledger is where the entitlement lives,
@@ -57,12 +57,22 @@ export interface ApplicabilityMigrationEntry {
  * config claim with no entry fails, an entry with no config fails, and a prior
  * condition the two disagree about fails.
  *
- * The four other rows from the same company-document block —
- * `EMPLOYER_TRADE_REGISTRY`, `COMPANY_ACTIVITY_CERTIFICATE`,
- * `TAX_PAYMENT_STATEMENT` and `EMPLOYER_TAX_PLATE` — are still **not** listed.
- * Each needs its corrected occupational population adjudicated on its own
- * evidence first, and an entry written before that adjudication would be a
- * claim nobody had checked.
+ * The company-document block is now migrated in full. It was listed here as
+ * *unmigrated* for several phases on purpose — each row needed its corrected
+ * occupational population adjudicated on its own evidence first, and an entry
+ * written before that adjudication would have been a claim nobody had checked.
+ * The last of them, the company registration, took the longest because it was
+ * asking for two documents at once and had to be split before either half could
+ * be routed.
+ *
+ * `CHAMBER_REGISTRATION_CERTIFICATE` is the one entry here whose code never
+ * shipped under its own name, and it is entitled all the same. The obligation
+ * *did* ship to every `self_employed` applicant — inside
+ * `EMPLOYER_TRADE_REGISTRY`, before the split — so preserving it is preservation
+ * and not invention. Entitlement is a fact about what this project published,
+ * and a split does not erase one ([ADR-051c](#adr-051c) decision 6). That is
+ * also the sharpest edge in this file: the argument is about the *obligation's*
+ * history, never about the code's.
  *
  * `FARMER_CERTIFICATE` will never appear. It was authored against the
  * occupational axis and has no prior coarse contract to preserve, which is
@@ -154,6 +164,53 @@ export const APPLICABILITY_MIGRATIONS: ApplicabilityMigrationEntry[] = [
       'back to the population its own checklist publishes — so the only people ' +
       'the correction can reach are those who have not yet said what kind of ' +
       'work they do, and they keep the coarse contract until they do.',
+    retirement:
+      'Remove once every dossier reaching this row carries a usable ' +
+      'occupation — a reviewed decision, never an elapsed interval, because ' +
+      'there is no migration telemetry to read one from. The row is required ' +
+      'in both packs, so deleting the fallback early drops a required document ' +
+      'out of a self-employed checklist without the applicant having changed ' +
+      'anything.',
+  },
+  {
+    code: 'EMPLOYER_TRADE_REGISTRY',
+    priorCondition: {
+      field: 'employment.employmentStatus',
+      operator: 'equals',
+      value: 'self_employed',
+    },
+    reason:
+      'Annex III I.5(c) files the trade register bulletin under Company ' +
+      'owners and the row reached every self-employed applicant. Both ' +
+      'compositions widen back to the population their own sources publish — ' +
+      'Greece to employees and freelancers, Germany to freelancers — so the ' +
+      'only people the correction can reach are those who have not yet said ' +
+      'what kind of work they do, and they keep the coarse contract until ' +
+      'they do.',
+    retirement:
+      'Remove once every dossier reaching this row carries a usable ' +
+      'occupation — a reviewed decision, never an elapsed interval, because ' +
+      'there is no migration telemetry to read one from. The row is required ' +
+      'in both packs, so deleting the fallback early drops a required document ' +
+      'out of a self-employed checklist without the applicant having changed ' +
+      'anything.',
+  },
+  {
+    code: 'CHAMBER_REGISTRATION_CERTIFICATE',
+    priorCondition: {
+      field: 'employment.employmentStatus',
+      operator: 'equals',
+      value: 'self_employed',
+    },
+    reason:
+      'The only entry here for a code that never shipped under its own name, ' +
+      'and the entitlement is still historical rather than invented: this ' +
+      'obligation was asked of every self-employed applicant as one half of ' +
+      "EMPLOYER_TRADE_REGISTRY's conjunctive contract, from revision 2 until " +
+      'the split. Dropping the fallback because the code is new would take a ' +
+      'required document away from an unclassified dossier that was being ' +
+      'asked for it the day before — the withdrawal ADR-053a puts level with ' +
+      'inventing one.',
     retirement:
       'Remove once every dossier reaching this row carries a usable ' +
       'occupation — a reviewed decision, never an elapsed interval, because ' +

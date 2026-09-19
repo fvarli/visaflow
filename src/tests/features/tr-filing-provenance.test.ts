@@ -46,8 +46,10 @@ const SUPPORTED_BY_ANNEX_III: Record<string, string> = {
   EMPLOYMENT_LETTER: 'I.5(a) letter from employer',
   APPROVED_LEAVE: 'I.5(a) approval for leave',
   SOCIAL_SECURITY: 'I.5(a) SGK statement + service document, readable QR',
-  EMPLOYER_TRADE_REGISTRY:
-    'I.5(c) chamber registration + trade register bulletin',
+  EMPLOYER_TRADE_REGISTRY: 'I.5(c) trade register bulletin',
+  CHAMBER_REGISTRATION_CERTIFICATE:
+    'I.5(c) chamber registration; I.5(e)(iv) chamber register excerpt for ' +
+    'truck drivers',
   TAX_PAYMENT_STATEMENT: 'I.5(c) statement of taxes payment',
   COMPANY_ACTIVITY_CERTIFICATE: 'I.5(c) company activity certificate',
   STUDENT_CERTIFICATE: 'I.5(d) student certificate',

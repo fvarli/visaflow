@@ -380,14 +380,34 @@ export const deTrMissionLayer: RequirementLayer = {
       },
     },
     {
+      /**
+       * Section 4(c) is headed *"Firma sahipleri / Serbest meslek sahipleri"*,
+       * so the sheet asks the gazette of independent professionals as well as
+       * company owners — which the instrument files under company owners alone.
+       *
+       * **The `chamberAndAge` fragment is gone from this row**, and did not
+       * disappear: it describes a chamber copy and nothing else, so it followed
+       * the chamber to its own code below. Leaving it here would attach a
+       * criterion to a document it says nothing about, and would keep this
+       * row's key at `+de-tr-mission:1` on the strength of it.
+       */
+      code: 'EMPLOYER_TRADE_REGISTRY',
+      addApplicableOccupations: ['independent_professional'],
+      addSourceRefs: ['de-tr-tourism-checklist'],
+    },
+    {
       // "Ticaret veya Sanayi Odası ... (6 aydan eski olmamalı)" — a wider set of
       // acceptable issuers than the shared contract implies, and a recency bar
-      // it does not state at all.
-      code: 'EMPLOYER_TRADE_REGISTRY',
+      // it does not state at all. The same fragment that sat on
+      // `EMPLOYER_TRADE_REGISTRY` until the chamber earned its own code; it
+      // moved with the document it describes, not with the code it used to
+      // share.
+      code: 'CHAMBER_REGISTRATION_CERTIFICATE',
+      addApplicableOccupations: ['independent_professional'],
       addSourceRefs: ['de-tr-tourism-checklist'],
       addDetail: {
         detailKeys: [
-          'visa-domain:detail.de-tr-mission.EMPLOYER_TRADE_REGISTRY.chamberAndAge',
+          'visa-domain:detail.de-tr-mission.CHAMBER_REGISTRATION_CERTIFICATE.chamberAndAge',
         ],
         revision: 1,
       },

@@ -279,8 +279,29 @@ export const grTrMissionLayer: RequirementLayer = {
       addSourceRefs: ['gr-tr-harmonised-list'],
     },
     {
+      /**
+       * Greece asks the gazette of more people than the instrument names, which
+       * Article 14(3) permits and [ADR-052c](#adr-052c) is how it is said. The
+       * visa centre's company-document block carries the *ticaret sicil
+       * gazetesi* on the *Çalışan*, *Şirket Sahibi* and *Serbest Meslek*
+       * branches; Annex III files it under company owners alone, which is what
+       * the base renders.
+       *
+       * The checklist becomes citable here only now, and only because the row
+       * finally renders what it states. H4c2d2o withheld it while the row also
+       * demanded a chamber registration this checklist names nowhere — a
+       * citation vouches for the whole composed contract, not for the half that
+       * happens to match ([ADR-048a](#adr-048a)). The chamber half has left for
+       * `CHAMBER_REGISTRATION_CERTIFICATE`, which Greece does **not** widen and
+       * does not cite to this source.
+       *
+       * The harmonised list stays: it is Greece's own copy of the clause the
+       * base cites, and it supports the gazette for company owners exactly as
+       * before.
+       */
       code: 'EMPLOYER_TRADE_REGISTRY',
-      addSourceRefs: ['gr-tr-harmonised-list'],
+      addApplicableOccupations: ['employee', 'independent_professional'],
+      addSourceRefs: ['gr-tr-harmonised-list', 'gr-tr-visa-centre-checklist'],
     },
     { code: 'STUDENT_CERTIFICATE', addSourceRefs: ['gr-tr-harmonised-list'] },
     {

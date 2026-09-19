@@ -371,10 +371,15 @@ describe('widening — a delta, and the composer refuses anything else', () => {
 })
 
 describe('widening — nothing in production uses it, and Finance cannot see it', () => {
-  it('exactly one production refinement declares one', () => {
+  it('four production refinements declare one', () => {
     // The zero-guard this suite shipped with, replaced by a census the slice
     // that added the first use had to write out — so the second widening is a
     // reviewed line in a diff rather than a guard that had stopped speaking.
+    //
+    // Three arrived at once with the trade-registry split: both packs widen
+    // the gazette to the populations their own sources publish, and Germany
+    // widens the chamber too, because section 4(c) names freelancers beside
+    // company owners for both documents.
     const declaring = ALL_REQUIREMENT_LAYERS.flatMap((layer) =>
       (layer.refine ?? [])
         .filter((r) => r.addApplicableOccupations !== undefined)
@@ -383,8 +388,11 @@ describe('widening — nothing in production uses it, and Finance cannot see it'
             `${layer.id} -> ${r.code}: ${(r.addApplicableOccupations ?? []).join('+')}`
         )
     )
-    expect(declaring).toEqual([
+    expect(declaring.sort()).toEqual([
+      'de-tr-mission -> CHAMBER_REGISTRATION_CERTIFICATE: independent_professional',
+      'de-tr-mission -> EMPLOYER_TRADE_REGISTRY: independent_professional',
       'gr-tr-mission -> COMPANY_ACTIVITY_CERTIFICATE: employee+independent_professional',
+      'gr-tr-mission -> EMPLOYER_TRADE_REGISTRY: employee+independent_professional',
     ])
   })
 

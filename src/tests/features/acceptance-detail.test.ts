@@ -235,7 +235,7 @@ describe('the production packs render their own detail and nobody else’s', () 
       'EMPLOYMENT_LETTER',
       'APPROVED_LEAVE',
       'SOCIAL_SECURITY',
-      'EMPLOYER_TRADE_REGISTRY',
+      'CHAMBER_REGISTRATION_CERTIFICATE',
     ])
     // Every one is inherited, not owned. A layer's own requirement carries its
     // criteria in its own contract, so detail on a code you own would be two

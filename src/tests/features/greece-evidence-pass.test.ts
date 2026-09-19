@@ -156,8 +156,8 @@ describe('Greece evidence pass — the contracts it deliberately left alone', ()
      */
     const greece = getCountryConfig('GR')
     expect(computeVerificationCoverage(greece!, template)).toEqual({
-      total: 27,
-      verified: 23,
+      total: 28,
+      verified: 24,
       isComplete: false,
     })
   })
@@ -254,15 +254,15 @@ describe('Annex III I.5(g) — the obligation the evidence work produced', () =>
     ])
   })
 
-  it('moved Greece to twenty-two of twenty-seven, and it is twenty-three now', () => {
+  it('moved Greece to twenty-two of twenty-seven, and it is twenty-four of twenty-eight now', () => {
     // The first row this evidence effort added rather than corrected, and it
     // arrived cited — so the numerator and denominator moved together, to
     // 22/27. The twenty-third is the signature circular, cited in H4c2d2o once
     // its condition had been corrected to what the checklist actually says.
     const greece = getCountryConfig('GR')
     expect(computeVerificationCoverage(greece!, template)).toEqual({
-      total: 27,
-      verified: 23,
+      total: 28,
+      verified: 24,
       isComplete: false,
     })
   })

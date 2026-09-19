@@ -327,18 +327,25 @@ describe('production: what is migrated, and the guards that say so', () => {
     ).toEqual([])
   })
 
-  it('four requirements carry migration metadata', () => {
+  it('six requirements carry migration metadata', () => {
     // H4c2d2i made this list non-empty and H4c2d2k added the second, each
     // deliberately and visibly. It stays a list rather than a count so the
     // next migration is a reviewed line in a diff rather than a guard that had
     // quietly stopped saying anything.
+    //
+    // The last two arrived together, from one row splitting in half. The
+    // chamber certificate is the only code here that never shipped under its
+    // own name — its entitlement is the obligation's history, not the code's
+    // (ADR-051c decision 6).
     const claiming = owned
       .filter(({ r }) => r.applicabilityMigration)
       .map(({ layer, r }) => `${layer} -> ${r.code}`)
     expect(claiming.sort()).toEqual([
       'de-tr-mission -> EMPLOYER_TAX_PLATE',
       'gr-tr-mission -> EMPLOYER_SIGNATURE_CIRCULAR',
+      'tr-filing -> CHAMBER_REGISTRATION_CERTIFICATE',
       'tr-filing -> COMPANY_ACTIVITY_CERTIFICATE',
+      'tr-filing -> EMPLOYER_TRADE_REGISTRY',
       'tr-filing -> TAX_PAYMENT_STATEMENT',
     ])
   })
@@ -368,6 +375,16 @@ describe('production: what is migrated, and the guards that say so', () => {
         value: 'self_employed',
       },
       COMPANY_ACTIVITY_CERTIFICATE: {
+        field: 'employment.employmentStatus',
+        operator: 'equals',
+        value: 'self_employed',
+      },
+      EMPLOYER_TRADE_REGISTRY: {
+        field: 'employment.employmentStatus',
+        operator: 'equals',
+        value: 'self_employed',
+      },
+      CHAMBER_REGISTRATION_CERTIFICATE: {
         field: 'employment.employmentStatus',
         operator: 'equals',
         value: 'self_employed',
@@ -436,7 +453,9 @@ describe('a later layer cannot grant itself a migration', () => {
     expect(declared.sort()).toEqual([
       'de-tr-mission -> EMPLOYER_TAX_PLATE',
       'gr-tr-mission -> EMPLOYER_SIGNATURE_CIRCULAR',
+      'tr-filing -> CHAMBER_REGISTRATION_CERTIFICATE',
       'tr-filing -> COMPANY_ACTIVITY_CERTIFICATE',
+      'tr-filing -> EMPLOYER_TRADE_REGISTRY',
       'tr-filing -> TAX_PAYMENT_STATEMENT',
     ])
   })

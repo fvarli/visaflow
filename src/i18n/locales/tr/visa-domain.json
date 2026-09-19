@@ -230,9 +230,12 @@
       "description": "Şirkete ait güncel vergi levhası"
     },
     "EMPLOYER_TRADE_REGISTRY": {
-      "name": "Şirket Kaydı",
-      "description": "Ticaret odası kaydı ve ticaret sicil gazetesi örneği",
-      "notes": "Şirket sahibiyseniz istenir"
+      "name": "Ticaret Sicil Gazetesi",
+      "description": "Şirket kaydını gösteren ticaret sicil gazetesi örneği"
+    },
+    "CHAMBER_REGISTRATION_CERTIFICATE": {
+      "name": "Ticaret Odası Kayıt Belgesi",
+      "description": "Ticaret veya sanayi odasından alınmış sicil kayıt sureti"
     },
     "EMPLOYER_SIGNATURE_CIRCULAR": {
       "name": "İşveren İmza Sirküleri",
@@ -417,7 +420,7 @@
       "APPROVED_LEAVE": {
         "original": "Türkiye’deki işvereniniz tarafından hazırlanmış asıl nüsha; temsilcilik hem bu bilgiyi hem istihdam bilgilerini taşıyan tek bir yazı istiyor"
       },
-      "EMPLOYER_TRADE_REGISTRY": {
+      "CHAMBER_REGISTRATION_CERTIFICATE": {
         "chamberAndAge": "Ticaret veya Sanayi Odasından alınmış, 6 aydan eski olmayan sicil kayıt sureti fotokopisi"
       }
     },

@@ -65,6 +65,7 @@ const GREECE_TOURISM_ORDER = [
   'RELATIONSHIP_PROOF',
   'CIVIL_REGISTRY_EXTRACT',
   'EMPLOYER_TRADE_REGISTRY',
+  'CHAMBER_REGISTRATION_CERTIFICATE',
   'EMPLOYER_SIGNATURE_CIRCULAR',
   'PROPERTY_DEED',
   'COMPANY_ACTIVITY_CERTIFICATE',
@@ -120,6 +121,7 @@ export const greeceTourismComposition = composeVisaTemplate({
         // one would outlive the ask.
         relatedDocuments: [
           'EMPLOYER_TRADE_REGISTRY',
+          'CHAMBER_REGISTRATION_CERTIFICATE',
           'EMPLOYER_SIGNATURE_CIRCULAR',
         ],
       },
@@ -144,8 +146,20 @@ export const greeceTourismComposition = composeVisaTemplate({
      * The E5c sponsor move is absent from this list on purpose — it changed
      * which layer owns those four requirements, not what Greece asks for, so
      * the composed output was identical and the number held.
+     *
+     * The narration above stops at `1.10.0` and the value has moved four times
+     * since; rather than backfill entries nobody wrote at the time, the record
+     * resumes here. `1.15.0` splits `EMPLOYER_TRADE_REGISTRY` into the trade
+     * register gazette and `CHAMBER_REGISTRATION_CERTIFICATE`, which is an
+     * addition to this pack — twenty-eight requirements where there were
+     * twenty-seven — rather than a tightening of any existing one. No revision
+     * moved, on either half: the gazette lost a conjunct, which is a loosening,
+     * and the chamber is a new identity starting at 1. Greece also widens the
+     * gazette to employees and freelancers, which its own visa-centre checklist
+     * publishes and which changes who is asked rather than what satisfies the
+     * ask.
      */
-    templateVersion: '1.14.0',
+    templateVersion: '1.15.0',
     lastReviewedAt: '2026-09-07',
     /**
      * Still derived from evidence rather than chosen: 19 of the 24 requirements

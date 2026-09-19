@@ -599,6 +599,40 @@ const BEFORE_H4C2B1: Record<'GR' | 'DE', Record<EmploymentStatus, string[]>> = {
   },
 }
 
+/**
+ * Codes composed *since* 5259214, and where each sits in the checklist.
+ *
+ * The baseline above stays frozen — it is a record of what that commit
+ * resolved, and editing it to match today would delete the only thing it is
+ * for. So a deliberate addition is declared here instead, as a reviewed line
+ * naming what arrived and why, and the expectation is the baseline plus this.
+ *
+ * One entry so far. `CHAMBER_REGISTRATION_CERTIFICATE` is not a new ask: the
+ * chamber registration was already being asked of exactly this population, as
+ * the other half of `EMPLOYER_TRADE_REGISTRY`'s conjunctive contract. What
+ * changed is that two documents under one code became two codes, so the
+ * checklist gained a row without gaining an obligation — which is why it is
+ * expressed as an insertion beside the row it split from rather than as a
+ * fresh entry somewhere in the list.
+ */
+const SINCE_5259214 = [
+  {
+    after: 'EMPLOYER_TRADE_REGISTRY',
+    code: 'CHAMBER_REGISTRATION_CERTIFICATE',
+  },
+] as const
+
+/** The baseline with every later addition spliced in after its anchor. */
+function expectedCodes(cc: 'GR' | 'DE', status: EmploymentStatus): string[] {
+  let codes: string[] = [...BEFORE_H4C2B1[cc][status]]
+  for (const { after, code } of SINCE_5259214) {
+    const at = codes.indexOf(after)
+    if (at === -1) continue
+    codes = [...codes.slice(0, at + 1), code, ...codes.slice(at + 1)]
+  }
+  return codes
+}
+
 describe('the capability changes nothing for anybody', () => {
   it.each(EmploymentStatusSchema.options)(
     'a %s dossier resolves exactly what it resolved at 5259214',
@@ -612,7 +646,7 @@ describe('the capability changes nothing for anybody', () => {
           cc,
           status,
           codes: codesFor(status, undefined, template),
-        }).toEqual({ cc, status, codes: BEFORE_H4C2B1[cc][status] })
+        }).toEqual({ cc, status, codes: expectedCodes(cc, status) })
       }
     }
   )
@@ -638,9 +672,11 @@ describe('the capability changes nothing for anybody', () => {
      * never *inferred* from `self_employed`.
      */
     expect(OCCUPATION_CONDITIONED.map((r) => r.code).sort()).toEqual([
+      'CHAMBER_REGISTRATION_CERTIFICATE',
       'COMPANY_ACTIVITY_CERTIFICATE',
       'EMPLOYER_SIGNATURE_CIRCULAR',
       'EMPLOYER_TAX_PLATE',
+      'EMPLOYER_TRADE_REGISTRY',
       'FARMER_CERTIFICATE',
       'TAX_PAYMENT_STATEMENT',
     ])
@@ -941,6 +977,15 @@ describe('requiredness is a workflow fact, not an applicability one', () => {
   it.each(LEGACY)(
     'a legacy %s dossier with no occupation is asked for exactly what it always was',
     (status) => {
+      /**
+       * "Exactly what it always was" is a claim about documents, and the
+       * chamber registration is one this population has been asked for since
+       * template 1.2.0 — inside `EMPLOYER_TRADE_REGISTRY`, until it earned its
+       * own code. So the splice is the delta staying honest rather than
+       * widening the claim: the row count moved by one, the ask did not, and
+       * an unclassified self-employed dossier keeps both halves through the
+       * migration ledger.
+       */
       for (const [cc, template] of [
         ['GR', GREECE],
         ['DE', GERMANY],
@@ -949,7 +994,7 @@ describe('requiredness is a workflow fact, not an applicability one', () => {
           cc,
           status,
           codes: codesFor(status, undefined, template),
-        }).toEqual({ cc, status, codes: BEFORE_H4C2B1[cc][status] })
+        }).toEqual({ cc, status, codes: expectedCodes(cc, status) })
       }
     }
   )
@@ -966,7 +1011,7 @@ describe('requiredness is a workflow fact, not an applicability one', () => {
 
       // Derived from the frozen baseline rather than from today's resolution,
       // so a change that moved both sides together could not hide here.
-      const expected = BEFORE_H4C2B1.GR[status].filter(
+      const expected = expectedCodes('GR', status).filter(
         (code) =>
           GREECE.documentRequirements.find((r) => r.code === code)?.required
       )
@@ -998,6 +1043,7 @@ describe('requiredness is a workflow fact, not an applicability one', () => {
     expect(named).toEqual(
       expect.arrayContaining([
         'EMPLOYER_TRADE_REGISTRY',
+        'CHAMBER_REGISTRATION_CERTIFICATE',
         'COMPANY_ACTIVITY_CERTIFICATE',
         'TAX_PAYMENT_STATEMENT',
       ])

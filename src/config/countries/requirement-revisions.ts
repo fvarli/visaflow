@@ -124,6 +124,27 @@ export const REQUIREMENT_REVISIONS: RequirementRevision[] = [
       'statements also holds the last three, so that narrowed nothing.',
   },
   {
+    /**
+     * SPLIT IN GR 1.15.0 / DE 1.13.0, AND THE REASON BELOW NO LONGER DESCRIBES
+     * WHAT THIS CODE ASKS FOR.
+     *
+     * It is kept exactly as written, because it was true when it was written
+     * and a ledger that edits its own history stops being evidence of anything.
+     * What changed: the chamber-of-commerce registration this entry records
+     * *adding* has left for `CHAMBER_REGISTRATION_CERTIFICATE`, and this code
+     * now renders the trade register bulletin alone — the document revision 1
+     * was minted for.
+     *
+     * No revision moved for that. Dropping a conjunct cannot make a previously
+     * sufficient evidence set fail, so it is a loosening, which
+     * [ADR-051a](#adr-051a) excludes from a bump. The number stays at 2 and the
+     * history above it stays contiguous.
+     *
+     * Recorded here rather than in a registry, and deliberately not as a
+     * successor pointer: nothing resolves one code to another at runtime, for
+     * the reason `retired.ts` gives about `replacedBy`. This is a note for
+     * people reading the history ([ADR-051c](#adr-051c) decision 8).
+     */
     code: 'EMPLOYER_TRADE_REGISTRY',
     revision: 2,
     bumpedIn: '1.2.0',
@@ -290,14 +311,32 @@ export const REQUIREMENT_REVISIONS: RequirementRevision[] = [
       'one letter carrying both this and the employment details.',
   },
   {
-    code: 'EMPLOYER_TRADE_REGISTRY',
+    /**
+     * The row this entry describes did not change; the code under it did.
+     *
+     * This fragment sat on `EMPLOYER_TRADE_REGISTRY` from DE 1.5.0, and it only
+     * ever described the chamber copy — so when the chamber earned its own code
+     * the fragment went with the document rather than staying with the code it
+     * used to share. Germany now attaches no detail to the gazette row, which
+     * is why there is no `EMPLOYER_TRADE_REGISTRY` fragment entry above: an
+     * entry for a layer that attaches nothing is an orphan, and the invariant
+     * says so.
+     *
+     * `bumpedIn` is the version that ships this fragment on **this** code, not
+     * the one that first published the criterion. Carrying `DE 1.5.0` across
+     * would date a fragment to a pack version in which its requirement did not
+     * exist. The criterion itself is older than the code, and that is what this
+     * comment is for.
+     */
+    code: 'CHAMBER_REGISTRATION_CERTIFICATE',
     revision: 1,
-    bumpedIn: 'DE 1.5.0',
+    bumpedIn: 'DE 1.13.0',
     viaLayer: 'de-tr-mission',
     reason:
       'The chamber copy must be no older than six months, and may come from ' +
       'the chamber of commerce or of industry. The shared contract states ' +
-      'neither.',
+      'neither. Rendered to German applicants since DE 1.5.0 under ' +
+      'EMPLOYER_TRADE_REGISTRY, which this requirement was split out of.',
   },
 ]
 

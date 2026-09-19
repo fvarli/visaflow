@@ -62,6 +62,7 @@ const PINNED_ORDER = [
   'RELATIONSHIP_PROOF',
   'CIVIL_REGISTRY_EXTRACT',
   'EMPLOYER_TRADE_REGISTRY',
+  'CHAMBER_REGISTRATION_CERTIFICATE',
   'EMPLOYER_SIGNATURE_CIRCULAR',
   'PROPERTY_DEED',
   'COMPANY_ACTIVITY_CERTIFICATE',
@@ -363,23 +364,76 @@ const PINNED_REQUIREMENTS: Record<string, DocumentRequirement> = {
     revision: 1,
     contractKey: 'CIVIL_REGISTRY_EXTRACT@1',
   },
+  /**
+   * The trade register gazette alone since the split, and the `notesKey` is
+   * gone with the chamber: "Şirket sahibiyseniz istenir" was false for every
+   * population the widening reaches, and applicability already says who is
+   * asked.
+   *
+   * `contractKey` is unchanged, which is the point. Dropping a conjunct is a
+   * loosening, so no revision moved and no Greek claim was demoted for a
+   * change that excludes no evidence.
+   */
   EMPLOYER_TRADE_REGISTRY: {
     code: 'EMPLOYER_TRADE_REGISTRY',
     nameKey: 'visa-domain:requirements.EMPLOYER_TRADE_REGISTRY.name',
     descriptionKey:
       'visa-domain:requirements.EMPLOYER_TRADE_REGISTRY.description',
-    notesKey: 'visa-domain:requirements.EMPLOYER_TRADE_REGISTRY.notes',
+    category: 'employment',
+    ownerType: 'applicant',
+    ownerByOccupation: { employee: 'employer' },
+    required: true,
+    conditionalOn: {
+      field: 'employment.occupation',
+      operator: 'equals',
+      value: 'company_owner',
+    },
+    applicabilityMigration: {
+      priorCondition: {
+        field: 'employment.employmentStatus',
+        operator: 'equals',
+        value: 'self_employed',
+      },
+    },
+    sourceRefs: [
+      'eu-c2021-5156-turkey-annex3',
+      'gr-tr-harmonised-list',
+      'gr-tr-visa-centre-checklist',
+    ],
+    applicableOccupations: ['employee', 'independent_professional'],
+    revision: 2,
+    contractKey: 'EMPLOYER_TRADE_REGISTRY@2',
+  },
+  /**
+   * Split out of `EMPLOYER_TRADE_REGISTRY`, not renamed from it. Greece asks
+   * it of company owners through Annex III and widens it to nobody: no
+   * Greek-reachable source names a chamber document at all, which is why this
+   * row carries the instrument alone where the gazette beside it carries three
+   * citations.
+   */
+  CHAMBER_REGISTRATION_CERTIFICATE: {
+    code: 'CHAMBER_REGISTRATION_CERTIFICATE',
+    nameKey: 'visa-domain:requirements.CHAMBER_REGISTRATION_CERTIFICATE.name',
+    descriptionKey:
+      'visa-domain:requirements.CHAMBER_REGISTRATION_CERTIFICATE.description',
     category: 'employment',
     ownerType: 'applicant',
     required: true,
     conditionalOn: {
-      field: 'employment.employmentStatus',
+      field: 'employment.occupation',
       operator: 'equals',
-      value: 'self_employed',
+      value: 'company_owner',
     },
-    sourceRefs: ['eu-c2021-5156-turkey-annex3', 'gr-tr-harmonised-list'],
-    revision: 2,
-    contractKey: 'EMPLOYER_TRADE_REGISTRY@2',
+    applicabilityMigration: {
+      priorCondition: {
+        field: 'employment.employmentStatus',
+        operator: 'equals',
+        value: 'self_employed',
+      },
+    },
+    sourceRefs: ['eu-c2021-5156-turkey-annex3'],
+    revision: 1,
+    contractKey: 'CHAMBER_REGISTRATION_CERTIFICATE@1',
   },
   /**
    * Added in H4c1b — the first requirement to condition on nationality, and
@@ -615,6 +669,7 @@ const PINNED_MILESTONES: PreparationMilestone[] = [
     daysBeforeAppointment: 28,
     relatedDocuments: [
       'EMPLOYER_TRADE_REGISTRY',
+      'CHAMBER_REGISTRATION_CERTIFICATE',
       'EMPLOYER_SIGNATURE_CIRCULAR',
     ],
   },
@@ -625,7 +680,7 @@ const PINNED_ENVELOPE = {
   id: 'schengen-short-stay-tourism',
   visaType: 'short_stay_tourism',
   nameKey: 'visa-domain:visaTypes.schengen-short-stay-tourism',
-  templateVersion: '1.14.0',
+  templateVersion: '1.15.0',
   lastReviewedAt: '2026-09-07',
   reviewStatus: 'partially_verified',
   sourceIds: ['gr-mfa-general'],

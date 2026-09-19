@@ -92,9 +92,10 @@ describe('visa-centre source — attached only where the contract is supported',
     .sort()
 
   it('reaches exactly the rows whose rendered contract it supports', () => {
-    expect(carrying).toEqual([
+    expect(carrying.sort()).toEqual([
       'COMPANY_ACTIVITY_CERTIFICATE',
       'EMPLOYER_SIGNATURE_CIRCULAR',
+      'EMPLOYER_TRADE_REGISTRY',
       'FARMER_CERTIFICATE',
     ])
   })
@@ -119,12 +120,43 @@ describe('visa-centre source — attached only where the contract is supported',
     ])
   })
 
-  it('EMPLOYER_TRADE_REGISTRY shares the block and is still not cited to it', () => {
-    // The row left over: it renders `self_employed` and cites Annex III, which
-    // names company owners only, so this source would vouch for a condition it
-    // does not state. Its own correction is its own slice.
+  it('EMPLOYER_TRADE_REGISTRY earned it the same way, one slice later', () => {
+    /**
+     * The row left over when this file was written: it rendered
+     * `self_employed` and, worse for this source, asked for a chamber
+     * registration the checklist names nowhere. A citation vouches for the
+     * whole composed contract, not the half that happens to match (ADR-048a),
+     * so it could not be attached while the row still carried both documents.
+     *
+     * The split removed both obstacles at once. Greece's gazette row now
+     * renders exactly the three branches the checklist publishes it on, and
+     * nothing else.
+     */
     const req = composed.find((r) => r.code === 'EMPLOYER_TRADE_REGISTRY')
+    expect(req?.sourceRefs).toContain(ID)
+    expect(req?.applicableOccupations).toEqual([
+      'employee',
+      'independent_professional',
+    ])
+  })
+
+  it('and the chamber half is still not cited to it, because it is absent', () => {
+    /**
+     * The other half of the same split, and the reason the citation could not
+     * simply have been attached to the undivided row. Thirteen Greek captures
+     * across four posts and three branches contain no chamber term at all —
+     * not one occurrence of the substring `oda` — so this source says nothing
+     * about the chamber document and may not stand behind it.
+     *
+     * Greece still asks it of company owners, through Annex III, which the
+     * base carries in both packs.
+     */
+    const req = composed.find(
+      (r) => r.code === 'CHAMBER_REGISTRATION_CERTIFICATE'
+    )
     expect(req?.sourceRefs ?? []).not.toContain(ID)
+    expect(req?.sourceRefs).toEqual(['eu-c2021-5156-turkey-annex3'])
+    expect(req?.applicableOccupations).toBeUndefined()
   })
 
   it('the owned row declares it; the shared row receives it by refinement', () => {

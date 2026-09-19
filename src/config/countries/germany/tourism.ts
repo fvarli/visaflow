@@ -80,6 +80,7 @@ const GERMANY_TOURISM_ORDER = [
   // Annex III items this sheet does not list; they sit with the block they
   // belong to.
   'EMPLOYER_TRADE_REGISTRY',
+  'CHAMBER_REGISTRATION_CERTIFICATE',
   'EMPLOYER_TAX_PLATE',
   'TAX_PAYMENT_STATEMENT',
   'COMPANY_ACTIVITY_CERTIFICATE',
@@ -140,10 +141,21 @@ export const germanyTourismComposition = composeVisaTemplate({
      * declared by the jurisdiction whose instrument states it, so this pack
      * gains it without the German layers asserting anything.
      *
+     * `1.13.0` splits the company registration in two: the trade register
+     * gazette keeps `EMPLOYER_TRADE_REGISTRY` and the chamber copy becomes
+     * `CHAMBER_REGISTRATION_CERTIFICATE`, which this pack composes because the
+     * jurisdiction declares it. Section 4(c) names both for company owners and
+     * freelancers, so this pack widens both rows to independent professionals.
+     * The `chamberAndAge` fragment moved with the document it describes, which
+     * is the one change here a German applicant may notice: the gazette's key
+     * loses `+de-tr-mission:1`, so a claim stamped against it is asked to be
+     * re-checked — the harmless direction, and the price of not leaving a
+     * six-month chamber bar attached to a gazette ([ADR-051c](#adr-051c)).
+     *
      * Greece's number counts its own history and the two are unrelated —
      * `templateVersion` is per pack, not repository-wide.
      */
-    templateVersion: '1.12.0',
+    templateVersion: '1.13.0',
     lastReviewedAt: '2026-09-07',
     /**
      * `verified`, and the word means exactly one thing here: **every** composed

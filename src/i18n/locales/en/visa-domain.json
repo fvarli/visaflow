@@ -230,9 +230,12 @@
       "description": "Company tax registration certificate"
     },
     "EMPLOYER_TRADE_REGISTRY": {
-      "name": "Company Registration",
-      "description": "Chamber of commerce registration and a copy of the trade register bulletin",
-      "notes": "Required if you own the company"
+      "name": "Trade Register Gazette",
+      "description": "A copy of the trade register bulletin showing the company's registration"
+    },
+    "CHAMBER_REGISTRATION_CERTIFICATE": {
+      "name": "Chamber of Commerce Registration",
+      "description": "A copy of the registration record from the chamber of commerce or industry"
     },
     "EMPLOYER_SIGNATURE_CIRCULAR": {
       "name": "Employer Signature Circular",
@@ -417,7 +420,7 @@
       "APPROVED_LEAVE": {
         "original": "The original letter, prepared by your employer in Türkiye — the mission asks for one letter carrying both this and the employment details"
       },
-      "EMPLOYER_TRADE_REGISTRY": {
+      "CHAMBER_REGISTRATION_CERTIFICATE": {
         "chamberAndAge": "A copy from the chamber of commerce or of industry, no older than six months"
       }
     },

@@ -438,7 +438,7 @@ describe('country packs — Greece composition and citations', () => {
   const greece = PACKS.find((p) => p.countryCode === 'GR')
   const tourism = greece?.visaTypes[0]
 
-  it('composes 27 requirements from three ownership layers', () => {
+  it('composes 28 requirements from three ownership layers', () => {
     // Pins the composition the coverage denominator depends on. It used to
     // assert that the first nineteen codes were the shared array, which held
     // only while the pack was two concatenated arrays — the Türkiye-owned
@@ -448,7 +448,7 @@ describe('country packs — Greece composition and citations', () => {
     // What it says instead is where the twenty-eight come from, which is the
     // fact the coverage arithmetic actually depends on.
     const codes = requirementsOf(tourism!).map((r) => r.code)
-    expect(codes.length).toBe(27)
+    expect(codes.length).toBe(28)
 
     const byLayer = new Map<string, number>()
     for (const [, layerId] of greeceTourismComposition.ownership) {
@@ -462,7 +462,7 @@ describe('country packs — Greece composition and citations', () => {
       // H4c2b2 added `FARMER_CERTIFICATE` on Annex III I.5(b) — a clause of the
       // same instrument, so it belongs to the same layer and reaches Germany
       // too.
-      'tr-filing': 14,
+      'tr-filing': 15,
       // Four legacy requirements with no resolvable source, quarantined to the
       // pack that carries them so a second destination cannot inherit them:
       // PREVIOUS_VISAS and PASSPORT_PREVIOUS (no Annex II basis; Article 21(2)
@@ -510,8 +510,8 @@ describe('country packs — Greece composition and citations', () => {
     // because every requirement added since carried a source and every one
     // removed carried none.
     expect(computeVerificationCoverage(greece!, tourism!)).toEqual({
-      total: 27,
-      verified: 23,
+      total: 28,
+      verified: 24,
       isComplete: false,
     })
     expect(tourism!.reviewStatus).toBe('partially_verified')
@@ -1055,22 +1055,33 @@ describe('country packs — requiredness matches the authority in both packs', (
    *
    * A shared requirement's `required` flag is a single answer for every pack
    * that composes it, so it may only be corrected when every composition wants
-   * the same answer. Annex III I.5(c) lists the chamber registration for
-   * company owners without qualification and the German mission's sheet does
-   * the same, so this one is safe. Where two compositions would want different
+   * the same answer. Annex III I.5(c) lists both company-registration
+   * documents for company owners without qualification and the German
+   * mission's sheet does the same, so this one is safe.
+   *
+   * It now walks both halves. The clause named two documents and one code
+   * carried them until the split; asserting only the gazette afterwards would
+   * have left the chamber's requiredness — the half this test was originally
+   * written about — checked by nothing. Where two compositions would want different
    * answers the correction is *not* made — that is capability pressure, not a
    * config fix, and encoding one country's semantics globally is the failure
    * this test exists to prevent.
    */
   it.each(PRODUCTION_COMPOSITIONS.map((p) => [p.countryCode, p] as const))(
-    '%s marks the chamber registration required, as its authority does',
+    '%s marks both company-registration rows required, as its authority does',
     (_code, pack) => {
-      const row = pack.composition.template.documentRequirements.find(
-        (r) => r.code === 'EMPLOYER_TRADE_REGISTRY'
-      )
-      expect({ found: Boolean(row), required: row?.required }).toEqual({
-        found: true,
-        required: true,
+      const rowsFor = (code: string) => {
+        const row = pack.composition.template.documentRequirements.find(
+          (r) => r.code === code
+        )
+        return { found: Boolean(row), required: row?.required }
+      }
+      expect({
+        gazette: rowsFor('EMPLOYER_TRADE_REGISTRY'),
+        chamber: rowsFor('CHAMBER_REGISTRATION_CERTIFICATE'),
+      }).toEqual({
+        gazette: { found: true, required: true },
+        chamber: { found: true, required: true },
       })
     }
   )

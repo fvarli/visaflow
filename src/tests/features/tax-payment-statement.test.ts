@@ -239,8 +239,8 @@ describe('tax payment statement — both packs move together', () => {
 
   it('and neither pack gained or lost a requirement', () => {
     // Narrowing a condition changes who is asked, never what the pack carries.
-    expect(compositionFor('GR').template.documentRequirements).toHaveLength(27)
-    expect(compositionFor('DE').template.documentRequirements).toHaveLength(26)
+    expect(compositionFor('GR').template.documentRequirements).toHaveLength(28)
+    expect(compositionFor('DE').template.documentRequirements).toHaveLength(27)
   })
 
   it('and both templateVersions moved, because both packs now ask differently', () => {
@@ -252,10 +252,11 @@ describe('tax payment statement — both packs move together', () => {
      * correction has to move both — and a row authored once is exactly the
      * case where forgetting the second one is easy.
      */
-    // Both have moved again since, for COMPANY_ACTIVITY_CERTIFICATE — which
-    // is the same property being asserted, one slice later.
-    expect(compositionFor('GR').template.templateVersion).toBe('1.14.0')
-    expect(compositionFor('DE').template.templateVersion).toBe('1.12.0')
+    // Both have moved again since — for COMPANY_ACTIVITY_CERTIFICATE, and
+    // again for the trade-registry split, which added a requirement to both
+    // packs. The same property being asserted, two slices later.
+    expect(compositionFor('GR').template.templateVersion).toBe('1.15.0')
+    expect(compositionFor('DE').template.templateVersion).toBe('1.13.0')
   })
 })
 

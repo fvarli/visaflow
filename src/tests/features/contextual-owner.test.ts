@@ -257,14 +257,19 @@ describe('contextual owner — exactly one production carrier', () => {
       .filter((req) => req.ownerByOccupation !== undefined)
       .map((req) => req.code)
 
-  it('Greece carries it on the two rows whose subject varies', () => {
+  it('Greece carries it on the three rows whose subject varies', () => {
+    // All three are company documents on the *Çalışan* branch, where the
+    // visa centre's block is the employer's paperwork rather than the
+    // applicant's. The gazette joined them when the split gave Greece a row
+    // it actually widens to employees.
     expect(carriersIn('GR').sort()).toEqual([
       'COMPANY_ACTIVITY_CERTIFICATE',
       'EMPLOYER_SIGNATURE_CIRCULAR',
+      'EMPLOYER_TRADE_REGISTRY',
     ])
   })
 
-  it('Germany carries one of them, where it is inert', () => {
+  it('Germany carries two of them, where they are inert', () => {
     /**
      * `COMPANY_ACTIVITY_CERTIFICATE` is a shared Türkiye row, so its
      * `ownerByOccupation` reaches both packs — but only Greece widens the row
@@ -272,9 +277,16 @@ describe('contextual owner — exactly one production carrier', () => {
      * ADR-052c decision 7 working: ownership may name an occupation another
      * composition reaches, and stays inert where nobody does.
      *
+     * `EMPLOYER_TRADE_REGISTRY` is the same story: Germany widens it to
+     * independent professionals, never to employees, so the `employee` entry
+     * is carried and never read there either.
+     *
      * The circular is Greece-owned and reaches Germany not at all.
      */
-    expect(carriersIn('DE')).toEqual(['COMPANY_ACTIVITY_CERTIFICATE'])
+    expect(carriersIn('DE').sort()).toEqual([
+      'COMPANY_ACTIVITY_CERTIFICATE',
+      'EMPLOYER_TRADE_REGISTRY',
+    ])
   })
 
   it('EMPLOYER_TAX_PLATE takes a static subject, not a map', () => {

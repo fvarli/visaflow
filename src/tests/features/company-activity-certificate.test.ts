@@ -220,7 +220,7 @@ describe('activity certificate — what this slice did not move', () => {
   })
 
   it('both packs kept every requirement they had', () => {
-    expect(compositionFor('GR').template.documentRequirements).toHaveLength(27)
-    expect(compositionFor('DE').template.documentRequirements).toHaveLength(26)
+    expect(compositionFor('GR').template.documentRequirements).toHaveLength(28)
+    expect(compositionFor('DE').template.documentRequirements).toHaveLength(27)
   })
 })

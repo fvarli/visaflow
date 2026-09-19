@@ -8,7 +8,10 @@ import {
 import { REQUIREMENT_REVISIONS } from '@/config/countries/requirement-revisions'
 import { dynamicT } from '@/lib/i18n-dynamic'
 import { ALL_REQUIREMENT_LAYERS } from '@/config/countries/layers'
-import { PRODUCTION_COMPOSITIONS } from '@/tests/support/production-compositions'
+import {
+  PRODUCTION_COMPOSITIONS,
+  compositionFor,
+} from '@/tests/support/production-compositions'
 import type { DocumentRequirement } from '@/config/types'
 
 /**
@@ -58,6 +61,7 @@ const SHIPPED_CODES = [
   'CIVIL_REGISTRY_EXTRACT',
   'EMPLOYER_TAX_PLATE',
   'EMPLOYER_TRADE_REGISTRY',
+  'CHAMBER_REGISTRATION_CERTIFICATE',
   'EMPLOYER_SIGNATURE_CIRCULAR',
   'PROPERTY_DEED',
   'STUDENT_CERTIFICATE',
@@ -245,11 +249,26 @@ function buildActiveRequirements(): Map<string, DocumentRequirement> {
          * claim made in one pack stays valid in the other and a dossier that
          * changes destination is told the row no longer applies rather than
          * that its evidence went stale (ADR-051a, ADR-052c decision 5).
+         *
+         * SCOPED TO ROWS WHOSE DETAIL MATCHES, which is the only place the
+         * question is answerable. Where two compositions also attach different
+         * acceptance detail the key is *supposed* to differ, and this check
+         * cannot tell which of the two moved it — so unscoped it would fail
+         * `CHAMBER_REGISTRATION_CERTIFICATE`, whose German composition carries
+         * a wider population *and* a six-month chamber bar that has nothing to
+         * do with it. The same over-breadth was corrected on the sibling
+         * invariant when the first widening shipped; this is the second half of
+         * it, found by the first row to have both at once.
+         *
+         * Narrowing a guard is how a guard stops saying anything, so the
+         * coincidence is not simply allowed: the census below names every row
+         * where both differ, and it is a list rather than a count so the next
+         * one is a reviewed line in a diff.
          */
         const sameWidening =
           JSON.stringify(seen.applicableOccupations ?? []) ===
           JSON.stringify(requirement.applicableOccupations ?? [])
-        if (!sameWidening && !sameKey) {
+        if (sameDetail && !sameWidening && !sameKey) {
           conflicts.push(requirement.code)
         }
       }
@@ -495,6 +514,68 @@ describe('the acceptance-contract ledger', () => {
  * So these walk the layer registry rather than the compositions. It is the one
  * question that has to be asked of the layers themselves.
  */
+describe('requirement identity — population and detail diverging together', () => {
+  /**
+   * The census the scoped widening guard above hands off to.
+   *
+   * Where two compositions differ in *both* population and acceptance detail,
+   * no mechanical check can say which of the two moved the contract key — so
+   * the rule is that such a row is named here and argued in writing, which is
+   * what ADR-052b's consequences already require of the fragment-versus-code
+   * judgement it resembles.
+   *
+   * `CHAMBER_REGISTRATION_CERTIFICATE` is the first and only one. Germany asks
+   * it of independent professionals as well as company owners (section 4(c))
+   * *and* publishes a six-month bar on the chamber copy; the two are unrelated,
+   * and the bar applies to company owners just the same. The key moves for the
+   * bar alone, which is the answer a Greek claim carried into Germany should
+   * get.
+   */
+  it('names every row whose population and detail both differ by composition', () => {
+    const byCode = new Map<string, DocumentRequirement[]>()
+    for (const { composition } of PRODUCTION_COMPOSITIONS) {
+      for (const r of composition.template.documentRequirements) {
+        byCode.set(r.code, [...(byCode.get(r.code) ?? []), r])
+      }
+    }
+
+    const population = (r: DocumentRequirement) =>
+      JSON.stringify(r.applicableOccupations ?? [])
+    const detail = (r: DocumentRequirement) =>
+      JSON.stringify(r.detailKeys ?? [])
+
+    const both = [...byCode.entries()]
+      .filter(([, rows]) => rows.length > 1)
+      .filter(([, [first, ...rest]]) =>
+        first === undefined
+          ? false
+          : rest.some(
+              (r) =>
+                population(r) !== population(first) &&
+                detail(r) !== detail(first)
+            )
+      )
+      .map(([code]) => code)
+
+    expect(both.sort()).toEqual(['CHAMBER_REGISTRATION_CERTIFICATE'])
+  })
+
+  it('and its key differs for the detail, in the pack that attaches it', () => {
+    // The specific claim the census is standing behind: the German key carries
+    // the mission fragment and the Greek one does not, so a Greek claim read
+    // under Germany is superseded — by the six-month bar, not by the widening.
+    const keyIn = (cc: string) =>
+      compositionFor(cc).template.documentRequirements.find(
+        (r) => r.code === 'CHAMBER_REGISTRATION_CERTIFICATE'
+      )?.contractKey
+
+    expect({ GR: keyIn('GR'), DE: keyIn('DE') }).toEqual({
+      GR: 'CHAMBER_REGISTRATION_CERTIFICATE@1',
+      DE: 'CHAMBER_REGISTRATION_CERTIFICATE@1+de-tr-mission:1',
+    })
+  })
+})
+
 describe('requirement identity — one code, one owning layer, registry-wide', () => {
   const declarations = ALL_REQUIREMENT_LAYERS.flatMap((layer) =>
     (layer.add ?? []).map((r) => ({ code: r.code, layerId: layer.id }))
