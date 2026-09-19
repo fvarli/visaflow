@@ -3435,3 +3435,136 @@ neither ever asserted the per-source reading this narrows, which is part of why 
 unnoticed.
 
 **Implementation:** documentation only — `docs/decisions.md`. Nothing here is built.
+
+---
+
+## ADR-051c: A Completion Claim Does Not Survive an Evidence-Identity Split
+
+**Status:** Accepted · 2026-09-14 · extends [ADR-051b](#adr-051b), applies [ADR-049](#adr-049),
+[ADR-052b](#adr-052b) and [ADR-053a](#adr-053a)
+
+`EMPLOYER_TRADE_REGISTRY` has asked for two documents since revision 2 — the trade register gazette
+and the chamber-of-commerce registration, conjunctively. Under the occupational axis their
+populations come apart: the Greek visa centre asks the gazette of employees and independent
+professionals and names no chamber document anywhere in its checklist, while Annex III I.5(e)(iv)
+asks the chamber of truck drivers *without* the gazette. One code cannot carry both
+([ADR-052b](#adr-052b) decision 7). The gazette keeps the identity — dropping the chamber half
+returns the code to the document revision 1 was minted for, which [ADR-049](#adr-049) decision 1
+permits as *narrowing that keeps the same real-world document* — and the chamber takes a new code.
+
+That settles what is **asked**. It does not settle what is already **claimed**, and this is the first
+split in this repository. Every prior identity change was a *replacement*: the old code was retired,
+its record kept every byte and stopped counting, and the new code correctly read as not started
+because nobody had ever claimed it. A split is different, because one child inherits the identity and
+the other does not.
+
+**The objection, stated at full strength.** A stored claim of `satisfiedContract:
+'EMPLOYER_TRADE_REGISTRY@2'` was made against a contract that demanded both documents. So
+
+> satisfied(gazette ∧ chamber) ⇒ satisfied(gazette) **and** satisfied(chamber)
+
+and seeding both children from it looks like sound reasoning rather than guesswork. It is **not**
+covered by [ADR-051b](#adr-051b)'s *"historical contract keys are never inferred"*, which is scoped to
+a claim whose contract *"is not recoverable"*. This one is recoverable exactly: revision 2 is the
+revision that added the chamber, and the ledger says so. The objection is good, and it is refused
+anyway.
+
+**Decision:**
+
+1. **The retained identity keeps its records; the new identity starts empty.** No completion claim is
+   projected across a `code` boundary, in any direction, by any mechanism. No carry-forward, no
+   seeding, no successor pointer read at runtime.
+2. **The refusal is decided on the date field, not on epistemics.** A persisted document is one
+   record per code with a single `status`, a single `fileReference` and a single
+   `issuedAt`/`validUntil`. There is no conjunct granularity: nothing in the record says which of two
+   documents a date describes. The German chamber contract carries a **six-month recency bar**, and
+   `validUntil` feeds the validation rules. Projecting the old record would hand a recency-gated
+   requirement a date entered against a conjunctive row, and could tell an applicant that a chamber
+   copy older than six months is ready. That is the direction of being wrong this project does not
+   accept.
+3. **The implication is valid and still insufficient.** `satisfied(A ∧ B) ⇒ satisfied(B)` is sound
+   about *evidence*. A completion claim here is not evidence; it is an assertion against a **contract
+   identity**, and the record has no field in which the chamber's own date, file or status could ever
+   have been written. The implication establishes that the applicant once held a document. It cannot
+   produce the record that document would need.
+4. **There is no honest stamp available.** A projected record must carry some `satisfiedContract`, and
+   every candidate is a statement the applicant never made.
+
+   | stamp written | what it would assert | |
+   |---|---|---|
+   | the new code's key | they satisfied a contract that did not exist when they claimed | false |
+   | none | `unrecorded` — *a claim from before provenance existed* | false |
+   | the old code's key | unequal to the new row's key, so `superseded` regardless | a no-op |
+
+   A mechanism whose every outcome is a fabrication or a no-op is not a mechanism.
+5. **Germany gets no exception, and it has the best case for one.**
+   `EMPLOYER_TRADE_REGISTRY@2+de-tr-mission:1` is the *only* stored shape that proves the applicant
+   was rendered the chamber criterion itself, not merely the conjunctive base. It is refused on the
+   same grounds, which is what makes this a rule rather than a convenience. The asymmetry is recorded
+   rather than smoothed over: that record is simultaneously the best-evidenced for the chamber and the
+   one demoted on the gazette row.
+6. **Entitlement crosses the split; a claim does not.** The new code inherits no completion, and yet
+   it *is* entitled to [ADR-053a](#adr-053a)'s migration fallback with the prior coarse condition
+   `employmentStatus = self_employed`, because the chamber obligation was genuinely shipped to that
+   population — inside the conjunctive row. The line is this: **what VisaFlow published is ours to
+   carry forward; what the applicant asserted is theirs alone.** The first is a fact about our own
+   history, verifiable in the ledger and in git, and preserving it only keeps asking what was already
+   asked. The second is somebody's speech, and repeating it on their behalf under a contract they
+   never saw is not preservation. [ADR-053a](#adr-053a)'s `FARMER_CERTIFICATE` remains the negative
+   example and is untouched: an obligation that never shipped in any form has no entitlement and no
+   route to one.
+7. **What is owed to the applicant is notice, never a claim made for them.** Both mechanisms already
+   exist and neither is new work: template sync surfaces the new row as a missing applicable
+   requirement for the applicant to add, and re-asserting `ready` is the one gesture
+   [ADR-051](#adr-051)'s claim model was built to preserve. A demoted gazette claim and an empty
+   chamber row are each one click, made by the person entitled to make it.
+8. **A split must stay legible afterwards.** Retirement has `RETIRED_REQUIREMENTS`; a split has
+   nothing, and without a record the new row's emptiness is indistinguishable from data loss to
+   whoever reads this next. The split is recorded in the prose of the existing acceptance-contract
+   ledger — not a new registry, and explicitly **not** a runtime link, for the reason `retired.ts`
+   gives about `replacedBy`.
+
+**[ADR-052c](#adr-052c) decision 5 is not contradicted.** That decision refused to let a *population
+widening* push `EMPLOYER_TRADE_REGISTRY@2+de-tr-mission:1` to `:2`, naming this row specifically, on
+the ground that a widening changes who is asked and not what satisfies the ask — so the key must not
+move. The split moves that key too, to `@2`, and demotes the same German claims. The two are the same
+rule: ADR-052c forbade a key movement with **no contract change behind it**. Here the criterion
+genuinely leaves the row, following the document it describes. [ADR-051b](#adr-051b) already settled
+what to do about a loosening that moves a key — *"the harmless direction of being wrong"* — and this
+is one.
+
+**The standings, in full.** `EMPLOYER_TRADE_REGISTRY` retains revision 2: dropping a conjunct cannot
+make a previously sufficient evidence set fail, so [ADR-051a](#adr-051a)'s directional test — which
+applies here precisely because the retained row's identity is *unchanged* — calls it a loosening, and
+loosening is on its not-a-bump list. The new code starts at revision 1, as every new identity does.
+
+| composition | stored claim | before | after |
+|---|---|---|---|
+| Greece | key `@2` | `current` | `current` — Greece's key does not move |
+| Greece | numeric 2, no key | `current` | `current` |
+| Greece | no stamp | `unrecorded`, counts ready | `unrecorded`, counts ready |
+| Germany | key `@2+de-tr-mission:1` | `current` | **`superseded`** — the loosening |
+| Germany | numeric 2, no key | `superseded` | **`current`** — the detail it never saw is gone |
+| Germany | no stamp | `superseded` | **`unrecorded`**, counts ready |
+| either | any shape, new chamber code | — | no record exists; the row is not started |
+
+The two German promotions are correct and are not a side effect to be apologised for: those claims
+were demoted only because the row carried composition detail that provably postdated them, and that
+detail has left the row.
+
+**What this does not license.** It does not license retiring a code to escape this rule, which would
+trade a demotion for a total loss of the record. It does not license a satisfaction group across the
+two children — a group means *one of them suffices*, and these are conjunctive for company owners. It
+does not license the first payload-touching storage migration: the ladder rewrites the record
+envelope and does not reach inside it. It does not license reading `replacedBy`, or any successor
+pointer, at runtime. And it decides nothing about evidence: which authority asks which document of
+whom was settled separately and on its own sources.
+
+**Consequences.** No `schemaVersion`, `STORAGE_FORMAT_VERSION` or storage-migration movement, and no
+new mechanism of any kind — the decision is that the mechanism does not exist and must not be built.
+A prepared applicant in the new code's population sees their readiness fall by one row through no act
+of their own, and is asked to re-confirm a document they already hold. That cost is accepted openly:
+the alternative is a green row over a date that may belong to another document.
+
+**Implementation:** documentation only — `docs/decisions.md`. Nothing here is built. The split it
+governs is a later slice and is not authorised by this record.
