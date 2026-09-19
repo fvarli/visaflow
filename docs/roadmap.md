@@ -136,7 +136,7 @@ treated `verified` and `partially_verified` alike, so a pack could claim `verifi
 requirement unsourced. `reviewStatus` is now checked against coverage computed from each
 requirement's own sources ([ADR-047]).
 
-**Greece is `partially_verified`: 19 of 28 requirements.** The primary evidence turned out to be the
+**Greece became `partially_verified` at 19 of 28 requirements (2026-08, ADR-047).** The primary evidence turned out to be the
 harmonised list adopted under local Schengen cooperation **for Türkiye**, published by the Ankara
 mission, layered with the Visa Code where the EU rule is the stronger authority. It corrected four
 requirements that were describing the wrong document, replaced an invented "3-6 months" window with
@@ -163,8 +163,10 @@ process problem, best tackled once the workspace is worth filling with more coun
   short-stay tourism, filed from Türkiye — 22 of 26 requirements carrying their own dated evidence,
   inheriting the common Visa Code requirements and the Türkiye filing evidence while keeping its own
   mission evidence separate. Greece was unchanged at 19 of 28 and its resolved output did not move.
-  Both figures moved afterwards, as the fidelity work retired asks no authority made and added ones
-  it does: Germany is now **23 of 23** and Greece **20 of 25**.
+  Both figures moved several times afterwards, as the fidelity and occupational work retired asks no
+  authority made and added ones it does. As of **2026-09-19** they are **Greece 24 of 28** and
+  **Germany 27 of 27** — current figures are maintained in the latest entry of
+  [session-handoff.md](./session-handoff.md), not in this phase narrative.
   Building it corrected the shared layer twice: `ID_CARD_COPY` and `PASSPORT_PREVIOUS` had no
   Common-level authority in the evidence checked, and a second destination is what demonstrated it
   ([ADR-052a]). *In progress.*

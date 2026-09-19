@@ -102,16 +102,30 @@ what is true of Schengen short-stay applications generally, what is true because
 and what is true because of where the application is lodged. A requirement `code` is globally unique
 and owned by exactly one layer.
 
-A later layer has exactly two powers over an earlier one's requirement: **append a citation**, and
-**append versioned acceptance detail** — criteria this destination or jurisdiction publishes that the
-shared contract cannot state, such as the e-Devlet barcode Germany requires on the civil-registry
-extract ([ADR-052b]). It cannot change identity, requiredness, applicability, owner or the base
-contract's own prose, and it can neither suppress nor replace. The composed requirement therefore
-carries an **effective** contract that may differ by composition, named by a composer-derived
-`contractKey`; the owner's `revision` still means the same thing everywhere, which is why a stored
-`satisfiedRevision` is no longer sufficient on its own to identify what a completion claim was made
-against ([ADR-051b]). A composition may also declare **satisfaction groups** — "any one of these
-documents settles this obligation" — which readiness counts once rather than per member.
+A later layer has exactly three powers over an earlier one's requirement, all additive: **append a
+citation**; **append versioned acceptance detail** — criteria this destination or jurisdiction
+publishes that the shared contract cannot state, such as the e-Devlet barcode Germany requires on the
+civil-registry extract ([ADR-052b]); and **append occupations** it asks the requirement of, which
+Article 14(3) permits and which is widen-only ([ADR-052c]). It cannot change identity, requiredness,
+owner or the base contract's own prose, it cannot narrow a population, and it can neither suppress nor
+replace. The composed requirement therefore carries an **effective** contract that may differ by
+composition, named by a composer-derived `contractKey`; the owner's `revision` still means the same
+thing everywhere, which is why a stored `satisfiedRevision` is no longer sufficient on its own to
+identify what a completion claim was made against ([ADR-051b]). **Acceptance detail moves the key; a
+widening does not** — it changes who is asked, not what satisfies the ask. A composition may also
+declare **satisfaction groups** — "any one of these documents settles this obligation" — which
+readiness counts once rather than per member.
+
+Applicability runs on **two axes**: the coarse `employmentStatus`, and an `occupation` resolved from
+an opaque persisted code — usable only when this build knows it *and* the recorded status allows it,
+absent otherwise ([ADR-053]). Moving an already-shipped requirement from the first axis to the second
+is a withdrawal unless it carries an `applicabilityMigration` and a matching ledger entry, which keep
+the prior coarse contract in force until the applicant classifies themselves ([ADR-053a]). Whose
+situation a document describes may itself vary by occupation, and is never evidence of a financing
+source ([ADR-049a]). A `code` is an evidence identity: if one turns out to hold two obligations it
+splits, the retained child keeps its records, the new one starts empty, and no completion claim is
+projected across the boundary ([ADR-051c]). The authoring rules for all of this live in
+[country-pack-guide.md](./country-pack-guide.md).
 
 Composition runs once at module load, so `resolveVisaTemplate` returns the same object on every call
 — which the feature models' `useMemo` dependencies and the `DossierProvider` reducer rely on — and a
@@ -318,6 +332,11 @@ The repository is the **only** thing that touches a storage API; no component re
 [ADR-043]: ./decisions.md
 [ADR-044]: ./decisions.md
 [ADR-045]: ./decisions.md
+[ADR-049a]: ./decisions.md#adr-049a
 [ADR-051b]: ./decisions.md#adr-051b
+[ADR-051c]: ./decisions.md#adr-051c
 [ADR-052]: ./decisions.md#adr-052
 [ADR-052b]: ./decisions.md#adr-052b
+[ADR-052c]: ./decisions.md#adr-052c
+[ADR-053]: ./decisions.md#adr-053
+[ADR-053a]: ./decisions.md#adr-053a

@@ -2092,6 +2092,12 @@ statement", now names the pensioner booklet.
 > requirement still carries the contract its owner published, and not where a composition has
 > appended acceptance detail. Decision 5's `schemaVersion` is `1.3.0`. The text is kept as written.
 
+> **Extended by [ADR-051c](#adr-051c) (2026-09-14).** Every decision below is about a claim against
+> **one** requirement identity, over time. It says nothing about what happens when an identity
+> *splits* — which ADR-051c settles: the retained child keeps its records, the new child starts
+> empty, and no claim is projected across a `code` boundary. `schemaVersion` is now `1.4.0`, for
+> `application.employment.occupationCode`, unrelated to this record. The text is kept as written.
+
 **Decision:**
 
 1. **`DocumentRequirement.revision: number`** — the *acceptance contract* version. Config only, never
@@ -2223,6 +2229,12 @@ is a named gap, not an oversight.
 > what forced fragments to be versioned at all. What it did not anticipate is a requirement whose
 > rendered criteria differ by composition, where a single integer can no longer say *which* contract
 > a claim was made against. The text is kept as written.
+
+> **Applied by [ADR-051c](#adr-051c) (2026-09-14).** The directional test is stated *"with the
+> requirement identity unchanged"*, and that clause turned out to be load-bearing. A requirement that
+> loses a conjunct to a split keeps its identity, so the test applies and calls the loss a
+> **loosening** — no bump. A requirement whose identity is the one being created has no prior contract
+> for the test to compare against. The text is kept as written.
 
 A post-implementation audit of ADR-051 found four defects, one behavioural. Two of them exist because
 ADR-051 stated a policy and then did not follow it.
@@ -2840,6 +2852,13 @@ and `975a152`.
 
 **Status:** Accepted · 2026-09-08 · amends [ADR-051](#adr-051), extends [ADR-051a](#adr-051a)
 
+> **Extended by [ADR-051c](#adr-051c) (2026-09-14).** *"Historical contract keys are never inferred"*
+> below is scoped to a claim whose contract **"is not recoverable"**, and a stamped key is recoverable
+> exactly — so it does not by itself decide what happens when one identity splits into two. ADR-051c
+> decides that separately and refuses the projection on other grounds. The legacy table, the equality
+> rule and the loosening consequence are unchanged and are what ADR-051c reasons from. The text is
+> kept as written.
+
 ADR-051 gave a completion claim a date against the requirement it claimed, as one integer. That works
 while the criteria for a code form a chain — one contract tightening over time. Composition-scoped
 acceptance detail ([ADR-052b](#adr-052b)) turns them into a tree, one branch per composition, and an
@@ -3342,6 +3361,15 @@ the same harm as inventing one.
    on its own evidence: `TAX_PAYMENT_STATEMENT` is named by nothing beyond Annex III and needs no
    widening at all, and a row a mission owns outright never needed this mechanism.
 
+   > **The census above is the one taken on 2026-09-13, and both of its rows shipped exactly as
+   > written.** It is not the current inventory: a third widening arrived on 2026-09-19 in `3f9f13b`,
+   > when `EMPLOYER_TRADE_REGISTRY` split and the chamber half became its own code
+   > ([ADR-051c](#adr-051c)). `CHAMBER_REGISTRATION_CERTIFICATE` is asked of `company_owner` by both
+   > packs, widened by Germany to `independent_professional` on the same section 4(c) evidence, and
+   > widened by Greece to nobody. Decision 8's point is unchanged and is the reason this note exists
+   > rather than a rewritten table: the deltas are evidence-specific, so each is written out when it
+   > is taken.
+
 **Rejected alternatives.**
 
 - **A generic additive `ConditionalRequirement`.** Expresses every demonstrated case and the one
@@ -3568,3 +3596,34 @@ the alternative is a green row over a date that may belong to another document.
 
 **Implementation:** documentation only — `docs/decisions.md`. Nothing here is built. The split it
 governs is a later slice and is not authorised by this record.
+
+> **Implemented 2026-09-19 in `3f9f13b`.** The slice this record withheld authorisation for has
+> shipped, and what it settled is recorded here so the decision and its outcome are not in separate
+> places. Nothing above was rewritten.
+>
+> `EMPLOYER_TRADE_REGISTRY` is now the **trade register gazette** alone, retained at `revision: 2`,
+> with its `notesKey` removed; `CHAMBER_REGISTRATION_CERTIFICATE` is the new **chamber of commerce
+> registration** at `revision: 1`. Both are owned by `tr-filing` and cite
+> `eu-c2021-5156-turkey-annex3`; both condition on `occupationIs('company_owner')` and carry an
+> `applicabilityMigration` with the prior coarse condition `employmentStatus = self_employed`, so an
+> unclassified self-employed dossier keeps both and an unclassified employed one gains neither.
+>
+> | | gazette | chamber |
+> |---|---|---|
+> | Greece | `+ employee`, `+ independent_professional`; cites the harmonised list and the visa-centre checklist | no widening; Annex III alone |
+> | Germany | `+ independent_professional`; cites the tourism checklist | `+ independent_professional`; cites the tourism checklist; carries the `chamberAndAge` fragment at revision 1 |
+>
+> The `de-tr-mission` acceptance fragment — the six-month chamber copy — **moved with the document it
+> describes**, so Germany's gazette key returns from `EMPLOYER_TRADE_REGISTRY@2+de-tr-mission:1` to
+> `EMPLOYER_TRADE_REGISTRY@2` and German claims stamped against the old key are superseded, while
+> German claims carrying a bare number or no stamp become current again. Greece's key never moved.
+> The chamber composes as `CHAMBER_REGISTRATION_CERTIFICATE@1` in Greece and
+> `@1+de-tr-mission:1` in Germany — the first production row whose population *and* acceptance detail
+> both differ by composition, which is why `requirement-identity.test.ts` now scopes the
+> widening-versus-key guard to rows whose detail matches and names that row in a census.
+>
+> `ownerByOccupation: { employee: 'employer' }` sits on the gazette for the Greek *Çalışan* branch and
+> is inert in Germany. Greece `templateVersion` `1.14.0` → `1.15.0` (28 requirements, 24 verified);
+> Germany `1.12.0` → `1.13.0` (27 / 27). No `schemaVersion`, `STORAGE_FORMAT_VERSION` or
+> storage-migration movement, and no carry-forward mechanism was built — decision 1 is that it must
+> not be. `src/tests/features/trade-registry-split.test.ts` is the executable statement of all of it.

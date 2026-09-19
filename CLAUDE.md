@@ -118,17 +118,34 @@ src/
   Destination → Filing jurisdiction (ADR-052). A requirement `code` is globally
   unique and owned by exactly one layer. A later layer may **append citations**
   and **append versioned acceptance detail** (`addDetail`) to an earlier one's
-  requirement — never change its identity, requiredness, applicability, owner or
-  base prose, and never suppress or replace (ADR-052b). The owner's `revision`
+  requirement, and **append occupations** (`addApplicableOccupations`, widen-only
+  — ADR-052c) — never change its identity, requiredness, owner or base prose,
+  never narrow, never suppress or replace (ADR-052b). The owner's `revision`
   stays global; the composed `contractKey` names the effective contract, which
   may differ per composition, and a completion claim is stamped against it
-  (ADR-051b). A composition may also declare **satisfaction groups** — "any one
-  of these" — which readiness counts once. Register every layer in
-  `src/config/countries/layers.ts` — the identity invariants walk it
+  (ADR-051b). **Acceptance detail moves the key; a widening does not** — it
+  changes who is asked, not what satisfies the ask. A composition may also
+  declare **satisfaction groups** — "any one of these" — which readiness counts
+  once. Register every layer in `src/config/countries/layers.ts` — the identity
+  invariants walk it
 - Located in `src/config/countries/<country>/`; resolve with
   `resolveVisaTemplate(countryCode, visaType)`, which returns a composition
   built once at module load (so the reference is stable across renders)
-- Support conditional requirements (e.g., "required if employed")
+- Applicability has **two axes**: coarse `employmentStatus`, and `occupation`
+  (ADR-053). The persisted `occupationCode` is an opaque string; only an
+  *effective* code — known to this build and legal for the status — reaches a
+  condition, so author with `occupationIs()` / `occupationOneOf()`. Moving an
+  existing row onto the occupational axis needs `applicabilityMigration` **and**
+  a ledger entry in `applicability-migrations.ts` (ADR-053a), or it silently
+  withdraws a document from everyone who never answered. `ownerByOccupation`
+  says whose paper it is where that varies, and is never evidence of a financing
+  source (ADR-049a). **The occupational axis, migration, widening and the
+  split rules are documented in `docs/country-pack-guide.md` — read it before
+  authoring or changing a requirement's applicability.**
+- A requirement `code` is an evidence identity. If a shipped code turns out to
+  hold two obligations it **splits**: one child keeps the identity and its
+  records, the new one starts empty, and no completion claim is ever projected
+  across a code boundary (ADR-051c)
 - Source metadata is honest: no scraping, no invented dates; unverified stays
   `unverified` (ADR-015). Greece was the first implemented pack and Germany the second;
   add more via `docs/country-pack-guide.md`. Every pack must join the production

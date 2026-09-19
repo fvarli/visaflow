@@ -259,9 +259,9 @@ is about meaning, not parsing.
 |-------|------|----------|-------------|
 | id | string | Yes | Unique identifier |
 | code | string | Yes | Document type code |
-| name | string | Yes | Display name |
+| name | string | No | **Deprecated.** A stored display name would make an export depend on the UI language, so template-derived documents no longer write one. Accepted on import and used only as a display fallback for a code with no translation |
 | category | string | Yes | Document category |
-| ownerType | string | Yes | applicant/sponsor |
+| ownerType | string | Yes | `applicant` / `sponsor` / `employer` — whose situation the evidence describes, never a financing source (ADR-049a). A pack may vary it by occupation, so the same code can export `employer` in one dossier and `applicant` in another |
 | ownerId | string | Yes | Reference to owner |
 | required | boolean | Yes | Is document required |
 | status | string | Yes | Document status |

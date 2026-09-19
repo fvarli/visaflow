@@ -243,12 +243,105 @@ composed — so a mis-edited order fails at import rather than silently reorderi
 Composition happens once at module load, so a malformed pack fails at import rather than on whichever
 screen resolves first, and `resolveVisaTemplate` keeps returning the same object every call.
 
+### Occupation — the second applicability axis
+
+`employmentStatus` answers *which employer details apply*. It does not answer the question consular
+checklists actually branch on. The Greek visa centre asks a *Kamu Çalışanı* for an institution letter
+and none of the company-document block; Annex III names Farmers and Company owners as categories in
+their own right. That is a second axis, not a finer slicing of the first ([ADR-053]).
+
+**The persisted value is an opaque string; the value your condition sees is not.**
+`application.employment.occupationCode` is an open `string` on purpose — a pack may name a category
+this build has never heard of, and vocabulary growth must not need a schema migration. Between the
+two sits a resolver:
+
+| | |
+|---|---|
+| **raw** | `occupationCode`, any string, round-trips untouched |
+| **known** | it is in `KNOWN_OCCUPATION_CODES` (`employee`, `public_servant`, `company_owner`, `independent_professional`, `farmer`) |
+| **effective** | known **and** legal for the recorded `employmentStatus` (`OCCUPATIONS_BY_STATUS`) |
+
+Only the **effective** value reaches `ApplicabilityContext.employment.occupation`. An absent code, a
+code from a newer build, and a stale code the status forbids all arrive as `undefined` — one state,
+three causes, no special-casing downstream. Nothing is ever inferred from free-text occupation, and
+no sentinel is persisted.
+
+**Author the condition with the helper, never by hand.** `occupationIs('company_owner')` and
+`occupationOneOf([...])` take `KnownOccupationCode`, so a typo is a compile error where it is written,
+and they pin the field to the resolved value rather than the raw one. Writing the literal yourself
+reaches a code no build validated; an invariant catches it.
+
+<a id="migrating-a-row-onto-the-occupational-axis"></a>
+**Moving an existing row onto this axis is a withdrawal unless you say otherwise.** Most dossiers have
+never answered the occupational question, so narrowing `employmentStatus === 'self_employed'` to
+`occupationIs('company_owner')` silently drops a required document from people who changed nothing.
+`applicabilityMigration.priorCondition` prevents that: while the applicant is **unclassified** the row
+evaluates its recorded prior coarse condition, and once **classified** it evaluates the corrected one
+and the prior branch is never consulted again — which is what lets a migration subtract as well as add
+([ADR-053a]).
+
+```typescript
+conditionalOn: occupationIs('company_owner'),
+applicabilityMigration: {
+  priorCondition: {
+    field: 'employment.employmentStatus',
+    operator: 'equals',
+    value: 'self_employed',
+  },
+},
+```
+
+Entitlement is **historical, and the ledger is the gate**. A condition that quotes a prior contract
+proves nothing, so every migrated row also needs an entry in
+`src/config/countries/applicability-migrations.ts` recording the exact prior condition, why the row is
+entitled to it, and what would retire it — never a date. An invariant cross-checks config and ledger
+in both directions. A row authored against the occupational axis from birth has no prior contract and
+must never acquire a fallback; `FARMER_CERTIFICATE` is the standing negative example.
+
+<a id="widening-who-is-asked-addapplicableoccupations"></a>
+**Widening who is asked — `addApplicableOccupations`.** Article 14(3) leaves the harmonised list
+non-exhaustive, so a mission may ask a jurisdiction-owned requirement of more people than the
+instrument names. The refinement appends occupations; it is **delta-only** (never restate the base
+population), **widen-only**, and occupational only ([ADR-052c]).
+
+```typescript
+{
+  code: 'EMPLOYER_TRADE_REGISTRY',
+  addApplicableOccupations: ['employee', 'independent_professional'],
+  addSourceRefs: ['gr-tr-harmonised-list', 'gr-tr-visa-centre-checklist'],
+}
+```
+
+Two rules follow from this and they are the ones most easily got wrong:
+
+- **A widening does not move `contractKey`.** It changes *who is asked*, not *what satisfies the ask*,
+  so it reaches no revision and no key, a claim made in one pack stays valid in the other, and a
+  dossier that changes destination is told the row no longer applies rather than that its evidence
+  went stale. **Acceptance detail is the opposite**: `addDetail` does move the key, because it changes
+  what satisfies the ask. Never smuggle a widening through `addDetail` to save a refinement.
+- **A widening never reaches the migration fallback.** While the applicant is unclassified only the
+  recorded prior coarse condition runs. A population the widening adds is a *new* obligation for those
+  people and fails closed until they answer.
+
+**Whose paper it is can vary with occupation — `ownerByOccupation`.** `ownerType` is the declared
+default and the answer for everyone unless the map names their occupation; the map states
+**exceptions only** ([ADR-049a]). On the Greek visa centre's *Çalışan* branch the company-document
+block is the employer's, so the shared row declares `{ employee: 'employer' }` — carried by both packs
+and consulted only by the one that widens to an employee. `ownerType` is never evidence of a financing
+source: applicability does not derive ownership, ownership does not derive applicability, and neither
+derives financing placement.
+
 ### Refinement — citations, and composition-scoped acceptance detail
 
-A refinement is **additive, always**. It may append citations, and it may append acceptance criteria
-your mission publishes that the shared requirement does not state. It may not change identity,
-requiredness, applicability, owner or the base contract's own prose, and it may never suppress or
-replace. The composer refuses anything else, including a field hidden inside the detail fragment.
+A refinement is **additive, always**. It may append citations, it may append acceptance criteria your
+mission publishes that the shared requirement does not state, and — since [ADR-052c] — it may append
+*occupations* the owner's source does not name. It may not change identity, requiredness, owner or
+the base contract's own prose; it may never narrow a population, suppress or replace. The composer
+refuses anything else, including a field hidden inside the detail fragment.
+
+> Applicability used to be on the forbidden list outright. It is now **widen-only**: see
+> [Widening who is asked](#widening-who-is-asked-addapplicableoccupations) in the section above.
+> Nothing else about the prohibition moved.
 
 ```typescript
 {
@@ -293,6 +386,16 @@ The test is identity, not strictness: *are these distinct evidence obligations, 
 obligation with composition-specific criteria?* Do not put two distinct obligations under one code
 because they feel similar, and do not mint a second code because two missions judge the same document
 differently ([ADR-052b]).
+
+**If a shipped code turns out to hold two obligations, it splits — and the split has a cost you must
+plan for.** One child keeps the identity (and therefore every record standing against it) and the
+other is new and **starts empty**. No completion claim is ever projected across a `code` boundary, in
+either direction, because a claim is an assertion against a contract identity rather than evidence at
+conjunct granularity — one status, one file reference and one date for what were two documents. The
+applicant is told, never claimed for. Losing a conjunct from the retained child is a *loosening*, so it
+takes no revision bump; any acceptance fragment that described only the departed document moves with
+it, which does move that child's key. `EMPLOYER_TRADE_REGISTRY` → gazette +
+`CHAMBER_REGISTRATION_CERTIFICATE` is the worked example ([ADR-051c]).
 
 ### Satisfaction groups — "any one of these"
 
@@ -403,6 +506,32 @@ register it in `runner.ts`, and add tests. Findings carry stable `id` / `ruleId`
 plus `messageParams`; add the message under `src/i18n/locales/{tr,en}/validation.json`. See
 [validation-engine.md](./validation-engine.md).
 
+## Observed evidence not yet modelled
+
+Retrieved evidence that no pack renders yet. It is recorded here rather than in a requirement, because
+a pack must not assert an obligation before the shape it needs exists — and because an observation
+that lives only in a session narrative is lost when the session ends.
+
+**`Mükellefiyet Belgesi` — Edirne only, conditioned on a mismatch the model cannot express.**
+
+Observed in the Greek visa centre's captured checklists during the H4c2d2 evidence passes:
+
+- The delta is **Edirne-specific**. It was not observed at the other sampled consular jurisdictions,
+  and nothing here generalises it to them.
+- On the **`employee`** and **`company_owner`** branches, Edirne adds *Mükellefiyet Belgesi* **when the
+  activity code on the tax plate and the NACE code on the activity certificate differ**.
+- The **`independent_professional`** branch does not add it.
+
+Why it is not modelled: the condition is a **comparison between two documents' contents**, and
+`ConditionalRequirement` has no comparison operator and no access to document content — it evaluates
+dossier fields only. Expressing this would need a new capability, argued on its own evidence, not a
+requirement bolted onto the current vocabulary.
+
+It was **explicitly excluded from the company-registration split** (H4c2d2x) so that an evidence
+question and an identity question would not be settled in one commit. Anyone picking it up should
+re-retrieve the Edirne checklist first: the capture behind this note is not in the repository, and a
+retrieval failure can never establish absence.
+
 ## Toward a country-pack ecosystem
 
 Today packs ship in-repo. The roadmap's **Country Ecosystem** phase (see [roadmap.md](./roadmap.md))
@@ -413,5 +542,10 @@ why identifiers are stable, requirements are keys-not-prose, and source honesty 
 [ADR-012]: ./decisions.md
 [ADR-014]: ./decisions.md
 [ADR-015]: ./decisions.md
+[ADR-049a]: ./decisions.md#adr-049a
 [ADR-051b]: ./decisions.md#adr-051b
+[ADR-051c]: ./decisions.md#adr-051c
 [ADR-052b]: ./decisions.md#adr-052b
+[ADR-052c]: ./decisions.md#adr-052c
+[ADR-053]: ./decisions.md#adr-053
+[ADR-053a]: ./decisions.md#adr-053a

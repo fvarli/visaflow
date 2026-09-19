@@ -2443,6 +2443,12 @@ categories.
 
 #### Unresolved capabilities — not forgotten work
 
+> **This list is as it stood on 2026-09-07 and is kept as written.** Four of its bullets were overtaken
+> by the E/F and H4c2 work — refinement is no longer citation-only, applicability sees more than
+> `{employment, financing}`, farmers and non-Turkish nationals are expressible, and Germany `PHOTOS`
+> renders its own criteria. **For the constraints that actually hold today, read the standing-constraints
+> section of the latest iteration entry**, which is maintained; this one is not.
+
 - No dossier-level `filingJurisdiction` selector. The Türkiye filing context is **config-declared** in
   both packs, an explicit transitional seam.
 - **Never** derive filing jurisdiction from `countryOfResidence`. Residence is not where an
@@ -2457,3 +2463,101 @@ categories.
 - Evidence gaps and quarantined legacy requirements are **evidence work**, not automatically
   architecture defects. mfa.gr returns HTTP 403 to this environment; E1 opens with a time-boxed
   real-browser retrieval attempt before anything is called unverifiable.
+
+---
+
+# Iteration 32 — The occupational axis lands, and the company registration splits in two
+
+Covers H4c2d2t → H4c2d2x. Baseline `978c816`, shipped at `3f9f13b`, CI green on that exact SHA,
+2074/2074 across 114 files. This entry is the **current-state record**: `current-status.md` is a dated
+snapshot and says so, and the phase narrative in `roadmap.md` deliberately does not carry figures.
+
+### Where the numbers are
+
+| axis | value |
+|---|---|
+| app | `1.1.0` |
+| dossier `schemaVersion` | `1.4.0` (reads 1.0.0–1.4.0; writes 1.4.0) |
+| `STORAGE_FORMAT_VERSION` | `2` |
+| Greece `templateVersion` | `1.15.0` — **28** requirements, **24** verified, `partially_verified` |
+| Germany `templateVersion` | `1.13.0` — **27** requirements, **27** verified, `verified` |
+
+Five axes, still moving independently. Coverage is *computed*, never stored; the figures above are
+asserted in `greece-evidence-pass`, `germany-pack` and `country-pack-provenance`, so the tests are the
+authority if this table ever drifts.
+
+### The split, in one place
+
+`EMPLOYER_TRADE_REGISTRY` had asked for two documents conjunctively since revision 2. Their
+populations came apart, so it split.
+
+| | `EMPLOYER_TRADE_REGISTRY` | `CHAMBER_REGISTRATION_CERTIFICATE` |
+|---|---|---|
+| is | the **trade register gazette** | the **chamber of commerce registration** |
+| identity | retained — narrowing back to the document revision 1 was minted for | new, minted |
+| revision | `2`, unmoved — losing a conjunct is a *loosening* | `1` |
+| base | `tr-filing`, `occupationIs('company_owner')`, Annex III | same |
+| legacy fallback | `employmentStatus = self_employed` | same — the obligation shipped under it inside the old row |
+| Greece | `+ employee`, `+ independent_professional`; harmonised list + visa-centre checklist | **no widening**; Annex III alone — no Greek source names a chamber document |
+| Germany | `+ independent_professional`; tourism checklist | `+ independent_professional`; tourism checklist; **`chamberAndAge` fragment, revision 1** |
+| owner | `applicant`, with `ownerByOccupation: { employee: 'employer' }` for the Greek *Çalışan* branch | `applicant`, no map — neither pack widens it to an employee |
+| key (GR / DE) | `@2` / `@2` — Germany's returned from `@2+de-tr-mission:1` | `@1` / `@1+de-tr-mission:1` |
+
+Consequences a future reader will otherwise rediscover the hard way:
+
+- **The six-month chamber bar moved with the document it describes.** It never said anything about a
+  gazette. That is what returns Germany's gazette key to the base contract.
+- **German claims stamped `@2+de-tr-mission:1` are superseded** and asked to be re-checked; German
+  claims carrying a bare number or no stamp are **promoted**, because the detail that was demoting them
+  has gone. Greece's key never moved, so no Greek claim is re-read.
+- **Nothing is projected into the new chamber identity** ([ADR-051c](./decisions.md#adr-051c)). A
+  record claiming the old conjunctive contract did contain the chamber document; the persisted model
+  cannot say so — one status, one file reference, one date for what were two documents — and Germany
+  gates the chamber on six months, so a projected date could report a stale copy as ready. Applicants
+  are told, not claimed for: template sync surfaces the new row and they confirm it.
+- The chamber is the **first production row whose population and acceptance detail both differ by
+  composition**, which is why the widening-versus-key invariant is now scoped to rows whose detail
+  matches, with a census naming that row.
+
+### Standing constraints — maintained, as of 2026-09-19
+
+Supersedes the 2026-09-07 list in Iteration 31, which is kept as written and marked.
+
+- **Refinement is additive, and no longer citation-only.** A later layer may append citations,
+  versioned acceptance detail (`addDetail`) and occupations (`addApplicableOccupations`, widen-only).
+  It may not change identity, requiredness, owner or base prose, and may never narrow, suppress or
+  replace.
+- **Acceptance detail moves `contractKey`; a widening does not.** A widening changes who is asked, not
+  what satisfies the ask. Never carry one through `addDetail`.
+- **Applicability has two axes.** `employmentStatus`, and an `occupation` resolved from an opaque
+  persisted `occupationCode` — known to this build *and* legal for the status, or absent. Farmers and
+  non-Turkish nationals **are** expressible now; `{employment, financing}` is no longer the whole
+  context.
+- **Moving a shipped row onto the occupational axis requires `applicabilityMigration` plus a ledger
+  entry**, or it silently withdraws a document from everyone who never answered. All six entries in
+  `applicability-migrations.ts` are live; a row born on the fine axis must never acquire one.
+- **A completion claim never crosses a `code` boundary**, in either direction, by any mechanism.
+- Still true from before: no dossier-level `filingJurisdiction` selector (config-declared, a
+  transitional seam); never derive filing jurisdiction from `countryOfResidence`; no general
+  contract-bearing override or suppress mechanism, deliberately.
+
+### Backlog carried forward
+
+- **`Mükellefiyet Belgesi`** — an Edirne-only checklist delta whose condition compares the contents of
+  two documents, which `ConditionalRequirement` cannot express. Recorded with its evidence under
+  *Observed evidence not yet modelled* in [country-pack-guide.md](./country-pack-guide.md); explicitly
+  excluded from the split so an evidence question and an identity question would not land together.
+- The occupational vocabulary remains **a record of distinctions authorities draw**, not an ontology.
+  Annex III I.5(e) truck drivers are deliberately absent — no reviewed pass has adjudicated them.
+
+### Gates
+
+`format:check` ✓ · `lint` **0 errors / 118 warnings** (baseline, all the accepted
+`react-refresh/only-export-components` category) · `typecheck` ✓ · `test` **2074/2074, 114 files** ·
+act guard **0** · `build` ✓ · nine negative controls, each failing a named test · browser QA in real
+Chrome across both packs and both locales.
+
+### Next
+
+No production slice is queued. The company-document block is fully routed onto the occupational axis
+and both packs render what their own sources publish.
