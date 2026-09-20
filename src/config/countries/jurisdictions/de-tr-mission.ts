@@ -1,6 +1,5 @@
 import { deTrMissionSources } from '../../sources/de-tr-mission.sources'
 import type { RequirementLayer } from '../../types'
-import { occupationOneOf } from '../../types'
 
 /**
  * The German missions' authority over applications for Germany lodged in
@@ -89,77 +88,6 @@ export const deTrMissionLayer: RequirementLayer = {
       revision: 1,
     },
     /**
-     * MOVED HERE FROM `tr-filing` IN E5c, BECAUSE ONLY THIS DESTINATION ASKS
-     * FOR IT.
-     *
-     * Vergi Levhası appears nowhere in the Commission's Annex III for Türkiye,
-     * and the Greek mission's own published requirements — read first-hand —
-     * are silent on it too. It sat in the shared Türkiye layer anyway, so Greek
-     * applicants were asked for a company tax certificate on no authority at
-     * all, while this pack cited it by refinement from the sheet that does ask.
-     *
-     * Removing it from one composition and keeping it in the other looked like
-     * a case for suppression. It is not: the requirement simply was not
-     * jurisdiction-level, and moving it to the layer that evidences it makes
-     * Greece stop composing it as a consequence rather than as an exception.
-     *
-     * Two corrections travel with the move, and neither could be made while it
-     * was shared. Section 4(c) of the sheet files it under "Firma sahipleri /
-     * Serbest meslek sahipleri" — company owners and the self-employed — not
-     * under employees, so the condition was targeting the wrong population in
-     * both directions. And the sheet lists it without qualification for that
-     * category, so it is required rather than optional. The note claiming it
-     * "may be required depending on nationality" is gone: no source at any
-     * level states a nationality rule of that shape.
-     */
-    {
-      code: 'EMPLOYER_TAX_PLATE',
-      nameKey: 'visa-domain:requirements.EMPLOYER_TAX_PLATE.name',
-      descriptionKey: 'visa-domain:requirements.EMPLOYER_TAX_PLATE.description',
-      category: 'employment',
-      /**
-       * The applicant's own, which is what section 4(c) has always said:
-       * *"Firma sahipleri / Serbest meslek sahipleri"* is a company owner's own
-       * firm and a professional's own practice. `employer` was left over from
-       * the shared-layer row this replaced, and it was rendered to the
-       * applicant as a label — so a self-employed applicant was told their
-       * employer supplied a document about their own business.
-       *
-       * Static rather than per-occupation. Every occupation section 4(c) names
-       * has the same subject, and so does the whole coarse population the
-       * migration below preserves — a farmer's tax plate is equally their own.
-       * There is no cell where the subject differs, so a map would be using the
-       * capability because it exists rather than because the source asks for it.
-       */
-      ownerType: 'applicant',
-      required: true,
-      /**
-       * Section 4(c) names two occupations, and `self_employed` reached four.
-       * Purely subtractive: the corrected set is a strict subset, so nobody
-       * gains the row and a farmer stops being asked for a document filed under
-       * company owners and independent professionals.
-       *
-       * Which is exactly why the migration below is needed. An applicant who
-       * has not said what kind of work they do is evaluated against the coarse
-       * condition this row used to carry, so a self-employed dossier keeps the
-       * document until it can be routed properly ([ADR-053a](#adr-053a)). The
-       * entitlement lives in `APPLICABILITY_MIGRATIONS`, not here.
-       */
-      conditionalOn: occupationOneOf([
-        'company_owner',
-        'independent_professional',
-      ]),
-      applicabilityMigration: {
-        priorCondition: {
-          field: 'employment.employmentStatus',
-          operator: 'equals',
-          value: 'self_employed',
-        },
-      },
-      sourceRefs: ['de-tr-tourism-checklist'],
-      revision: 1,
-    },
-    /**
      * The other way to answer the accommodation question.
      *
      * The checklist states it inside the accommodation item and nowhere else:
@@ -203,6 +131,50 @@ export const deTrMissionLayer: RequirementLayer = {
       required: false,
       sourceRefs: ['de-tr-tourism-checklist'],
       revision: 1,
+    },
+  ],
+  /**
+   * The identities this mission asks for that it does not define.
+   *
+   * MOVED HERE FROM THIS LAYER'S OWN `add` IN H5d, AND THE MOVE IS ABOUT
+   * OWNERSHIP, NOT ABOUT WHAT THIS PACK ASKS FOR. The tax plate reached this
+   * layer in E5c for a reason that still holds — Vergi Levhası appears nowhere
+   * in the Commission's Annex III for Türkiye, and the Greek mission's own
+   * published requirements, read first-hand, are silent on it, so it was never
+   * jurisdiction-level and Greece must not compose it. What changed is that a
+   * third destination publishes the same document, and a `code` has exactly
+   * one owner registry-wide: the definition moved to the neutral home
+   * `tr-mission-practice`, which asks nobody for it, and this line is the
+   * assertion that Germany does (ADR-052d).
+   *
+   * Nothing about the composed requirement moves. Same code, same base
+   * revision, no acceptance fragment, so the contract key stays
+   * `EMPLOYER_TAX_PLATE@1` and no completion claim standing against it is
+   * disturbed.
+   *
+   * **The evidence is here because the asking is here.** An offered definition
+   * carries no citations of its own, and the reasoning below is this mission's
+   * reading of its own sheet — it could not honestly sit on a definition other
+   * missions are meant to reuse:
+   *
+   *  - Section 4(c) files the document under *"Firma sahipleri / Serbest meslek
+   *    sahipleri"* — company owners and independent professionals — which is
+   *    the population the offered condition names, and is why the subject is
+   *    the applicant's own business rather than an employer's.
+   *  - The sheet lists it without qualification for that category, so it is
+   *    required rather than optional. The note that once claimed it "may be
+   *    required depending on nationality" is gone: no source at any level
+   *    states a nationality rule of that shape.
+   *
+   * Citations only — no `addDetail`. A fragment would move the contract key and
+   * ask every German applicant to re-check a document whose bar has not moved,
+   * and the sheet states no acceptance criterion this pack is not already
+   * rendering.
+   */
+  activate: [
+    {
+      code: 'EMPLOYER_TAX_PLATE',
+      addSourceRefs: ['de-tr-tourism-checklist'],
     },
   ],
   /**

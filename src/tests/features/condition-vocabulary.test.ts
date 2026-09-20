@@ -22,7 +22,12 @@ const CONDITIONS: {
   code: string
   on: ConditionalRequirement
 }[] = ALL_REQUIREMENT_LAYERS.flatMap((layer) =>
-  (layer.add ?? [])
+  // `add` and `offer` both, because a condition is authored on a **definition**
+  // and both verbs declare one. An offered definition is inert, but its
+  // condition is real config that will route real applicants the moment a
+  // mission activates it, so it has to obey the same vocabulary now rather
+  // than escape the census until the activation lands (ADR-052d).
+  [...(layer.add ?? []), ...(layer.offer ?? [])]
     .filter((r) => r.conditionalOn)
     .map((r) => ({
       layer: layer.id,

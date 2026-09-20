@@ -7,6 +7,7 @@ import {
 } from '../common/schengen-short-stay'
 import { grTrMissionLayer } from '../jurisdictions/gr-tr-mission'
 import { trFilingLayer } from '../jurisdictions/tr-filing'
+import { trMissionPracticeLayer } from '../jurisdictions/tr-mission-practice'
 import type { RequirementLayer, VisaTypeTemplate } from '../../types'
 
 /**
@@ -189,6 +190,17 @@ export const greeceTourismComposition = composeVisaTemplate({
     commonSchengenLayer,
     greeceDestinationLayer,
     trFilingLayer,
+    /**
+     * Composed, and deliberately activated out of by nothing.
+     *
+     * This pack asks for none of the definitions this layer holds, so composing
+     * it changes nothing it renders — an offered requirement asserts no
+     * presence until somebody activates it (ADR-052d). That is exactly why it
+     * is here: if only the activating pack composed the definition home, "the
+     * home does not confer the requirement" would be a property no production
+     * composition ever tests. This pack's unchanged output is the test.
+     */
+    trMissionPracticeLayer,
     grTrMissionLayer,
   ],
   requirementOrder: GREECE_TOURISM_ORDER,

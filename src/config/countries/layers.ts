@@ -4,6 +4,7 @@ import { greeceDestinationLayer } from './greece/tourism'
 import { deTrMissionLayer } from './jurisdictions/de-tr-mission'
 import { grTrMissionLayer } from './jurisdictions/gr-tr-mission'
 import { trFilingLayer } from './jurisdictions/tr-filing'
+import { trMissionPracticeLayer } from './jurisdictions/tr-mission-practice'
 import type { RequirementLayer } from '../types'
 
 /**
@@ -34,6 +35,7 @@ export const ALL_REQUIREMENT_LAYERS: RequirementLayer[] = [
   greeceDestinationLayer,
   germanyDestinationLayer,
   trFilingLayer,
+  trMissionPracticeLayer,
   grTrMissionLayer,
   deTrMissionLayer,
 ]

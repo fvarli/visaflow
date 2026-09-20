@@ -314,8 +314,23 @@ describe('entitlement is cross-checked in both directions', () => {
 })
 
 describe('production: what is migrated, and the guards that say so', () => {
+  /**
+   * Offers count, because this walker measures **who may declare a migration**,
+   * and that is the owner — whether the owner asks for the requirement or only
+   * defines it.
+   *
+   * An entitlement is a record of what an obligation *used to ask*, so it
+   * travels with the canonical definition rather than with whoever activates
+   * it: `APPLICABILITY_MIGRATIONS` is keyed by `code` alone and always was.
+   * Walking `add` only would have quietly dropped `EMPLOYER_TAX_PLATE` when it
+   * moved into an offer, and the ledger row entitling it would have read as an
+   * entitlement with nothing to execute it (ADR-052d, ADR-053a).
+   */
   const owned = ALL_REQUIREMENT_LAYERS.flatMap((layer) =>
-    (layer.add ?? []).map((r) => ({ layer: layer.id, r }))
+    [...(layer.add ?? []), ...(layer.offer ?? [])].map((r) => ({
+      layer: layer.id,
+      r,
+    }))
   )
 
   it('the ledger and the packs agree', () => {
@@ -341,12 +356,14 @@ describe('production: what is migrated, and the guards that say so', () => {
       .filter(({ r }) => r.applicabilityMigration)
       .map(({ layer, r }) => `${layer} -> ${r.code}`)
     expect(claiming.sort()).toEqual([
-      'de-tr-mission -> EMPLOYER_TAX_PLATE',
+      // Moved from `de-tr-mission` in H5d. The entitlement did not change
+      // hands, only the layer that owns the definition carrying it.
       'gr-tr-mission -> EMPLOYER_SIGNATURE_CIRCULAR',
       'tr-filing -> CHAMBER_REGISTRATION_CERTIFICATE',
       'tr-filing -> COMPANY_ACTIVITY_CERTIFICATE',
       'tr-filing -> EMPLOYER_TRADE_REGISTRY',
       'tr-filing -> TAX_PAYMENT_STATEMENT',
+      'tr-mission-practice -> EMPLOYER_TAX_PLATE',
     ])
   })
 
@@ -442,22 +459,39 @@ describe('a later layer cannot grant itself a migration', () => {
   })
 
   it('and the owner is the only layer that declares one', () => {
-    // Every migration claim sits on a requirement in its owner's `add` list —
-    // the only place applicability may be declared. A refinement carrying one
-    // is refused by the composer, which the case above proves.
+    // Every migration claim sits on a requirement its owner declares — in
+    // `add` or in `offer`, the two ways a layer owns a definition — which is
+    // the only place applicability may be declared at all. A refinement
+    // carrying one is refused by the composer, which the case above proves,
+    // and so is an activation: the two verbs share one shape guard precisely
+    // so neither can grow a way to say this.
     const declared = ALL_REQUIREMENT_LAYERS.flatMap((layer) =>
-      (layer.add ?? [])
+      [...(layer.add ?? []), ...(layer.offer ?? [])]
         .filter((r) => r.applicabilityMigration)
         .map((r) => `${layer.id} -> ${r.code}`)
     )
     expect(declared.sort()).toEqual([
-      'de-tr-mission -> EMPLOYER_TAX_PLATE',
       'gr-tr-mission -> EMPLOYER_SIGNATURE_CIRCULAR',
       'tr-filing -> CHAMBER_REGISTRATION_CERTIFICATE',
       'tr-filing -> COMPANY_ACTIVITY_CERTIFICATE',
       'tr-filing -> EMPLOYER_TRADE_REGISTRY',
       'tr-filing -> TAX_PAYMENT_STATEMENT',
+      'tr-mission-practice -> EMPLOYER_TAX_PLATE',
     ])
+  })
+
+  it('and an activation may not carry one either', () => {
+    // The new way this could arrive, now that a layer can assert presence for
+    // a definition it does not own. `applicabilityMigration` on an activation
+    // would be a later layer granting itself a fallback contract for somebody
+    // else's requirement — the exact move the refinement case above refuses.
+    const activationKeys = ALL_REQUIREMENT_LAYERS.flatMap((layer) =>
+      (layer.activate ?? []).flatMap((a) => Object.keys(a))
+    )
+    expect(activationKeys).not.toContain('applicabilityMigration')
+    expect(activationKeys).not.toContain('conditionalOn')
+    // Non-vacuity: there is an activation to inspect.
+    expect(activationKeys).toContain('code')
   })
 })
 

@@ -6,6 +6,7 @@ import {
 } from '../common/schengen-short-stay'
 import { deTrMissionLayer } from '../jurisdictions/de-tr-mission'
 import { trFilingLayer } from '../jurisdictions/tr-filing'
+import { trMissionPracticeLayer } from '../jurisdictions/tr-mission-practice'
 import type { RequirementLayer, VisaTypeTemplate } from '../../types'
 
 /**
@@ -192,6 +193,9 @@ export const germanyTourismComposition = composeVisaTemplate({
     commonSchengenLayer,
     germanyDestinationLayer,
     trFilingLayer,
+    // Composed before the mission layer that activates out of it, because
+    // activation reaches backwards exactly as refinement does.
+    trMissionPracticeLayer,
     deTrMissionLayer,
   ],
   requirementOrder: GERMANY_TOURISM_ORDER,

@@ -3,6 +3,9 @@ import { ALL_REQUIREMENT_LAYERS } from '@/config/countries/layers'
 import { trFilingLayer } from '@/config/countries/jurisdictions/tr-filing'
 import { grTrMissionLayer } from '@/config/countries/jurisdictions/gr-tr-mission'
 import { greeceTourismComposition } from '@/config/countries/greece/tourism'
+import { germanyTourismComposition } from '@/config/countries/germany/tourism'
+import type { CompositionResult } from '@/config/composition'
+import type { RequirementLayer } from '@/config/types'
 
 /**
  * Who is allowed to be the authority for a Türkiye filing requirement.
@@ -80,9 +83,14 @@ const SUPPORTED_BY_ANNEX_III: Record<string, string> = {
  *
  * It was the clearest case the list ever held: asked for by the German mission
  * and by nobody else, sitting in the shared jurisdiction layer, so Greek
- * applicants were asked for a vergi levhası on no authority at all. It now
- * belongs to `de-tr-mission`, which is where its only evidence lives, so there
- * is no longer a Greek row to check.
+ * applicants were asked for a vergi levhası on no authority at all.
+ *
+ * Its definition now lives in `tr-mission-practice` and is **offered**, which
+ * asks nobody for anything; `de-tr-mission` activates it and carries the only
+ * evidence there has ever been for it (H5d, ADR-052d). Greece composes the
+ * definition home and activates nothing out of it, so there is still no Greek
+ * row to check — and now that is a property this pack proves rather than a
+ * consequence of Greece not composing the layer at all.
  */
 const NOT_IN_ANNEX_III = ['EMPLOYER_SIGNATURE_CIRCULAR']
 
@@ -155,17 +163,119 @@ describe('the neutral citation goes only where the act supports it', () => {
 })
 
 describe('Greek mission authority arrives only by destination refinement', () => {
-  it('appears nowhere in the shared jurisdiction layer', () => {
-    // Shared now means shared by two real packs: `tr-filing` composes into
-    // Greece and Germany alike, so a Greek citation here would reach a German
-    // applicant's checklist.
-    const declared = (trFilingLayer.add ?? []).flatMap(
-      (r) => r.sourceRefs ?? []
+  /**
+   * Every layer both production packs compose, derived rather than listed.
+   *
+   * THERE USED TO BE EXACTLY ONE, AND THE CHECK BELOW NAMED IT. H5d added a
+   * second — `tr-mission-practice`, the neutral definition home — and a guard
+   * hard-coded to `tr-filing` would have gone on passing while saying nothing
+   * about the new layer. Intersecting the two packs' layer lists asks the
+   * question the check is actually about: *which layers can a citation reach
+   * both destinations from?*
+   */
+  const PROBE_ROW = {
+    code: 'PROBE_CODE',
+    nameKey: 'probe:name',
+    category: 'supporting',
+    ownerType: 'applicant',
+    required: true,
+    revision: 1,
+  } as const
+
+  const declaringLayers = (composition: CompositionResult) =>
+    new Set([
+      ...composition.ownership.values(),
+      // Offers too, or a layer that only *defines* would look absent from the
+      // composition that carries it — which is precisely the layer this guard
+      // was widened to reach.
+      ...composition.offered.values(),
+    ])
+
+  const SHARED_LAYER_IDS = (() => {
+    const inGreece = declaringLayers(greeceTourismComposition)
+    return [...declaringLayers(germanyTourismComposition)].filter((id) =>
+      inGreece.has(id)
     )
-    const refined = (trFilingLayer.refine ?? []).flatMap((r) => r.addSourceRefs)
-    const provided = (trFilingLayer.sources ?? []).map((s) => s.id)
+  })()
+
+  /** Every field on a layer that can name a source. */
+  const citationsIn = (layer: RequirementLayer): string[] => [
+    ...(layer.add ?? []).flatMap((r) => r.sourceRefs ?? []),
+    ...(layer.offer ?? []).flatMap((r) => r.sourceRefs ?? []),
+    ...(layer.refine ?? []).flatMap((r) => r.addSourceRefs ?? []),
+    ...(layer.activate ?? []).flatMap((a) => a.addSourceRefs ?? []),
+    ...(layer.groups ?? []).flatMap((g) => g.sourceRefs ?? []),
+    ...(layer.sources ?? []).map((s) => s.id),
+  ]
+
+  it('has more than one shared jurisdiction layer to check', () => {
+    // Non-vacuity, and the reason this guard was widened: with one shared
+    // layer, "every shared layer" and "`tr-filing`" are the same statement.
+    expect(SHARED_LAYER_IDS).toContain(trFilingLayer.id)
+    expect(SHARED_LAYER_IDS).toContain('tr-mission-practice')
+  })
+
+  const greekCitationsIn = (layer: RequirementLayer) =>
+    citationsIn(layer)
+      .filter((id) => (GREEK_MISSION as readonly string[]).includes(id))
+      .map((id) => `${layer.id} → ${id}`)
+
+  it('appears nowhere in any layer both packs compose', () => {
+    // Shared means shared by two real packs, so a Greek citation in one of
+    // these would reach a German applicant's checklist. Every citation-bearing
+    // field is read, including the two ADR-052d added: an activation carries
+    // evidence, and an offered definition must carry none.
+    const offenders = ALL_REQUIREMENT_LAYERS.filter((l) =>
+      SHARED_LAYER_IDS.includes(l.id)
+    ).flatMap(greekCitationsIn)
+    expect(offenders).toEqual([])
+  })
+
+  it('and would still notice one, in any field a layer can carry it', () => {
+    /**
+     * A detector that has never been seen to fire is indistinguishable from one
+     * that cannot, and this one is unusually hard to observe: planting a Greek
+     * citation in a real shared layer makes the *composer* throw at module
+     * load — `duplicate-source` if the record already exists, `dangling-
+     * source-ref` if it does not — so the leak never reaches this assertion and
+     * the file reports "no tests" rather than a failure.
+     *
+     * That earlier refusal is a stronger guarantee, not a weaker one, but it is
+     * a different guarantee. This exercises the detector itself, on a synthetic
+     * layer, through each field ADR-052d made citation-bearing.
+     */
+    const shapes = (greek: string): RequirementLayer[] => [
+      {
+        id: 'probe-add',
+        kind: 'jurisdiction',
+        add: [{ ...PROBE_ROW, sourceRefs: [greek] }],
+      },
+      {
+        id: 'probe-offer',
+        kind: 'jurisdiction',
+        offer: [{ ...PROBE_ROW, sourceRefs: [greek] }],
+      },
+      {
+        id: 'probe-refine',
+        kind: 'jurisdiction',
+        refine: [{ code: PROBE_ROW.code, addSourceRefs: [greek] }],
+      },
+      {
+        id: 'probe-activate',
+        kind: 'jurisdiction',
+        activate: [{ code: PROBE_ROW.code, addSourceRefs: [greek] }],
+      },
+    ]
+
+    // Every Greek id, not just the first: the detector matches on membership,
+    // so a list that had quietly lost an entry would still pass a one-id probe.
     for (const greek of GREEK_MISSION) {
-      expect([...declared, ...refined, ...provided]).not.toContain(greek)
+      expect(shapes(greek).map(greekCitationsIn)).toEqual([
+        [`probe-add → ${greek}`],
+        [`probe-offer → ${greek}`],
+        [`probe-refine → ${greek}`],
+        [`probe-activate → ${greek}`],
+      ])
     }
   })
 

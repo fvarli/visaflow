@@ -316,12 +316,17 @@ describe('the production packs render their own detail and nobody else’s', () 
   })
 
   it('is declared only by layers that refine, never by an owner', () => {
-    // Registry-wide: no `add` anywhere may ship `detailKeys`. Detail is
+    // Registry-wide: no declaration anywhere may ship `detailKeys`. Detail is
     // something a *later* layer contributes, and an owner writing it directly
     // would produce a requirement whose base contract already contains the
     // thing the composed revision is supposed to be versioning.
+    //
+    // `offer` is walked beside `add` because both are ways of owning a
+    // definition. An offered requirement carrying detail would be worse than
+    // an added one carrying it: every mission that activated the identity
+    // would inherit a bar nobody versioned.
     const owned = ALL_REQUIREMENT_LAYERS.flatMap((layer) =>
-      (layer.add ?? [])
+      [...(layer.add ?? []), ...(layer.offer ?? [])]
         .filter((r) => r.detailKeys !== undefined)
         .map((r) => `${layer.id}:${r.code}`)
     )

@@ -196,7 +196,19 @@ describe('tax plate — what stayed put', () => {
   })
 
   it('the citation, which already carried a verified source', () => {
+    // Unchanged in H5d, and the route it arrives by changed completely: it
+    // used to sit on the definition, and now it is carried by Germany's
+    // activation. Provenance belongs to the assertion that asks (ADR-052d
+    // decision 6), and the composed output is identical either way.
     expect(req?.sourceRefs).toEqual(['de-tr-tourism-checklist'])
+  })
+
+  it('and no acceptance fragment came with the relocation', () => {
+    // A fragment would move the contract key and ask every German applicant to
+    // re-check a document whose bar has not moved. The key assertion above
+    // already implies this; stating it separately is what makes a future
+    // `addDetail` on the activation fail for the right reason.
+    expect(req?.detailKeys).toBeUndefined()
   })
 
   it('and the workspace its category names', () => {
@@ -210,10 +222,47 @@ describe('tax plate — what stayed put', () => {
 })
 
 describe('tax plate — Greece is untouched', () => {
-  it('does not compose the layer that owns it', () => {
+  /**
+   * THIS USED TO PASS FOR A WEAKER REASON THAN IT NOW DOES.
+   *
+   * Until H5d the assertion was "Greece does not compose the layer that owns
+   * it", and it was true by accident of packaging: the definition lived in
+   * `de-tr-mission`, which Greece has no reason to compose, so the absence
+   * proved nothing about presence semantics. Since the pilot, Greece composes
+   * `tr-mission-practice` — the layer that owns the definition — and still does
+   * not receive the requirement. That is the property ADR-052d actually claims,
+   * and it is now demonstrated rather than sidestepped.
+   */
+  const greece = compositionFor('GR')
+
+  it('composes the layer that owns it', () => {
+    expect(greece.offered.get(CODE)).toBe('tr-mission-practice')
+  })
+
+  it('activates nothing out of it', () => {
+    expect(greece.activations.has(CODE)).toBe(false)
+    expect(greece.activations.size).toBe(0)
+  })
+
+  it('and therefore does not receive the requirement', () => {
     expect(
-      compositionFor('GR').template.documentRequirements.map((r) => r.code)
+      greece.template.documentRequirements.map((r) => r.code)
     ).not.toContain(CODE)
+    // Nor as an owned row: an inert offer never reaches the ownership map, so
+    // nothing downstream that reads ownership can see it either.
+    expect(greece.ownership.has(CODE)).toBe(false)
+  })
+
+  it('and picks up no German evidence by composing the definition home', () => {
+    // The leak ADR-052d decision 6 forbids, asked of the composed result rather
+    // than of the layer files: Germany's checklist is the only evidence this
+    // identity has ever had, and it travels with Germany's activation.
+    expect(greece.sources.map((s) => s.id)).not.toContain(
+      'de-tr-tourism-checklist'
+    )
+    expect(
+      greece.template.documentRequirements.flatMap((r) => r.sourceRefs ?? [])
+    ).not.toContain('de-tr-tourism-checklist')
   })
 
   it('and its own corrected row is unaffected by this one', () => {

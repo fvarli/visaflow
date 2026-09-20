@@ -1135,9 +1135,17 @@ describe('country packs — the E5a corrections render, and stay inside their la
     async (locale) => {
       await i18n.changeLanguage(locale)
       const td = dynamicT(i18n.t.bind(i18n))
+      // `tr-mission-practice` joins the shared set in H5d: both packs compose
+      // it, so its prose reaches both destinations exactly as `tr-filing`'s
+      // does. Its rows are offers, which is why `offer` is walked beside `add`
+      // — the prose of a definition is shared whether or not anybody has
+      // activated it yet.
       const shared = ALL_REQUIREMENT_LAYERS.filter(
-        (l) => l.id === 'schengen-short-stay' || l.id === 'tr-filing'
-      ).flatMap((l) => l.add ?? [])
+        (l) =>
+          l.id === 'schengen-short-stay' ||
+          l.id === 'tr-filing' ||
+          l.id === 'tr-mission-practice'
+      ).flatMap((l) => [...(l.add ?? []), ...(l.offer ?? [])])
       const offenders = shared
         .filter((r) => {
           const text = [r.nameKey, r.descriptionKey, r.notesKey]
@@ -1250,13 +1258,65 @@ const JURISDICTION_EVIDENCE_GAPS: Record<string, string> = {
 }
 
 describe('country packs — the jurisdiction evidence gap is bounded', () => {
-  const jurisdictionOwned = ALL_REQUIREMENT_LAYERS.filter(
-    (l) => l.kind === 'jurisdiction'
-  ).flatMap((layer) => (layer.add ?? []).map((r) => ({ layer: layer.id, r })))
+  /**
+   * The population is **assertions**, not definitions, and H5d is what forced
+   * the distinction to be stated.
+   *
+   * This register answers one question: *is anything being asked of an
+   * applicant on no authority?* An `add` is such an ask. An **activation** is
+   * such an ask — it is the whole point of ADR-052d decision 6 that the
+   * activating layer supplies the evidence — so it is walked here, keyed by the
+   * layer that made the assertion and checked against the citations that
+   * assertion carries.
+   *
+   * An **offer** is deliberately *not* walked, and widening it to `add + offer`
+   * the way the authoring censuses do would be wrong. An offered definition
+   * carries no citations by design, so it would read here as an uncited
+   * requirement and demand a gap entry describing a limitation that does not
+   * exist — nothing is being asserted, so nothing lacks authority. Recording a
+   * gap for it would be inventing a limitation, which is the mirror image of
+   * inventing evidence.
+   */
+  const jurisdictionOwned = [
+    ...ALL_REQUIREMENT_LAYERS.filter((l) => l.kind === 'jurisdiction').flatMap(
+      (layer) => (layer.add ?? []).map((r) => ({ layer: layer.id, r }))
+    ),
+    ...ALL_REQUIREMENT_LAYERS.filter((l) => l.kind === 'jurisdiction').flatMap(
+      (layer) =>
+        (layer.activate ?? []).map((a) => ({
+          layer: layer.id,
+          r: { code: a.code, sourceRefs: a.addSourceRefs },
+        }))
+    ),
+  ]
 
   it('has jurisdiction-owned requirements to reason about', () => {
     // Without this the assertions below pass by having nothing to check.
     expect(jurisdictionOwned.length).toBeGreaterThan(0)
+  })
+
+  it('and an activation among them, so the widened population is not notional', () => {
+    // H5d is the first slice in which an ask can arrive without a declaration
+    // beside it. If activations ever leave the packs this stops saying
+    // anything, and this is what says so.
+    const activated = ALL_REQUIREMENT_LAYERS.flatMap((l) => l.activate ?? [])
+    expect(activated.map((a) => a.code)).toEqual(['EMPLOYER_TAX_PLATE'])
+    expect(
+      jurisdictionOwned.filter(({ r }) => r.code === 'EMPLOYER_TAX_PLATE')
+    ).toHaveLength(1)
+  })
+
+  it('records no gap for an inert definition, because it asserts nothing', () => {
+    // The distinction this register now rests on, asserted rather than left to
+    // the comment above. The offered tax plate is uncited and correct; if it
+    // were in the population it would be demanding a gap entry.
+    const offered = ALL_REQUIREMENT_LAYERS.flatMap((l) =>
+      (l.offer ?? []).map((r) => r.code)
+    )
+    expect(offered).toEqual(['EMPLOYER_TAX_PLATE'])
+    for (const code of offered) {
+      expect(JURISDICTION_EVIDENCE_GAPS).not.toHaveProperty(code)
+    }
   })
 
   /**

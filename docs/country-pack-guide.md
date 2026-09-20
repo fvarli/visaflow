@@ -424,8 +424,11 @@ satisfaction group. It carries **no citations of its own** — it asserts nothin
 for a citation to vouch for — and a layer that only offers is *not* a claim that the jurisdiction
 requires the document, or that every mission in it does.
 
+This ships today, and `EMPLOYER_TAX_PLATE` is the worked example — the only identity using it:
+
 ```typescript
-// The neutral definition home. Owns the identity; asks nobody.
+// src/config/countries/jurisdictions/tr-mission-practice.ts
+// The neutral definition home. Owns the identity; asks nobody; cites nothing.
 export const trMissionPracticeLayer: RequirementLayer = {
   id: 'tr-mission-practice',
   kind: 'jurisdiction',
@@ -437,10 +440,16 @@ export const deTrMissionLayer: RequirementLayer = {
   id: 'de-tr-mission',
   kind: 'jurisdiction',
   activate: [
-    { code: 'EMPLOYER_TAX_PLATE', addSourceRefs: ['de-tr-schengen-general'] },
+    { code: 'EMPLOYER_TAX_PLATE', addSourceRefs: ['de-tr-tourism-checklist'] },
   ],
 }
 ```
+
+**Both packs compose `tr-mission-practice`; only Germany activates out of it.** That is deliberate
+and it is the proof rather than an accident of packaging: if only the activating pack composed the
+definition home, "composing the home confers nothing" would be a claim no production composition
+ever tested. Greece composes it, activates nothing, and its rendered checklist, order, ownership
+tally, contract keys and source pool are unchanged.
 
 **The activation carries its own citations.** Provenance belongs to the activating assertion, not to
 the definition, so you do not write an `activate` line and a matching `refine` line — the composer
@@ -611,8 +620,10 @@ publishes are already defined here, each owned by another destination's mission 
 synthetic packs only, and each identity is adjudicated on its own evidence rather than as a list
 ([ADR-052d] decision 9):
 
-- **`EMPLOYER_TAX_PLATE`** — clean same-identity candidate, neutral base prose, no fragment.
-  The intended first pilot.
+- **`EMPLOYER_TAX_PLATE`** — **done.** The pilot: its definition now lives in `tr-mission-practice`
+  and Germany activates it. Nothing about Germany's composed output moved, and the relocation
+  bumped no revision and no `templateVersion`. A second mission may activate the same identity when
+  it has its own evidence for it.
 - **`EMPLOYER_SIGNATURE_CIRCULAR`** — same identity, but its base is `required: false` while Spain's
   checklists make it mandatory. Requiredness is not composition-scoped and activation must not make
   it so. **Unresolved.**

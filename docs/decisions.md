@@ -3657,10 +3657,42 @@ governs is a later slice and is not authorised by this record.
 > are the shipped names. `composeVisaTemplate` carries the guards decision 5 asks for, one per
 > mistake, each with a negative control; `CompositionResult` publishes `offered` and `activations`
 > beside `ownership`, and the registry invariants read them so an offer nobody activates is dead
-> configuration rather than a quiet one. **No production requirement moved** — no pack, layer
-> registry, revision ledger or retirement record changed, and no composed output, contract key or
-> stored claim is affected. Decisions 8 (composition-scoped evidence gaps), 9 and 10 remain
-> unimplemented, and H5d — the `EMPLOYER_TAX_PLATE` pilot — remains unauthorised.
+> configuration rather than a quiet one. No production requirement moved in that slice.
+
+> **Pilot migrated 2026-09-20 (H5d): `EMPLOYER_TAX_PLATE`, and nothing else.** Its canonical
+> definition moved unchanged from `de-tr-mission`'s `add` into a new neutral layer,
+> `tr-mission-practice`, as an inert `offer`; `de-tr-mission` activates it and carries the
+> `de-tr-tourism-checklist` citation that was previously on the definition. **Both packs compose the
+> definition home and only Germany activates**, which is what turns decision 3's central claim from
+> a synthetic proof into a production one: Greece's composed requirements, order, ownership tally,
+> contract keys and source pool are value-identical to before.
+>
+> Decision 7 held as stated and was verified from code rather than assumed: `code`, base `revision`
+> and effective fragments are unchanged, so the contract key stays `EMPLOYER_TAX_PLATE@1` and no
+> stored completion claim is disturbed. **Nothing was bumped** — not the base revision (the contract
+> did not move), not a fragment (none exists, and creating one would have superseded live claims for
+> no applicant-visible reason), not Germany's `templateVersion` (`1.13.0`; relocation changed who
+> owns a definition, not what the pack asks), and not `schemaVersion` or `STORAGE_FORMAT_VERSION`.
+>
+> The pilot exposed three real gaps that H5c had left, each fixed in the same slice. **Decision 6's
+> claim that "the existing isolation invariants are the enforcement" was false in code**: the
+> detector that keeps one destination's evidence out of shared layers read `add`, `refine` and
+> `sources` and could not see `activate` at all, so the first production activation would have
+> carried authority past it. Second, the authoring censuses that audit occupational conditions,
+> condition vocabulary, acceptance detail and applicability migrations walked `add` only, and would
+> have silently stopped covering a definition the moment it became an offer. Third, the guard
+> proving no mission citation sits in a layer both packs compose was hard-coded to `tr-filing`, and
+> a second shared layer now exists; it derives the shared set from the compositions instead.
+>
+> **Decision 8 was checked, not deferred by assumption.** The pilot creates no `(scope, code)`
+> collision: `EMPLOYER_TAX_PLATE` is cited, is in no evidence-gap entry, and Greece neither
+> activates it nor records a limitation on it. What the split *did* require is a distinction the
+> register now states explicitly — an **activation** is an authority-bearing ask and is checked for
+> citations, while an inert **offer** asserts nothing and is deliberately excluded, since recording
+> a gap against it would invent a limitation exactly as citing it would invent evidence.
+>
+> Decisions 9 and 10 remain unimplemented; the remaining identities in decision 9's table are
+> untouched, and Spain has no production files.
 
 A third destination — Spain, short-stay tourism, filed from Türkiye — was measured against the
 shipped layers before a line of it was authored. The measurement found what a third pack is for:

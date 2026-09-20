@@ -680,13 +680,12 @@ describe('requirement identity — one code, one owning layer, registry-wide', (
  * about. `ALL_REQUIREMENT_LAYERS` already gets this treatment; offers now do
  * too.
  *
- * **These are empty-set true today, and that is stated rather than hidden.**
- * H5c implements the capability against synthetic packs only and migrates no
- * production requirement, so no registered layer offers anything yet. The
- * assertions are written now because the slice that first offers one (H5d, the
- * `EMPLOYER_TAX_PLATE` pilot) should find them already standing rather than
- * have to remember to write them — but a green result here proves nothing until
- * `offeredCodes` is non-empty, which is what the census below makes visible.
+ * **H5c wrote these against an empty set and said so. H5d fills it**, with one
+ * identity — `EMPLOYER_TAX_PLATE`, offered by `tr-mission-practice` and
+ * activated by `de-tr-mission` alone. The census below is no longer a
+ * placeholder to be bumped from zero to one: it states the whole semantic
+ * relationship the pilot is supposed to demonstrate, so a future change that
+ * satisfies the count while breaking the meaning fails here.
  */
 describe('requirement identity — an offer is reachable or it is dead', () => {
   const offeredCodes = ALL_REQUIREMENT_LAYERS.flatMap((layer) =>
@@ -699,10 +698,14 @@ describe('requirement identity — an offer is reachable or it is dead', () => {
     ])
   )
 
-  it('records how many identities are offered, so a vacuous pass is visible', () => {
-    // Not an assertion that the number is right — only the evidence that says
-    // whether the two checks below are proving anything yet. H5c ships zero.
-    expect(offeredCodes.length).toBe(0)
+  it('has one canonical owner for the offered identity', () => {
+    // One code, one owner, and the owner is the neutral home rather than any
+    // mission. Multiple ownership stays impossible: an offer claims its code
+    // registry-wide exactly as an `add` does, which the duplicate walk at the
+    // top of this describe block enforces over `add` and `offer` together.
+    expect(offeredCodes).toEqual([
+      { code: 'EMPLOYER_TAX_PLATE', layerId: 'tr-mission-practice' },
+    ])
   })
 
   it('has every offered identity activated by some pack', () => {
@@ -710,6 +713,57 @@ describe('requirement identity — an offer is reachable or it is dead', () => {
       .filter(({ code }) => !activatedCodes.has(code))
       .map(({ code, layerId }) => `${code} (${layerId})`)
     expect(unreached).toEqual([])
+  })
+
+  it('reaches it through exactly one authorized production activation', () => {
+    // Not "at least one". Two packs activating one definition would mean two
+    // missions asserting the same ask from different evidence, which the
+    // composer refuses per composition but which this says across the registry.
+    const activations = PRODUCTION_COMPOSITIONS.flatMap(
+      ({ countryCode, composition }) =>
+        [...composition.activations.entries()].map(
+          ([code, layerId]) => `${countryCode}: ${code} by ${layerId}`
+        )
+    )
+    expect(activations).toEqual(['DE: EMPLOYER_TAX_PLATE by de-tr-mission'])
+  })
+
+  it('and the activating layer acquires authority, never ownership', () => {
+    // The property that makes the relocation safe. If activation conferred
+    // ownership, one destination retiring a row would break another's build,
+    // and the contract key would start depending on who asked.
+    const de = compositionFor('DE')
+    expect(de.ownership.get('EMPLOYER_TAX_PLATE')).toBe('tr-mission-practice')
+    expect(de.activations.get('EMPLOYER_TAX_PLATE')).toBe('de-tr-mission')
+  })
+
+  it('gives no other production composition the requirement', () => {
+    // The claim the whole capability rests on: composing a definition home
+    // confers nothing. Greece composes `tr-mission-practice` — asserted below
+    // so this is not passing because Greece never sees the layer — and still
+    // neither activates nor receives the identity.
+    for (const { countryCode, composition } of PRODUCTION_COMPOSITIONS) {
+      if (countryCode === 'DE') continue
+      expect(composition.offered.get('EMPLOYER_TAX_PLATE'), countryCode).toBe(
+        'tr-mission-practice'
+      )
+      expect(composition.activations.has('EMPLOYER_TAX_PLATE')).toBe(false)
+      expect(composition.ownership.has('EMPLOYER_TAX_PLATE')).toBe(false)
+      expect(
+        composition.template.documentRequirements.map((r) => r.code)
+      ).not.toContain('EMPLOYER_TAX_PLATE')
+    }
+  })
+
+  it('and there is a non-activating pack, so that check is not vacuous', () => {
+    // Two packs, one of which does not activate. With one pack the assertion
+    // above would be a loop over nothing.
+    expect(PRODUCTION_COMPOSITIONS.length).toBeGreaterThan(1)
+    expect(
+      PRODUCTION_COMPOSITIONS.filter(
+        ({ composition }) => composition.offered.size > 0
+      ).map(({ countryCode }) => countryCode)
+    ).toEqual(['GR', 'DE'])
   })
 
   it('activates nothing that no registered layer offers', () => {

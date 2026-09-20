@@ -13,7 +13,7 @@ import {
 } from '@/config/countries/verification-coverage'
 import { resolveVisaTemplate } from '@/config/countries'
 import { dynamicT } from '@/lib/i18n-dynamic'
-import type { DocumentRequirement } from '@/config/types'
+import type { DocumentRequirement, RequirementLayer } from '@/config/types'
 
 /**
  * The second production pack, and what having two of them proves.
@@ -96,7 +96,7 @@ describe('Germany pack — composition', () => {
     )
   })
 
-  it('owns four requirements and inherits the other twenty-three', () => {
+  it('owns three requirements and inherits the other twenty-four', () => {
     const tally = new Map<string, number>()
     for (const [, layerId] of germany.ownership) {
       tally.set(layerId, (tally.get(layerId) ?? 0) + 1)
@@ -114,9 +114,18 @@ describe('Germany pack — composition', () => {
       // it, so it is declared where the instrument is and both packs compose
       // it.
       'tr-filing': 15,
-      // Four since H3: the official undertaking is this mission's own
-      // evidence, accepted in place of an accommodation document.
-      'de-tr-mission': 4,
+      // Four since H3 — the official undertaking is this mission's own
+      // evidence, accepted in place of an accommodation document — and three
+      // since H5d, when the tax plate's *definition* moved to the neutral home
+      // below. This pack still asks for it; it no longer owns it.
+      'de-tr-mission': 3,
+      // The pilot of ADR-052d. `tr-mission-practice` owns the definition and
+      // asks nobody for it; this pack's `activate` is what makes it present,
+      // and ownership stays with the layer that offered it — an activating
+      // layer acquires authority, never ownership. Greece composes the same
+      // layer and its tally does not gain this row, which is the proof that
+      // composing a definition home confers nothing.
+      'tr-mission-practice': 1,
       // 'germany' owns none, the same finding Greece produced — now with a
       // second pack behind it. It contributes Germany's statute and nothing
       // else, so it never reaches the ownership tally.
@@ -274,21 +283,69 @@ describe('Germany pack — no Greek evidence reaches it', () => {
     expect(ids.filter((id) => GERMAN_SOURCE_IDS.includes(id))).toEqual([])
   })
 
+  /**
+   * Every way a layer can name a source, in one place.
+   *
+   * THIS LIST WAS INCOMPLETE UNTIL H5d, AND THE GAP IS WORTH RECORDING.
+   * ADR-052d decision 6 says activation "must never cause one destination's
+   * authority to appear in another's pack" and that "the existing isolation
+   * invariants are the enforcement". They were not: `activate` carries
+   * citations and nothing here read it, so the first production activation
+   * would have introduced an authority-bearing field no isolation check could
+   * see. `offer` is here too — an offered definition must carry no citations
+   * at all, and if one ever did it would be exactly this kind of leak.
+   */
+  const citationsIn = (layer: RequirementLayer): string[] => [
+    ...(layer.add ?? []).flatMap((r) => r.sourceRefs ?? []),
+    ...(layer.offer ?? []).flatMap((r) => r.sourceRefs ?? []),
+    ...(layer.refine ?? []).flatMap((r) => r.addSourceRefs ?? []),
+    ...(layer.activate ?? []).flatMap((a) => a.addSourceRefs ?? []),
+    ...(layer.groups ?? []).flatMap((g) => g.sourceRefs ?? []),
+    ...(layer.sources ?? []).map((s) => s.id),
+  ]
+
+  const namesGermanEvidence = (ids: string[]) =>
+    ids.some((id) => id.startsWith('de-') && id !== 'de-aufenthg-54')
+
   it('keeps German evidence out of the shared and Greek layers', () => {
     // Where a leak would actually originate: a citation added to a layer both
     // packs compose. `de-tr-mission` is the only layer allowed to name these.
     const leaking = ALL_REQUIREMENT_LAYERS.filter(
       (l) => l.id !== deTrMissionLayer.id
     )
-      .filter((layer) =>
-        [
-          ...(layer.add ?? []).flatMap((r) => r.sourceRefs ?? []),
-          ...(layer.refine ?? []).flatMap((r) => r.addSourceRefs ?? []),
-          ...(layer.sources ?? []).map((s) => s.id),
-        ].some((id) => id.startsWith('de-') && id !== 'de-aufenthg-54')
-      )
+      .filter((layer) => namesGermanEvidence(citationsIn(layer)))
       .map((l) => l.id)
     expect(leaking).toEqual([])
+  })
+
+  it('and would still notice one arriving through an activation', () => {
+    // The detector widened in H5d, so it has to be seen firing on the field it
+    // gained. A shared layer activating an identity with a German citation is
+    // the leak ADR-052d decision 6 forbids, and before this it was invisible.
+    const planted: RequirementLayer = {
+      id: 'test-shared-activating',
+      kind: 'jurisdiction',
+      activate: [
+        {
+          code: 'EMPLOYER_TAX_PLATE',
+          addSourceRefs: ['de-tr-tourism-checklist'],
+        },
+      ],
+    }
+    expect(namesGermanEvidence(citationsIn(planted))).toBe(true)
+  })
+
+  it('and the neutral definition home cites nothing at all', () => {
+    // Stronger than "no German source": ADR-052d decision 6 says an offered
+    // definition asserts nothing, so there is nothing for *any* citation to
+    // vouch for. A reusable definition that arrived carrying one mission's
+    // evidence would hand that evidence to every mission that activated it.
+    const practice = ALL_REQUIREMENT_LAYERS.find(
+      (l) => l.id === 'tr-mission-practice'
+    )
+    expect(practice).toBeDefined()
+    expect(citationsIn(practice as RequirementLayer)).toEqual([])
+    expect((practice?.offer ?? []).length).toBeGreaterThan(0)
   })
 
   it('declares Germany’s statute in Germany’s own destination layer', () => {

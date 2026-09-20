@@ -69,9 +69,16 @@ const codesFor = (
     } as unknown as Application)
   ).map((r) => r.code)
 
-/** Every production requirement whose applicability reads the effective code. */
+/**
+ * Every production requirement whose applicability reads the effective code.
+ *
+ * Declarations rather than composed output, and `add` **and** `offer` both: the
+ * question here is how packs are *authored*, and a layer owns a definition
+ * either way. An offer that escaped this census would be occupational config
+ * nobody had audited, waiting for an activation to make it live (ADR-052d).
+ */
 const OCCUPATION_CONDITIONED = ALL_REQUIREMENT_LAYERS.flatMap((layer) =>
-  (layer.add ?? []).filter(
+  [...(layer.add ?? []), ...(layer.offer ?? [])].filter(
     (r) => r.conditionalOn?.field === 'employment.occupation'
   )
 )
@@ -675,6 +682,8 @@ describe('the capability changes nothing for anybody', () => {
       'CHAMBER_REGISTRATION_CERTIFICATE',
       'COMPANY_ACTIVITY_CERTIFICATE',
       'EMPLOYER_SIGNATURE_CIRCULAR',
+      // Offered by `tr-mission-practice` since H5d rather than owned by a
+      // mission layer. The row is unchanged; only who declares it moved.
       'EMPLOYER_TAX_PLATE',
       'EMPLOYER_TRADE_REGISTRY',
       'FARMER_CERTIFICATE',
@@ -748,7 +757,10 @@ describe('every occupational condition names a code this build knows', () => {
      * satisfy a condition written before it existed.
      */
     const raw = ALL_REQUIREMENT_LAYERS.flatMap((layer) =>
-      (layer.add ?? [])
+      // Offers included for the same reason as above: the failure this guards
+      // against is authoring a condition on the raw persisted code, and an
+      // offered definition is authored config like any other.
+      [...(layer.add ?? []), ...(layer.offer ?? [])]
         .filter((r) => {
           const field = r.conditionalOn?.field ?? ''
           return (
