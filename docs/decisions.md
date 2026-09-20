@@ -3627,3 +3627,193 @@ governs is a later slice and is not authorised by this record.
 > Germany `1.12.0` → `1.13.0` (27 / 27). No `schemaVersion`, `STORAGE_FORMAT_VERSION` or
 > storage-migration movement, and no carry-forward mechanism was built — decision 1 is that it must
 > not be. `src/tests/features/trade-registry-split.test.ts` is the executable statement of all of it.
+
+---
+
+## ADR-052d: A Canonical Evidence Identity Is Not a Claim That Anybody Asks For It
+
+**Status:** Accepted · 2026-09-20 · extends [ADR-052](#adr-052) decisions 2 and 3 and
+[ADR-052b](#adr-052b) decision 6 · preserves [ADR-052a](#adr-052a) rule 3 · applies
+[ADR-049](#adr-049), [ADR-051b](#adr-051b) and [ADR-052c](#adr-052c)
+
+A third destination — Spain, short-stay tourism, filed from Türkiye — was measured against the
+shipped layers before a line of it was authored. The measurement found what a third pack is for:
+six documents Spain's own published sources ask for, whose evidence identity this repository already
+carries, and which Spain cannot compose at all. Every one of them is owned by *another destination's*
+mission layer, and a `code` is owned by exactly one layer registry-wide ([ADR-052](#adr-052)
+decision 2).
+
+Both escapes available today are already refused. Minting `ES_EMPLOYER_TAX_PLATE` beside
+`EMPLOYER_TAX_PLATE` is two codes for one document — [ADR-052b](#adr-052b) decisions 1 and 7, and the
+failure [ADR-052a](#adr-052a) Rule 1 names in its other direction; it would also double-count
+readiness for a dossier whose destination changes, and multiply by every country added. Moving the
+six into `tr-filing` is the inference [ADR-052a](#adr-052a) Rule 3 refused **in advance**, naming this
+exact moment: *"the moment a third mission asks for something, the same inference will look even more
+reasonable, and it will be just as unsupported."*
+
+**The evidence refutes the promotion independently of the rule**, which is what makes this decision
+necessary rather than stylistic. None of the six appears anywhere in Commission Implementing Decision
+C(2021) 5156 — the instrument `tr-filing` speaks for. And the missions do not agree with each other:
+
+| evidence identity | Greece | Germany | Spain |
+|---|---|---|---|
+| `EMPLOYER_TAX_PLATE` | silent — no reachable Greek source | asked, sheet § 4(c) | asked, both consular districts |
+| `EMPLOYER_SIGNATURE_CIRCULAR` | asked, visa-centre checklist | silent | asked, both consular districts |
+| `SPONSOR_LETTER` | asked, off a different trigger | **absent — the sheets are closed** | asked, consulate category (e) |
+| `SPONSOR_BANK_STATEMENTS` | asked, off a different trigger | **absent** | asked, consulate category (e) |
+| travel-history copies | not asked | asked — ten years, five visa families | asked — data page and all stamped pages |
+| `RELATIONSHIP_PROOF` | a rule, not a named document | **absent** | a rule, plus two *named* documents |
+
+No row is asked by all three. Every row is asked by exactly two of three. **The union is asked of
+nobody**, so any layer all three packs compose and that *owns* these rows puts each pack back in the
+position `b40a33e` and `714830b` removed it from — asking for documents its own authority does not
+support — and the only way out would be `suppress`, which [ADR-052](#adr-052) considered and rejected.
+
+So the thing that is missing is not shared *ownership*. It is shared *presence*. `add` does two jobs
+at once — *this is the canonical definition of an evidence identity* and *this composition asks for
+it* — and until a third destination existed, nothing forced them apart. The identity is genuinely
+shared; the asking is genuinely per mission.
+
+**Decision:**
+
+1. **Exclusive ownership remains, unamended.** One requirement `code` has exactly one canonical
+   definition and one **global base `revision`** that means the same thing in every composition
+   ([ADR-051](#adr-051) decision 4, [ADR-052b](#adr-052b) decision 2). Two layers declaring one code
+   remains forbidden registry-wide, and mission-specific duplicate codes for one evidence identity
+   remain forbidden. Nothing below relaxes either; the whole point is to satisfy a third destination
+   *without* relaxing them.
+
+2. **Ownership and presence are different concepts and must be separable.** Defining an evidence
+   identity and asking an applicant for it are two assertions, and a reusable definition is not a
+   claim that Türkiye requires the document, that every mission in Türkiye requires it, or that any
+   particular composition requires it. The conflation was invisible with one pack and survivable with
+   two; a third destination whose evidence overlaps both of the first two is what demonstrates it must
+   end.
+
+3. **Two concepts are introduced — `offer` and `activate` — and nothing is built in this record.**
+   Conceptually: a layer may **offer** a canonical requirement definition, which it owns and which
+   composes for nobody; a later layer may **activate** an offered identity, which makes it present in
+   that composition. **Activation is the authority-bearing assertion** that this composition asks for
+   the requirement. The normative rule, which every later mechanism must preserve:
+
+   > An offered requirement asserts no applicability, presence, requiredness or authority in any
+   > production composition until an authorized later layer activates it.
+
+   `offer` and `activate` are accepted working names. What is decided here is the semantic contract,
+   not a TypeScript shape; an implementation that keeps the contract may name and spell it otherwise.
+
+4. **The definition home for these identities is a neutral layer, proposed as `tr-mission-practice`.**
+   Its semantics are **not** "Türkiye requires these documents". They are: *canonical evidence
+   definitions observed across mission practice for applications filed in Türkiye, individually inert
+   until activated by a mission with its own evidence.* It may share the existing `jurisdiction` layer
+   kind as an implementation classification — the kind decides composition order and nothing else —
+   and that sharing must never be read as jurisdiction-wide applicability. [ADR-052a](#adr-052a)
+   Rule 3 therefore stands untouched: *"N missions ask for it"* is still never promoted to a
+   jurisdiction rule, because the shared thing is the definition and the asking stays with whoever
+   publishes it.
+
+5. **Activation is purely additive, and by itself key-neutral.** It may not narrow applicability,
+   change `required`, change `ownerType` or `ownerByOccupation`, change the base contract's own prose,
+   change the base `revision`, or suppress or replace anything. It may not activate a code already
+   present in the composition, whether owned by an earlier layer or already activated; it may not
+   activate an unknown or unoffered code; and it must reference an offer made by an **earlier** layer,
+   so activation travels backwards exactly as refinement does. Every production composition must
+   **pin** what it activates, so a new activation is a reviewed line in a diff rather than a
+   side effect. **Activation alone does not move `contractKey`** — it changes whether you are asked,
+   not what satisfies the ask, which is the same rule [ADR-052c](#adr-052c) decision 5 applies to a
+   widening. Acceptance detail attached by the activating layer still moves the key under the existing
+   fragment rule ([ADR-052b](#adr-052b) decisions 3 and 4), and an occupational widening remains
+   governed by [ADR-052c](#adr-052c) and remains key-neutral.
+
+6. **Provenance belongs to the activating assertion, not to the definition.** An inert offered
+   definition does not acquire a mission's citations by existing, and carries none of its own — it
+   asserts nothing, so there is nothing for a citation to vouch for ([ADR-048](#adr-048)). A mission
+   that activates a requirement supplies the evidence appropriate to **that** mission and composition,
+   and activation must never cause one destination's authority to appear in another's pack. The
+   existing isolation invariants are the enforcement, not this sentence.
+
+7. **Persisted completion semantics are unchanged.** The requirement `code` remains the persisted
+   evidence identity ([ADR-049](#adr-049)), and `contractKey` remains `code`, base revision and the
+   fragments this composition attached ([ADR-051b](#adr-051b)) — the **owning layer's id is not part
+   of it**. Moving an unchanged canonical definition out of a mission layer's `add` and into the
+   reusable home therefore invalidates no completion claim, provided the `code` is unchanged, the base
+   revision is unchanged and the effective fragments are unchanged, because the key that a stored
+   claim is compared against is then character-for-character what it was. The capability implies no
+   `schemaVersion` bump, no `STORAGE_FORMAT_VERSION` bump and no destructive dossier migration. A
+   migration that cannot state that it holds has changed something else as well, and owes its own
+   record.
+
+8. **An evidence gap can no longer be keyed by `code` alone.** `JURISDICTION_EVIDENCE_GAPS` records an
+   uncited requirement globally, and its stale-entry check deletes any entry whose row has gained a
+   citation — correctly, while a code is asked by one pack. Once one mission may hold evidence for an
+   identity while another still has an unresolved limitation on the same identity, that check would
+   demand deletion of a limitation that is entirely true: Spain's consulate publishes the guarantor
+   requirement, and Greece's recorded reason for not citing the same rows is a **condition mismatch**
+   that Spain's evidence does not touch. The register therefore needs composition or layer scope,
+   conceptually `(scope, code)`, and it needs it **before** a cross-mission activation can make such a
+   state real. Not implemented here.
+
+9. **The motivating cases are adjudicated individually, and they do not share one answer.** Recorded
+   as categories, not as a shipping list:
+
+   | identity | standing under this ADR |
+   |---|---|
+   | `EMPLOYER_TAX_PLATE` | clean same-identity candidate: neutral base prose, no fragment in Germany, key `@1`. **Preferred first production pilot.** |
+   | `EMPLOYER_SIGNATURE_CIRCULAR` | same identity, neutral prose — but its base is `required: false`, authored for Greece's evidence state, while Spain's checklists list it as mandatory. Requiredness is not composition-scoped ([ADR-052b](#adr-052b) decision 6) and activation must not make it so. **Unresolved; not shipped by this ADR.** |
+   | `SPONSOR_LETTER`, `SPONSOR_BANK_STATEMENTS` | same identities, and the first case where one pack can cite what another records as a gap. **Candidates, blocked on decision 8.** |
+   | travel-history copies (`DE_TRAVEL_HISTORY_COPIES`) | the same broad evidence concept, but its **base prose is Germany-specific** — ten years, five named visa families — and a later layer may not change base prose. Activating it as-is would render German criteria to a Spanish applicant. **Requires its own generalisation and revision adjudication.** |
+   | `RELATIONSHIP_PROOF` | **must not be activated under this ADR.** Its own recorded gap says the checklist establishes a relationship *rule* rather than a document, and Spain's sources name two distinct instruments. The identity is conflated ([ADR-052b](#adr-052b) decision 7), and an unresolved identity is not made resolvable by becoming reusable. |
+
+   `SPONSOR_INCOME_PROOF` is likewise outside the candidate set, for the reason its gap entry already
+   gives: it stands in for several evidence identities at once.
+
+10. **Non-goals, stated so they cannot be smuggled in.** This ADR does not decide composition-specific
+    requiredness; the `SOCIAL_SECURITY` identity split; age or minor applicability; satisfaction-group
+    narrowing or closing; monetary-threshold conflicts; source-authority or channel precedence between
+    a consulate and its authorized visa centre; the travel-history base generalisation;
+    `RELATIONSHIP_PROOF`'s identity split; or `Mükellefiyet Belgesi`. Each is a separate question with
+    its own evidence, and several are recorded under *Observed evidence not yet modelled* in
+    [country-pack-guide.md](./country-pack-guide.md).
+
+11. **Sequencing is part of the decision.** **H5b** is this record and builds nothing. **H5c**
+    implements the composer capability and its invariants against **synthetic** packs only, migrating
+    no production requirement. **H5d** migrates exactly one clean pilot — `EMPLOYER_TAX_PLATE` —
+    proving Germany's composed output, contract key and completion compatibility before any second
+    pack consumes it. Further adjudicated identities may be activated in later slices, each on its own
+    evidence. **Spain production work resumes only after the capability and the pilot are closed.**
+
+**Why not simply activate another mission's owned code in place.** It would spare the definition home,
+and it inverts ownership to do so: Spain's base prose, requiredness and revision would be owned by
+`gr-tr-mission`, one destination's retirement would become another's build failure, and the isolation
+the `germany-pack` suite asserts three ways would hold for citations while failing for contracts. The
+neutral home costs one layer and keeps every pack's obligations traceable to a definition no
+destination speaks for.
+
+**Why not do nothing.** It is a real option and it was weighed. The project has twice chosen to
+*record* rather than assert when the model could not express something honestly. Those were cases
+where the shape did not exist; here it does, and the only obstacle is a bookkeeping identity between
+"owns" and "asks". Doing nothing means a third pack tells an applicant their dossier is ready while
+their consulate's own page asks for documents this repository holds cited evidence for. Readiness is
+the product's central claim and that is what spending it looks like.
+
+**What this changes in the earlier records.** [ADR-052](#adr-052) decision 2 stands as written.
+Decision 3 — *"a later layer may do exactly one thing to an earlier layer's requirement"* — has been
+extended twice already, by [ADR-052b](#adr-052b) and [ADR-052c](#adr-052c), and this is the third
+extension: a later layer may also make an offered identity present, without owning it and without
+changing it. [ADR-052b](#adr-052b) decision 6's prohibition list is untouched; activation is not a
+fragment and may do none of the things a fragment may not do. **The amendment blockquotes those
+records carry belong with the slice that changes behaviour**, so none is added here — this ADR
+authorises nothing, exactly as [ADR-051c](#adr-051c) authorised nothing when it was written.
+
+**Consequences.** One new way for a requirement to exist is one more thing a reader must hold, and a
+definition nobody activates is precisely the inert registry [ADR-050](#adr-050) warns about — so the
+implementing slice owes a reachability check in both directions, the same treatment
+`ALL_REQUIREMENT_LAYERS` already gets. Activation is opt-in, so a pack that forgets to activate
+something under-asks silently; the per-composition pin is what makes that a reviewed omission rather
+than an invisible one. And the capability deliberately does not solve the requiredness mismatch it
+uncovered on `EMPLOYER_SIGNATURE_CIRCULAR`: that row will compose in Spain as optional, or not at
+all, until somebody argues composition-specific requiredness on its own evidence.
+
+**Implementation:** documentation only — `docs/decisions.md`. Nothing here is built, no requirement
+moves, and no country pack changes. The capability this record describes is H5c, the pilot migration
+is H5d, and neither is authorised by this record.
