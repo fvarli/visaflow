@@ -123,8 +123,13 @@ layer **activates** it, which is the assertion that *this* composition asks, car
 own evidence. Activation reaches backwards exactly as refinement does, may do nothing a refinement
 may not do, and is key-neutral by itself. It exists because a third destination asks for documents
 this repository already defines under another destination's mission layer, where a shared definition
-is real and a shared obligation is not. The capability ships against synthetic packs only; no
-production requirement is offered yet.
+is real and a shared obligation is not. **It is in production.** `EMPLOYER_TAX_PLATE` is offered by
+the neutral definition home `tr-mission-practice` and activated by `de-tr-mission` on the German
+mission's own checklist. Both packs compose that home and only Germany activates: Greece composes it,
+activates nothing, and neither owns nor receives the requirement — which is what makes *composing a
+definition home confers nothing* a property production demonstrates rather than asserts. The
+relocation moved a definition between owning layers and did nothing else, so Germany's composed
+contract and its `contractKey` are unchanged and no stored completion claim was disturbed.
 
 Applicability runs on **two axes**: the coarse `employmentStatus`, and an `occupation` resolved from
 an opaque persisted code — usable only when this build knows it *and* the recorded status allows it,

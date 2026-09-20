@@ -716,9 +716,19 @@ describe('requirement identity — an offer is reachable or it is dead', () => {
   })
 
   it('reaches it through exactly one authorized production activation', () => {
-    // Not "at least one". Two packs activating one definition would mean two
-    // missions asserting the same ask from different evidence, which the
-    // composer refuses per composition but which this says across the registry.
+    // A pin on today's production census, not a rule that one identity may be
+    // activated once. ADR-052d exists so that a second mission *can* ask for a
+    // definition it does not own, and the composer's `duplicate-activate` guard
+    // is scoped per composition precisely to allow that: what it forbids is two
+    // layers of the *same* composition asking for one document twice, which
+    // would count its readiness twice.
+    //
+    // The list is exact rather than `toContain` because an activation is an
+    // authority-bearing assertion (ADR-052d decision 6). Germany is alone here
+    // for one reason only — it is the only mission that has so far supplied its
+    // own evidence for this identity. A second mission joins this list by
+    // bringing its own citation, and editing the expectation is the reviewed
+    // line in the diff that says so.
     const activations = PRODUCTION_COMPOSITIONS.flatMap(
       ({ countryCode, composition }) =>
         [...composition.activations.entries()].map(

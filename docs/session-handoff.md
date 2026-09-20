@@ -2561,3 +2561,139 @@ Chrome across both packs and both locales.
 
 No production slice is queued. The company-document block is fully routed onto the occupational axis
 and both packs render what their own sources publish.
+
+---
+
+# Iteration 33 — Owning an evidence identity stops meaning everybody is asked for it
+
+Covers H5b → H5d, plus a read-only Spain readiness audit that shipped nothing. Baseline `3f9f13b`,
+shipped at `c1a4ad4`, CI green on that exact SHA, 2124/2124 across 114 files. This entry is the
+**current-state record** and supersedes Iteration 32's figures; that entry is kept as written.
+
+### Where the numbers are
+
+| axis | value |
+|---|---|
+| app | `1.1.0` |
+| dossier `schemaVersion` | `1.4.0` (reads 1.0.0–1.4.0; writes 1.4.0) |
+| `STORAGE_FORMAT_VERSION` | `2` |
+| Greece `templateVersion` | `1.15.0` — **28** requirements, **24** verified, `partially_verified` |
+| Germany `templateVersion` | `1.13.0` — **27** requirements, **27** verified, `verified` |
+
+**Every one of these is unchanged from Iteration 32, and that is the result rather than an omission.**
+H5d relocated a canonical definition between owning layers; it did not change what either pack asks
+for, so nothing was bumped — not a base revision, not a fragment, not `templateVersion`, not
+`schemaVersion`, not `STORAGE_FORMAT_VERSION`.
+
+### What shipped
+
+| slice | commit | what it did |
+|---|---|---|
+| H5b | `3bc023d` | [ADR-052d](./decisions.md#adr-052d) accepted. Documentation only; builds nothing. |
+| H5c | `1e78626` | The `offer` / `activate` composer capability, against **synthetic** packs only. |
+| H5d | `c1a4ad4` | The production pilot: `EMPLOYER_TAX_PLATE`, and nothing else. |
+
+**The decision.** `add` had been doing two jobs at once — *this is the canonical definition of an
+evidence identity* and *this composition asks for it*. Two packs never forced them apart; a third
+destination does. What was missing is not shared **ownership** but shared **presence**.
+
+**The capability.** `offer` owns a definition and asks nobody; `activate` is a later layer saying
+*this composition asks*, on its own evidence. Activation reaches backwards exactly as refinement
+does, may do nothing a refinement may not do, and is key-neutral by itself. Eight named failure
+kinds, one per mistake, each with a negative control. `CompositionResult` publishes `offered` and `activations` beside
+`ownership`, so an offer nobody activates is dead configuration rather than a quiet one.
+
+**The pilot.** `EMPLOYER_TAX_PLATE`'s definition moved unchanged out of `de-tr-mission`'s `add` into a
+new neutral layer, `tr-mission-practice`, as an inert `offer`; `de-tr-mission` activates it and
+carries the citation that used to sit on the definition. **Both packs compose the definition home and
+only Germany activates** — Greece composes it, activates nothing, and its composed requirements,
+order, ownership tally, contract keys and source pool are value-identical to before. That unchanged
+Greek output is what turns *composing a definition home confers nothing* from a synthetic proof into
+a production one. The key stayed `EMPLOYER_TAX_PLATE@1`, so no stored completion claim was disturbed.
+
+### What the pilot found that the capability had missed
+
+Three gaps, each fixed in the same slice, and each worth remembering because all three were invisible:
+
+- **The isolation detector could not see `activate`.** It read `add`, `refine` and `sources`, so the
+  first production activation would have carried one destination's authority straight past the guard
+  that exists to stop exactly that. ADR-052d decision 6 had said "the existing isolation invariants
+  are the enforcement"; in code they were not.
+- **The authoring censuses walked `add` only** — occupational conditions, condition vocabulary,
+  acceptance detail, applicability migrations — and would have silently stopped covering a definition
+  the moment it became an offer.
+- **The "no mission citation in a layer both packs compose" guard was hard-coded to `tr-filing`**, and
+  a second shared layer now exists. It derives the shared set from the compositions instead.
+
+### The Spain readiness audit — read-only, shipped nothing
+
+Run against this checkpoint. Verdict **PARTIALLY READY**, and the split is worth stating precisely.
+
+**Solved:** the cross-mission **ownership-versus-presence** problem for reusable identities. A second
+mission can now ask for a document this repository already defines, without minting a duplicate code,
+without promoting it into `tr-filing` on an instrument that does not name it, and without inverting
+ownership onto another destination's mission layer. `EMPLOYER_TAX_PLATE` is technically ready for a
+later Spain activation with **no composer change** — what it still needs is Spain's own citable
+source, and an edit to the pinned production censuses.
+
+**Not solved, and this is the gate: there is no durable Spanish evidence anywhere in this
+repository.** No `RequirementSource` record, no URL, no retrieval date, no named consular district,
+no per-row applicability, no acceptance detail. What *is* durable is the six-identity overlap
+measurement in ADR-052d and its restatement under *Observed evidence not yet modelled* in
+[country-pack-guide.md](./country-pack-guide.md) — which records *that* Spain asks, never *of whom* or
+*on what page*. ADR-015 forbids reconstructing it, so Spain production work is gated on retrieval, not
+on architecture.
+
+**No Spain pack, layer, source record or translation key exists.** `git log -S "Spain"` returns only
+the three commits above.
+
+### Carried forward, and the rule for picking one up
+
+ADR-052d decision 10's non-goals are still non-goals: composition-specific requiredness (blocking
+`EMPLOYER_SIGNATURE_CIRCULAR`, whose base is `required: false`); the evidence-gap register needing
+`(scope, code)` (blocking `SPONSOR_LETTER` and `SPONSOR_BANK_STATEMENTS`); an age or minor axis (the
+applicability projection exposes `employmentStatus`, `occupation`, `financing` and `nationality`, and
+nothing else); satisfaction-group narrowing or closing (`tr-travel-arrangements` is declared on
+`tr-filing` and inherited by every pack filing in Türkiye); the travel-history base generalisation
+(`DE_TRAVEL_HISTORY_COPIES` renders German criteria and carries a `DE_` prefix); and
+`RELATIONSHIP_PROOF`'s identity split.
+
+**None of these should be solved speculatively.** Each is a real gap and none is yet *known to be
+live for Spain* — whether Spain closes the travel-arrangements choice, publishes a minor-applicant
+branch, or makes the signature circular mandatory of a population this model can express are all
+**retrieval** questions. Building a capability around a mission practice nobody has read is the
+inference ADR-052a Rule 3 refuses.
+
+Still carried from Iteration 32: **`Mükellefiyet Belgesi`**, an Edirne-only delta on the *Greek*
+visa-centre checklist whose condition compares the contents of two documents. Confirmed separate from
+Spain; its capture is not in the repository and must be re-retrieved.
+
+### Standing constraints — maintained, as of 2026-09-20
+
+Iteration 32's list stands unamended, with one addition:
+
+- **Owning an identity and asking for it are separate assertions.** A layer may `add` a requirement
+  (own it *and* ask for it) or `offer` one (own it, ask nobody); a later layer `activate`s an offer to
+  make it present in *that* composition, on its own evidence. An activation may do nothing a
+  refinement may not do, carries its own citations, and is key-neutral by itself. An offered
+  definition carries no citations at all — it asserts nothing, so there is nothing to vouch for.
+
+### Gates
+
+`format:check` ✓ · `lint` **0 errors / 118 warnings** · `typecheck` ✓ · `test`
+**2124/2124, 114 files** · act guard **0** · `build` ✓.
+
+The 118 is the standing baseline, and its composition is written out here because Iterations 31 and
+32 described it as "all the accepted `react-refresh/only-export-components` category", which it is
+not: 71 `@typescript-eslint/no-non-null-assertion` (test files), 26
+`@typescript-eslint/no-deprecated`, 12 `react-refresh/only-export-components`, 5
+`react-hooks/exhaustive-deps`, 4 `react-hooks/incompatible-library`. Only the third group is the
+category CLAUDE.md tells a reader to ignore. Nothing here is new — the count has not moved — but a
+baseline nobody can decompose is one nobody notices growing.
+
+### Next
+
+No production slice is queued. The next Spain step is **evidence retrieval, not authoring**: name the
+Spanish consulate and both consular districts with URLs and retrieval dates, then capture per
+identity the verbatim clause, its numbering and the applicant population it is stated under. Nothing
+under `src/config/countries/` should change before that lands.
