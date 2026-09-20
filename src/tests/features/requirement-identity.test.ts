@@ -577,8 +577,21 @@ describe('requirement identity — population and detail diverging together', ()
 })
 
 describe('requirement identity — one code, one owning layer, registry-wide', () => {
+  /**
+   * Offers count as declarations, because owning is what they do.
+   *
+   * ADR-052d separates *ownership* from *presence*, and relaxes only the second
+   * one: an offered definition composes for nobody, but it still claims its
+   * code registry-wide. Walking `add` alone would let an offered code collide
+   * with an added one in another layer and this check would never see it —
+   * which is the failure the check exists for, arriving through the one field
+   * it did not read.
+   */
   const declarations = ALL_REQUIREMENT_LAYERS.flatMap((layer) =>
-    (layer.add ?? []).map((r) => ({ code: r.code, layerId: layer.id }))
+    [...(layer.add ?? []), ...(layer.offer ?? [])].map((r) => ({
+      code: r.code,
+      layerId: layer.id,
+    }))
   )
 
   it('declares every code exactly once across all layers', () => {
@@ -644,9 +657,75 @@ describe('requirement identity — one code, one owning layer, registry-wide', (
   it('composes every registered layer that declares requirements', () => {
     // And a layer registered but composed by nothing is dead configuration
     // whose codes are being held against every other layer for no reason.
+    //
+    // A layer that only *offers* is included, and it is the harder case: its
+    // codes appear in a pack's `ownership` map only once something activates
+    // one of them, so a definition home nobody ever activates reads here as
+    // exactly what it is.
     const orphaned = ALL_REQUIREMENT_LAYERS.filter(
-      (l) => (l.add?.length ?? 0) > 0 && !usedLayerIds.has(l.id)
+      (l) =>
+        (l.add?.length ?? 0) + (l.offer?.length ?? 0) > 0 &&
+        !usedLayerIds.has(l.id)
     ).map((l) => l.id)
     expect(orphaned).toEqual([])
+  })
+})
+
+/**
+ * Offered identities, and the reachability they owe in both directions.
+ *
+ * ADR-052d's own consequences paragraph asks for this: one more way for a
+ * requirement to exist is one more thing that can quietly exist for nobody, and
+ * a definition nobody activates is precisely the inert registry ADR-050 warns
+ * about. `ALL_REQUIREMENT_LAYERS` already gets this treatment; offers now do
+ * too.
+ *
+ * **These are empty-set true today, and that is stated rather than hidden.**
+ * H5c implements the capability against synthetic packs only and migrates no
+ * production requirement, so no registered layer offers anything yet. The
+ * assertions are written now because the slice that first offers one (H5d, the
+ * `EMPLOYER_TAX_PLATE` pilot) should find them already standing rather than
+ * have to remember to write them — but a green result here proves nothing until
+ * `offeredCodes` is non-empty, which is what the census below makes visible.
+ */
+describe('requirement identity — an offer is reachable or it is dead', () => {
+  const offeredCodes = ALL_REQUIREMENT_LAYERS.flatMap((layer) =>
+    (layer.offer ?? []).map((r) => ({ code: r.code, layerId: layer.id }))
+  )
+
+  const activatedCodes = new Set(
+    PRODUCTION_COMPOSITIONS.flatMap((p) => [
+      ...p.composition.activations.keys(),
+    ])
+  )
+
+  it('records how many identities are offered, so a vacuous pass is visible', () => {
+    // Not an assertion that the number is right — only the evidence that says
+    // whether the two checks below are proving anything yet. H5c ships zero.
+    expect(offeredCodes.length).toBe(0)
+  })
+
+  it('has every offered identity activated by some pack', () => {
+    const unreached = offeredCodes
+      .filter(({ code }) => !activatedCodes.has(code))
+      .map(({ code, layerId }) => `${code} (${layerId})`)
+    expect(unreached).toEqual([])
+  })
+
+  it('activates nothing that no registered layer offers', () => {
+    // The other direction: an activation is only legal against an offer, so an
+    // activated code absent from the registry means the registry is incomplete.
+    const declaredOffers = new Set(offeredCodes.map((o) => o.code))
+    expect(
+      [...activatedCodes].filter((code) => !declaredOffers.has(code))
+    ).toEqual([])
+  })
+
+  it('never offers a retired identity', () => {
+    // The existing resurrection guard reads composed templates, which an inert
+    // offer never reaches — so a retired code could be re-declared as an offer
+    // and nothing would object until somebody activated it.
+    const retired = new Set(RETIRED_REQUIREMENTS.map((r) => r.code))
+    expect(offeredCodes.filter(({ code }) => retired.has(code))).toEqual([])
   })
 })

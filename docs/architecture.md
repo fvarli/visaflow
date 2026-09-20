@@ -116,6 +116,16 @@ widening does not** — it changes who is asked, not what satisfies the ask. A c
 declare **satisfaction groups** — "any one of these documents settles this obligation" — which
 readiness counts once rather than per member.
 
+**Owning an identity and asking for it are separate assertions** ([ADR-052d]). A layer may `add` a
+requirement — own it *and* ask for it — or `offer` one, which owns the definition and asks nobody:
+an offered requirement asserts no applicability, presence, requiredness or authority until a later
+layer **activates** it, which is the assertion that *this* composition asks, carrying that layer's
+own evidence. Activation reaches backwards exactly as refinement does, may do nothing a refinement
+may not do, and is key-neutral by itself. It exists because a third destination asks for documents
+this repository already defines under another destination's mission layer, where a shared definition
+is real and a shared obligation is not. The capability ships against synthetic packs only; no
+production requirement is offered yet.
+
 Applicability runs on **two axes**: the coarse `employmentStatus`, and an `occupation` resolved from
 an opaque persisted code — usable only when this build knows it *and* the recorded status allows it,
 absent otherwise ([ADR-053]). Moving an already-shipped requirement from the first axis to the second
@@ -338,5 +348,6 @@ The repository is the **only** thing that touches a storage API; no component re
 [ADR-052]: ./decisions.md#adr-052
 [ADR-052b]: ./decisions.md#adr-052b
 [ADR-052c]: ./decisions.md#adr-052c
+[ADR-052d]: ./decisions.md#adr-052d
 [ADR-053]: ./decisions.md#adr-053
 [ADR-053a]: ./decisions.md#adr-053a

@@ -516,3 +516,561 @@ describe('composeVisaTemplate — the order contract', () => {
     }
   })
 })
+
+/**
+ * `offer` / `activate` — ownership and presence, separated (ADR-052d).
+ *
+ * Synthetic throughout, like everything else in this file, and deliberately so:
+ * this slice adds the capability and migrates no production requirement, so
+ * there is nothing here that claims anything about Greece, Germany or Spain.
+ * The pilot that moves one real identity is a separate slice with its own
+ * evidence.
+ *
+ * The rule every assertion below serves, stated once:
+ *
+ * > An offered requirement asserts no applicability, presence, requiredness or
+ * > authority in any production composition until an authorized later layer
+ * > activates it.
+ */
+
+/** The neutral definition home: owns the identity, asks nobody for it. */
+const practiceLayer: RequirementLayer = {
+  id: 'test-practice',
+  kind: 'jurisdiction',
+  offer: [req('TEST_OFFERED')],
+}
+
+/** A mission that does ask for it, on its own evidence. */
+const missionLayer: RequirementLayer = {
+  id: 'test-mission',
+  kind: 'jurisdiction',
+  activate: [{ code: 'TEST_OFFERED', addSourceRefs: ['src-mission'] }],
+  sources: [source('src-mission')],
+}
+
+const OFFERED_LAYERS = [commonLayer, destinationLayer, practiceLayer]
+const ACTIVATED_LAYERS = [...OFFERED_LAYERS, missionLayer]
+
+describe('composeVisaTemplate — an offered definition asks nobody', () => {
+  const composed = () =>
+    composeVisaTemplate({ base: BASE, layers: OFFERED_LAYERS })
+
+  it('keeps an unactivated offer out of the composed template', () => {
+    // The normative rule itself. Everything downstream — seeding, readiness,
+    // the next-document recommendation, the review checklist — reads this list,
+    // so absence here is absence everywhere.
+    expect(composed().template.documentRequirements.map((r) => r.code)).toEqual(
+      ['TEST_A', 'TEST_B', 'TEST_C']
+    )
+  })
+
+  it('reports it as offered, not as owned', () => {
+    // Two maps because the two questions are different. `ownership` answers
+    // "what composed, and whose is it" — which the registry invariants read to
+    // decide whether a layer is dead configuration — and an inert definition
+    // did not compose. `offered` is how that same reader can still see it.
+    const { ownership, offered, activations } = composed()
+    expect(ownership.has('TEST_OFFERED')).toBe(false)
+    expect(offered.get('TEST_OFFERED')).toBe('test-practice')
+    expect(activations.has('TEST_OFFERED')).toBe(false)
+  })
+
+  it('still owns the code registry-wide, so nothing else may declare it', () => {
+    // Inert is not unclaimed. ADR-052d relaxes neither half of one-code-one-
+    // owner; the whole point was to satisfy a third destination *without*
+    // relaxing it.
+    expectKind('duplicate-offer', () =>
+      composeVisaTemplate({
+        base: BASE,
+        layers: [
+          practiceLayer,
+          {
+            id: 'test-mission',
+            kind: 'jurisdiction',
+            add: [req('TEST_OFFERED')],
+          },
+        ],
+      })
+    )
+  })
+
+  it('refuses a second offer of the same code', () => {
+    expectKind('duplicate-offer', () =>
+      composeVisaTemplate({
+        base: BASE,
+        layers: [
+          practiceLayer,
+          {
+            id: 'test-practice-2',
+            kind: 'jurisdiction',
+            offer: [req('TEST_OFFERED')],
+          },
+        ],
+      })
+    )
+  })
+
+  it('refuses an offer of a code an earlier layer adds', () => {
+    // The other direction of the same collision, because the fix differs: here
+    // somebody is defining an identity that already has a home.
+    expectKind('duplicate-offer', () =>
+      composeVisaTemplate({
+        base: BASE,
+        layers: [
+          commonLayer,
+          { id: 'test-practice', kind: 'jurisdiction', offer: [req('TEST_A')] },
+        ],
+      })
+    )
+  })
+
+  it('refuses a citation attached to something nobody asks for', () => {
+    // An inert definition asserts nothing, so there is nothing for a citation
+    // to vouch for (ADR-048, ADR-052d decision 6). Reported as its own kind:
+    // "no layer declares it" would send the author to the wrong file.
+    expectKind('refine-inactive', () =>
+      composeVisaTemplate({
+        base: BASE,
+        layers: [
+          ...OFFERED_LAYERS,
+          {
+            id: 'test-mission',
+            kind: 'jurisdiction',
+            refine: [{ code: 'TEST_OFFERED', addSourceRefs: ['src-mission'] }],
+            sources: [source('src-mission')],
+          },
+        ],
+      })
+    )
+  })
+
+  it('refuses a satisfaction group routed through it', () => {
+    // A group naming an inert member promises the applicant a route the
+    // composition does not carry.
+    expectKind('invalid-group', () =>
+      composeVisaTemplate({
+        base: BASE,
+        layers: [
+          ...OFFERED_LAYERS,
+          {
+            id: 'test-mission',
+            kind: 'jurisdiction',
+            groups: [
+              {
+                id: 'test-group',
+                labelKey: 'test:groups.test-group.label',
+                anyOf: ['TEST_A', 'TEST_OFFERED'],
+              },
+            ],
+          },
+        ],
+      })
+    )
+  })
+
+  it('refuses a pinned order that names it', () => {
+    expectKind('order-mismatch', () =>
+      composeVisaTemplate({
+        base: BASE,
+        layers: OFFERED_LAYERS,
+        requirementOrder: ['TEST_A', 'TEST_B', 'TEST_C', 'TEST_OFFERED'],
+      })
+    )
+  })
+})
+
+describe('composeVisaTemplate — activation is the assertion that asks', () => {
+  const composed = () =>
+    composeVisaTemplate({ base: BASE, layers: ACTIVATED_LAYERS })
+
+  it('makes the offered requirement present', () => {
+    expect(composed().template.documentRequirements.map((r) => r.code)).toEqual(
+      ['TEST_A', 'TEST_B', 'TEST_C', 'TEST_OFFERED']
+    )
+  })
+
+  it('leaves ownership with the layer that offered it', () => {
+    // Activation is authority, not ownership. If the activating layer owned the
+    // row, one destination's retirement would become another's build failure —
+    // the inversion ADR-052d weighed and refused.
+    const { ownership, activations } = composed()
+    expect(ownership.get('TEST_OFFERED')).toBe('test-practice')
+    expect(activations.get('TEST_OFFERED')).toBe('test-mission')
+  })
+
+  it('carries the activating layer own citations', () => {
+    const activated = composed().template.documentRequirements.find(
+      (r) => r.code === 'TEST_OFFERED'
+    )
+    expect(activated?.sourceRefs).toEqual(['src-mission'])
+  })
+
+  it('changes nothing else about the definition', () => {
+    // Field-wise, like the refinement proof above: if activation is ever
+    // widened into something contract-bearing, this is what notices.
+    const activated = composed().template.documentRequirements.find(
+      (r) => r.code === 'TEST_OFFERED'
+    )
+    const { sourceRefs: _refs, contractKey: _key, ...rest } = activated ?? {}
+    expect(rest).toEqual(req('TEST_OFFERED'))
+  })
+
+  it('does not move the contract key', () => {
+    // ADR-052d decision 5: activation changes whether you are asked, not what
+    // satisfies the ask — the same rule ADR-052c applies to a widening. A claim
+    // stored against `TEST_OFFERED@1` in one composition still reads as
+    // satisfied in the composition that activates it.
+    const activated = composed().template.documentRequirements.find(
+      (r) => r.code === 'TEST_OFFERED'
+    )
+    expect(activated?.contractKey).toBe('TEST_OFFERED@1')
+    expect(activated?.revision).toBe(1)
+  })
+
+  it('moves the key when the activating layer attaches acceptance detail', () => {
+    // The other half of decision 5, and the reason it is not simply "activation
+    // never moves the key": detail attached *by* the activating layer is a
+    // fragment like any other, and a fragment moves the key.
+    const { template } = composeVisaTemplate({
+      base: BASE,
+      layers: [
+        ...OFFERED_LAYERS,
+        {
+          id: 'test-mission',
+          kind: 'jurisdiction',
+          activate: [
+            {
+              code: 'TEST_OFFERED',
+              addSourceRefs: ['src-mission'],
+              addDetail: {
+                detailKeys: ['test:requirements.TEST_OFFERED.detail'],
+                revision: 1,
+              },
+            },
+          ],
+          sources: [source('src-mission')],
+        },
+      ],
+    })
+    const activated = template.documentRequirements.find(
+      (r) => r.code === 'TEST_OFFERED'
+    )
+    expect(activated?.contractKey).toBe('TEST_OFFERED@1+test-mission:1')
+    expect(activated?.detailKeys).toEqual([
+      'test:requirements.TEST_OFFERED.detail',
+    ])
+    // Still the owner's revision. A fragment never supersedes it (ADR-051b).
+    expect(activated?.revision).toBe(1)
+  })
+
+  it('stays key-neutral when the activating layer widens the population', () => {
+    const occupational = req('TEST_OFFERED', {
+      conditionalOn: {
+        field: 'employment.occupation',
+        operator: 'equals',
+        value: 'company_owner',
+      },
+    })
+    const { template } = composeVisaTemplate({
+      base: BASE,
+      layers: [
+        { id: 'test-practice', kind: 'jurisdiction', offer: [occupational] },
+        {
+          id: 'test-mission',
+          kind: 'jurisdiction',
+          activate: [
+            {
+              code: 'TEST_OFFERED',
+              addApplicableOccupations: ['independent_professional'],
+            },
+          ],
+        },
+      ],
+    })
+    const activated = template.documentRequirements.find(
+      (r) => r.code === 'TEST_OFFERED'
+    )
+    expect(activated?.applicableOccupations).toEqual([
+      'independent_professional',
+    ])
+    expect(activated?.contractKey).toBe('TEST_OFFERED@1')
+  })
+
+  it('applies the widening guards to an activation too', () => {
+    // The prohibition list is shared, not re-derived: an activation may do
+    // nothing a refinement may not do (ADR-052b decision 6, unamended). Here
+    // the base does not route on occupation at all.
+    expectKind('invalid-widening', () =>
+      composeVisaTemplate({
+        base: BASE,
+        layers: [
+          practiceLayer,
+          {
+            id: 'test-mission',
+            kind: 'jurisdiction',
+            activate: [
+              {
+                code: 'TEST_OFFERED',
+                addApplicableOccupations: ['company_owner'],
+              },
+            ],
+          },
+        ],
+      })
+    )
+  })
+
+  it('lets a later layer cite what an earlier one activated', () => {
+    // The legitimate direction, asserted positively so the new guards cannot be
+    // over-tightened into rejecting the case the mechanism exists for.
+    const { template } = composeVisaTemplate({
+      base: BASE,
+      layers: [
+        ...ACTIVATED_LAYERS,
+        {
+          id: 'test-later',
+          kind: 'jurisdiction',
+          refine: [{ code: 'TEST_OFFERED', addSourceRefs: ['src-later'] }],
+          sources: [source('src-later')],
+        },
+      ],
+    })
+    expect(
+      template.documentRequirements.find((r) => r.code === 'TEST_OFFERED')
+        ?.sourceRefs
+    ).toEqual(['src-mission', 'src-later'])
+  })
+
+  it('pins the activation in a requirementOrder like any other row', () => {
+    // What makes an activation a reviewed line in a diff rather than a side
+    // effect: a pack that pins its order cannot gain a requirement without the
+    // order changing too.
+    const { template } = composeVisaTemplate({
+      base: BASE,
+      layers: ACTIVATED_LAYERS,
+      requirementOrder: ['TEST_OFFERED', 'TEST_A', 'TEST_B', 'TEST_C'],
+    })
+    expect(template.documentRequirements.map((r) => r.code)).toEqual([
+      'TEST_OFFERED',
+      'TEST_A',
+      'TEST_B',
+      'TEST_C',
+    ])
+  })
+
+  it('refuses a pinned order that omits what it activated', () => {
+    expectKind('order-mismatch', () =>
+      composeVisaTemplate({
+        base: BASE,
+        layers: ACTIVATED_LAYERS,
+        requirementOrder: ['TEST_A', 'TEST_B', 'TEST_C'],
+      })
+    )
+  })
+})
+
+describe('composeVisaTemplate — activation guards', () => {
+  const mission = (
+    activate: RequirementLayer['activate'],
+    extra: Partial<RequirementLayer> = {}
+  ): RequirementLayer => ({
+    id: 'test-mission',
+    kind: 'jurisdiction',
+    activate,
+    ...extra,
+  })
+
+  it('rejects activating a code nothing declares', () => {
+    expectKind('dangling-activate', () =>
+      composeVisaTemplate({
+        base: BASE,
+        layers: [commonLayer, mission([{ code: 'TEST_MISSING' }])],
+      })
+    )
+  })
+
+  it('rejects activating a code an earlier layer added', () => {
+    // A different mistake from the one above and from the one below: the code
+    // is already asked for by every composition that includes its layer, so
+    // there is nothing to activate.
+    expectKind('activate-not-offered', () =>
+      composeVisaTemplate({
+        base: BASE,
+        layers: [commonLayer, mission([{ code: 'TEST_A' }])],
+      })
+    )
+  })
+
+  it('rejects two layers activating one offer', () => {
+    // Asking twice for one document would count its readiness twice.
+    expectKind('duplicate-activate', () =>
+      composeVisaTemplate({
+        base: BASE,
+        layers: [
+          practiceLayer,
+          missionLayer,
+          {
+            id: 'test-mission-2',
+            kind: 'jurisdiction',
+            activate: [{ code: 'TEST_OFFERED' }],
+          },
+        ],
+      })
+    )
+  })
+
+  it('rejects one layer activating the same offer twice', () => {
+    expectKind('duplicate-activate', () =>
+      composeVisaTemplate({
+        base: BASE,
+        layers: [
+          practiceLayer,
+          mission([{ code: 'TEST_OFFERED' }, { code: 'TEST_OFFERED' }]),
+        ],
+      })
+    )
+  })
+
+  it('rejects a layer activating its own offer', () => {
+    // An offer exists precisely to be asked for by somebody else, on their
+    // evidence. A layer that wants its own definition asked for has `add`.
+    expectKind('self-activate', () =>
+      composeVisaTemplate({
+        base: BASE,
+        layers: [
+          {
+            id: 'test-practice',
+            kind: 'jurisdiction',
+            offer: [req('TEST_OFFERED')],
+            activate: [{ code: 'TEST_OFFERED' }],
+          },
+        ],
+      })
+    )
+  })
+
+  it('rejects activation reaching a later layer offer', () => {
+    // Activation travels backwards exactly as refinement does.
+    expectKind('forward-activate', () =>
+      composeVisaTemplate({
+        base: BASE,
+        layers: [
+          {
+            id: 'test-early',
+            kind: 'common',
+            activate: [{ code: 'TEST_OFFERED' }],
+          },
+          practiceLayer,
+        ],
+      })
+    )
+  })
+
+  it('rejects a refinement wedged between the offer and its activation', () => {
+    // Presence can now arrive later than ownership, and the direction rule has
+    // to follow presence: a citation attached here would vouch for an assertion
+    // that has not been made yet, which is how one mission authority ends up
+    // decorating another ask (ADR-052d decision 6).
+    expectKind('forward-refine', () =>
+      composeVisaTemplate({
+        base: BASE,
+        layers: [
+          practiceLayer,
+          {
+            id: 'test-between',
+            kind: 'jurisdiction',
+            refine: [{ code: 'TEST_OFFERED', addSourceRefs: ['src-between'] }],
+            sources: [source('src-between')],
+          },
+          missionLayer,
+        ],
+      })
+    )
+  })
+
+  it('rejects a layer that both activates and refines one code', () => {
+    // One assertion, one line. The same reasoning that refuses a layer refining
+    // what it owns: two ways to say a thing is how one of them gets forgotten,
+    // and a forgotten citation renders as no provenance at all.
+    expectKind('invalid-activation', () =>
+      composeVisaTemplate({
+        base: BASE,
+        layers: [
+          practiceLayer,
+          mission([{ code: 'TEST_OFFERED', addSourceRefs: ['src-mission'] }], {
+            refine: [{ code: 'TEST_OFFERED', addSourceRefs: ['src-mission'] }],
+            sources: [source('src-mission')],
+          }),
+        ],
+      })
+    )
+  })
+
+  it('rejects an activation carrying a contract-bearing key', () => {
+    // The cast simulates a future author widening RequirementActivation. The
+    // guard is what makes that widening a deliberate act rather than a one-line
+    // type edit — and it is the *same* guard the refinement path uses, so the
+    // two cannot drift apart in the permissive direction.
+    const widened = {
+      code: 'TEST_OFFERED',
+      required: false,
+    } as unknown as { code: string }
+
+    expectKind('invalid-activation', () =>
+      composeVisaTemplate({
+        base: BASE,
+        layers: [practiceLayer, mission([widened])],
+      })
+    )
+  })
+
+  it('rejects an activation smuggling an override through its fragment', () => {
+    const widened = {
+      code: 'TEST_OFFERED',
+      addDetail: {
+        detailKeys: ['test:requirements.TEST_OFFERED.detail'],
+        revision: 1,
+        descriptionKey: 'test:requirements.TEST_OFFERED.description',
+      },
+    } as unknown as { code: string }
+
+    expectKind('invalid-activation', () =>
+      composeVisaTemplate({
+        base: BASE,
+        layers: [practiceLayer, mission([widened])],
+      })
+    )
+  })
+
+  it('rejects an activation attaching an empty fragment', () => {
+    expectKind('invalid-activation', () =>
+      composeVisaTemplate({
+        base: BASE,
+        layers: [
+          practiceLayer,
+          mission([
+            {
+              code: 'TEST_OFFERED',
+              addDetail: { detailKeys: [], revision: 1 },
+            },
+          ]),
+        ],
+      })
+    )
+  })
+
+  it('rejects an activation citing a source no composed layer provides', () => {
+    // Provenance belongs to the activating assertion, so an unresolvable
+    // citation on an activation is the same failure as anywhere else: it
+    // renders as no provenance at all, which reads as "unverified" (ADR-046).
+    expectKind('dangling-source-ref', () =>
+      composeVisaTemplate({
+        base: BASE,
+        layers: [
+          practiceLayer,
+          mission([{ code: 'TEST_OFFERED', addSourceRefs: ['src-nowhere'] }]),
+        ],
+      })
+    )
+  })
+})

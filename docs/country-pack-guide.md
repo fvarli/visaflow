@@ -397,6 +397,76 @@ takes no revision bump; any acceptance fragment that described only the departed
 it, which does move that child's key. `EMPLOYER_TRADE_REGISTRY` → gazette +
 `CHAMBER_REGISTRATION_CERTIFICATE` is the worked example ([ADR-051c]).
 
+### Offer and activate — a definition nobody asks for, until somebody does
+
+Sometimes the document your mission asks for is already **defined** in this repository, owned by
+another destination's mission layer, and you cannot compose that layer. Spain's consulate asks for an
+employer tax plate; so does Germany's sheet; Greece's sources are silent. A `code` has exactly one
+owner registry-wide, so `ES_EMPLOYER_TAX_PLATE` is not an answer — that is two codes for one
+document. Neither is moving it into `tr-filing`, because the instrument that layer speaks for does
+not name it, and no row of this kind is asked by all three missions: **the union is asked of nobody**
+([ADR-052d]).
+
+What is shared is the *definition*. What is not shared is the *asking*. So `add` splits in two:
+
+| verb | what it asserts |
+|---|---|
+| `add` | this layer owns the identity **and** every composition including it asks for the document |
+| `offer` | this layer owns the identity, and **nobody is asked for anything** |
+| `activate` | *this* composition asks for an offered identity, on this layer's own evidence |
+
+> An offered requirement asserts no applicability, presence, requiredness or authority in any
+> production composition until an authorized later layer activates it.
+
+An offer is inert in every sense that matters: it is absent from the composed template, from
+readiness, from the next-document recommendation, from a pinned `requirementOrder` and from any
+satisfaction group. It carries **no citations of its own** — it asserts nothing, so there is nothing
+for a citation to vouch for — and a layer that only offers is *not* a claim that the jurisdiction
+requires the document, or that every mission in it does.
+
+```typescript
+// The neutral definition home. Owns the identity; asks nobody.
+export const trMissionPracticeLayer: RequirementLayer = {
+  id: 'tr-mission-practice',
+  kind: 'jurisdiction',
+  offer: [{ code: 'EMPLOYER_TAX_PLATE', /* …, */ revision: 1 }],
+}
+
+// The mission that does ask, with the evidence that says so.
+export const deTrMissionLayer: RequirementLayer = {
+  id: 'de-tr-mission',
+  kind: 'jurisdiction',
+  activate: [
+    { code: 'EMPLOYER_TAX_PLATE', addSourceRefs: ['de-tr-schengen-general'] },
+  ],
+}
+```
+
+**The activation carries its own citations.** Provenance belongs to the activating assertion, not to
+the definition, so you do not write an `activate` line and a matching `refine` line — the composer
+refuses a layer that does both to one code, the same way it refuses a layer refining what it owns.
+Anything a refinement may append, an activation may append, and nothing more: identity, requiredness,
+owner, base prose and narrowing stay forbidden exactly as before.
+
+**Activation is key-neutral by itself.** It changes whether you are asked, not what satisfies the
+ask, so it does not move `contractKey` — the same rule a widening follows. Acceptance detail you
+attach *while* activating still moves the key, because that is a fragment like any other. This is
+what makes moving an unchanged definition from an `add` into an `offer` + `activate` safe for stored
+claims: same `code`, same base revision, same effective fragments, so the key a claim is compared
+against is character-for-character what it was.
+
+**Rules the composer enforces**, each with its own failure so the message names the right mistake:
+activation must reference an offer an **earlier** layer made (never your own, never a later layer's,
+never an `add`); one offer is activated at most once in a composition; a code that is offered and not
+activated cannot be refined or grouped; and every pack that pins `requirementOrder` must list what it
+activates — which is what makes an activation a reviewed line in a diff rather than a side effect.
+
+**When to reach for this, and when not to.** Offer a definition when a second mission's own published
+evidence asks for a document this repository already defines. Do not offer one speculatively: a
+definition nobody activates is dead configuration, and the registry invariants say so. And an
+identity that is *unresolved* — one code standing for two obligations, or for a rule rather than a
+document — does not become resolvable by becoming reusable. Split it first.
+
 ### Satisfaction groups — "any one of these"
 
 When your authority offers a choice — Annex III I.1's "flight reservations, other proof of intended
@@ -532,6 +602,33 @@ question and an identity question would not be settled in one commit. Anyone pic
 re-retrieve the Edirne checklist first: the capture behind this note is not in the repository, and a
 retrieval failure can never establish absence.
 
+**Six identities a third destination asks for, adjudicated but not shipped.**
+
+Spain's short-stay tourism sources (consulate and both consular districts, filed from Türkiye) were
+measured against the shipped layers before a line of that pack was authored. Six documents it
+publishes are already defined here, each owned by another destination's mission layer. `offer` and
+`activate` are the shape that lets a second mission ask for one — but the capability ships against
+synthetic packs only, and each identity is adjudicated on its own evidence rather than as a list
+([ADR-052d] decision 9):
+
+- **`EMPLOYER_TAX_PLATE`** — clean same-identity candidate, neutral base prose, no fragment.
+  The intended first pilot.
+- **`EMPLOYER_SIGNATURE_CIRCULAR`** — same identity, but its base is `required: false` while Spain's
+  checklists make it mandatory. Requiredness is not composition-scoped and activation must not make
+  it so. **Unresolved.**
+- **`SPONSOR_LETTER`, `SPONSOR_BANK_STATEMENTS`** — candidates, blocked on the evidence-gap register
+  needing composition scope: one mission may hold evidence for an identity while another has a
+  genuinely true unresolved limitation on the same identity.
+- **travel-history copies (`DE_TRAVEL_HISTORY_COPIES`)** — base prose is Germany-specific (ten years,
+  five named visa families). Activating it as-is would render German criteria to a Spanish applicant.
+  Needs its own generalisation and revision adjudication.
+- **`RELATIONSHIP_PROOF`** — **must not be activated.** Its recorded gap says the checklist
+  establishes a relationship *rule* rather than a document, and Spain names two distinct instruments.
+  An unresolved identity is not made resolvable by becoming reusable.
+
+`SPONSOR_INCOME_PROOF` is outside the candidate set for the reason its gap entry already gives: it
+stands in for several evidence identities at once.
+
 ## Toward a country-pack ecosystem
 
 Today packs ship in-repo. The roadmap's **Country Ecosystem** phase (see [roadmap.md](./roadmap.md))
@@ -547,5 +644,6 @@ why identifiers are stable, requirements are keys-not-prose, and source honesty 
 [ADR-051c]: ./decisions.md#adr-051c
 [ADR-052b]: ./decisions.md#adr-052b
 [ADR-052c]: ./decisions.md#adr-052c
+[ADR-052d]: ./decisions.md#adr-052d
 [ADR-053]: ./decisions.md#adr-053
 [ADR-053a]: ./decisions.md#adr-053a

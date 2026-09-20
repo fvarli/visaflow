@@ -414,23 +414,64 @@ export type LayerKind = 'common' | 'destination' | 'jurisdiction'
 /**
  * One ownership layer's contribution to a composed template.
  *
- * A layer may declare requirements it **owns**, and may append citations to
- * requirements an earlier layer owns. That is the whole vocabulary. It cannot
- * remove a requirement, hide one, or change what one asks for — see
- * `CitationRefinement` for why.
+ * A layer may declare requirements it **owns**, may define one without asking
+ * for it, may make an earlier layer's offered definition present, and may
+ * append citations to a requirement an earlier layer owns. That is the whole
+ * vocabulary. It cannot remove a requirement, hide one, or change what one asks
+ * for — see `CitationRefinement` for why.
  */
 export interface RequirementLayer {
   /** Stable layer id, e.g. 'schengen-short-stay' | 'greece' | 'tr-filing'. */
   id: string
   kind: LayerKind
   /**
-   * Requirements this layer owns.
+   * Requirements this layer owns **and asks for** in every composition that
+   * includes it.
    *
    * A `code` is the identity of a record in someone's dossier (ADR-049), so it
    * must mean one thing everywhere: exactly one layer owns a code, registry-
    * wide, and that layer owns its `revision`.
    */
   add?: DocumentRequirement[]
+  /**
+   * Requirements this layer owns and **does not ask for**.
+   *
+   * `add` does two jobs at once — *this is the canonical definition of an
+   * evidence identity* and *this composition asks for it* — and until a third
+   * destination existed nothing forced them apart (ADR-052d). Six documents
+   * Spain publishes are already defined in this repository, each owned by
+   * another destination's mission layer, and a code has exactly one owner
+   * registry-wide. What was missing is not shared ownership but shared
+   * *presence*.
+   *
+   * An offered requirement is owned exactly as an added one is — same code
+   * uniqueness, same global `revision` — and composes for **nobody**:
+   *
+   * > An offered requirement asserts no applicability, presence, requiredness
+   * > or authority in any production composition until an authorized later
+   * > layer activates it.
+   *
+   * So a layer that offers is not claiming the jurisdiction requires the
+   * document, that every mission in it does, or that any composition does. The
+   * asking stays with whoever publishes it, which is why ADR-052a Rule 3 —
+   * *N missions ask for it* is never promoted to a jurisdiction rule — survives
+   * this capability untouched.
+   *
+   * An offer carries **no citations of its own**: it asserts nothing, so there
+   * is nothing for a citation to vouch for (ADR-048). Provenance belongs to the
+   * activating assertion.
+   */
+  offer?: DocumentRequirement[]
+  /**
+   * Offered requirements this layer asks for.
+   *
+   * The authority-bearing half of the split: activation is this layer saying
+   * *this composition asks for this requirement*, on its own evidence. It is
+   * the reason an offer is inert, and it is why every production composition
+   * pins what it activates — a new activation should be a reviewed line in a
+   * diff rather than a side effect of composing one more layer.
+   */
+  activate?: RequirementActivation[]
   refine?: CitationRefinement[]
   /**
    * Alternative-satisfaction groups this layer declares.
@@ -545,6 +586,46 @@ export interface CitationRefinement {
    * set of genuine differences rather than a mixture of differences and
    * restatement.
    */
+  addApplicableOccupations?: readonly KnownOccupationCode[]
+}
+
+/**
+ * One layer's assertion that this composition asks for an offered requirement.
+ *
+ * **Structurally a `CitationRefinement`, semantically a different sentence**,
+ * which is why it is its own type rather than an alias. A refinement says
+ * *here is more evidence for something already asked*; an activation says
+ * *this composition asks for this at all*. Nothing else in the vocabulary can
+ * say the second thing, and an alias would leave a reader to infer which one a
+ * call site meant from the field it happened to be written in.
+ *
+ * **It carries its own payload rather than pairing with a `refine` entry.**
+ * Provenance belongs to the activating assertion (ADR-052d decision 6): an
+ * inert definition does not acquire a mission's citations by existing, and the
+ * mission that activates supplies the evidence appropriate to *that* mission.
+ * Splitting one assertion across an `activate` line and a `refine` line would
+ * make a forgotten second line render an activated requirement with no
+ * provenance at all, which reads as "unverified" (ADR-046). The composer
+ * refuses a layer that does both to one code, for the same reason it refuses
+ * a layer refining what it owns — one way to say this rather than two.
+ *
+ * **What it may not do**, enforced by the composer and stated here because the
+ * type cannot: it may not narrow applicability, change `required`, `ownerType`
+ * or `ownerByOccupation`, change the base contract's own prose, change the base
+ * `revision`, or suppress or replace anything (ADR-052d decision 5). It is the
+ * prohibition list ADR-052b decision 6 already carries, unchanged — an
+ * activation is not a fragment and may do none of the things a fragment may
+ * not do.
+ *
+ * **It is key-neutral by itself.** Activation changes whether you are asked,
+ * not what satisfies the ask, so it does not move `contractKey` — the same rule
+ * ADR-052c decision 5 applies to a widening. Acceptance detail attached *by*
+ * the activating layer still moves the key, under the existing fragment rule.
+ */
+export interface RequirementActivation {
+  code: string
+  addSourceRefs?: string[]
+  addDetail?: AcceptanceDetailFragment
   addApplicableOccupations?: readonly KnownOccupationCode[]
 }
 

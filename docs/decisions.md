@@ -2338,6 +2338,16 @@ country-pack-provenance,workspace-repository}.test.ts`, `docs/country-pack-guide
 > bounded occupational **widening** — never a narrowing, never a replacement, and never any other
 > axis. Everything else in that sentence stands. The text is kept as written.
 
+> **Extended by [ADR-052d](#adr-052d) (2026-09-20), implemented 2026-09-20.** Decision 2 stands
+> unamended: a `code` is still globally unique and still owned by exactly one layer. Decision 3's
+> *"exactly one thing"* takes its third extension — a later layer may also **activate** an identity
+> an earlier layer **offered**, making it present in that composition without owning it and without
+> changing it. What the offering layer does is define; what the activating layer does is assert that
+> this composition asks. An offered requirement asserts no applicability, presence, requiredness or
+> authority until something activates it, activation travels backwards exactly as refinement does,
+> and an activation may do nothing a refinement may not do. Ownership is now structural over `add`
+> **and** `offer`; presence is structural over `add` and activation. The text is kept as written.
+
 **Decision:**
 
 1. A visa-type template is **composed** from ordered ownership layers —
@@ -2778,6 +2788,13 @@ the layer decides is scope, and what the citations decide is evidence.
 > requirement of a wider population than the jurisdiction instrument names, which Article 14(3)
 > expressly permits and which ADR-052a already says the model must be able to express. The text is
 > kept as written.
+
+> **Untouched by [ADR-052d](#adr-052d) (2026-09-20), and recorded here because it is the obvious
+> place to look.** Activation adds *presence*, and adds nothing to decision 6's list: an activation
+> may not change identity, requiredness, owner, base prose, or replace or suppress anything, and may
+> widen applicability only under the ADR-052c rule above. It is not a fragment and may do none of the
+> things a fragment may not do. The composer enforces this by sharing one guard between the two
+> verbs rather than writing a second list that could drift in the permissive direction.
 
 ADR-052a Rule 1 exists to stop one requirement `code` from ambiguously representing two different
 obligations, and that purpose is untouched. Its *premise* is gone. It reasoned that "`revision` is
@@ -3635,6 +3652,15 @@ governs is a later slice and is not authorised by this record.
 **Status:** Accepted · 2026-09-20 · extends [ADR-052](#adr-052) decisions 2 and 3 and
 [ADR-052b](#adr-052b) decision 6 · preserves [ADR-052a](#adr-052a) rule 3 · applies
 [ADR-049](#adr-049), [ADR-051b](#adr-051b) and [ADR-052c](#adr-052c)
+
+> **Capability implemented 2026-09-20 (H5c), against synthetic packs only.** `offer` and `activate`
+> are the shipped names. `composeVisaTemplate` carries the guards decision 5 asks for, one per
+> mistake, each with a negative control; `CompositionResult` publishes `offered` and `activations`
+> beside `ownership`, and the registry invariants read them so an offer nobody activates is dead
+> configuration rather than a quiet one. **No production requirement moved** — no pack, layer
+> registry, revision ledger or retirement record changed, and no composed output, contract key or
+> stored claim is affected. Decisions 8 (composition-scoped evidence gaps), 9 and 10 remain
+> unimplemented, and H5d — the `EMPLOYER_TAX_PLATE` pilot — remains unauthorised.
 
 A third destination — Spain, short-stay tourism, filed from Türkiye — was measured against the
 shipped layers before a line of it was authored. The measurement found what a third pack is for:

@@ -4,6 +4,7 @@ import type {
   CitationRefinement,
   DocumentRequirement,
   LayerKind,
+  RequirementActivation,
   RequirementLayer,
   RequirementSource,
   SatisfactionGroup,
@@ -22,9 +23,10 @@ import type {
  * separately and reassembled deterministically.
  *
  * THE VOCABULARY IS DELIBERATELY TINY. A layer may `add` requirements it owns,
- * and may `refine` an earlier layer's requirement by appending citations. There
- * is no removal, no hiding, and no way to change what a requirement asks for.
- * Every one of those was considered and rejected:
+ * may `offer` a definition it owns and asks nobody for, may `activate` an
+ * earlier layer's offer, and may `refine` an earlier layer's requirement by
+ * appending citations. There is no removal, no hiding, and no way to change
+ * what a requirement asks for. Every one of those was considered and rejected:
  *
  *  - **Contract-bearing override** would let a jurisdiction change `required`,
  *    `conditionalOn`, prose or `revision` on a code it does not own. That makes
@@ -41,6 +43,23 @@ import type {
  * exists to make that widening a deliberate act rather than a one-line type
  * edit.
  *
+ * `offer`/`activate` ARRIVED THAT WAY, AND ARE NOT AN EXCEPTION TO THE ABOVE.
+ * They separate two assertions `add` used to make at once — *this is the
+ * canonical definition of an evidence identity* and *this composition asks for
+ * it* — because a third destination asks for six documents this repository
+ * already defines under another destination's mission layer, and a code has
+ * exactly one owner registry-wide (ADR-052d). Ownership is unamended; what is
+ * new is that a definition may exist without being asked for. The normative
+ * rule every guard below serves:
+ *
+ * > An offered requirement asserts no applicability, presence, requiredness or
+ * > authority in any production composition until an authorized later layer
+ * > activates it.
+ *
+ * Activation is additive and reaches **backwards**, exactly as refinement does.
+ * It may do nothing a refinement may not do, and by itself it does not move the
+ * contract key — it changes whether you are asked, not what satisfies the ask.
+ *
  * Pure and synchronous. `resolveVisaTemplate` is called inside the
  * `DossierProvider` reducer, so nothing here may be async, stateful, or lazy.
  */
@@ -51,10 +70,18 @@ export type CompositionErrorKind =
   | 'duplicate-add'
   | 'duplicate-source'
   | 'dangling-refine'
+  | 'refine-inactive'
   | 'self-refine'
   | 'forward-refine'
   | 'invalid-refinement'
   | 'invalid-widening'
+  | 'duplicate-offer'
+  | 'dangling-activate'
+  | 'activate-not-offered'
+  | 'duplicate-activate'
+  | 'self-activate'
+  | 'forward-activate'
+  | 'invalid-activation'
   | 'dangling-source-ref'
   | 'order-mismatch'
   | 'invalid-group'
@@ -79,14 +106,40 @@ export class CompositionError extends Error {
 export interface CompositionResult {
   template: VisaTypeTemplate
   /**
-   * Requirement `code` → the id of the layer that owns it.
+   * **Present** requirement `code` → the id of the layer that owns it.
    *
-   * Structural: derived from which layer's `add` declared the code, never
-   * stored, and deliberately **not** a field on `DocumentRequirement`. Putting
-   * it on the requirement would change the shape every consumer sees for the
-   * sake of information only the composer and its invariants need.
+   * Structural: derived from which layer declared the code, never stored, and
+   * deliberately **not** a field on `DocumentRequirement`. Putting it on the
+   * requirement would change the shape every consumer sees for the sake of
+   * information only the composer and its invariants need.
+   *
+   * An offered code appears here **only once something activates it**, and even
+   * then it maps to the layer that *offered* it — ownership is unamended by
+   * ADR-052d, and the activating layer owns nothing. An offer nobody activated
+   * is absent, because this map is what the registry invariants read to decide
+   * whether a layer actually composed, and an inert definition did not.
    */
   ownership: ReadonlyMap<string, string>
+  /**
+   * Every offered `code` → its offering layer, activated or not.
+   *
+   * The reachability question runs in both directions and `ownership` can only
+   * answer one of them. A definition nobody ever activates is precisely the
+   * inert registry ADR-050 warns about — it looks authoritative, is read by
+   * nothing, and drifts — so the registry invariants need to be able to see an
+   * offer that never became present. They cannot see it in `ownership` by
+   * construction, so it is published here.
+   */
+  offered: ReadonlyMap<string, string>
+  /**
+   * Activated `code` → the layer that asserted this composition asks for it.
+   *
+   * Activation is the authority-bearing half of ADR-052d, so *who* asserted it
+   * is not bookkeeping: the pin lives in a layer's `activate` list, and this is
+   * what lets an invariant check that the composed result matches it rather
+   * than trusting that it does.
+   */
+  activations: ReadonlyMap<string, string>
   /** Every source record the composed layers contribute, in layer order. */
   sources: RequirementSource[]
 }
@@ -142,6 +195,17 @@ const ALLOWED_REFINEMENT_KEYS = new Set([
   'addApplicableOccupations',
 ])
 const ALLOWED_DETAIL_KEYS = new Set(['detailKeys', 'revision'])
+
+/**
+ * An activation's payload is a refinement's payload, deliberately.
+ *
+ * Not a separate list that happens to match today. ADR-052b decision 6's
+ * prohibition list is untouched by ADR-052d: an activation is not a fragment
+ * and may do none of the things a fragment may not do. Sharing the set is how
+ * that stays true when the refinement set next moves — two lists would drift,
+ * and the direction they would drift in is the permissive one.
+ */
+const ALLOWED_ACTIVATION_KEYS = ALLOWED_REFINEMENT_KEYS
 
 /**
  * The occupations a requirement's own condition already names.
@@ -237,64 +301,180 @@ function assertWideningShape(
   }
 }
 
-function refuseRefinement(
+/**
+ * What the shape guard is checking, so one implementation can serve both verbs.
+ *
+ * Shared because the rules are genuinely the same rules — an activation may do
+ * nothing a refinement may not do — and a second copy would be a second place
+ * for the permissive edit to land. What differs is only what the failure should
+ * tell the author to do about it, which is what `verb` and `kind` carry.
+ */
+interface AdditiveVerb {
+  kind: 'invalid-refinement' | 'invalid-activation'
+  /** Reads into `Layer "x" <verb> "CODE"`. */
+  verb: string
+  /** Reads into `A <noun> may only append…`. */
+  noun: string
+  allowedKeys: Set<string>
+}
+
+const REFINEMENT_VERB: AdditiveVerb = {
+  kind: 'invalid-refinement',
+  verb: 'refines',
+  noun: 'refinement',
+  allowedKeys: ALLOWED_REFINEMENT_KEYS,
+}
+
+const ACTIVATION_VERB: AdditiveVerb = {
+  kind: 'invalid-activation',
+  verb: 'activates',
+  noun: 'activation',
+  allowedKeys: ALLOWED_ACTIVATION_KEYS,
+}
+
+function refuseAdditive(
+  verb: AdditiveVerb,
   layerId: string,
   code: string,
   extra: string[],
   where: string
 ): never {
   throw new CompositionError(
-    'invalid-refinement',
-    `Layer "${layerId}" refines "${code}" with ${extra
+    verb.kind,
+    `Layer "${layerId}" ${verb.verb} "${code}" with ${extra
       .map((k) => `"${k}"`)
-      .join(', ')}${where}. A refinement may only append citations and ` +
+      .join(', ')}${where}. A ${verb.noun} may only append citations and ` +
       'acceptance detail — a layer that needs different requiredness, ' +
       'applicability or base prose must own the requirement instead.'
   )
 }
 
-function assertCitationRefinementShape(
+function assertAdditiveShape(
+  verb: AdditiveVerb,
   layerId: string,
-  refinement: CitationRefinement
+  payload: CitationRefinement | RequirementActivation
 ): void {
-  const extra = Object.keys(refinement).filter(
-    (key) => !ALLOWED_REFINEMENT_KEYS.has(key)
-  )
-  if (extra.length > 0) refuseRefinement(layerId, refinement.code, extra, '')
+  const extra = Object.keys(payload).filter((key) => !verb.allowedKeys.has(key))
+  if (extra.length > 0) refuseAdditive(verb, layerId, payload.code, extra, '')
 
-  const detail = refinement.addDetail
+  const detail = payload.addDetail
   if (detail === undefined) return
 
   const detailExtra = Object.keys(detail).filter(
     (key) => !ALLOWED_DETAIL_KEYS.has(key)
   )
   if (detailExtra.length > 0)
-    refuseRefinement(layerId, refinement.code, detailExtra, ' in `addDetail`')
+    refuseAdditive(verb, layerId, payload.code, detailExtra, ' in `addDetail`')
 
   // A fragment that renders nothing but still moves the revision would
   // supersede live claims for no applicant-visible reason.
   if (detail.detailKeys.length === 0) {
     throw new CompositionError(
-      'invalid-refinement',
+      verb.kind,
       `Layer "${layerId}" attaches an empty detail fragment to ` +
-        `"${refinement.code}". A fragment that renders nothing still moves ` +
+        `"${payload.code}". A fragment that renders nothing still moves ` +
         'the composed revision, which would supersede claims over nothing.'
     )
   }
   if (!Number.isInteger(detail.revision) || detail.revision < 1) {
     throw new CompositionError(
-      'invalid-refinement',
-      `Layer "${layerId}" attaches detail to "${refinement.code}" with ` +
+      verb.kind,
+      `Layer "${layerId}" attaches detail to "${payload.code}" with ` +
         `revision ${detail.revision}. Fragments start at 1, for the same ` +
         'reason requirements do (ADR-051a).'
     )
   }
 }
 
+function assertCitationRefinementShape(
+  layerId: string,
+  refinement: CitationRefinement
+): void {
+  assertAdditiveShape(REFINEMENT_VERB, layerId, refinement)
+}
+
+function assertActivationShape(
+  layerId: string,
+  activation: RequirementActivation
+): void {
+  assertAdditiveShape(ACTIVATION_VERB, layerId, activation)
+}
+
 /** A fragment, plus the layer that attached it — the key needs both. */
 interface AttachedFragment {
   layerId: string
   fragment: AcceptanceDetailFragment
+}
+
+/**
+ * Apply one additive payload — a refinement's or an activation's — to a
+ * requirement, registering any fragment it attaches.
+ *
+ * Shared by both verbs because the merge is the same merge. An activation that
+ * appended citations differently from a refinement would be a second, quieter
+ * set of rules about what a layer may do to a requirement it does not own, and
+ * the whole point of ADR-052d is that activation adds presence and **nothing
+ * else** to that list.
+ *
+ * Only a touched requirement is rebuilt. Everything else is returned by
+ * identity, so composition creates the minimum number of new references — which
+ * is what keeps the memoized resolver's output stable downstream.
+ *
+ * Fragments accumulate rather than replace, and both are append-only: a second
+ * refining layer can add to what the first attached, and neither can take
+ * anything away.
+ *
+ * `revision` is untouched, and that is the correction: it belongs to the owner
+ * and means the same thing in every composition (ADR-051 Decision 4). What
+ * varies by composition is the contract *key*, applied to every requirement in
+ * one pass at the end.
+ */
+function applyAdditive(
+  current: DocumentRequirement,
+  layerId: string,
+  payload: CitationRefinement | RequirementActivation,
+  fragmentsFor: Map<string, AttachedFragment[]>
+): DocumentRequirement {
+  if (payload.addApplicableOccupations) {
+    assertWideningShape(
+      layerId,
+      payload.code,
+      current,
+      payload.addApplicableOccupations
+    )
+  }
+
+  if (payload.addDetail) {
+    fragmentsFor.set(payload.code, [
+      ...(fragmentsFor.get(payload.code) ?? []),
+      { layerId, fragment: payload.addDetail },
+    ])
+  }
+
+  return {
+    ...current,
+    sourceRefs: appendRefs(current.sourceRefs, payload.addSourceRefs),
+    ...(payload.addDetail
+      ? {
+          detailKeys: appendRefs(
+            current.detailKeys,
+            payload.addDetail.detailKeys
+          ),
+        }
+      : {}),
+    // Merged here and nowhere else, which is what keeps it out of the contract
+    // key: the key is built from acceptance fragments alone, and a widening
+    // registers none. It changes who is asked, not what satisfies the ask
+    // (ADR-052c decision 5) — the same reason a bare activation is key-neutral.
+    ...(payload.addApplicableOccupations
+      ? {
+          applicableOccupations: [
+            ...(current.applicableOccupations ?? []),
+            ...payload.addApplicableOccupations,
+          ],
+        }
+      : {}),
+  }
 }
 
 /**
@@ -452,7 +632,18 @@ export function composeVisaTemplate(
 
   assertLayerOrder(layers)
 
-  const ownership = new Map<string, string>()
+  /**
+   * Every declared code → the layer that owns it, **offered or added**.
+   *
+   * Not the same map as the `ownership` this function returns. Uniqueness is a
+   * claim about declarations and has to see offers, or an offered code could
+   * collide with an added one and nothing would object; presence is a claim
+   * about what composed, and an offer nobody activated did not. The public map
+   * is derived from `layerOrder` at the end, so the two cannot drift.
+   */
+  const declaredOwner = new Map<string, string>()
+  /** Which verb declared each code — the collision message needs to say. */
+  const declaredVerb = new Map<string, 'add' | 'offer'>()
   /**
    * Which layer *position* declared each code.
    *
@@ -466,38 +657,160 @@ export function composeVisaTemplate(
   /** Composition order, by code. The requirements themselves live in `byCode`. */
   const layerOrder: string[] = []
   const byCode = new Map<string, DocumentRequirement>()
+  /** Offered definitions, held inert until something activates them. */
+  const offeredByCode = new Map<string, DocumentRequirement>()
+  /** Offered code → the layer that offered it, activated or not. */
+  const offered = new Map<string, string>()
+  /** Activated code → the layer that asserted this composition asks for it. */
+  const activations = new Map<string, string>()
+  /** And at which position, which is what refinement direction is measured against. */
+  const activatedAt = new Map<string, number>()
   /** Detail fragments attached to each code, in the order layers composed. */
   const fragmentsFor = new Map<string, AttachedFragment[]>()
 
+  const claim = (
+    requirement: DocumentRequirement,
+    layer: RequirementLayer,
+    index: number,
+    verb: 'add' | 'offer'
+  ): void => {
+    const owner = declaredOwner.get(requirement.code)
+    if (owner !== undefined) {
+      const previous = declaredVerb.get(requirement.code)
+      // An offer on either side is its own failure kind, because the fix is a
+      // different one: a duplicate `add` means two layers both think they own
+      // a requirement, while a collision with an offer usually means somebody
+      // defined an identity that already had a canonical home, which is the
+      // exact mistake ADR-052d exists to make unnecessary.
+      const involvesOffer = verb === 'offer' || previous === 'offer'
+      throw new CompositionError(
+        involvesOffer ? 'duplicate-offer' : 'duplicate-add',
+        `Requirement "${requirement.code}" is declared by both layer ` +
+          `"${owner}" (${previous}) and layer "${layer.id}" (${verb}). A code ` +
+          "is a dossier record's identity (ADR-049), so exactly one layer may " +
+          'own it — and offering a definition is owning it, inert or not ' +
+          '(ADR-052d decision 1).'
+      )
+    }
+    declaredOwner.set(requirement.code, layer.id)
+    declaredVerb.set(requirement.code, verb)
+    declaredAt.set(requirement.code, index)
+  }
+
   // Pass 1 — ownership. Every code is claimed exactly once, and a code's owner
-  // owns everything about it including its `revision`.
+  // owns everything about it including its `revision`. An offer is claimed the
+  // same way and put somewhere else: owned, defined, and present for nobody.
   for (const [index, layer] of layers.entries()) {
     for (const requirement of layer.add ?? []) {
-      const owner = ownership.get(requirement.code)
-      if (owner !== undefined) {
-        throw new CompositionError(
-          'duplicate-add',
-          `Requirement "${requirement.code}" is declared by both layer ` +
-            `"${owner}" and layer "${layer.id}". A code is a dossier record's ` +
-            'identity (ADR-049), so exactly one layer may own it.'
-        )
-      }
-      ownership.set(requirement.code, layer.id)
-      declaredAt.set(requirement.code, index)
+      claim(requirement, layer, index, 'add')
       layerOrder.push(requirement.code)
       byCode.set(requirement.code, requirement)
     }
+    for (const requirement of layer.offer ?? []) {
+      claim(requirement, layer, index, 'offer')
+      offeredByCode.set(requirement.code, requirement)
+      offered.set(requirement.code, layer.id)
+    }
   }
 
-  // Pass 2 — citations, and the direction they may travel.
+  // Pass 2 — activation: which offered identities this composition asks for.
   //
-  // Two passes so that *within* one layer the order of `add` and `refine` does
-  // not decide whether a composition is valid. Across layers the rule is
-  // stricter and is enforced here: a refinement may only reach **backwards**,
-  // to a requirement an earlier layer declared. That is what ADR-052 always
-  // said, and until this guard existed the two-pass design quietly permitted
-  // the opposite — a destination layer could refine a jurisdiction-owned
-  // requirement even though it composes first, and nothing objected.
+  // Between ownership and citation, and over every layer before any refinement
+  // runs, so that a later layer may cite a row an earlier layer activated
+  // without the two passes having to be interleaved. Activated codes append to
+  // `layerOrder` after every added one; a pack that cares states
+  // `requirementOrder`, which it must do anyway for the activation to be a
+  // pinned, reviewable line rather than a side effect.
+  for (const [index, layer] of layers.entries()) {
+    const refinedHere = new Set((layer.refine ?? []).map((r) => r.code))
+    for (const activation of layer.activate ?? []) {
+      assertActivationShape(layer.id, activation)
+
+      // One assertion, one line. Provenance belongs to the activating
+      // assertion (ADR-052d decision 6), so the citations go on the activation
+      // itself — the same reasoning that refuses a layer refining what it owns.
+      if (refinedHere.has(activation.code)) {
+        throw new CompositionError(
+          'invalid-activation',
+          `Layer "${layer.id}" both activates and refines "${activation.code}". ` +
+            'An activation carries its own citations and detail, so there is ' +
+            'one way to say this rather than two — fold the refinement into ' +
+            'the activation.'
+        )
+      }
+
+      const declaringIndex = declaredAt.get(activation.code)
+      if (declaringIndex === undefined) {
+        throw new CompositionError(
+          'dangling-activate',
+          `Layer "${layer.id}" activates "${activation.code}", which no layer ` +
+            'in this composition declares.'
+        )
+      }
+      // Four kinds rather than one, because each names a different mistake:
+      // the code is not an offer at all, it is already being asked for, you
+      // are activating your own definition, or you are reaching forward. The
+      // first lookup doubles as its own guard, so the definition is proven to
+      // exist by the check rather than asserted afterwards.
+      const definition = offeredByCode.get(activation.code)
+      if (definition === undefined) {
+        throw new CompositionError(
+          'activate-not-offered',
+          `Layer "${layer.id}" activates "${activation.code}", which layer ` +
+            `"${declaredOwner.get(activation.code)}" declares with \`add\`. An ` +
+            'added requirement is already asked for by every composition that ' +
+            'includes its layer; only an offered definition is activated.'
+        )
+      }
+      const activatedBy = activations.get(activation.code)
+      if (activatedBy !== undefined) {
+        throw new CompositionError(
+          'duplicate-activate',
+          `Requirement "${activation.code}" is activated by both layer ` +
+            `"${activatedBy}" and layer "${layer.id}". Asking twice for one ` +
+            'document would count its readiness twice; the second layer ' +
+            'should attach its evidence with `refine` instead.'
+        )
+      }
+      if (declaringIndex === index) {
+        throw new CompositionError(
+          'self-activate',
+          `Layer "${layer.id}" activates "${activation.code}", which it offers. ` +
+            'A layer that asks for its own definition should declare it with ' +
+            '`add` — an offer exists precisely to be asked for by somebody ' +
+            'else, on their evidence (ADR-052d decision 5).'
+        )
+      }
+      if (declaringIndex > index) {
+        throw new CompositionError(
+          'forward-activate',
+          `Layer "${layer.id}" activates "${activation.code}", which is offered ` +
+            `by the later layer "${declaredOwner.get(activation.code)}". ` +
+            'Activation travels backwards exactly as refinement does, so it ' +
+            'may only reach an offer an earlier layer made.'
+        )
+      }
+
+      byCode.set(
+        activation.code,
+        applyAdditive(definition, layer.id, activation, fragmentsFor)
+      )
+      layerOrder.push(activation.code)
+      activations.set(activation.code, layer.id)
+      activatedAt.set(activation.code, index)
+    }
+  }
+
+  // Pass 3 — citations, and the direction they may travel.
+  //
+  // Separate passes so that *within* one layer the order of `add`, `activate`
+  // and `refine` does not decide whether a composition is valid. Across layers
+  // the rule is stricter and is enforced here: a refinement may only reach
+  // **backwards**, to a requirement an earlier layer declared. That is what
+  // ADR-052 always said, and until this guard existed the multi-pass design
+  // quietly permitted the opposite — a destination layer could refine a
+  // jurisdiction-owned requirement even though it composes first, and nothing
+  // objected.
   for (const [index, layer] of layers.entries()) {
     for (const refinement of layer.refine ?? []) {
       assertCitationRefinementShape(layer.id, refinement)
@@ -506,21 +819,38 @@ export function composeVisaTemplate(
       // proven to exist by the check rather than asserted afterwards.
       const current = byCode.get(refinement.code)
       if (current === undefined) {
+        // Offered-but-inert is its own failure. Reporting it as dangling would
+        // send the author looking for a missing declaration when the
+        // declaration is right there and nothing has asked for it — and the
+        // fix is the opposite one: activate it, or cite something you are
+        // actually asked for.
+        const offeredBy = offered.get(refinement.code)
+        if (offeredBy !== undefined) {
+          throw new CompositionError(
+            'refine-inactive',
+            `Layer "${layer.id}" refines "${refinement.code}", which layer ` +
+              `"${offeredBy}" offers and no layer activates. An offered ` +
+              'definition asserts nothing until it is activated, so there is ' +
+              'nothing here for a citation to vouch for (ADR-052d decision 6).'
+          )
+        }
         throw new CompositionError(
           'dangling-refine',
           `Layer "${layer.id}" refines "${refinement.code}", which no layer ` +
             'in this composition declares.'
         )
       }
-      // Three kinds rather than one, because they call for three different
-      // fixes: move the citation into your own declaration, move your layer,
-      // or find out why nothing declares the code at all. A shared
-      // discriminant would make a failure name the wrong mistake.
+      // Several kinds rather than one, because they call for different fixes:
+      // move the citation into your own declaration, fold it into your
+      // activation, move your layer, or find out why nothing declares the code
+      // at all. A shared discriminant would make a failure name the wrong
+      // mistake.
       const declaringIndex = declaredAt.get(refinement.code)
       if (declaringIndex === index) {
         throw new CompositionError(
           'self-refine',
-          `Layer "${layer.id}" refines "${refinement.code}", which it owns. ` +
+          `Layer "${layer.id}" refines "${refinement.code}", which it ` +
+            `${declaredVerb.get(refinement.code) === 'offer' ? 'offers' : 'owns'}. ` +
             'Citations belonging to the owner go in the declaration itself, ' +
             'so there is one way to say this rather than two.'
         )
@@ -529,65 +859,32 @@ export function composeVisaTemplate(
         throw new CompositionError(
           'forward-refine',
           `Layer "${layer.id}" refines "${refinement.code}", which is declared ` +
-            `by the later layer "${ownership.get(refinement.code)}". Layers ` +
+            `by the later layer "${declaredOwner.get(refinement.code)}". Layers ` +
             'compose in one direction, so a refinement may only reach a ' +
             'requirement an earlier layer declared — move this layer after ' +
             'the one that owns the code.'
         )
       }
-
-      // Only a refined requirement is rebuilt. Everything else is returned by
-      // identity, so composition creates the minimum number of new references —
-      // which is what keeps the memoized resolver's output stable downstream.
-      //
-      // Fragments accumulate rather than replace, and the composed revision is
-      // recomputed from the owner's number and every fragment so far. Both are
-      // append-only: a second refining layer can add to what the first
-      // attached, and neither can take anything away.
-      if (refinement.addApplicableOccupations) {
-        assertWideningShape(
-          layer.id,
-          refinement.code,
-          current,
-          refinement.addApplicableOccupations
+      // Presence can arrive later than ownership now. A row offered by an
+      // early layer and activated by a late one is *not* refinable from in
+      // between: the citation would attach to an assertion that has not been
+      // made yet, which is how one mission's authority ends up decorating
+      // another's ask (ADR-052d decision 6).
+      const presenceIndex = activatedAt.get(refinement.code)
+      if (presenceIndex !== undefined && presenceIndex > index) {
+        throw new CompositionError(
+          'forward-refine',
+          `Layer "${layer.id}" refines "${refinement.code}", which only ` +
+            `becomes present when the later layer ` +
+            `"${activations.get(refinement.code)}" activates it. Evidence for ` +
+            'an activated requirement belongs to the activation itself.'
         )
       }
 
-      if (refinement.addDetail) {
-        fragmentsFor.set(refinement.code, [
-          ...(fragmentsFor.get(refinement.code) ?? []),
-          { layerId: layer.id, fragment: refinement.addDetail },
-        ])
-      }
-
-      // `revision` is untouched here, and that is the correction: it belongs to
-      // the owner and means the same thing in every composition (ADR-051
-      // Decision 4). What varies by composition is the contract *key*, applied
-      // to every requirement in one pass below.
-      byCode.set(refinement.code, {
-        ...current,
-        sourceRefs: appendRefs(current.sourceRefs, refinement.addSourceRefs),
-        ...(refinement.addDetail
-          ? {
-              detailKeys: appendRefs(
-                current.detailKeys,
-                refinement.addDetail.detailKeys
-              ),
-            }
-          : {}),
-        // Merged here and nowhere else, which is what keeps it out of the
-        // contract key: the key is built below from acceptance fragments alone,
-        // and a widening registers none. It changes who is asked, not what
-        // satisfies the ask (ADR-052c decision 5).
-        ...(refinement.addApplicableOccupations
-          ? {
-              applicableOccupations: [
-                ...(current.applicableOccupations ?? []),
-                ...refinement.addApplicableOccupations,
-              ],
-            }
-          : {}),
-      })
+      byCode.set(
+        refinement.code,
+        applyAdditive(current, layer.id, refinement, fragmentsFor)
+      )
     }
   }
 
@@ -634,7 +931,22 @@ export function composeVisaTemplate(
     ? applyOrder(composed, requirementOrder)
     : composed
 
-  const satisfactionGroups = collectGroups(layers, byCode, sourceIds)
+  const satisfactionGroups = collectGroups(layers, byCode, offered, sourceIds)
+
+  /**
+   * Derived from what composed, never accumulated alongside it.
+   *
+   * `layerOrder` is the list of codes that are actually present — added, or
+   * offered and then activated — so reading ownership off it cannot report an
+   * inert definition as composed. Accumulating a second map during pass 1 and
+   * hoping the two agreed is exactly how an offer would have leaked into the
+   * registry invariants as a layer that "composed".
+   */
+  const ownership = new Map<string, string>()
+  for (const code of layerOrder) {
+    const owner = declaredOwner.get(code)
+    if (owner !== undefined) ownership.set(code, owner)
+  }
 
   return {
     template: {
@@ -645,6 +957,8 @@ export function composeVisaTemplate(
       ...(satisfactionGroups.length > 0 ? { satisfactionGroups } : {}),
     },
     ownership,
+    offered,
+    activations,
     sources,
   }
 }
@@ -665,6 +979,7 @@ export function composeVisaTemplate(
 function collectGroups(
   layers: RequirementLayer[],
   byCode: Map<string, DocumentRequirement>,
+  offered: Map<string, string>,
   sourceIds: Set<string>
 ): SatisfactionGroup[] {
   const groups: SatisfactionGroup[] = []
@@ -692,11 +1007,17 @@ function collectGroups(
 
       for (const code of group.anyOf) {
         if (!byCode.has(code)) {
+          // An offered-but-inert member is the same failure with a different
+          // cause, and saying "no layer declares it" when a layer plainly does
+          // would send the author to the wrong file.
+          const offeredBy = offered.get(code)
           throw new CompositionError(
             'invalid-group',
             `Group "${group.id}" (layer "${layer.id}") lists "${code}", which ` +
-              'no layer in this composition declares. A group may only offer ' +
-              'routes the pack actually carries.'
+              (offeredBy !== undefined
+                ? `layer "${offeredBy}" offers and no layer activates`
+                : 'no layer in this composition declares') +
+              '. A group may only offer routes the pack actually carries.'
           )
         }
         const owner = claimedBy.get(code)
