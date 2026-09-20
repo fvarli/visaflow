@@ -400,12 +400,13 @@ it, which does move that child's key. `EMPLOYER_TRADE_REGISTRY` → gazette +
 ### Offer and activate — a definition nobody asks for, until somebody does
 
 Sometimes the document your mission asks for is already **defined** in this repository, owned by
-another destination's mission layer, and you cannot compose that layer. Spain's consulate asks for an
-employer tax plate; so does Germany's sheet; Greece's sources are silent. A `code` has exactly one
-owner registry-wide, so `ES_EMPLOYER_TAX_PLATE` is not an answer — that is two codes for one
-document. Neither is moving it into `tr-filing`, because the instrument that layer speaks for does
-not name it, and no row of this kind is asked by all three missions: **the union is asked of nobody**
-([ADR-052d]).
+another destination's mission layer, and you cannot compose that layer. Germany's sheet asks for an
+employer tax plate; so do Spain's and Greece's authorised visa-centre checklists. A `code` has
+exactly one owner registry-wide, so `ES_EMPLOYER_TAX_PLATE` is not an answer — that is two codes for
+one document. Neither is moving it into `tr-filing`: the instrument that layer speaks for does not
+name it, and *N missions ask for it* is never promoted to a jurisdiction rule ([ADR-052a] Rule 3) —
+least of all when the asking reaches you through a delegated intake channel rather than the
+jurisdiction's own authority ([ADR-052d]).
 
 What is shared is the *definition*. What is not shared is the *asking*. So `add` splits in two:
 
@@ -620,10 +621,16 @@ publishes are already defined here, each owned by another destination's mission 
 synthetic packs only, and each identity is adjudicated on its own evidence rather than as a list
 ([ADR-052d] decision 9):
 
-- **`EMPLOYER_TAX_PLATE`** — **done.** The pilot: its definition now lives in `tr-mission-practice`
-  and Germany activates it. Nothing about Germany's composed output moved, and the relocation
-  bumped no revision and no `templateVersion`. A second mission may activate the same identity when
-  it has its own evidence for it.
+- **`EMPLOYER_TAX_PLATE`** — **relocated, not settled.** The pilot: its definition now lives in
+  `tr-mission-practice` and Germany activates it. Nothing about Germany's composed output moved, and
+  the relocation bumped no revision and no `templateVersion`. A second mission may activate the same
+  identity when it has its own evidence for it — but **not yet, for this row.** Its static
+  `ownerType: 'applicant'` describes the population Germany's section 4(c) names and nobody else:
+  the Greek visa centre and both Spanish intake checklists ask for the same document of *employees*,
+  where the plate belongs to the employer, not the applicant. Widening the population without an
+  owner model would tell an employee their own business files it. See [ADR-052d]'s 2026-09-20
+  amendments; the shape of the fix is probably `ownerByOccupation`, as on `EMPLOYER_TRADE_REGISTRY`
+  and `EMPLOYER_SIGNATURE_CIRCULAR`, and it is not decided.
 - **`EMPLOYER_SIGNATURE_CIRCULAR`** — same identity, but its base is `required: false` while Spain's
   checklists make it mandatory. Requiredness is not composition-scoped and activation must not make
   it so. **Unresolved.**
@@ -653,6 +660,7 @@ why identifiers are stable, requirements are keys-not-prose, and source honesty 
 [ADR-049a]: ./decisions.md#adr-049a
 [ADR-051b]: ./decisions.md#adr-051b
 [ADR-051c]: ./decisions.md#adr-051c
+[ADR-052a]: ./decisions.md#adr-052a
 [ADR-052b]: ./decisions.md#adr-052b
 [ADR-052c]: ./decisions.md#adr-052c
 [ADR-052d]: ./decisions.md#adr-052d

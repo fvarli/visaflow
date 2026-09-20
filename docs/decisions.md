@@ -3727,6 +3727,46 @@ nobody**, so any layer all three packs compose and that *owns* these rows puts e
 position `b40a33e` and `714830b` removed it from — asking for documents its own authority does not
 support — and the only way out would be `suppress`, which [ADR-052](#adr-052) considered and rejected.
 
+> **Amended 2026-09-20 — the Greece cell for `EMPLOYER_TAX_PLATE` was wrong when this table was
+> written, and the correction comes from inside this file.** The row reads *"silent — no reachable
+> Greek source"*. [ADR-047](#adr-047)'s **fourth evidence pass, dated 2026-09-12**, had already
+> captured the Greek visa centre's company-document block verbatim — *"Şirket Dokümanları: **Güncel
+> Vergi Levhası**, Ticari Sicil Gazetesi, Son 6 aya ait Orijinal ya da e-imzalı Faaliyet belgesi,
+> İmza Sirküleri"* — present on the *Çalışan*, *Şirket Sahibi* and *Serbest Meslek* branches at all
+> four posts, and absent from *Kamu Çalışanı* and *Çiftçi*. This is a summary that contradicted
+> durable evidence eight days old, not a source that changed.
+>
+> **What is still true, and is the distinction the error collapsed.** No *jurisdiction-level* Greek
+> authority asks for the tax plate: it appears nowhere in Commission Implementing Decision
+> C(2021) 5156, and nowhere in the Greek mission's own published requirements. What exists is a
+> **reachable authorised visa-centre source** — mission-directed, not mission-published. The
+> paragraph above therefore stands as an argument about *ownership*: `tr-filing` still must not own
+> this row, and Greece still must not compose it as a jurisdiction requirement. Only the
+> **arithmetic** fails for this one identity — with Greece's intake channel counted, the tax plate
+> is asked by a channel of all three missions, so "the union is asked of nobody" is no longer the
+> reason this row cannot be promoted. The reason is [ADR-052a](#adr-052a) Rule 3: observed practice
+> across missions is never promoted to a jurisdiction rule, and a delegated intake channel is not
+> the jurisdiction's authority. That reason is untouched, and it is sufficient on its own.
+>
+> **Nothing in production moves because of this correction.** Greece still does not receive
+> `EMPLOYER_TAX_PLATE` — it composes the definition home and activates nothing — Germany remains the
+> only production activation, the contract key is still `EMPLOYER_TAX_PLATE@1`, and no completion
+> claim is disturbed. The H5c capability and the H5d pilot are unaffected: both rest on
+> `offer`/`activate` semantics, not on any mission's evidence position.
+>
+> **What this opens, and deliberately does not close.** The captured Greek block reaches *employee*,
+> and that pass also recorded whose document it is: on the *Çalışan* branch the company-document
+> block is the **employer's** company, while on *Şirket Sahibi* and *Serbest Meslek* it is the
+> applicant's own. The canonical definition declares a static `ownerType: 'applicant'`, argued at
+> `2ebd877` on the ground that *"there is no cell where the subject differs"*. That ground does not
+> hold once an employee population is in scope — the same cell `EMPLOYER_TRADE_REGISTRY` already
+> answers with `ownerByOccupation: { employee: 'employer' }`, and `EMPLOYER_SIGNATURE_CIRCULAR`
+> answers the same way from the same source and the same sentence. The static owner remains truthful
+> for the German activation and the population it serves. **Whether this identity needs an
+> owner-by-occupation model, whether its applicability should widen to employees, and whether any
+> mission may activate it on delegated intake evidence are all open**, and none is decided here or
+> by the record this amendment corrects.
+
 So the thing that is missing is not shared *ownership*. It is shared *presence*. `add` does two jobs
 at once — *this is the canonical definition of an evidence identity* and *this composition asks for
 it* — and until a third destination existed, nothing forced them apart. The identity is genuinely
@@ -3824,6 +3864,18 @@ shared; the asking is genuinely per mission.
 
    `SPONSOR_INCOME_PROOF` is likewise outside the candidate set, for the reason its gap entry already
    gives: it stands in for several evidence identities at once.
+
+   > **Amended 2026-09-20 — the "clean same-identity candidate" rationale for `EMPLOYER_TAX_PLATE`
+   > rested on the Greece cell corrected above.** "Clean" meant: neutral base prose, no fragment,
+   > key `@1`, and one mission asking. The first three are unchanged and are what made the pilot
+   > safe; the fourth was never true. With [ADR-047](#adr-047)'s fourth pass read correctly, the
+   > Greek visa centre asks for the same document of *employee*, *company owner* and *independent
+   > professional*, and the Spanish intake checklists ask it of employees and workplace owners.
+   > **The pilot is not retrospectively unsafe** — it moved a definition between owning layers and
+   > changed no composed output, which is a property of the relocation and not of anyone's evidence.
+   > What the corrected reading removes is the claim that this identity's *semantics* were settled.
+   > They are not: the static `ownerType: 'applicant'` does not describe an employee's case, and
+   > that question is now the first thing a later slice must answer for this row.
 
 10. **Non-goals, stated so they cannot be smuggled in.** This ADR does not decide composition-specific
     requiredness; the `SOCIAL_SECURITY` identity split; age or minor applicability; satisfaction-group

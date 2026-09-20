@@ -117,9 +117,17 @@ export const greeceTourismComposition = composeVisaTemplate({
           'visa-domain:milestones.request-employer-company-docs.description',
         daysBeforeAppointment: 28,
         // `EMPLOYER_TAX_PLATE` left this list in E5c with the requirement
-        // itself: no Greek authority asks for a vergi levhası, so the pack
-        // stopped composing it and a milestone telling the applicant to request
-        // one would outlive the ask.
+        // itself, and the milestone follows the row: this pack does not compose
+        // the tax plate, so advice to go and request one would outlive the ask.
+        //
+        // The reason recorded here used to be "no Greek authority asks for a
+        // vergi levhası". That is too absolute. No *jurisdiction-level* or
+        // mission-published Greek authority asks for it — not Annex III, not the
+        // harmonised list, not the mission's own pages — but the authorised visa
+        // centre's company-document block does, which ADR-047's fourth evidence
+        // pass captured on 2026-09-12. Whether that delegated evidence can
+        // support an ask is a source-precedence question this pack has not
+        // answered, so the row stays absent and this milestone stays as it is.
         relatedDocuments: [
           'EMPLOYER_TRADE_REGISTRY',
           'CHAMBER_REGISTRATION_CERTIFICATE',

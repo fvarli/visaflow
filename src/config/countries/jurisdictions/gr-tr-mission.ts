@@ -341,11 +341,21 @@ export const grTrMissionLayer: RequirementLayer = {
       addSourceRefs: ['gr-tr-harmonised-list'],
     },
 
-    // EMPLOYER_TAX_PLATE and EMPLOYER_SIGNATURE_CIRCULAR get nothing. Neither
-    // appears in Annex III, and ADR-048 already recorded that vergi levhası
-    // appears in no reachable Greek source and that the signature circular is
-    // absent entirely. Attaching a citation to either would be inventing
-    // evidence to make a requirement look verified.
+    // EMPLOYER_TAX_PLATE and EMPLOYER_SIGNATURE_CIRCULAR get nothing *from this
+    // list*. Neither appears in Annex III, and neither appears in the
+    // harmonised list this layer is refining from, so attaching either citation
+    // here would be inventing evidence to make a requirement look verified.
+    //
+    // The earlier wording said the tax plate "appears in no reachable Greek
+    // source". That was wrong, and the evidence correcting it predates the
+    // claim: ADR-047's fourth pass (2026-09-12) captured the visa centre's
+    // company-document block — "Güncel Vergi Levhası, Ticari Sicil Gazetesi,
+    // ... İmza Sirküleri" — on the Çalışan, Şirket Sahibi and Serbest Meslek
+    // branches at all four posts. That is a *delegated intake* source, not the
+    // mission's own publication, and it is why the signature circular below
+    // carries `gr-tr-visa-centre-checklist` on its own declaration while this
+    // refinement list stays silent on both rows. The tax plate is not composed
+    // by this pack at all, so it has nothing here to cite.
   ],
   /**
    * Annex III I.5(a) says "letter from employer **and/or** approval for leave",

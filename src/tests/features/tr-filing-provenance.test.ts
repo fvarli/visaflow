@@ -81,16 +81,25 @@ const SUPPORTED_BY_ANNEX_III: Record<string, string> = {
 /**
  * `EMPLOYER_TAX_PLATE` left this list in E5c — with the Türkiye layer itself.
  *
- * It was the clearest case the list ever held: asked for by the German mission
- * and by nobody else, sitting in the shared jurisdiction layer, so Greek
- * applicants were asked for a vergi levhası on no authority at all.
+ * It was the clearest case the list ever held: carried by the shared
+ * jurisdiction layer while the instrument that layer speaks for never names it,
+ * so Greek applicants were asked for a vergi levhası on **no jurisdiction-level
+ * authority**.
+ *
+ * That wording used to read "on no authority at all", and it overstated the
+ * case. ADR-047's fourth evidence pass (2026-09-12) had already captured the
+ * Greek visa centre's company-document block, "Güncel Vergi Levhası" included,
+ * across three occupational branches at four posts. What the row lacked in the
+ * shared layer was an authority of the *right kind*: a delegated intake channel
+ * is not the jurisdiction's instrument, which is the whole point this file
+ * exists to hold (ADR-052a Rule 3).
  *
  * Its definition now lives in `tr-mission-practice` and is **offered**, which
- * asks nobody for anything; `de-tr-mission` activates it and carries the only
- * evidence there has ever been for it (H5d, ADR-052d). Greece composes the
- * definition home and activates nothing out of it, so there is still no Greek
- * row to check — and now that is a property this pack proves rather than a
- * consequence of Greece not composing the layer at all.
+ * asks nobody for anything; `de-tr-mission` activates it and carries the
+ * evidence for the only composition that asks (H5d, ADR-052d). Greece composes
+ * the definition home and activates nothing out of it, so there is still no
+ * Greek row to check — and now that is a property this pack proves rather than
+ * a consequence of Greece not composing the layer at all.
  */
 const NOT_IN_ANNEX_III = ['EMPLOYER_SIGNATURE_CIRCULAR']
 

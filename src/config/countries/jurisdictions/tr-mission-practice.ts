@@ -21,8 +21,17 @@ import { occupationOneOf } from '../../types'
  * another destination's mission layer, and a `code` has exactly one owner
  * registry-wide. Minting a second code breaks one-code-one-document; promoting
  * the rows into `tr-filing` asserts them on an instrument that does not name
- * them, and no such row is asked by all three missions — the union is asked of
- * nobody (ADR-052d).
+ * them (ADR-052d).
+ *
+ * THE ARITHMETIC THAT SENTENCE USED TO CARRY HAS BEEN CORRECTED, AND THE
+ * CONCLUSION SURVIVES IT. It read "no such row is asked by all three missions —
+ * the union is asked of nobody". For `EMPLOYER_TAX_PLATE` that is false: the
+ * Greek visa centre asks for it too, which ADR-047's fourth evidence pass had
+ * already captured on 2026-09-12, and ADR-052d's table then summarised
+ * incorrectly. What still holds is the reason that matters — a delegated intake
+ * channel is not the jurisdiction's authority, so *N missions ask for it* is
+ * never promoted to a jurisdiction rule (ADR-052a Rule 3). Shared presence, not
+ * shared ownership, is still the thing that was missing.
  *
  * WHY IT SHARES THE `jurisdiction` KIND. Kind decides composition order and
  * nothing else, and these definitions must compose after `tr-filing` and before
@@ -53,12 +62,31 @@ export const trMissionPracticeLayer: RequirementLayer = {
      * disturb a stored completion claim — the owning layer's id is not part of
      * the key ([ADR-051b](../../../../docs/decisions.md), ADR-052d decision 7).
      *
-     * **The subject is the applicant's own business**, which is what every
-     * source consulted describes: a company owner's own firm and an independent
-     * professional's own practice. Static rather than per-occupation, because
-     * there is no cell where the subject differs — a farmer's tax plate would
-     * equally be their own — so a map would be using the capability because it
-     * exists rather than because a source asks for it.
+     * **The subject is the applicant's own business** for the population this
+     * definition currently serves: a company owner's own firm and an
+     * independent professional's own practice, which is what section 4(c) of
+     * the German sheet — the only evidence any composition activates this on —
+     * describes. The static `ownerType` is truthful for that population and is
+     * not changed here.
+     *
+     * **IT IS NOT SUFFICIENT FOR AN EMPLOYEE, AND THAT CELL IS NOW EVIDENCED.**
+     * The argument at `2ebd877` was "there is no cell where the subject
+     * differs". ADR-047's fourth pass records otherwise for the Greek visa
+     * centre's company-document block, which carries this same document: on the
+     * *Çalışan* branch the block is the **employer's** company, and on *Şirket
+     * Sahibi* and *Serbest Meslek* it is the applicant's own. Spain's intake
+     * checklists put employees in the same block and name the subject outright
+     * — *"İş yerinin"*, the workplace's. Nothing in this repository composes
+     * that population for this code today, so nothing is wrong in production;
+     * what is wrong is the reasoning that no such cell could exist.
+     *
+     * The shape the answer will probably take is already in the tree twice:
+     * `EMPLOYER_TRADE_REGISTRY` and `EMPLOYER_SIGNATURE_CIRCULAR` both carry
+     * `ownerByOccupation: { employee: 'employer' }` from this same source and,
+     * in the circular's case, from this same sentence (ADR-049a, ADR-052b).
+     * **This file does not make that change**: widening the population,
+     * revising the owner model, and deciding whether delegated intake evidence
+     * may activate this identity are separate decisions on their own evidence.
      *
      * **The population is occupational**, and narrower than the coarse status
      * it once carried. `applicabilityMigration` is what keeps that correction
