@@ -1776,6 +1776,83 @@ twelve missing cells — four occupational branches × Ankara, İzmir and Edirne
   İzmir and Edirne as well. The requirement is cited to Annex III I.5(b) and that citation does not
   move; this is a second authority agreeing with it, recorded so the agreement is not rediscovered.
 
+**Fifth evidence pass (2026-09-24).** One question, and it did not close: *does the visa centre's
+published workflow expose a tourism route in which Annex III I.1's itinerary alternative satisfies the
+travel-arrangement obligation without mode-specific transport evidence?* The answer the captures
+support is **ambiguous**, and this entry exists so that the ambiguity is durable rather than a
+narrower reading someone remembers. It is an observation record. It decides no architecture, and
+`tr-travel-arrangements` is untouched.
+
+- **Same channel, same method.** `gr-tr-visa-centre-checklist` — Kosmos Vize, `authorized_visa_center`,
+  mission-directed on the basis recorded in the third pass. A plain HTTP request to the stored
+  homepage returned **403**; a visible Chrome session driven over the DevTools Protocol loaded it, and
+  the generator was reached by the site's own navigation: homepage, its "Gerekli Belgeler" link
+  (`/tr-tr/gerekli-belgeler`), its city chooser, "Seç", the applicant axes, "Listele". No access
+  control was bypassed and nothing was submitted to the appointment or application system. The page
+  exposes no publication or revision date. Each capture's own jurisdiction header and the read-back
+  axis values were checked before its body was read.
+- **Held constant:** *Turistik*, *Otel*, *Çalışan*, *Çocuksuz seyahat*, *Türkiye*. The travel-mode
+  selector (*Seyahat aracı*) offers, verbatim: *Lütfen Seçiniz*, *Tur ile seyahat*, *Uçak ile
+  seyahat*, *Araba ile seyahat*, *Bot/yat ile seyahat*, *Otobüs ile seyahat*, *Gemi ile seyahat*.
+  There is **no** separate "other", "undecided" or itinerary-labelled option.
+- **Eighteen cells:**
+
+  | post | travel mode | other variation |
+  |---|---|---|
+  | İstanbul | none, and each of the six explicit modes | — |
+  | Ankara, İzmir, Edirne | none, *Uçak*, *Araba* | — |
+  | İstanbul | *Uçak* | occupation *Emekli* |
+  | İstanbul | *Uçak* | accommodation *Aile / Arkadaş Yanı* |
+
+- **Observed — a selected mode emits mode-specific evidence, at every post sampled.** Plane: *"Uçak
+  Bileti: Fiyatı görünen Gidiş- Dönüş uçak bilet rezervasyonu. Biletler barkodlu olmalı ve rezervasyon
+  kodu (PNR) gözükmelidir."* — a priced, barcoded round-trip reservation with a visible PNR. Car:
+  vehicle evidence by owner — registration copy, power of attorney or the owner's visa, licence — and,
+  where the car is the applicant's, *"ruhsat sahibinin seyahat planını açıklayan yazısı"* **beside** the
+  registration, not instead of it. Tour, bus, boat/yacht and ship each emit their own section (tour
+  documents, a priced barcoded bus ticket, mooring and captaincy documents, a priced barcoded ferry
+  ticket). The occupation and accommodation spot checks left the plane text unchanged. Across the four
+  posts the selected-mode content is materially the same; *placement* is not — İstanbul and İzmir
+  print it under *"SEYAHAT ARACI BİLGİLERİ"*, Ankara and Edirne inside *"STANDART EVRAKLAR"*, and
+  İzmir's company-car sentence is worded differently.
+- **Observed — and this is the finding: leaving *Seyahat aracı* at *Lütfen Seçiniz* still generates a
+  document list, at all four posts.** That list carries **no** mode-specific transport evidence. The
+  only trace of transport at İstanbul, Ankara and İzmir is the accommodation line's *"Tarihler ulaşım
+  bileti ile uyumlu olmalı"*, which presupposes a ticket without asking for one.
+- **Observed — Edirne asks for a travel plan on every branch captured, including the no-mode one:**
+  *"Seyahat Planı: El yazısı ile yazılmış ve kiminle, nereye, hangi ulaşım aracı ile gidileceği
+  bilgilerini içeren bir seyahat planı yazılmalıdır."* On the plane and car branches it sits beside the
+  mode's evidence; on the no-mode branch it is the only travel-arrangement item. That is **not**
+  recorded as an itinerary route. Whether the no-mode list is a sanctioned route or an unfinished
+  selection the generator renders anyway, the site does not say.
+- **Observed — framing and FAQ.** The page asks that documents be prepared *"gerekli belgeler
+  sayfasında listelendiği … şekilde"* and warns that applying with missing documents *"tekrar randevu
+  almanıza, zaman kaybına, ya da başvurunuzun olumsuz etkilenmesine sebebiyet verebilir"*; it also
+  states that the consulates *"ek ya da orijinal belge sunmanız istenebilir"*, so the list does not
+  present itself as closed. The FAQ adds acceptance detail for a flight ticket without a QR code —
+  *"PNR kodu ve fiyatı belli ise sunulabilir"*. No statement refusing an itinerary and no exhaustive
+  list of accepted transport evidence was found on the generator, the FAQ or the *Önemli Uyarılar*
+  page.
+- **Two corrections to the method, recorded because each first pointed the other way.** An early
+  physical click landed outside the viewport (y≈1559 in an 879-pixel window) and returned the form
+  unchanged, which read as validation refusing a list without a mode; a click hit-tested onto the
+  "Listele" control itself generated the list, as two scripted clicks already had, and the control
+  carries no validators. Separately, an extractor keyed on the *"SEYAHAT ARACI BİLGİLERİ"* heading
+  reported no transport evidence at Ankara and Edirne; those posts place it under another heading,
+  and the matrix was re-read by **item census** rather than by heading name. Anyone re-running this
+  should do both.
+- **Classification — shared choice: AMBIGUOUS. Mechanism: INSUFFICIENT.** An explicit refusal of the
+  itinerary route is not established, and neither is an explicit closed list. Narrowing by a mandatory
+  workflow is not established, because the workflow does not make the travel mode mandatory. A
+  checklist that merely names a ticket would be insufficient on its own terms. **Inferred, and no
+  more:** the selected-mode branches are consistent with operational narrowing, and they do not prove
+  that the shared itinerary route is closed.
+- **Not established.** That Kosmos accepts an itinerary; that it rejects one; that the no-mode output
+  is a sanctioned filing route; how an officer or the counter treats itinerary evidence; that Annex
+  III's itinerary route should be narrowed or removed in VisaFlow; and any source-authority or
+  channel-precedence policy. Those questions are open exactly as they were, and one retrieval day,
+  one purpose and one nationality are the extent of what was read.
+
 **Next:** Greece-specific verification, from a network that can reach `mfa.gr` or by a maintainer
 entering the ministry's published list by hand. Every requirement above marked partial or
 conflicting is waiting on precisely that.

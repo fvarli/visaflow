@@ -612,6 +612,21 @@ question and an identity question would not be settled in one commit. Anyone pic
 re-retrieve the Edirne checklist first: the capture behind this note is not in the repository, and a
 retrieval failure can never establish absence.
 
+**Greek travel arrangements — visa-centre evidence is ambiguous on narrowing.**
+
+Captured in [ADR-047]'s fifth evidence pass (2026-09-24), at all four consular jurisdictions:
+
+- Every **selected** travel mode emits mode-specific transport evidence — for a flight, a priced
+  round-trip reservation with a visible PNR — and none offers an itinerary in its place.
+- Leaving the travel mode **unselected still generates a list**, and that list asks for no transport
+  evidence at all.
+- Edirne additionally asks for a handwritten *Seyahat Planı* on every branch, including that one.
+
+Classified **AMBIGUOUS**, mechanism **INSUFFICIENT**: no explicit refusal, no closed list, and a
+workflow that does not make the choice mandatory. It is not evidence that Greece closes Annex III
+I.1's itinerary route. No production change is authorized by it — `tr-travel-arrangements` stays as
+declared — and the source-authority and satisfaction-group questions it bears on remain unresolved.
+
 **Six identities a third destination asks for, adjudicated but not shipped.**
 
 Spain's short-stay tourism sources (consulate and both consular districts, filed from Türkiye) were
@@ -657,6 +672,7 @@ why identifiers are stable, requirements are keys-not-prose, and source honesty 
 [ADR-012]: ./decisions.md
 [ADR-014]: ./decisions.md
 [ADR-015]: ./decisions.md
+[ADR-047]: ./decisions.md#adr-047
 [ADR-049a]: ./decisions.md#adr-049a
 [ADR-051b]: ./decisions.md#adr-051b
 [ADR-051c]: ./decisions.md#adr-051c
