@@ -1853,9 +1853,101 @@ narrower reading someone remembers. It is an observation record. It decides no a
   channel-precedence policy. Those questions are open exactly as they were, and one retrieval day,
   one purpose and one nationality are the extent of what was read.
 
+**Sixth evidence pass (2026-09-24).** The fifth pass read the visa centre alone; this one asks the
+mission. *Can current Greek mission- or government-published material resolve the ambiguity the fifth
+pass left about Annex III I.1's travel-arrangement alternatives for short-stay applications filed in
+Türkiye?* At the level of the **published rule**, yes, and in favour of the shared choice. At the
+counter, it cannot say, and this entry does not pretend otherwise. Like the fifth, it is an
+observation record and decides no architecture.
+
+- **Retrieval.** Every page and file was retrieved on 2026-09-24. Plain HTTP to `mfa.gr` still
+  returns **403**; the same visible-Chrome session over the DevTools Protocol loaded them, reached
+  from `mfa.gr/turkey` and its own consular-authority chooser, then by the links those pages carry.
+  No access control was bypassed and nothing was submitted to any application or appointment system.
+  Two Greek-language filenames were also tried **by guess** and returned 404. No page read in this
+  pass links them, so that is a guess failing, not evidence that no Greek-language list exists. The
+  ministry's central Schengen pages (`mfa.gr/en/services/schengen-visas/` and its Greek
+  counterpart) carry no supporting-document content and contribute nothing here.
+- **Four posts, four pages, one list.** Each post has its own visa page under
+  `https://www.mfa.gr/turkey/visas.html?mission=…` — `ank` (Consular Office of the Embassy, Ankara),
+  `kon` (Consulate General, Istanbul), `smy` (Consulate General, Izmir), `adr` (Consulate, Edirne) —
+  each in English (`&lang=extra1`), Turkish (`/turkey/tr/visas.html`) and Greek. They differ in
+  logistics: jurisdiction areas, contacts, Kosmos offices, application-form files, and a stale
+  nationality line on Istanbul's. The supporting-document treatment is materially common. Every
+  English and Greek page links the same file under *"List of required supporting documents"* /
+  *"Κατάλογος απαιτουμένων δικαιολογητικών"*, and every Turkish page links its Turkish counterpart
+  under *"Gereken destekleyici belgelerin listesi"*. None publishes a travel rule of its own. No
+  narrower or exhaustive post-specific Greek travel list was identified in this investigation.
+- **The English list.** `mfa.gr/missionsabroad/images/visas/missions/Turkey/Harmonized_list_en.pdf`
+  — hosted by the Greek MFA, titled *"List of supporting documents to be submitted by applicants for
+  short stay visas in Turkey"*, scoped to Türkiye and not to a post. `Last-Modified` 30 Jul 2021, PDF
+  creation date the same day, four pages, SHA-256
+  `6c4634d27a1469ce4526ec2691c52b428a766ab56386d4d852bf62ac37beeeb1`. Under *"General requirements for
+  all applicants"*: *"1. Travel arrangements: flight reservations, other proof of intended means of
+  transport, or proof of travel itinerary."* Three alternatives — flight reservations; other proof of
+  intended means of transport; proof of travel itinerary — within one obligation. This is the file
+  `gr-tr-harmonised-list` already records; its reading is unchanged.
+- **The Turkish list — newly observed.** `…/Turkey/Harmonized_list_tr.docx`, hosted by the Greek MFA
+  in the same directory, with the same Türkiye-wide role. `Last-Modified` 30 Jul 2021, document
+  properties created and modified 30 Jul 2021, SHA-256
+  `b0fb0a43db36e20b9f731d3a939e52ddbd8628ac3d125f79d2a5cb493f44be74`. I.1 reads *"Seyahat
+  düzenlemeleri: uçuş rezervasyonları, planlanan ulaşım aracına dair diğer kanıtlar, **ya da** seyahat
+  programına dair kanıt"* — the same three alternatives, with *ya da* ("or") carrying the choice. It
+  is the Turkish-language publication of the same mission rule, not a second legal authority. No
+  source record is created for it here.
+- **Cross-post result.** All four official post pages point to the same harmonised
+  supporting-document rule. The current Greek mission-published rule identified in this
+  investigation is therefore **mission-wide for Türkiye with respect to this travel-arrangement
+  list**. That proposition is about the mission's publication only. It is not projected onto the
+  visa centre, whose branch-specific differences between posts (the fifth pass's Edirne *Seyahat
+  Planı* among them) stay exactly as recorded.
+- **The individual-case clause.** The same pages say the consulate *"may, in individual cases, ask
+  you to submit additional information or documents"* — in Greek *"η Προξενική Αρχή διατηρεί το
+  δικαίωμα, σε μεμονωμένες περιπτώσεις, να απαιτήσει επιπλέον δικαιολογητικά"*, in Turkish
+  *"bireysel durumlarda … ilave bilgi ve belge sunmanızı isteyebileceğini"*. It supports one
+  proposition: the mission reserves case-specific requests. It does **not** support a generally
+  narrower travel-arrangement rule, mandatory transport evidence in every tourism application, or
+  removal of the itinerary alternative.
+- **Against Annex III.** The English publication reproduces Annex III I.1's alternative structure
+  verbatim, and the Turkish one preserves it with *ya da*. No current applicable Greek government or
+  mission source identified in this investigation narrowed those alternatives.
+- **Against the fifth pass.** The visa centre's selected modes request mode-specific evidence; its
+  no-mode selection still generates a list; Edirne additionally asks for a *Seyahat Planı*; and it
+  gave neither an explicit refusal of an itinerary nor an explicit closed list. Those observations
+  therefore do **not** establish a conflict with the mission-published shared choice. Whether the
+  visa centre accepts an itinerary is not recorded here, and how the two channels should rank against
+  each other is a source-authority question this pass does not enter.
+- **Classification.** Higher-authority result: **RESOLVES_IN_FAVOUR_OF_SHARED_CHOICE**, *at the level
+  of the current published mission rule*. Mission sources: **MATCHES_SHARED_CHOICE**. The fifth-pass
+  visa-centre comparison stays **AMBIGUOUS / INSUFFICIENT**.
+- **Established.** The mission-published I.1 rule presents proof of travel itinerary as one
+  alternative within the travel-arrangements obligation. No generally mandatory transport-reservation
+  requirement was identified in the applicable mission publications. No narrower exhaustive
+  post-specific travel rule was identified. All four official post pages use the same harmonised
+  supporting-document publication for this issue. The power to ask for more is framed as
+  individual-case discretion. *The published rule presents itinerary as an alternative* is the claim;
+  it is not a guarantee of what any counter accepts.
+- **Not established.** How visa-centre counter staff treat an itinerary-only application; how a
+  consular officer treats one; whether the visa centre's no-mode output is a sanctioned filing route;
+  whether any unpublished or internal intake rule exists; whether a Greek-language harmonised list
+  exists; and whether the 2021 Türkiye instrument has been superseded — beyond the fact that the Greek
+  mission was still publishing and linking these files on 2026-09-24. A check of the Commission's
+  legal-documents portal was inconclusive, because the portal is an interactive database. None of
+  these is turned into a finding by the absence of a source.
+- **No architecture decision.** No source-authority or channel-precedence rule is decided. No
+  satisfaction-group change and no production change is authorised by this pass.
+  `tr-travel-arrangements` is untouched, no source record changed, and no ADR is restored or added.
+
 **Next:** Greece-specific verification, from a network that can reach `mfa.gr` or by a maintainer
 entering the ministry's published list by hand. Every requirement above marked partial or
 conflicting is waiting on precisely that.
+
+> **Amended 2026-09-24 — the retrieval this names is no longer pending.** The paragraph was written
+> with the decision on 2026-08-28, before any evidence pass, and it is kept as written because it was
+> accurate then. The Greek mission's visa page and its harmonised list were retrieved from `mfa.gr`
+> on 2026-09-07 (`gr-mfa-tr-visa-page`, `gr-tr-harmonised-list`) and again in the sixth pass above.
+> This note records only that the channel was reached. It does not say that any requirement marked
+> partial or conflicting has since been resolved; each stands or falls on its own record.
 
 **Implementation:** `src/config/sources/eu.sources.ts`,
 `src/config/countries/verification-coverage.ts`, `src/config/countries/common/schengen-short-stay.ts`,

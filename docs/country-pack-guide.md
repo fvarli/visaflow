@@ -612,7 +612,7 @@ question and an identity question would not be settled in one commit. Anyone pic
 re-retrieve the Edirne checklist first: the capture behind this note is not in the repository, and a
 retrieval failure can never establish absence.
 
-**Greek travel arrangements — visa-centre evidence is ambiguous on narrowing.**
+**Greek travel arrangements — the published rule keeps the choice; the visa centre is ambiguous.**
 
 Captured in [ADR-047]'s fifth evidence pass (2026-09-24), at all four consular jurisdictions:
 
@@ -624,8 +624,19 @@ Captured in [ADR-047]'s fifth evidence pass (2026-09-24), at all four consular j
 
 Classified **AMBIGUOUS**, mechanism **INSUFFICIENT**: no explicit refusal, no closed list, and a
 workflow that does not make the choice mandatory. It is not evidence that Greece closes Annex III
-I.1's itinerary route. No production change is authorized by it — `tr-travel-arrangements` stays as
-declared — and the source-authority and satisfaction-group questions it bears on remain unresolved.
+I.1's itinerary route.
+
+The sixth pass (same day) asked the mission instead. All four Greek post pages on `mfa.gr` point to
+one Türkiye-wide harmonised list, published in English and in Turkish, and both keep I.1's three
+alternatives — the Turkish with *ya da*. Mission sources: **MATCHES_SHARED_CHOICE**; result:
+**RESOLVES_IN_FAVOUR_OF_SHARED_CHOICE**, *at the level of the current published mission rule*. The
+mission's power to ask for more is framed as individual-case discretion.
+
+A published rule is not counter behaviour. How the visa centre or an officer treats an itinerary-only
+application is still unknown, and the sixth pass does not settle the fifth's ambiguity about the
+visa centre's workflow. No production change is authorized by either pass — `tr-travel-arrangements`
+stays as declared — and the source-authority and satisfaction-group questions they bear on remain
+unresolved.
 
 **Six identities a third destination asks for, adjudicated but not shipped.**
 
