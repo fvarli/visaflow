@@ -4096,3 +4096,197 @@ all, until somebody argues composition-specific requiredness on its own evidence
 **Implementation:** documentation only — `docs/decisions.md`. Nothing here is built, no requirement
 moves, and no country pack changes. The capability this record describes is H5c, the pilot migration
 is H5d, and neither is authorised by this record.
+
+---
+
+## ADR-054: Source Authority Is Scoped, Not Ranked — Delegated Filing-Channel Evidence Is Additive
+
+**Status:** Accepted · 2026-09-25 · decides the question [ADR-052d](#adr-052d) decision 10 left open
+("source-authority or channel precedence between a consulate and its authorized visa centre") ·
+codifies [ADR-047](#adr-047)'s third to sixth evidence passes · applies [ADR-052a](#adr-052a),
+[ADR-052b](#adr-052b), [ADR-052c](#adr-052c), [ADR-052d](#adr-052d) and [ADR-048a](#adr-048a)
+
+The Greek mission requirements argued through the delegated-channel evidence passes rest, in whole
+or in part, on one source the mission did not write: `gr-tr-visa-centre-checklist`, Kosmos Vize's
+delegated checklist, recorded as `sourceType: 'authorized_visa_center'`. Each of those decisions was
+argued on its own evidence and each came out defensibly. What was never written down is the policy they share,
+and the last two passes show why it can no longer stay implicit: the fifth pass read the visa centre
+asking for mode-specific transport evidence beside a jurisdiction rule that offers an itinerary
+alternative, and the sixth read the mission publishing that alternative unchanged. Both passes,
+on the same day, had to leave one question open — in the sixth's words, *"how the two channels should
+rank against each other is a source-authority question this pass does not enter."* This record
+enters it.
+
+**The tempting answer is a ladder, and it is wrong.** `regulation > government > embassy > consulate
+> authorized_visa_center > other` reads naturally off the `sourceType` vocabulary and would be easy
+to enforce. It cannot express any of the cases already shipped:
+
+- **It makes silence lose.** Visa Code Article 14(3) leaves the harmonised list non-exhaustive, so a
+  regulation that does not name a document has not ruled on it. A ladder reads the regulation's
+  silence as outranking the visa centre's statement, and would withdraw
+  `EMPLOYER_SIGNATURE_CIRCULAR` from every Greek applicant on the strength of nobody having said
+  anything.
+- **It ignores scope.** An authoritative source for Germany's mission is no authority at all for
+  Greece's ([ADR-052a](#adr-052a), *publisher is not jurisdiction*); a ladder ranks the type and never
+  asks whose composition the source speaks for.
+- **It confuses the label with the publisher.** [ADR-052a](#adr-052a) already refused to infer
+  publisher from `sourceType`, because a member state can publish a regulation. Inferring authority
+  from it is the same inference one step further.
+- **It cannot tell addition from contradiction.** The whole difference between the fourth pass
+  (a delegated source adding a population nobody else addressed) and the fifth (a delegated source
+  apparently narrowing a choice a higher source made explicit) is invisible to a rank.
+
+**Decision:**
+
+1. **`sourceType` is descriptive metadata. It is not a precedence hierarchy, and no code path, test
+   or review argument may use it as one.** It says what kind of body published a source. Whether that
+   source is authoritative for a portion of a composed contract is answered by rules 2–9 — what the
+   source publishes, which layer owns the requirement it speaks to, the scope it covers, whether the
+   directing mission adopts it, and whether what it says is additive or contradictory. None of those
+   is a property of the source's type.
+
+2. **The policy is *scoped additive delegation*.** An authorized filing channel that a mission
+   directs applicants to — Kosmos Vize for the Hellenic Republic in Türkiye, adopted on the basis
+   recorded in [ADR-047](#adr-047)'s third pass: the Ankara mission states it has outsourced
+   collection of all Schengen applications to Kosmos Vize and names the site, and the site links back
+   to `mfa.gr/turkey` — may supply evidence **for the directing mission's own composition**, and for
+   nothing else. Within that scope it may:
+
+   - **add** a requirement where the higher authorities and the mission's own publication are
+     silent;
+   - **activate** an offered identity ([ADR-052d](#adr-052d)) when its evidence supports that
+     activation for that mission;
+   - **widen** an occupational population under [ADR-052c](#adr-052c), where the capability allows it;
+   - supply **acceptance detail** under the existing fragment rule ([ADR-052b](#adr-052b)), additive
+     only;
+   - **support** an existing requirement with a citation, read with the rest of the set under
+     [ADR-048a](#adr-048a).
+
+   It may **not**:
+
+   - silently override a choice a higher authority made explicit;
+   - remove an option a satisfaction group explicitly offers;
+   - convert operational intake behaviour — what a form defaults to, which branch a generator prints,
+     what a counter was seen to do — into a rule;
+   - become jurisdiction-wide by repetition across posts or across missions;
+   - create a requirement from one isolated post, unless and until a capability exists that can
+     scope it to that post.
+
+   Each of these prohibitions is already true of every later layer under [ADR-052b](#adr-052b)
+   decision 6 and [ADR-052c](#adr-052c) decision 4. What this rule adds is that a delegated source
+   does not acquire any power the layer citing it lacks — and that the layer citing it can only be
+   the directing mission's.
+
+3. **Silence is not conflict.** Where Annex II, Annex III and the mission's own publication say
+   nothing about a document, a delegated channel asking for it is additive evidence, admissible when
+   the scope and ownership conditions of rules 4 and 5 hold. Silence licenses addition; it never
+   licenses the inference that the silent source *forbade* the document, nor that it *required* it.
+
+4. **Where delegated evidence may act: the directing mission's layer, and only there.** A
+   requirement added, an offer activated, a population widened or a detail appended on the strength
+   of a delegated channel is declared in that mission's layer — today `gr-tr-mission` for Kosmos.
+   Never in the common layer, a destination layer, the jurisdiction instrument's layer (`tr-filing`),
+   the neutral offer home (`tr-mission-practice`, whose offers carry no citations at all), or another
+   destination's mission layer. The test is the layer's **scope**, not its `kind`: mission layers
+   share the `jurisdiction` kind as a composition-order classification, and that sharing confers
+   nothing ([ADR-052d](#adr-052d) decision 4).
+
+5. **Scope must be earned, in one of two ways.** Delegated evidence speaks for the mission only if
+   it is either **one mission-wide publication**, or **the same evidence identity observed at every
+   relevant post** — same document, same population, same conditions, read separately at each. The
+   fourth pass is the worked example of the second route: twenty cells, five occupational branches at
+   four posts, all in agreement. **Single-post evidence is recorded, not rendered.** Edirne's
+   *Mükellefiyet Belgesi* and Edirne's handwritten *Seyahat Planı* are both recorded and neither is a
+   requirement, because a layer is per mission and not per post. Agreement on one row is also not
+   one published list: four posts agreeing on the company-document block say nothing about the rows
+   on which the same captures differ.
+
+6. **Repetition never promotes.** Delegated evidence observed at every post of one mission is
+   mission-scoped. Delegated evidence observed across missions is still, at most, mission-scoped for
+   each of them. [ADR-052a](#adr-052a) Rule 3 — *"N missions ask for it" is never promoted to a
+   jurisdiction rule* — applies with extra force here, as the 2026-09-20 amendment to
+   [ADR-052d](#adr-052d) already said: a delegated intake channel is not the jurisdiction's
+   authority.
+
+7. **Requiredness follows the identity, not the channel.** Delegated evidence may inform requiredness
+   only on a requirement whose canonical definition the directing mission's layer itself owns, since
+   `required` is part of the definition and is not composition-scoped ([ADR-052b](#adr-052b)
+   decision 6). It can never change the requiredness of a requirement another layer owns or of an
+   offer the mission activates ([ADR-052d](#adr-052d) decision 5). Where a delegated source's
+   requiredness and the identity's do not match, **the mismatch is a blocker**: it is recorded, and
+   no activation, widening or fragment is used to route around it.
+
+8. **Conflict has a narrow, evidential definition.** A delegated source conflicts with a higher
+   authority's explicit choice only when one of the following is established:
+
+   - an **explicit refusal** of an option the higher authority permits;
+   - an **explicit closed list** that omits it;
+   - a **mandatory workflow** that actually excludes it — the channel cannot be completed without
+     taking a route that does not include the permitted option.
+
+   Two things are **not** enough on their own. A **selected route** that emits evidence for itself —
+   choosing *Uçak ile seyahat* and being asked for a PNR — says what that route needs, not that
+   another route is closed. A **mentioned document** — a ticket named in a checklist, or presupposed
+   by *"Tarihler ulaşım bileti ile uyumlu olmalı"* — says a document exists, not that its
+   alternatives are refused. Reading either as conflict is converting operational behaviour into a
+   rule, which rule 2 forbids.
+
+9. **A real conflict is recorded, never silently resolved.** The composed contract keeps what the
+   non-delegated sources establish, because no later layer may suppress, narrow or replace
+   ([ADR-052b](#adr-052b) decision 6) — that is a consequence of additivity, not a ranking of source
+   types, and it asserts nothing about what any counter accepts. The conflict itself is recorded as
+   evidence in the pass that found it and in [country-pack-guide.md](./country-pack-guide.md)'s
+   *Observed evidence not yet modelled*. **A separate intake-practice model is not introduced now.**
+   It gets its own decision when, and only when, a real conflict meeting rule 8 exists; designing it
+   against the cases in hand would be designing it against cases that turned out not to conflict.
+
+10. **A published rule and counter behaviour are different facts.** A mission's publication
+    establishes what the mission says it asks; it does not establish what a visa-centre desk or a
+    consular officer accepts on a given day, and nothing observed at a counter establishes a rule.
+    VisaFlow renders published rules. The mission's reserved right to ask for more *"in individual
+    cases"* is individual-case discretion, and is never read as a generally narrower rule.
+
+**Precedents.** Each was decided before this record and each is consistent with it. They are what the
+policy was reconstructed from, not changes it makes.
+
+| case | what the delegated source did | why it was admitted, or not | rule |
+|---|---|---|---|
+| `EMPLOYER_SIGNATURE_CIRCULAR` (Greece) | **added** a requirement — Kosmos is its only citation | same identity and population at all four posts; mission-directed; Annex III and the Greek mission's publication are silent; owned and declared in `gr-tr-mission` | 3, 4, 5 |
+| — its requiredness | nothing | authored `required: false` and never re-argued; Spain's intake checklists make it mandatory. **Unresolved** — a blocker, not a question this record answers | 7 |
+| `COMPANY_ACTIVITY_CERTIFICATE`, `EMPLOYER_TRADE_REGISTRY` (Greece) | **widened** who is asked — + employee, + independent professional | the company-document block at all four posts; widening under [ADR-052c](#adr-052c) on a jurisdiction-owned base, declared in `gr-tr-mission`, cited beside the harmonised list per [ADR-048a](#adr-048a); Germany's deltas stand on Germany's own evidence, and neither becomes a `tr-filing` rule | 2, 4, 6 |
+| Greek travel arrangements, fifth pass | selected modes emit mode-specific evidence; no mode still yields a list; no refusal; no closed list | a selected route and a mentioned ticket, nothing more — **AMBIGUOUS / INSUFFICIENT**, recorded, `tr-travel-arrangements` untouched | 8, 9 |
+| Greek travel arrangements, sixth pass | — (the mission's own publication, not a delegated source) | one Türkiye-wide harmonised list linked by all four posts keeps I.1's three alternatives — **RESOLVES_IN_FAVOUR_OF_SHARED_CHOICE**, *at the level of the published mission rule only*. Not a finding that Kosmos accepts an itinerary-only application, and not a finding about counter behaviour | 5, 10 |
+| Edirne *Mükellefiyet Belgesi*, Edirne *Seyahat Planı* | asked at one post | single-post; recorded only | 5 |
+| `EMPLOYER_TAX_PLATE` | Kosmos asks it of employee, company owner and independent professional | not jurisdiction authority ([ADR-052d](#adr-052d) amendment); a Greek activation would be admissible *in principle* under rules 2 and 4, and is **blocked** on the owner model the 2026-09-20 amendment left open | 4, 6 |
+
+**Consequences.**
+
+- The ADR-047 passes and ADR-052d's amendments no longer need to disclaim the channel question; a
+  future pass classifies delegated evidence against rules 3, 5 and 8 instead of re-deriving them.
+- The policy is enforced by review, not by an invariant. The mechanical guards that exist —
+  isolation of one destination's authority, the evidence-gap register, provenance evaluated per
+  composition — are unchanged, and none reads `sourceType` as authority. A future guard that did
+  would be implementing the ladder this record rejects.
+- One case the policy leaves uncomfortable is named rather than hidden: under rule 9 a real conflict
+  keeps rendering the higher authority's wider choice, so an applicant may be shown an option the
+  counter in fact refuses. That is the honest result of publishing rules rather than inferring
+  practice, and the answer to it, if it arrives, is the intake-practice decision rule 9 defers.
+
+**Not decided here.**
+
+- The requiredness of `EMPLOYER_SIGNATURE_CIRCULAR`, in Greece or anywhere.
+- The owner model of `EMPLOYER_TAX_PLATE`, and whether Greece activates it.
+- Spain — any pack content, activation or source record.
+- Any change to `tr-travel-arrangements` or to any satisfaction group.
+- The shape of an intake-practice model, or whether one is ever needed.
+- The authority of any delegated channel other than Kosmos Vize for Greece in Türkiye; each is
+  adopted on its own recorded basis.
+
+**Follow-ups, none authorised by this record.** Re-read the Greek travel question if a pass ever
+finds a refusal, a closed list or a mandatory workflow meeting rule 8 — and only then open the
+intake-practice decision. Resolve `EMPLOYER_SIGNATURE_CIRCULAR`'s requiredness and
+`EMPLOYER_TAX_PLATE`'s owner model each in its own slice, applying rules 4 and 7.
+
+**Implementation:** documentation only — `docs/decisions.md`, `docs/country-pack-guide.md`. No
+source record, requirement, satisfaction group, `revision`, `contractKey`, `templateVersion`, schema
+or storage movement.

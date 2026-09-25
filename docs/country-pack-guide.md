@@ -635,8 +635,9 @@ mission's power to ask for more is framed as individual-case discretion.
 A published rule is not counter behaviour. How the visa centre or an officer treats an itinerary-only
 application is still unknown, and the sixth pass does not settle the fifth's ambiguity about the
 visa centre's workflow. No production change is authorized by either pass — `tr-travel-arrangements`
-stays as declared — and the source-authority and satisfaction-group questions they bear on remain
-unresolved.
+stays as declared. The source-authority question they bore on is now decided by [ADR-054] — a
+delegated channel's evidence is additive and mission-scoped, and a selected route or a mentioned
+ticket is not a conflict — and the satisfaction-group question remains unresolved.
 
 **Six identities a third destination asks for, adjudicated but not shipped.**
 
@@ -693,3 +694,4 @@ why identifiers are stable, requirements are keys-not-prose, and source honesty 
 [ADR-052d]: ./decisions.md#adr-052d
 [ADR-053]: ./decisions.md#adr-053
 [ADR-053a]: ./decisions.md#adr-053a
+[ADR-054]: ./decisions.md#adr-054
