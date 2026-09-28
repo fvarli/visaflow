@@ -3273,6 +3273,13 @@ production requirement a separate one after that.
 
 **Status:** Accepted · 2026-09-11 · amends [ADR-053](#adr-053), applies [ADR-051a](#adr-051a)
 
+> **Extended by [ADR-053b](#adr-053b) (2026-09-27).** Every decision below stands. What this record
+> did not have to say, because a code could then reach a composition only through the layer that
+> owned it, is *whose* history an entitlement records. ADR-053b settles it: an entitlement preserves
+> the prior contract a composition actually shipped, so it reaches only the compositions that
+> shipped it — and a composition that later comes to ask for the same code is a new obligation there
+> under decision 4. The text is kept as written.
+
 **Context.** [ADR-053](#adr-053) built the occupational axis and `FARMER_CERTIFICATE` proved it in
 production. What it did not settle is the other half of the work: five requirements that were written
 against the coarse `employmentStatus` axis are asking the wrong populations, and correcting them means
@@ -4290,3 +4297,220 @@ intake-practice decision. Resolve `EMPLOYER_SIGNATURE_CIRCULAR`'s requiredness a
 **Implementation:** documentation only — `docs/decisions.md`, `docs/country-pack-guide.md`. No
 source record, requirement, satisfaction group, `revision`, `contractKey`, `templateVersion`, schema
 or storage movement.
+
+---
+
+## ADR-053b: A Migration Entitlement Preserves the Contract a Composition Shipped, Not the Code
+
+**Status:** Accepted · 2026-09-27 · extends [ADR-053a](#adr-053a) decisions 1, 4, 6 and 7 · applies
+[ADR-049](#adr-049), [ADR-051c](#adr-051c) decision 6 and [ADR-052d](#adr-052d) decisions 3 and 5 ·
+parallels [ADR-051b](#adr-051b) and [ADR-052d](#adr-052d) decision 8
+
+[ADR-053a](#adr-053a) lets a requirement that moved from the coarse `employmentStatus` axis to the
+occupational one keep answering an unclassified applicant with its **recorded prior coarse
+condition**, and it makes the migration ledger the gate: *"Entitlement is historical"*,
+*"Preservation is exact"*. It was written before [ADR-052d](#adr-052d) split `add` into `offer` and
+`activate`. Until then a code reached a composition only through the layer that owned it, so *the
+prior contract this code carried* and *the prior contract this composition showed its applicants*
+never had to be told apart. The ledger is keyed by `code` alone, and nothing went wrong.
+
+**Activation tells them apart.** An offered definition carries its `applicabilityMigration` with it,
+and an activation can neither add, remove nor scope one ([ADR-052d](#adr-052d) decision 5; the
+activation guard in `applicability-migration.test.ts`). So a composition that activates a migrated
+definition later receives the fallback automatically, whatever that composition itself ever showed.
+
+`EMPLOYER_TAX_PLATE` is the case that makes this concrete, and its history is read from git, not
+reconstructed:
+
+| period | commits | Greece | Germany |
+|---|---|---|---|
+| 2026-07-23 → 2026-09-07 | `8313794` … `714830b^` | shipped `employmentStatus = employed`, `required: false`, `ownerType: 'employer'` | the same row from the shared layer, from `8d66563` (the day it ended) |
+| 2026-09-07 → 2026-09-12 | `714830b` | **withdrawn** — no Greek authority then read asked for it; no migration, no ledger entry | shipped `employmentStatus = self_employed`, `required: true` |
+| 2026-09-12 → | `2ebd877` | not composed | corrected to `company_owner` / `independent_professional`; **ledger entry, prior condition `self_employed`** |
+| 2026-09-20 → | `c1a4ad4` | composes the offer, activates nothing | activates; composed output unchanged |
+
+The ledger's reason for that entry is Germany's: section 4(c) of the German sheet, and a correction
+that is *"purely subtractive"*. **Greece never shipped the `self_employed` contract.** If a Greek
+activation were written today, an unclassified self-employed Greek applicant — a farmer included —
+would receive a required document on the strength of not having answered a question. That is the
+exact failure ADR-053a exists to refuse: *"inventing an obligation for a population the previous
+contract never covered."* It would arrive through the stable code, not through anything Greece
+published.
+
+**Decision:**
+
+1. **Three things, kept apart.** This extends ADR-053a decision 1 rather than replacing it.
+   - **Requirement identity** is the `code`: one real-world document, one acceptance bar
+     ([ADR-049](#adr-049), [ADR-052b](#adr-052b)). It says *what* is asked, never *of whom it was
+     asked before*.
+   - A **historical contract** is the prior coarse applicability contract a specific composition
+     actually shipped for an obligation immediately before that obligation migrated onto the
+     occupational axis. It is a fact about VisaFlow's own published history, verifiable in the ledger
+     and in git.
+   - A **migration entitlement** is the permission, in a composition, to hold an unclassified
+     applicant to that historical contract (ADR-053a decisions 4 and 6).
+
+   **requirement identity ≠ historical contract ≠ migration entitlement.** A code can have one
+   identity and several histories, one per composition that asked for it, or none at all in a
+   composition that never did.
+
+2. **An entitlement is scoped to the compositions that shipped its recorded prior contract** as their
+   historical contract in decision 1's sense — in force when the obligation migrated. In a
+   composition that shipped it, the entitlement holds exactly as ADR-053a states it. In any other
+   composition it does not exist. This is what ADR-053a decision 6's *"historical"* and decision 7's
+   *"exact"* already mean once more than one composition can ask for one code. It is not a new kind of
+   entitlement; it is the existing one, with the question *"whose history?"* answered.
+
+3. **A stable code does not establish an entitlement across compositions.** Sharing a `code` means
+   sharing a document and an acceptance bar. It does not mean sharing what applicants of another
+   composition were shown, and it never transfers one composition's historical contract to another.
+
+4. **A later activation does not inherit another composition's entitlement.** A composition that
+   comes to ask for a migrated requirement — by activation, or by any later mechanism that makes an
+   existing definition present — without having shipped its recorded prior contract is asking a **new
+   obligation** of its applicants. ADR-053a decision 4 governs it directly: *"A new fine-axis
+   requirement fails closed until the applicant has a usable effective occupation."* An unclassified
+   applicant in that composition does not receive the row; a classified one is evaluated against the
+   corrected condition, and any widening that composition declares, exactly as anywhere else.
+
+   The premise is ADR-053a decision 4 applied to a composition in which the obligation is new. It is
+   **not** borrowed from [ADR-052c](#adr-052c) decision 6. That decision reaches the same answer for a
+   widened population for the same reason, and is a parallel, not the source.
+
+5. **Historical visibility of the same code is not enough when the contract differed.** Preservation
+   is exact. A composition that once showed the same code under a *different* contract is entitled to
+   neither contract:
+   - it did not ship the recorded prior contract, so decision 2 gives it nothing;
+   - and the contract it did ship was not the one migrated. A contract **withdrawn outright** — removed
+     because no authority supported it, with no migration and no ledger entry — leaves no
+     entitlement behind. Its applicants have not been shown it since. Reinstating it now would be a new
+     assertion, not preservation.
+
+6. **Within an entitled composition, ADR-053a is unchanged.**
+   - `classified ? correctedFineCondition : recordedPriorCoarseCondition`.
+   - The prior condition is evaluated, never treated as *"applies to everyone unclassified"*.
+   - A widening is consulted on the classified path only.
+   - Retirement is required, undated and a reviewed decision (ADR-053a decision 8).
+   - The ledger remains the authoritative gate, cross-checked against the executable condition in both
+     directions.
+
+   This record narrows *where* an entitlement reaches, never *what* it does where it does reach.
+
+7. **The ledger's authority now includes scope.** An entitlement that cannot say which compositions
+   shipped its prior contract cannot be asserted for a composition that is newly asking. Where scope is
+   uncertain, the error must fall on the side ADR-053a's asymmetry already chose for each direction:
+   - never withdraw the fallback from a composition that did ship the contract;
+   - never extend it to one that did not.
+
+8. **Existing entitlements are not retired, narrowed or removed by this record.**
+   - `EMPLOYER_TAX_PLATE`'s entitlement for Germany stands exactly as recorded: Germany shipped
+     `self_employed` from `714830b` to `2ebd877`, and unclassified self-employed German dossiers keep
+     the row.
+   - No ledger entry is deleted.
+   - No retirement criterion is loosened.
+   - No composition that composes a migrated requirement today loses a fallback it currently reaches.
+
+   Removing an entitlement stays ADR-053a decision 8's reviewed decision, and scoping one is not
+   removing it.
+
+9. **No composition may reach a migrated requirement outside its entitlement's scope until that scope
+   is enforced.** Activation is not special, and neither is direct composition. Decision 4 is decided
+   by what a composition shipped, not by the route by which a requirement becomes present. Either of
+   these is decision 4's case:
+   - activating an offered definition;
+   - a composition not yet registered composing the layer that owns the requirement.
+
+   Today's mechanism cannot express decisions 2 to 5: the fallback travels with the definition into
+   every composition that composes or activates it, and neither route can scope it. Either route, in a
+   composition that did not ship the recorded prior contract, would silently implement the inheritance
+   this record rejects. Neither is therefore permitted until the scoping is enforced mechanically
+   rather than by review.
+
+**The two sentences this record reads against.**
+
+- **The H5d comment.** `applicability-migration.test.ts` says an entitlement *"travels with the
+  canonical definition rather than with whoever activates it: `APPLICABILITY_MIGRATIONS` is keyed by
+  `code` alone and always was."*
+  - **Its first half is right, and stands.** It answers *who may declare* a migration: the definition's
+    owner, never an activator. An activation still may not carry `applicabilityMigration`.
+  - **Its second half describes the ledger's shape, not the entitlement's scope.** It was written in
+    H5d, when Germany was the only activator and the question could not arise.
+  - Its own premise — an entitlement is *"a record of what an obligation used to ask"* — is this
+    decision: what the obligation used to ask *in that composition*. The statement that keying by
+    `code` alone is sufficient is superseded. The comment and the test are left untouched here, and
+    are the implementing slice's to update.
+- **The chamber-certificate split.** `CHAMBER_REGISTRATION_CERTIFICATE` is entitled although its code
+  never shipped under its own name, because the obligation shipped inside `EMPLOYER_TRADE_REGISTRY`'s
+  conjunctive contract. The ledger file states the line: *"the argument is about the obligation's
+  history, never about the code's"*; ADR-051c decision 6 states *"what VisaFlow published is ours to
+  carry forward."* This record is that precedent's mirror, not an exception to it:
+  - **the chamber case** is a **new code, same obligation, same compositions**, so it is entitled;
+  - **the tax-plate case** is the **same code, a composition that never shipped the obligation's prior
+    contract**, so it is not entitled there.
+
+  Taken together, entitlement follows *what was published and to whom*. The code settles it in neither
+  direction.
+
+**Why this model, and not the others.** Each candidate was tested against the rules it would have to
+keep.
+
+| candidate | what it does | why it fails, or survives |
+|---|---|---|
+| **A — inheritance by code** | every composition composing the code gets the fallback | It contradicts ADR-053a decisions 6 and 7. Its only support is the current mechanism and a comment written before a second composition could arise. It hands an unclassified applicant a document their own composition never asked of them, which is the invention ADR-053a names. **Rejected.** |
+| **B — global fail-closed** | a migrated requirement stops falling back anywhere once a second composition asks for it | It withdraws a required document from applicants whose composition did ship the contract, and did so the day before. That is the withdrawal ADR-053a puts level with invention. It is also a retirement taken without meeting its recorded criterion (ADR-053a decision 8). It makes one composition's new ask cost another composition's applicants. **Rejected.** |
+| **C — same-code historical visibility** | entitled wherever the code was ever shown | It is refuted by the case in hand: Greece *did* show `EMPLOYER_TAX_PLATE`, under `employed` and optional. Read literally, it grants a `self_employed` fallback to a composition that never showed that contract, which is **A** by another route. Preservation is of a contract, not of a row. **Rejected.** |
+| **D — historical prior-contract scoping** | entitled exactly where the recorded prior contract was shipped | It keeps ADR-053a decisions 4, 6 and 7 intact in every composition. It is consistent with the chamber precedent and ADR-051c decision 6. It leaves every existing German applicant's checklist unchanged. It treats a newly asking composition as the new obligation it is. Its cost is that a code-keyed ledger cannot express it, which is a statement about the mechanism, not the rule. **Adopted.** |
+
+**Application.**
+
+| requirement | composition | shipped the recorded prior contract? | entitlement |
+|---|---|---|---|
+| `EMPLOYER_TAX_PLATE` | Germany | yes — `self_employed`, `714830b` → `2ebd877` | holds, unchanged |
+| `EMPLOYER_TAX_PLATE` | Greece, should it ever activate | no — it shipped `employed`, optional, withdrawn outright at `714830b` | none. Unclassified Greek applicants fail closed; classified ones are evaluated on the corrected condition. |
+| `CHAMBER_REGISTRATION_CERTIFICATE` | the compositions that composed `EMPLOYER_TRADE_REGISTRY`'s conjunctive contract | yes, per its ledger entry and ADR-051c decision 6 | holds, unchanged |
+| `FARMER_CERTIFICATE` | any | no prior coarse contract anywhere | none, as ADR-053a already states |
+
+**Consequences.**
+
+- **A code-keyed ledger is no longer sufficient in general.** This is the same shape of finding
+  [ADR-052d](#adr-052d) decision 8 made for the evidence-gap register: a record keyed by `code` alone
+  was correct while one code had one audience, and cross-composition activation is what ends that.
+- **Nothing an applicant sees changes because of this record.** No composition today reaches a
+  migrated requirement whose prior contract it did not ship, so decisions 2 to 5 describe behaviour no
+  production composition yet reaches. Decision 9 is what keeps it that way until the scope is enforced.
+- **A new composition waits on the same enforcement.** A further pack filing in Türkiye composes
+  `tr-filing`, which owns four migrated requirements. Its applicants were never asked for them under
+  their prior contracts, so under decision 4 its unclassified applicants fail closed on them rather
+  than inheriting another composition's fallback. What such a pack asks for is decided on its own
+  evidence, not here.
+- **A Greek activation of `EMPLOYER_TAX_PLATE` is gated on this.** It must not grant the German
+  `self_employed` fallback to unclassified Greek applicants, and under today's mechanism it would. It
+  remains blocked by decision 9, independently of its owner model and its evidence
+  ([ADR-054](#adr-054)).
+- **The honest cost of decision 4.** An unclassified self-employed Greek applicant would not see the
+  tax plate until they say what kind of work they do. That is ADR-053a's asymmetry applied as written:
+  a new obligation needs an answer to appear.
+
+**Not decided here.**
+
+- The implementation mechanism: whether the ledger gains a composition field, whether scope is derived
+  from something already recorded, or whether it takes another representation entirely.
+- How existing ledger entries record their scope. Each is taken to stand for the compositions it was
+  argued for; this record re-adjudicates none of them.
+- Whether Greece activates `EMPLOYER_TAX_PLATE`, and on what evidence.
+- `EMPLOYER_TAX_PLATE`'s owner semantics — `ownerType` or `ownerByOccupation`.
+- The requiredness of any requirement, `EMPLOYER_TAX_PLATE` and `EMPLOYER_SIGNATURE_CIRCULAR` included.
+- Any other migration, entitlement or retirement.
+- Whether a composition may ever *earn* an entitlement it did not originally hold. Nothing here
+  provides a route to one, and inventing one would need its own record.
+
+**Follow-ups, none authorised by this record.**
+
+- Enforce the scope mechanically, together with an audit confirming the scope of each existing ledger
+  entry.
+- Update the H5d comment and the pinned tests in the same slice as that enforcement.
+- The `EMPLOYER_TAX_PLATE` owner model, in its own slice. It does not depend on this record.
+- Any Greek activation only after both the enforcement and the owner model.
+
+**Implementation:** documentation only — `docs/decisions.md`. No requirement, ledger entry,
+condition, activation, `revision`, `contractKey`, `templateVersion`, schema or storage movement.
