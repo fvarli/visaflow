@@ -5,6 +5,31 @@ import {
   type CompositionIdentity,
 } from '@/config/countries/applicability-migrations'
 import { PRODUCTION_COMPOSITIONS } from '@/tests/support/production-compositions'
+import { commonSchengenLayer } from '@/config/countries/common/schengen-short-stay'
+import {
+  GERMANY_TOURISM_MIGRATION_ENTITLEMENTS,
+  germanyDestinationLayer,
+} from '@/config/countries/germany/tourism'
+import {
+  GREECE_TOURISM_MIGRATION_ENTITLEMENTS,
+  greeceDestinationLayer,
+} from '@/config/countries/greece/tourism'
+import { deTrMissionLayer } from '@/config/countries/jurisdictions/de-tr-mission'
+import { grTrMissionLayer } from '@/config/countries/jurisdictions/gr-tr-mission'
+import { trFilingLayer } from '@/config/countries/jurisdictions/tr-filing'
+import { trMissionPracticeLayer } from '@/config/countries/jurisdictions/tr-mission-practice'
+import { composeVisaTemplate, CompositionError } from '@/config/composition'
+import type { CompositionErrorKind } from '@/config/composition'
+import { occupationOneOf } from '@/config/types'
+import type {
+  DocumentRequirement,
+  RequirementLayer,
+  VisaTypeTemplate,
+} from '@/config/types'
+import type { Application } from '@/domain/schemas/application.schema'
+import type { EmploymentStatus } from '@/domain/types/common'
+import { isApplicable } from '@/features/documents/applicability'
+import { ctxFor } from '@/tests/support/applicability'
 
 /**
  * The scope of a migration entitlement (ADR-053b), as a contract the tests can
@@ -352,6 +377,12 @@ const exposure: Exposure[] = production.map(({ identity, composition }) => ({
     .map((r) => r.code),
 }))
 
+/** What each production composition declares to the composer. */
+const DECLARED: Record<string, readonly string[]> = {
+  [key(GR)]: GREECE_TOURISM_MIGRATION_ENTITLEMENTS,
+  [key(DE)]: GERMANY_TOURISM_MIGRATION_ENTITLEMENTS,
+}
+
 describe('production: composition identity is (countryCode, visaType)', () => {
   it('names every production composition uniquely', () => {
     const keys = production.map(({ identity }) => key(identity))
@@ -434,14 +465,31 @@ describe('production: the ledger scope equals the composed exposure', () => {
     )
   })
 
-  it('the declarations the next slice must write pass the declaration gate', () => {
-    // Non-vacuity for the declaration rule: the exact per-composition lists a
-    // composition will declare are admissible, and nothing broader is.
-    const declarations: Declaration[] = exposure.map(
-      ({ identity, migratedCodes }) => ({ identity, codes: migratedCodes })
+  it('every production declaration is inside the recorded scope, and covers it', () => {
+    // The composer keeps a fallback only where a composition declares it, so
+    // these lists are what production actually executes. Every production
+    // composition is named here, so a new pack is a reviewed line rather than
+    // a silent default — though its default, no fallback, is the safe one.
+    expect(Object.keys(DECLARED).sort()).toEqual(
+      production.map(({ identity }) => key(identity)).sort()
     )
+    const declarations: Declaration[] = production.map(({ identity }) => ({
+      identity,
+      codes: [...(DECLARED[key(identity)] ?? [])],
+    }))
     expect(declarationBreaches(APPLICABILITY_MIGRATIONS, declarations)).toEqual(
       []
+    )
+    expect(
+      declarations
+        .flatMap(({ identity, codes }) =>
+          codes.map((c) => `${key(identity)} -> ${c}`)
+        )
+        .sort()
+    ).toEqual(
+      APPLICABILITY_MIGRATIONS.flatMap((e) =>
+        e.shippedTo.map((s) => `${key(s)} -> ${e.code}`)
+      ).sort()
     )
     expect(
       declarationBreaches(APPLICABILITY_MIGRATIONS, [
@@ -499,5 +547,291 @@ describe('production: the Greek tax plate stays out of scope', () => {
         (r) => r.code === 'EMPLOYER_TAX_PLATE'
       )
     ).toBe(false)
+  })
+})
+
+/**
+ * Runtime enforcement: the composer (ADR-053b decision 9).
+ *
+ * A definition carries its `applicabilityMigration` wherever it goes, so the
+ * composer is where a composition decides whether it gets the fallback. It
+ * keeps the fallback only for the codes the composition declares in
+ * `migrationEntitlements`. Everything else is composed without it, which is
+ * ADR-053a decision 4: a new obligation fails closed until the applicant
+ * classifies themselves. The declaration grants nothing by itself: a declared
+ * code must be composed and must carry a migration, and the census above holds
+ * every production declaration to the ledger's `shippedTo`.
+ */
+const RUNTIME_BASE = {
+  id: 'test-template',
+  visaType: 'short_stay_tourism',
+  nameKey: 'visa-domain:visaTypes.schengen-short-stay-tourism',
+  templateVersion: '1.0.0',
+  preparationMilestones: [],
+  reviewStatus: 'unverified',
+} as const satisfies Omit<VisaTypeTemplate, 'documentRequirements'>
+
+/** Migrated the way `EMPLOYER_TAX_PLATE` is: owners and freelancers now. */
+const MIGRATED: DocumentRequirement = {
+  code: 'TEST_MIGRATED',
+  nameKey: 'visa-domain:requirements.PHOTOS.name',
+  category: 'employment',
+  ownerType: 'applicant',
+  required: true,
+  revision: 1,
+  conditionalOn: occupationOneOf(['company_owner', 'independent_professional']),
+  applicabilityMigration: {
+    priorCondition: {
+      field: 'employment.employmentStatus',
+      operator: 'equals',
+      value: 'self_employed',
+    },
+  },
+}
+
+/** Never migrated: a fine-axis row with no prior contract. */
+const PLAIN_FINE: DocumentRequirement = {
+  ...MIGRATED,
+  code: 'TEST_PLAIN_FINE',
+  applicabilityMigration: undefined,
+}
+
+const offering: RequirementLayer = {
+  id: 'test-offering',
+  kind: 'jurisdiction',
+  offer: [MIGRATED],
+}
+const activating: RequirementLayer = {
+  id: 'test-activating',
+  kind: 'jurisdiction',
+  activate: [{ code: MIGRATED.code }],
+}
+const owning: RequirementLayer = {
+  id: 'test-owning',
+  kind: 'jurisdiction',
+  add: [MIGRATED, PLAIN_FINE],
+}
+
+const composeWith = (
+  layers: RequirementLayer[],
+  migrationEntitlements?: string[]
+) =>
+  composeVisaTemplate({
+    base: RUNTIME_BASE,
+    layers,
+    ...(migrationEntitlements ? { migrationEntitlements } : {}),
+  })
+
+function composedRow(
+  layers: RequirementLayer[],
+  migrationEntitlements?: string[],
+  code = MIGRATED.code
+): DocumentRequirement {
+  const found = composeWith(
+    layers,
+    migrationEntitlements
+  ).template.documentRequirements.find((r) => r.code === code)
+  if (!found) throw new Error(`"${code}" is not in this composition`)
+  return found
+}
+
+const applicant = (status: EmploymentStatus, occupationCode?: string) =>
+  ctxFor({
+    employment: {
+      employmentStatus: status,
+      ...(occupationCode ? { occupationCode } : {}),
+    },
+  } as unknown as Application)
+
+describe('runtime: an entitled composition keeps its fallback exactly', () => {
+  const row = composedRow([owning], [MIGRATED.code])
+
+  it('carries the migration it declared, unchanged', () => {
+    expect(row.applicabilityMigration).toEqual(MIGRATED.applicabilityMigration)
+  })
+
+  it.each([
+    ['unclassified self-employed', 'self_employed', undefined, true],
+    ['unclassified employed', 'employed', undefined, false],
+    ['classified owner', 'self_employed', 'company_owner', true],
+    ['classified farmer', 'self_employed', 'farmer', false],
+  ] as const)('%s', (_label, status, code, expected) => {
+    expect(isApplicable(row, applicant(status, code))).toBe(expected)
+  })
+})
+
+describe('runtime: a composition that did not declare it fails closed', () => {
+  it('an activation does not inherit the offer’s fallback', () => {
+    // The Greek tax-plate shape: the definition carries a migration, the
+    // activating composition never shipped its prior contract.
+    const row = composedRow([offering, activating])
+    expect(row.applicabilityMigration).toBeUndefined()
+    expect(isApplicable(row, applicant('self_employed'))).toBe(false)
+    expect(isApplicable(row, applicant('self_employed', 'company_owner'))).toBe(
+      true
+    )
+  })
+
+  it('a new composition composing the owning layer does not inherit it', () => {
+    // ADR-053b's other route: a further pack composing `tr-filing`.
+    const row = composedRow([owning])
+    expect(row.applicabilityMigration).toBeUndefined()
+    expect(isApplicable(row, applicant('self_employed'))).toBe(false)
+  })
+
+  it('declaring one migration does not entitle another', () => {
+    const both: RequirementLayer = {
+      id: 'test-owning',
+      kind: 'jurisdiction',
+      add: [MIGRATED, { ...MIGRATED, code: 'TEST_MIGRATED_2' }],
+    }
+    const composed = composeWith([both], ['TEST_MIGRATED_2'])
+    const byCode = new Map(
+      composed.template.documentRequirements.map((r) => [r.code, r])
+    )
+    expect(byCode.get('TEST_MIGRATED')?.applicabilityMigration).toBeUndefined()
+    expect(byCode.get('TEST_MIGRATED_2')?.applicabilityMigration).toBeDefined()
+  })
+
+  it('removes only the fallback: identity, contract and owner are unchanged', () => {
+    const entitled = composedRow([owning], [MIGRATED.code])
+    const bare = composedRow([owning])
+    const { applicabilityMigration: _dropped, ...rest } = entitled
+    expect(bare).toEqual(rest)
+    expect(bare.contractKey).toBe(entitled.contractKey)
+  })
+
+  it('leaves a requirement that never migrated untouched', () => {
+    expect(composedRow([owning], [MIGRATED.code], PLAIN_FINE.code)).toEqual(
+      composedRow([owning], undefined, PLAIN_FINE.code)
+    )
+  })
+})
+
+describe('runtime: a declaration cannot invent an entitlement', () => {
+  const expectKind = (kind: CompositionErrorKind, run: () => unknown) => {
+    try {
+      run()
+    } catch (error) {
+      expect(error).toBeInstanceOf(CompositionError)
+      expect((error as CompositionError).kind).toBe(kind)
+      return
+    }
+    throw new Error(`expected CompositionError "${kind}"`)
+  }
+
+  it('refuses a declared code the composition does not compose', () => {
+    // An offer nobody activated is not composed either.
+    expectKind('dangling-entitlement', () =>
+      composeWith([offering], [MIGRATED.code])
+    )
+    expectKind('dangling-entitlement', () =>
+      composeWith([owning], ['TEST_NOT_HERE'])
+    )
+  })
+
+  it('refuses a declared code that carries no migration', () => {
+    // FARMER_CERTIFICATE's shape: nothing to preserve.
+    expectKind('invalid-entitlement', () =>
+      composeWith([owning], [PLAIN_FINE.code])
+    )
+  })
+
+  it('refuses a duplicate declaration', () => {
+    expectKind('invalid-entitlement', () =>
+      composeWith([owning], [MIGRATED.code, MIGRATED.code])
+    )
+  })
+})
+
+describe('runtime: the production packs under mutation', () => {
+  const greekLayers = [
+    commonSchengenLayer,
+    greeceDestinationLayer,
+    trFilingLayer,
+    trMissionPracticeLayer,
+    grTrMissionLayer,
+  ]
+  const germanLayers = [
+    commonSchengenLayer,
+    germanyDestinationLayer,
+    trFilingLayer,
+    trMissionPracticeLayer,
+    deTrMissionLayer,
+  ]
+  const migratedIn = (
+    layers: RequirementLayer[],
+    declared?: readonly string[]
+  ) =>
+    composeVisaTemplate({
+      base: RUNTIME_BASE,
+      layers,
+      ...(declared ? { migrationEntitlements: declared } : {}),
+    })
+      .template.documentRequirements.filter((r) => r.applicabilityMigration)
+      .map((r) => r.code)
+      .sort()
+
+  it('reproduces each pack’s exposure from its layers and declaration', () => {
+    // Non-vacuity for the mutations below: these are the real packs.
+    expect(
+      migratedIn(greekLayers, GREECE_TOURISM_MIGRATION_ENTITLEMENTS)
+    ).toEqual([...GREECE_TOURISM_MIGRATION_ENTITLEMENTS].sort())
+    expect(
+      migratedIn(germanLayers, GERMANY_TOURISM_MIGRATION_ENTITLEMENTS)
+    ).toEqual([...GERMANY_TOURISM_MIGRATION_ENTITLEMENTS].sort())
+  })
+
+  it('a Greek activation of the tax plate would fail closed, not inherit Germany’s fallback', () => {
+    const activator: RequirementLayer = {
+      id: 'test-greek-tax-plate-activation',
+      kind: 'jurisdiction',
+      activate: [{ code: 'EMPLOYER_TAX_PLATE' }],
+    }
+    const plate = composeVisaTemplate({
+      base: RUNTIME_BASE,
+      layers: [...greekLayers, activator],
+      migrationEntitlements: GREECE_TOURISM_MIGRATION_ENTITLEMENTS,
+    }).template.documentRequirements.find(
+      (r) => r.code === 'EMPLOYER_TAX_PLATE'
+    )
+    expect(plate).toBeDefined()
+    if (!plate) return
+    expect(plate.applicabilityMigration).toBeUndefined()
+    expect(isApplicable(plate, applicant('self_employed'))).toBe(false)
+    expect(isApplicable(plate, applicant('self_employed', 'farmer'))).toBe(
+      false
+    )
+    expect(
+      isApplicable(plate, applicant('self_employed', 'company_owner'))
+    ).toBe(true)
+  })
+
+  it('a pack dropping its declaration is caught as a withdrawal', () => {
+    // The no-silent-withdrawal half: the census refuses every entitlement the
+    // stripped composition no longer carries.
+    const stripped = scopeBreaches(APPLICABILITY_MIGRATIONS, [
+      {
+        identity: GR,
+        migratedCodes: migratedIn(
+          greekLayers,
+          GREECE_TOURISM_MIGRATION_ENTITLEMENTS
+        ),
+      },
+      { identity: DE, migratedCodes: migratedIn(germanLayers) },
+    ])
+    expect([...stripped].sort()).toEqual(
+      GERMANY_TOURISM_MIGRATION_ENTITLEMENTS.map(
+        (code) =>
+          `entitled composition does not carry it: ${code} @ DE/short_stay_tourism`
+      ).sort()
+    )
+  })
+
+  it('a new composition over the same layers inherits no fallback', () => {
+    // A further pack filing in Türkiye composes `tr-filing` and its four
+    // migrated rows; undeclared, none of them falls back (ADR-053b).
+    expect(migratedIn(germanLayers)).toEqual([])
+    expect(migratedIn(greekLayers)).toEqual([])
   })
 })

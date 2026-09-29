@@ -99,6 +99,25 @@ const GERMANY_TOURISM_ORDER = [
 ]
 
 /**
+ * The migration fallbacks this composition is entitled to — the ledger entries
+ * whose `shippedTo` names it (ADR-053b). Every other migrated row composes
+ * without its fallback. A test holds this list equal to the ledger's scope in
+ * both directions, so it is a copy of that record and never a source of one.
+ *
+ * `EMPLOYER_TAX_PLATE` is here because this pack shipped its `self_employed`
+ * contract from `714830b` to `2ebd877`, and the ledger records it for Germany
+ * alone. `EMPLOYER_SIGNATURE_CIRCULAR` is absent because this pack never
+ * composed it.
+ */
+export const GERMANY_TOURISM_MIGRATION_ENTITLEMENTS: readonly string[] = [
+  'EMPLOYER_TAX_PLATE',
+  'TAX_PAYMENT_STATEMENT',
+  'COMPANY_ACTIVITY_CERTIFICATE',
+  'EMPLOYER_TRADE_REGISTRY',
+  'CHAMBER_REGISTRATION_CERTIFICATE',
+]
+
+/**
  * Composed once, at module load — same as Greece, and for the same reasons:
  * `resolveVisaTemplate` returns a stable reference, and a malformed pack fails
  * at import rather than on whichever screen resolves first.
@@ -199,6 +218,7 @@ export const germanyTourismComposition = composeVisaTemplate({
     deTrMissionLayer,
   ],
   requirementOrder: GERMANY_TOURISM_ORDER,
+  migrationEntitlements: GERMANY_TOURISM_MIGRATION_ENTITLEMENTS,
 })
 
 export const germanyTourismTemplate: VisaTypeTemplate =

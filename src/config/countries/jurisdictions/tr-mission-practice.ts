@@ -93,9 +93,14 @@ export const trMissionPracticeLayer: RequirementLayer = {
      * honest: an applicant who has not said what kind of work they do is still
      * evaluated against the contract they were originally shown, until they can
      * be routed properly ([ADR-053a](../../../../docs/decisions.md)). The
-     * entitlement is recorded in `APPLICABILITY_MIGRATIONS` and keyed by `code`
-     * alone — it belongs to the obligation's history, not to whichever layer
-     * owns the code, so it travelled here unchanged.
+     * entitlement is recorded in `APPLICABILITY_MIGRATIONS` under this `code`
+     * — it belongs to the obligation's history, not to whichever layer owns the
+     * code, so the migration travelled here with the definition unchanged. That
+     * history is scoped: the entry's `shippedTo` names the compositions that
+     * shipped the prior contract, and the composer keeps this fallback only in
+     * a composition that declares it in `migrationEntitlements` — Germany
+     * today. Anywhere else the row, once activated, fails closed for an
+     * unclassified applicant ([ADR-053b](../../../../docs/decisions.md)).
      *
      * **No `sourceRefs`.** An offered definition asserts nothing, so there is
      * nothing for a citation to vouch for ([ADR-048](../../../../docs/decisions.md),

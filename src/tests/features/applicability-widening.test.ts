@@ -75,8 +75,20 @@ const wideningLayer = (
     refine: [{ code, addApplicableOccupations: occupations }],
   }) as unknown as RequirementLayer
 
+/**
+ * `OWNED`'s fallback is declared wherever `OWNED` composes, the way Greece
+ * declares the trade registry's: a migration survives composition only for a
+ * composition entitled to it (ADR-053b), and these cases are about widening in
+ * a composition that is.
+ */
 const compose = (layers: RequirementLayer[]) =>
-  composeVisaTemplate({ base: BASE, layers })
+  composeVisaTemplate({
+    base: BASE,
+    layers,
+    ...(layers.some((l) => l.add?.includes(OWNED))
+      ? { migrationEntitlements: [OWNED.code] }
+      : {}),
+  })
 
 /**
  * Throws rather than returning `undefined`, the way `compositionFor` does: a

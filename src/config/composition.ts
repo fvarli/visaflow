@@ -85,6 +85,8 @@ export type CompositionErrorKind =
   | 'dangling-source-ref'
   | 'order-mismatch'
   | 'invalid-group'
+  | 'dangling-entitlement'
+  | 'invalid-entitlement'
 
 /**
  * A layer set that cannot be composed.
@@ -163,6 +165,26 @@ export interface CompositionInput {
    * with no order to preserve.
    */
   requirementOrder?: string[]
+  /**
+   * The migrated codes whose fallback **this composition** is entitled to
+   * (ADR-053b).
+   *
+   * A definition carries its `applicabilityMigration` into every composition
+   * that composes or activates it, and a stable code does not carry a history
+   * with it: an entitlement preserves the contract a composition shipped. So
+   * the fallback survives composition only for a code declared here. Every
+   * other migrated row is composed without it and fails closed for an
+   * unclassified applicant, which is ADR-053a decision 4 applied to a
+   * composition in which the obligation is new.
+   *
+   * Omitting it is therefore the safe default, not the permissive one: a new
+   * pack inherits no fallback it did not declare. A declaration cannot invent
+   * one either — a declared code must be composed and must carry a migration,
+   * and the tests hold every production declaration equal to the scope
+   * `APPLICABILITY_MIGRATIONS` records. The ledger stays the authority; this is
+   * where a composition says which of its entries it is.
+   */
+  migrationEntitlements?: readonly string[]
 }
 
 const KIND_RANK: Record<LayerKind, number> = {
@@ -628,7 +650,7 @@ function applyOrder(
 export function composeVisaTemplate(
   input: CompositionInput
 ): CompositionResult {
-  const { base, layers, requirementOrder } = input
+  const { base, layers, requirementOrder, migrationEntitlements } = input
 
   assertLayerOrder(layers)
 
@@ -898,12 +920,14 @@ export function composeVisaTemplate(
    * every pre-existing claim would read as made under whichever composition
    * happens to be resolved now.
    */
+  const entitled = collectEntitlements(migrationEntitlements, byCode)
+
   const composed: DocumentRequirement[] = []
   for (const code of layerOrder) {
     const requirement = byCode.get(code)
     if (!requirement) continue
     composed.push({
-      ...requirement,
+      ...withoutUnentitledMigration(requirement, entitled),
       contractKey: contractKeyFor(
         code,
         requirement.revision,
@@ -961,6 +985,68 @@ export function composeVisaTemplate(
     activations,
     sources,
   }
+}
+
+/**
+ * Validate a composition's migration entitlements (ADR-053b).
+ *
+ * `byCode` holds exactly what composed — added, or offered and activated — so
+ * an offer nobody activated is dangling here as well. Two kinds because the
+ * fixes differ: a dangling declaration names something this composition does
+ * not ask for, while an invalid one names a row with nothing to preserve.
+ */
+function collectEntitlements(
+  declared: readonly string[] | undefined,
+  byCode: ReadonlyMap<string, DocumentRequirement>
+): ReadonlySet<string> {
+  const entitled = new Set<string>()
+  for (const code of declared ?? []) {
+    if (entitled.has(code)) {
+      throw new CompositionError(
+        'invalid-entitlement',
+        `Migration entitlement "${code}" is declared twice.`
+      )
+    }
+    const requirement = byCode.get(code)
+    if (requirement === undefined) {
+      throw new CompositionError(
+        'dangling-entitlement',
+        `Migration entitlement "${code}" names a requirement this composition ` +
+          'does not compose. An entitlement preserves a contract the ' +
+          'composition shipped, so it can only be held for something it asks.'
+      )
+    }
+    if (requirement.applicabilityMigration === undefined) {
+      throw new CompositionError(
+        'invalid-entitlement',
+        `Migration entitlement "${code}" names a requirement with no ` +
+          '`applicabilityMigration`. It has no prior contract to preserve ' +
+          '(ADR-053a decision 4).'
+      )
+    }
+    entitled.add(code)
+  }
+  return entitled
+}
+
+/**
+ * A migrated row outside this composition's entitlements loses its fallback,
+ * and only its fallback: identity, requiredness, owner and contract are the
+ * owner's and are unchanged (ADR-053b decisions 4 and 6). Everything else is
+ * returned by identity.
+ */
+function withoutUnentitledMigration(
+  requirement: DocumentRequirement,
+  entitled: ReadonlySet<string>
+): DocumentRequirement {
+  if (
+    requirement.applicabilityMigration === undefined ||
+    entitled.has(requirement.code)
+  ) {
+    return requirement
+  }
+  const { applicabilityMigration: _notEntitled, ...rest } = requirement
+  return rest
 }
 
 /**

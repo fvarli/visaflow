@@ -84,6 +84,27 @@ const GREECE_TOURISM_ORDER = [
 ]
 
 /**
+ * The migration fallbacks this composition is entitled to — the ledger entries
+ * whose `shippedTo` names it (ADR-053b). Every other migrated row composes
+ * without its fallback. A test holds this list equal to the ledger's scope in
+ * both directions, so it is a copy of that record and never a source of one.
+ *
+ * `EMPLOYER_TAX_PLATE` is absent, and that is the point of the list. Greece
+ * shipped that code under a different contract — `employed`, optional —
+ * and withdrew it outright, so it holds no entitlement to the `self_employed`
+ * fallback Germany shipped (ADR-053b decision 5). Should this pack ever
+ * activate the tax plate, an unclassified Greek applicant fails closed on it
+ * rather than inheriting Germany's history.
+ */
+export const GREECE_TOURISM_MIGRATION_ENTITLEMENTS: readonly string[] = [
+  'EMPLOYER_SIGNATURE_CIRCULAR',
+  'TAX_PAYMENT_STATEMENT',
+  'COMPANY_ACTIVITY_CERTIFICATE',
+  'EMPLOYER_TRADE_REGISTRY',
+  'CHAMBER_REGISTRATION_CERTIFICATE',
+]
+
+/**
  * Composed once, at module load.
  *
  * `resolveVisaTemplate` therefore returns the same object every time, exactly
@@ -212,6 +233,7 @@ export const greeceTourismComposition = composeVisaTemplate({
     grTrMissionLayer,
   ],
   requirementOrder: GREECE_TOURISM_ORDER,
+  migrationEntitlements: GREECE_TOURISM_MIGRATION_ENTITLEMENTS,
 })
 
 export const greeceTourismTemplate: VisaTypeTemplate =

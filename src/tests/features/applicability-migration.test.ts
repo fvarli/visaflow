@@ -319,12 +319,18 @@ describe('production: what is migrated, and the guards that say so', () => {
    * and that is the owner — whether the owner asks for the requirement or only
    * defines it.
    *
-   * An entitlement is a record of what an obligation *used to ask*, so it
-   * travels with the canonical definition rather than with whoever activates
-   * it: `APPLICABILITY_MIGRATIONS` is keyed by `code` alone and always was.
-   * Walking `add` only would have quietly dropped `EMPLOYER_TAX_PLATE` when it
-   * moved into an offer, and the ledger row entitling it would have read as an
-   * entitlement with nothing to execute it (ADR-052d, ADR-053a).
+   * An entitlement is a record of what an obligation *used to ask*, so the
+   * migration is declared on the canonical definition rather than by whoever
+   * activates it. Walking `add` only would have quietly dropped
+   * `EMPLOYER_TAX_PLATE` when it moved into an offer, and the ledger row
+   * entitling it would have read as an entitlement with nothing to execute it
+   * (ADR-052d, ADR-053a).
+   *
+   * *Where* it reaches is a separate question, and keying the ledger by `code`
+   * alone does not answer it: what an obligation used to ask, it asked in a
+   * particular composition. Each entry's `shippedTo` records which, and the
+   * composer keeps the fallback only in a composition that declares it
+   * (ADR-053b; `migration-entitlement-scope.test.ts`).
    */
   const owned = ALL_REQUIREMENT_LAYERS.flatMap((layer) =>
     [...(layer.add ?? []), ...(layer.offer ?? [])].map((r) => ({
