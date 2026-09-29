@@ -1,3 +1,4 @@
+import type { VisaType } from '@/domain/types/common'
 import type { ConditionalRequirement } from '../types'
 
 /**
@@ -32,7 +33,31 @@ import type { ConditionalRequirement } from '../types'
  * adoption reaches X" is not a sentence this project can honestly write.
  * Retiring an entry takes a reviewed decision, and having no signal is never
  * licence to delete one.
+ *
+ * AN ENTITLEMENT HAS A SCOPE (ADR-053b). A code has one identity and may have
+ * several histories — one per composition that asked for it, or none in a
+ * composition that never did. So each entry also records *which compositions*
+ * shipped its prior contract. Nothing enforces that at runtime yet: the
+ * fallback still travels with the definition into every composition that
+ * composes it, and the tests hold today's composed exposure equal to the
+ * declared scope in both directions until the composer can enforce it.
  */
+
+/**
+ * One composition, named the way the dossier and `resolveVisaTemplate` name
+ * it: a country and a visa type.
+ *
+ * Neither half is enough alone. A country may one day ship a second visa type
+ * that never asked for a migrated document, and a second country ships the same
+ * visa type today — an entitlement written against either half would reach a
+ * composition whose applicants were never shown the contract.
+ */
+export interface CompositionIdentity {
+  /** ISO 3166-1 alpha-2, as `CountryConfig.countryCode`. */
+  countryCode: string
+  visaType: VisaType
+}
+
 export interface ApplicabilityMigrationEntry {
   /** The requirement whose applicability is migrating. */
   code: string
@@ -46,6 +71,29 @@ export interface ApplicabilityMigrationEntry {
   reason: string
   /** What would end the compatibility route. Never a date. */
   retirement: string
+  /**
+   * The compositions that shipped `priorCondition` as their historical
+   * contract when the obligation migrated (ADR-053b decision 2) — read from
+   * git, never inferred from which compositions compose the code today. An
+   * entitlement exists here and nowhere else.
+   */
+  shippedTo: CompositionIdentity[]
+  /**
+   * Present only when this code was split out of another and the obligation
+   * shipped inside that code before the split (ADR-051c decision 6). The
+   * entitlement is the parent obligation's history, so it may never reach
+   * further than the parent's did.
+   */
+  obligationFrom?: string
+}
+
+const GR_TOURISM: CompositionIdentity = {
+  countryCode: 'GR',
+  visaType: 'short_stay_tourism',
+}
+const DE_TOURISM: CompositionIdentity = {
+  countryCode: 'DE',
+  visaType: 'short_stay_tourism',
 }
 
 /**
@@ -102,6 +150,9 @@ export const APPLICABILITY_MIGRATIONS: ApplicabilityMigrationEntry[] = [
       'and never an elapsed interval or an assumed adoption rate. Deleting it ' +
       'early withdraws a document the source does ask of the people who have ' +
       'not answered yet.',
+    // Owned by `gr-tr-mission` since the entry was written; Germany never
+    // composed it.
+    shippedTo: [GR_TOURISM],
   },
   {
     code: 'EMPLOYER_TAX_PLATE',
@@ -125,6 +176,10 @@ export const APPLICABILITY_MIGRATIONS: ApplicabilityMigrationEntry[] = [
       '— there is no migration telemetry to read it from. Until then, ' +
       'deleting it withdraws a required document from applicants the source ' +
       'has not stopped asking.',
+    // Germany alone: Greece shipped this code under `employed`, optional, and
+    // withdrew it outright at 714830b — a different contract, so no
+    // entitlement (ADR-053b decision 5).
+    shippedTo: [DE_TOURISM],
   },
   {
     code: 'TAX_PAYMENT_STATEMENT',
@@ -149,6 +204,7 @@ export const APPLICABILITY_MIGRATIONS: ApplicabilityMigrationEntry[] = [
       'so deleting the fallback early drops a required document out of a ' +
       "self-employed applicant's checklist without them having changed " +
       'anything.',
+    shippedTo: [GR_TOURISM, DE_TOURISM],
   },
   {
     code: 'COMPANY_ACTIVITY_CERTIFICATE',
@@ -171,6 +227,7 @@ export const APPLICABILITY_MIGRATIONS: ApplicabilityMigrationEntry[] = [
       'in both packs, so deleting the fallback early drops a required document ' +
       'out of a self-employed checklist without the applicant having changed ' +
       'anything.',
+    shippedTo: [GR_TOURISM, DE_TOURISM],
   },
   {
     code: 'EMPLOYER_TRADE_REGISTRY',
@@ -194,6 +251,7 @@ export const APPLICABILITY_MIGRATIONS: ApplicabilityMigrationEntry[] = [
       'in both packs, so deleting the fallback early drops a required document ' +
       'out of a self-employed checklist without the applicant having changed ' +
       'anything.',
+    shippedTo: [GR_TOURISM, DE_TOURISM],
   },
   {
     code: 'CHAMBER_REGISTRATION_CERTIFICATE',
@@ -218,5 +276,8 @@ export const APPLICABILITY_MIGRATIONS: ApplicabilityMigrationEntry[] = [
       'in both packs, so deleting the fallback early drops a required document ' +
       'out of a self-employed checklist without the applicant having changed ' +
       'anything.',
+    // Exactly the compositions that shipped the parent's conjunctive contract.
+    shippedTo: [GR_TOURISM, DE_TOURISM],
+    obligationFrom: 'EMPLOYER_TRADE_REGISTRY',
   },
 ]
