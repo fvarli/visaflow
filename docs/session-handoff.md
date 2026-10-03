@@ -2697,3 +2697,74 @@ No production slice is queued. The next Spain step is **evidence retrieval, not 
 Spanish consulate and both consular districts with URLs and retrieval dates, then capture per
 identity the verbatim clause, its numbering and the applicant population it is stated under. Nothing
 under `src/config/countries/` should change before that lands.
+
+---
+
+# Iteration 34 — A migration entitlement is scoped to the composition that shipped it
+
+Covers ADR-054 → ADR-053b and its enforcement, plus the Greek evidence records before them. Baseline
+`c1a4ad4`, code checkpoint `392eac5`, CI green on that exact SHA, 2168/2168 across 115 files. This
+entry is the **current-state record** and supersedes Iteration 33's figures; that entry, and its
+*Next*, are kept as written and are not a queue.
+
+### Where the numbers are
+
+| axis | value |
+|---|---|
+| app | `1.1.0` |
+| dossier `schemaVersion` | `1.4.0` (reads 1.0.0–1.4.0; writes 1.4.0) |
+| `STORAGE_FORMAT_VERSION` | `2` |
+| Greece `templateVersion` | `1.15.0` — **28** requirements, **24** verified, `partially_verified` |
+| Germany `templateVersion` | `1.13.0` — **27** requirements, **27** verified, `verified` |
+
+**Unchanged from Iteration 33.** Enforcing the scope changed no composed output — each production
+pack keeps exactly the fallbacks it carried — so no revision, fragment, `contractKey`,
+`templateVersion`, `schemaVersion` or `STORAGE_FORMAT_VERSION` moved.
+
+### Development truth — what is in the code
+
+| commit | what it did |
+|---|---|
+| `42ba6dd`, `3fec8c1`, `97c7021` | Evidence records only: corrected ADR-052d's Greek tax-plate evidence; ADR-047's fifth and sixth Greek travel passes. No requirement moved. |
+| `564aa76` | [ADR-054](./decisions.md#adr-054) accepted. Documentation only. |
+| `de91065` | [ADR-053b](./decisions.md#adr-053b) accepted. Documentation only. |
+| `e0e17d9` | Ledger scope: `shippedTo` (and `obligationFrom` for a split) on every `APPLICABILITY_MIGRATIONS` entry, and the scope census in `migration-entitlement-scope.test.ts`. |
+| `392eac5` | Runtime enforcement: `migrationEntitlements` on `composeVisaTemplate`, declared by both packs; the composer drops an undeclared migration; `dangling-entitlement` / `invalid-entitlement`. |
+
+**Migration scope is now mechanically enforced, not held by review.** A definition still carries its
+`applicabilityMigration` everywhere, but a composition keeps it only for a code it declares, and each
+declaration is held equal to the ledger's `shippedTo` in both directions. `EMPLOYER_TAX_PLATE` is
+entitled in Germany alone. A Greek activation of it — tested, not shipped — would fail closed for an
+unclassified applicant instead of inheriting Germany's `self_employed` fallback, and so would any
+migrated row in a new pack composing `tr-filing`.
+
+### Decision truth — what is decided
+
+- **ADR-054** — source authority is scoped, not ranked; delegated filing-channel evidence is additive.
+- **ADR-053b** — a migration entitlement preserves the contract a composition shipped, not the code.
+  Its implementation note in `decisions.md` records `e0e17d9` and `392eac5`. Its decision 9 gate is
+  met by that enforcement; nothing else it lists as a follow-up is authorised by it.
+
+### Release / remote truth
+
+`main` = `origin/main` = `392eac5` at the close of the enforcement slice, exact-SHA CI green. The
+documentation reconciliation that adds this entry sits on top of it and changes no executable logic.
+
+### Open decisions — none of these is authorised
+
+- **Greece activating `EMPLOYER_TAX_PLATE`** — unauthorised. ADR-053b's scope gate no longer blocks
+  it; its owner model and its own evidence still do.
+- **`EMPLOYER_TAX_PLATE`'s owner model** (`ownerType` or `ownerByOccupation`) — undecided.
+- **`EMPLOYER_SIGNATURE_CIRCULAR`'s requiredness** — undecided.
+- **Spain evidence retrieval** — separately unauthorised; no Spain authoring before it.
+- Iteration 33's carried-forward non-goals stand unchanged.
+
+### Gates
+
+`format:check` ✓ · `lint` **0 errors / 118 warnings** (the standing baseline) · `typecheck` ✓ ·
+`test` **2168/2168, 115 files**.
+
+### Next
+
+No production slice is queued, and none should be inferred from Iteration 33's *Next*. Each open
+decision above needs its own explicit authorisation.

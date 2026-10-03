@@ -4514,3 +4514,30 @@ keep.
 
 **Implementation:** documentation only — `docs/decisions.md`. No requirement, ledger entry,
 condition, activation, `revision`, `contractKey`, `templateVersion`, schema or storage movement.
+
+> **Implemented 2026-09-29 in `e0e17d9` and `392eac5`.** The enforcement this record's first
+> follow-up named, and decision 9 waited on, has shipped. This note records the outcome beside the
+> decision; it decides nothing, and nothing above was rewritten.
+>
+> - **The ledger carries scope.** Each `APPLICABILITY_MIGRATIONS` entry gained `shippedTo` — the
+>   compositions, named as `(countryCode, visaType)`, that shipped its recorded prior contract — and,
+>   for a split, `obligationFrom`, whose scope bounds the child's. `EMPLOYER_TAX_PLATE` is scoped to
+>   Germany alone; every other entry stands for the compositions it was argued for, exactly as the
+>   Application table reads (`e0e17d9`).
+> - **The composer enforces it.** A composition declares the migrated codes it is entitled to in
+>   `migrationEntitlements`; every other migrated row composes without its `applicabilityMigration`
+>   and fails closed for an unclassified applicant. A declaration grants nothing by itself — a code
+>   that is not composed, carries no migration, or is declared twice is a `CompositionError`
+>   (`dangling-entitlement`, `invalid-entitlement`) — and each production pack's declaration is held
+>   equal to the ledger's `shippedTo` in both directions (`392eac5`).
+> - **The tests.** `src/tests/features/migration-entitlement-scope.test.ts` pins the scope census,
+>   the declarations, and the runtime cases, including a Greek activation of `EMPLOYER_TAX_PLATE`
+>   failing closed rather than inheriting Germany's fallback. The H5d comment in
+>   `applicability-migration.test.ts` was updated in the same slice, as this record asked.
+>
+> No composed output changed: every production composition keeps exactly the fallbacks it carried
+> before. No `revision`, `contractKey`, `templateVersion`, `schemaVersion` or
+> `STORAGE_FORMAT_VERSION` moved. Of the items under *Not decided here*, only the mechanism and how
+> existing entries record their scope are now settled, and both as implementation; the rest stay
+> undecided — the Greek activation, the tax plate's owner model, requiredness, any other migration or
+> retirement, and any route to earn an entitlement.

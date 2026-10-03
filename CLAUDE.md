@@ -137,7 +137,12 @@ src/
   condition, so author with `occupationIs()` / `occupationOneOf()`. Moving an
   existing row onto the occupational axis needs `applicabilityMigration` **and**
   a ledger entry in `applicability-migrations.ts` (ADR-053a), or it silently
-  withdraws a document from everyone who never answered. `ownerByOccupation`
+  withdraws a document from everyone who never answered. The entitlement is
+  scoped to the compositions that shipped the prior contract (ADR-053b): the
+  entry's `shippedTo` names them, and each of those packs lists the code in its
+  `migrationEntitlements`. The composer drops the fallback everywhere else, so
+  a later activation or a new pack fails closed for unclassified applicants —
+  never extend `shippedTo` to a composition that did not ship it. `ownerByOccupation`
   says whose paper it is where that varies, and is never evidence of a financing
   source (ADR-049a). **The occupational axis, migration, widening and the
   split rules are documented in `docs/country-pack-guide.md` — read it before

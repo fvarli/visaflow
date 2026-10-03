@@ -298,6 +298,22 @@ entitled to it, and what would retire it — never a date. An invariant cross-ch
 in both directions. A row authored against the occupational axis from birth has no prior contract and
 must never acquire a fallback; `FARMER_CERTIFICATE` is the standing negative example.
 
+**An entitlement belongs to the compositions that shipped the prior contract, not to the code**
+([ADR-053b]). A stable code shares a document and an acceptance bar; it does not share what another
+composition's applicants were shown. So each ledger entry records `shippedTo` — the
+`(countryCode, visaType)` compositions that actually shipped its prior contract, read from git — and
+each pack declares the migrated codes it is entitled to in `migrationEntitlements` on its
+`composeVisaTemplate` call. The definition still carries its `applicabilityMigration` wherever it
+goes, but the composer keeps it only for a declared code; in any other composition the row is a new
+obligation and **fails closed for an unclassified applicant**. That is what a later activation of a
+migrated offer, or a new pack composing the layer that owns one, gets: no fallback inherited from
+another composition's history. A declaration cannot invent an entitlement — the composer refuses a
+code that is not composed or carries no migration, and the invariants hold each production
+declaration equal to the ledger's `shippedTo` in both directions. Omitting `migrationEntitlements` is
+the safe default for a new pack. Migrating a row therefore means three edits that agree: the
+`applicabilityMigration`, the ledger entry with its `shippedTo`, and the code in each of those
+compositions' `migrationEntitlements`.
+
 <a id="widening-who-is-asked-addapplicableoccupations"></a>
 **Widening who is asked — `addApplicableOccupations`.** Article 14(3) leaves the harmonised list
 non-exhaustive, so a mission may ask a jurisdiction-owned requirement of more people than the
@@ -644,9 +660,9 @@ ticket is not a conflict — and the satisfaction-group question remains unresol
 Spain's short-stay tourism sources (consulate and both consular districts, filed from Türkiye) were
 measured against the shipped layers before a line of that pack was authored. Six documents it
 publishes are already defined here, each owned by another destination's mission layer. `offer` and
-`activate` are the shape that lets a second mission ask for one — but the capability ships against
-synthetic packs only, and each identity is adjudicated on its own evidence rather than as a list
-([ADR-052d] decision 9):
+`activate` are the shape that lets a second mission ask for one — the capability ships with one
+production activation, Germany's `EMPLOYER_TAX_PLATE`, and each identity is adjudicated on its own
+evidence rather than as a list ([ADR-052d] decision 9):
 
 - **`EMPLOYER_TAX_PLATE`** — **relocated, not settled.** The pilot: its definition now lives in
   `tr-mission-practice` and Germany activates it. Nothing about Germany's composed output moved, and
@@ -694,4 +710,5 @@ why identifiers are stable, requirements are keys-not-prose, and source honesty 
 [ADR-052d]: ./decisions.md#adr-052d
 [ADR-053]: ./decisions.md#adr-053
 [ADR-053a]: ./decisions.md#adr-053a
+[ADR-053b]: ./decisions.md#adr-053b
 [ADR-054]: ./decisions.md#adr-054

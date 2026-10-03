@@ -37,10 +37,12 @@ import type { ConditionalRequirement } from '../types'
  * AN ENTITLEMENT HAS A SCOPE (ADR-053b). A code has one identity and may have
  * several histories — one per composition that asked for it, or none in a
  * composition that never did. So each entry also records *which compositions*
- * shipped its prior contract. Nothing enforces that at runtime yet: the
- * fallback still travels with the definition into every composition that
- * composes it, and the tests hold today's composed exposure equal to the
- * declared scope in both directions until the composer can enforce it.
+ * shipped its prior contract. The composer enforces it: a definition still
+ * carries its fallback wherever it goes, but a composition keeps it only for a
+ * code it declares in `migrationEntitlements`, and every other migrated row
+ * fails closed for an unclassified applicant. The tests hold each production
+ * declaration equal to the `shippedTo` recorded here in both directions, so
+ * this file stays the authority and the declaration is a copy of it.
  */
 
 /**

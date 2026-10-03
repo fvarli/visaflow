@@ -32,16 +32,16 @@ import { isApplicable } from '@/features/documents/applicability'
 import { ctxFor } from '@/tests/support/applicability'
 
 /**
- * The scope of a migration entitlement (ADR-053b), as a contract the tests can
- * hold before the composer can enforce it.
+ * The scope of a migration entitlement (ADR-053b), as a contract the tests hold
+ * and the composer enforces.
  *
  * An entitlement preserves the contract a *composition* shipped, not the code.
- * The ledger now says which compositions those were; nothing at runtime reads
- * that yet, because the fallback still travels with the definition into every
- * composition that composes it. Until the composer strips it outside scope,
- * the only thing standing between a new activation and an inherited fallback
- * is this file: the migrations each composition carries today must be exactly
- * the ones the ledger says it shipped — in both directions.
+ * The ledger says which compositions those were in `shippedTo`. The fallback
+ * still travels with the definition, so the composer strips it from every
+ * composition that does not declare the code in `migrationEntitlements`, and
+ * this file holds those declarations to the ledger: the migrations each
+ * composition carries must be exactly the ones the ledger says it shipped — in
+ * both directions.
  *
  * The ledger is the historical declaration and the composed templates are the
  * current exposure. Neither is derived from the other here; the test compares
@@ -537,10 +537,10 @@ describe('production: the Greek tax plate stays out of scope', () => {
     expect(plate?.shippedTo.map(key)).toEqual(['DE/short_stay_tourism'])
   })
 
-  it('and Greece does not compose it — nothing yet enforces the scope', () => {
-    // ADR-053b decision 9: until the composer strips an out-of-scope fallback,
-    // a Greek activation would inherit Germany's. The census above would fail
-    // it; this says why in one line.
+  it('and Greece does not compose it', () => {
+    // Greece composes the offer and activates nothing. Should it ever activate
+    // the tax plate, the composer strips Germany's fallback and the row fails
+    // closed for an unclassified applicant (ADR-053b; the runtime cases below).
     const greece = production.find(({ identity }) => key(identity) === key(GR))
     expect(
       greece?.composition.template.documentRequirements.some(
