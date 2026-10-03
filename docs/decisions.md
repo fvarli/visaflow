@@ -4541,3 +4541,178 @@ condition, activation, `revision`, `contractKey`, `templateVersion`, schema or s
 > existing entries record their scope are now settled, and both as implementation; the rest stay
 > undecided — the Greek activation, the tax plate's owner model, requiredness, any other migration or
 > retirement, and any route to earn an entitlement.
+
+---
+
+## ADR-049b: `EMPLOYER_TAX_PLATE` Has One Identity and Two Subjects; an Employee Reaches It Only by a Composition's Widening
+
+**Status:** Accepted · 2026-10-03 · extends [ADR-049a](#adr-049a) decisions 4 and 5 · applies
+[ADR-049](#adr-049), [ADR-052b](#adr-052b), [ADR-052c](#adr-052c) decisions 3, 4 and 7, and
+[ADR-052d](#adr-052d) decision 5 · answers the question the 2026-09-20 amendment to
+[ADR-052d](#adr-052d) left open, and the owner-model blocker [ADR-054](#adr-054) records · leaves
+[ADR-053b](#adr-053b) untouched
+
+[ADR-049a](#adr-049a)'s sequence ended on *"then Finance and `EMPLOYER_TAX_PLATE` as their own
+cleanup"*. Finance was settled in code: `financeDocGroup` takes no owner argument, so a subject that
+resolves differently per applicant can no longer move a row between Finance groups. The tax plate was
+not. Three records have since named it as open — [ADR-052d](#adr-052d)'s amendment (*"whether this
+identity needs an owner-by-occupation model, whether its applicability should widen to employees … are
+all open"*), [ADR-054](#adr-054)'s precedent table (a Greek activation *"is **blocked** on the owner
+model"*), and [ADR-053b](#adr-053b)'s *Not decided here*. This record decides the owner model and the
+population question it is bound up with. It decides nothing else.
+
+**The contract today.** One canonical definition, offered inert by `tr-mission-practice` and
+activated by `de-tr-mission` alone: static `ownerType: 'applicant'`, no `ownerByOccupation`,
+`required: true`, `conditionalOn` = `company_owner` or `independent_professional`, a recorded prior
+condition of `self_employed` whose entitlement is scoped to Germany, base revision 1, no fragment,
+contract key `EMPLOYER_TAX_PLATE@1`. Its prose is subject-neutral in both locales — *"Şirkete ait
+güncel vergi levhası"*, *"Company tax registration certificate"*. Greece composes the offer and
+activates nothing.
+
+**The evidence, kept apart from the reading of it.**
+
+| occupation | source wording | subject | where the population is evidenced |
+|---|---|---|---|
+| `company_owner` | German sheet § 4(c), *"Firma sahipleri / Serbest meslek sahipleri"*; Greek visa centre, *Şirket Sahibi* branch, all four posts | applicant — their own firm | both missions |
+| `independent_professional` | the same § 4(c) heading; *Serbest Meslek* branch, all four posts | applicant — their own practice | both missions |
+| `employee` | *Çalışan* branch, all four posts, the block worded identically — *"Şirket Dokümanları: Güncel Vergi Levhası, …"*; **not** named by § 4(c) | employer | the Greek delegated channel only |
+| `public_servant`, `farmer` | no company-document block at any post | — | nowhere |
+
+The table rests on [ADR-047](#adr-047)'s fourth evidence pass — twenty cells, five branches, four
+consular jurisdictions, all resolved. Two limits are stated rather than smoothed over:
+
+- **The employee's subject is the repository's reading, not the source's words.** The visa centre
+  *"names the same instrument on every branch and never says whose"*. That on *Çalışan* the block is
+  the employer's company is the repository's interpretation: it was recorded in the fourth pass, it is
+  the most plausible reading of a branch whose applicant is defined by working for someone else's
+  business, and it is the reading three shipped rows already apply to the same visa-centre sentence —
+  `EMPLOYER_SIGNATURE_CIRCULAR`, `EMPLOYER_TRADE_REGISTRY` and `COMPANY_ACTIVITY_CERTIFICATE`, each
+  mapping `employee` to `employer`. That precedent supports the interpretation; it does not turn it
+  into source wording. Spain's intake checklists name the subject outright as *"İş yerinin"*, the workplace's;
+  that agrees, and it is corroboration only — Spain has no source record in this repository and its
+  retrieval is not authorised. *Workplace* is not a competing subject: `OwnerType` is `applicant`,
+  `sponsor` or `employer`, and for an employee the workplace's business entity is the employer
+  ([ADR-049a](#adr-049a) decision 1: *whose situation or entity*).
+- **The employee population is one delegated channel's, for one mission.** It is mission-scoped
+  delegated evidence under [ADR-054](#adr-054) rules 2 and 5, never jurisdiction authority
+  ([ADR-052a](#adr-052a) Rule 3, [ADR-054](#adr-054) rule 6), and it says nothing about Germany,
+  whose sheet does not name employees.
+
+**Counter-evidence searched for, and not found.** No source assigns the plate to an employee's own
+name, and none distinguishes an employee's tax document from an owner's. Edirne's *Mükellefiyet
+Belgesi* is a different document asked at one post on a code mismatch; it is not a second tax-plate
+identity and is recorded, not rendered. No decision prohibits an occupational owner map here:
+[ADR-049a](#adr-049a) decision 4 authorises it, and [ADR-052c](#adr-052c) decision 7 lets its keys
+name an occupation outside the base population. The repository's own history agrees: Greece shipped
+this code until `714830b` as an `employed` row declared `ownerType: 'employer'`
+([ADR-053b](#adr-053b)). What does pin the static subject is two tests —
+`contextual-owner.test.ts` (*"takes a static subject, not a map"*) and `tax-plate.test.ts` (*"declares
+no per-occupation map, because nothing asks for one"*). They pin the current state on the premise
+*"there is no cell where the subject differs"*, which [ADR-052d](#adr-052d)'s amendment already
+recorded as false. They are behaviour to be changed by the implementing slice, not evidence against
+this decision.
+
+**Decision:**
+
+1. **One identity.** `EMPLOYER_TAX_PLATE` is one evidence identity for `company_owner`,
+   `independent_professional` and `employee`: one real-world document — a business's current tax
+   registration certificate — and one acceptance bar, named identically on every branch that asks for
+   it. No second code is minted for any subject ([ADR-049a](#adr-049a) decision 2,
+   [ADR-052b](#adr-052b) decisions 1 and 7); `ES_EMPLOYER_TAX_PLATE` and any per-subject variant stay
+   refused, as [ADR-052d](#adr-052d) already refused them.
+
+2. **Two subjects, by occupation.** For `employee` the subject is the **employer**. For
+   `company_owner` and `independent_professional` it is the **applicant**. Every other state — an
+   unclassified applicant, an occupation no map names — takes the declared default.
+
+3. **The model is the definition's `ownerType` plus `ownerByOccupation`, and the default stays
+   `applicant`.** Conceptually `ownerType: 'applicant'`, `ownerByOccupation: { employee: 'employer' }`
+   — the map states the exception, exactly as `EMPLOYER_TRADE_REGISTRY` and
+   `COMPANY_ACTIVITY_CERTIFICATE` do, and the occupations that already are `applicant` are not listed.
+   The default is not flipped to `employer` as `EMPLOYER_SIGNATURE_CIRCULAR`'s is. That row's default
+   is `employer` because the contract its unclassified applicants are held to was `employed`; this
+   row's only migration fallback holds unclassified **self-employed** German applicants, whose plate is
+   their own. An `employer` default would mislabel that whole fallback population.
+
+4. **The owner map is definition-level, and can only be.** It belongs on the canonical definition in
+   `tr-mission-practice`. An activation may not change `ownerType` or `ownerByOccupation`
+   ([ADR-052d](#adr-052d) decision 5), and a widening may not touch owner ([ADR-052c](#adr-052c)
+   decision 4), so no mission could supply it. Wherever no composition reaches `employee` the entry is
+   carried and never consulted — inert in Germany, as the `employee` entry already is on two
+   `tr-filing` rows ([ADR-052c](#adr-052c) decision 7). It is not *"the capability used because it
+   exists"*, the objection `CHAMBER_REGISTRATION_CERTIFICATE` correctly raises against itself: there no
+   source asks an employee for the document, and here one does.
+
+5. **Employee is not part of the base population.** The canonical `conditionalOn` stays
+   `company_owner` or `independent_professional`. Adding `employee` to the definition would make
+   every activating mission ask its employees — Germany's included, on a sheet that does not name
+   them — and an activation cannot narrow it back. That is invention, and it is also the
+   promotion [ADR-052a](#adr-052a) Rule 3 and [ADR-054](#adr-054) rule 6 refuse: one mission's
+   delegated channel asking is not a reason for the shared definition to ask.
+
+6. **An employee reaches this row only through a composition-scoped widening.** That is an
+   [ADR-052c](#adr-052c) delta declared by the activating mission on its own evidence — today's
+   vocabulary already carries `addApplicableOccupations` on an activation. Its preconditions hold for
+   this row: the base is occupational (`oneOf` on `employment.occupation`) and `employee` is disjoint
+   from it. It is key-neutral ([ADR-052c](#adr-052c) decision 5), and it is never consulted for an
+   unclassified applicant. **Whether any composition declares it is not decided here.** The Greek
+   evidence makes such a widening admissible *in principle* for Greece ([ADR-054](#adr-054) rules 2,
+   4 and 5); declaring it is part of a Greek activation, and that is a separate decision.
+
+7. **Order is fixed: the subject before the population.** No composition may widen this row to
+   `employee` while the definition still resolves an employee to `applicant`. The owner map lands
+   with the first such widening or before it, never after. A widening without it would tell an
+   employee that their own business files the plate — the harm [ADR-052d](#adr-052d)'s amendment and
+   the country-pack guide already name.
+
+8. **No revision, fragment or contract key moves.** Owner metadata is not the acceptance bar
+   ([ADR-049a](#adr-049a) decision 8). The prose is subject-neutral and is not changed by this record,
+   so no applicant-facing name or description takes the directional test here. The key stays
+   `EMPLOYER_TAX_PLATE@1` and no stored completion claim is disturbed.
+
+9. **No persistence change.** The persisted `ownerType` remains the historical snapshot. Existing
+   German records — including those still carrying the pre-correction `employer` snapshot — are read
+   through the resolver and never rewritten ([ADR-049a](#adr-049a) decisions 3 and 7). No new
+   `OwnerType` member, no schema move, no storage migration.
+
+**What this record is, and is not.** It is a **decision record about the canonical definition's
+subject model and about where an employee population may come from**. It is not an activation, and
+it is not implementation authority:
+
+- It does **not** activate `EMPLOYER_TAX_PLATE` in Greece, and it does not declare a Greek widening.
+- It does **not** decide requiredness — not the definition's `required: true`, not Greece's, not
+  anybody's ([ADR-054](#adr-054) rule 7 continues to govern any delegated requiredness mismatch).
+- It does **not** alter [ADR-053b](#adr-053b): the entitlement stays scoped to Germany exactly as the
+  ledger's `shippedTo` records it, no entitlement is created, extended or removed, and no route to
+  earn one is introduced. A Greek activation would still fail closed for unclassified applicants.
+- It does **not** touch Spain — no source record, pack or activation.
+- It does **not** open an intake-practice model or any source-authority question beyond applying
+  [ADR-054](#adr-054) as written.
+- It does **not** change the name or description, Finance grouping, `templateVersion`,
+  `schemaVersion` or `STORAGE_FORMAT_VERSION`.
+
+**Consequences.**
+
+- [ADR-054](#adr-054)'s recorded blocker on a Greek activation — the owner model — is answered. The
+  activation is still not authorised; it stands on its own evidence, and on its own requiredness
+  question.
+- When implemented, Germany's composed output must remain identical — requirements, applicability,
+  requiredness, order, contract keys and source pool — except for the owner-map metadata, which
+  Germany never consults because no German applicant reaches `employee`. Existing assertions that
+  this row carries a static owner and no map are superseded by this decision. The concrete
+  implementation and test mechanism are left to the implementing slice.
+
+**Rejected alternatives.**
+
+- **Keep the static `applicant` with no map.** True for every population that is reached today, and
+  wrong for the one the evidence shows. It would leave this row permanently unable to be widened
+  honestly, which is a block, not a model.
+- **Widen the base definition to `employee`.** Decision 5.
+- **Flip the default to `employer`.** Decision 3.
+- **A second code per subject.** Decision 1.
+- **Let the activating mission supply the owner.** Unstateable, by [ADR-052d](#adr-052d) decision 5.
+
+**Implementation:** documentation only — `docs/decisions.md`. Nothing here is built; no requirement,
+layer, activation, widening, ledger entry, test, translation, `revision`, `contractKey`,
+`templateVersion`, schema or storage moves. The implementing slice described under *Consequences*
+needs its own explicit authorisation.
