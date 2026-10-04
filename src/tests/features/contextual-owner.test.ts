@@ -269,7 +269,7 @@ describe('contextual owner — exactly one production carrier', () => {
     ])
   })
 
-  it('Germany carries two of them, where they are inert', () => {
+  it('Germany carries three, where they are inert', () => {
     /**
      * `COMPANY_ACTIVITY_CERTIFICATE` is a shared Türkiye row, so its
      * `ownerByOccupation` reaches both packs — but only Greece widens the row
@@ -281,26 +281,31 @@ describe('contextual owner — exactly one production carrier', () => {
      * independent professionals, never to employees, so the `employee` entry
      * is carried and never read there either.
      *
+     * `EMPLOYER_TAX_PLATE` joined them under ADR-049b: the map lives on the
+     * shared definition and Germany activates it for owners and freelancers
+     * only, so its `employee` entry is never consulted here either.
+     *
      * The circular is Greece-owned and reaches Germany not at all.
      */
     expect(carriersIn('DE').sort()).toEqual([
       'COMPANY_ACTIVITY_CERTIFICATE',
+      'EMPLOYER_TAX_PLATE',
       'EMPLOYER_TRADE_REGISTRY',
     ])
   })
 
-  it('EMPLOYER_TAX_PLATE takes a static subject, not a map', () => {
-    // H4c2d2k corrected it to `applicant` without a per-occupation map: every
-    // occupation its source names, and the whole coarse population its
-    // migration preserves, has the same subject. Declaring a map there would
-    // have been the capability used because it exists.
+  it('EMPLOYER_TAX_PLATE keeps the applicant default and maps the employee', () => {
+    // Superseded: H4c2d2k declared a static subject with no map, on the
+    // premise that no cell differs. The Greek visa centre's *Çalışan* branch
+    // is that cell, and ADR-049b decides the model — the map states the one
+    // exception, and the default is not flipped to `employer` (decision 3).
     const req = PRODUCTION_COMPOSITIONS.find(
       (p) => p.countryCode === 'DE'
     )?.composition.template.documentRequirements.find(
       (r) => r.code === 'EMPLOYER_TAX_PLATE'
     )
     expect(req?.ownerType).toBe('applicant')
-    expect(req?.ownerByOccupation).toBeUndefined()
+    expect(req?.ownerByOccupation).toEqual({ employee: 'employer' })
   })
 
   it('every authored mapping names a known occupation and a real owner', () => {

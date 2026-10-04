@@ -2,6 +2,24 @@ import { describe, it, expect } from 'vitest'
 import type { Application } from '@/domain/schemas/application.schema'
 import type { Document } from '@/domain/schemas/document.schema'
 import type { EmploymentStatus } from '@/domain/types/common'
+import {
+  EmploymentStatusSchema,
+  KNOWN_OCCUPATION_CODES,
+} from '@/domain/types/common'
+import type { RequirementLayer } from '@/config/types'
+import { composeVisaTemplate } from '@/config/composition'
+import { commonSchengenLayer } from '@/config/countries/common/schengen-short-stay'
+import {
+  GERMANY_TOURISM_MIGRATION_ENTITLEMENTS,
+  germanyDestinationLayer,
+} from '@/config/countries/germany/tourism'
+import { trFilingLayer } from '@/config/countries/jurisdictions/tr-filing'
+import { trMissionPracticeLayer } from '@/config/countries/jurisdictions/tr-mission-practice'
+import { deTrMissionLayer } from '@/config/countries/jurisdictions/de-tr-mission'
+import {
+  effectiveOwner,
+  isApplicable,
+} from '@/features/documents/applicability'
 import { applicableRequirements } from '@/features/documents/template-sync'
 import { resolveDocumentSemantics } from '@/features/documents/document-semantics'
 import { buildFinanceDocuments } from '@/features/finance/finance-documents'
@@ -129,12 +147,17 @@ describe('tax plate — the prior contract is evaluated, not assumed', () => {
   })
 })
 
-describe('tax plate — one subject, declared statically', () => {
+describe('tax plate — two subjects, and the default is the applicant', () => {
   /**
-   * Every occupation §4(c) names has the same subject, and so does the whole
-   * coarse population the fallback preserves — a farmer's tax plate is equally
-   * their own. There is no cell where the subject differs, so the row declares
-   * `applicant` rather than a per-occupation map.
+   * SUPERSEDED: this block used to assert "declares no per-occupation map,
+   * because nothing asks for one", on the premise that there is no cell where
+   * the subject differs. The Greek visa centre's *Çalışan* branch is that cell,
+   * and ADR-049b decides the model: `ownerType: 'applicant'` plus
+   * `ownerByOccupation: { employee: 'employer' }`.
+   *
+   * Every occupation §4(c) names, and the whole coarse population the fallback
+   * preserves, still resolves to the applicant — a farmer's tax plate is equally
+   * their own. The default is not flipped to `employer` (decision 3).
    */
   it('resolves to the applicant for every state the row reaches', () => {
     for (const [status, occupation] of [
@@ -149,10 +172,37 @@ describe('tax plate — one subject, declared statically', () => {
     }
   })
 
-  it('declares no per-occupation map, because nothing asks for one', () => {
+  it('declares the applicant as default and maps only the employee', () => {
+    // A map states the exceptions: the two occupations that already are the
+    // applicant are deliberately not listed.
     const req = template.documentRequirements.find((r) => r.code === CODE)
     expect(req?.ownerType).toBe('applicant')
-    expect(req?.ownerByOccupation).toBeUndefined()
+    expect(req?.ownerByOccupation).toEqual({ employee: 'employer' })
+  })
+
+  it('carries the map on the canonical definition, not on an activation', () => {
+    // An activation may not change the owner (ADR-052d decision 5), so the
+    // definition is the only place it can live (ADR-049b decision 4).
+    const offered = trMissionPracticeLayer.offer?.find((r) => r.code === CODE)
+    expect(offered?.ownerType).toBe('applicant')
+    expect(offered?.ownerByOccupation).toEqual({ employee: 'employer' })
+  })
+
+  it.each([
+    ['employed', 'employee', 'employer'],
+    ['self_employed', 'company_owner', 'applicant'],
+    ['self_employed', 'independent_professional', 'applicant'],
+  ] as const)('%s + %s → %s', (status, occupation, owner) => {
+    expect(ownerFor(status, occupation)).toBe(owner)
+  })
+
+  it('the map widens no one: an employee is still not asked', () => {
+    // Employee is not part of the base population (ADR-049b decision 5); it
+    // can arrive only through a composition's widening, and none declares one.
+    expect(applies('employed', 'employee')).toBe(false)
+    expect(
+      requiredRequirementCodes(template, ctx('employed', 'employee'))
+    ).not.toContain(CODE)
   })
 
   it('reads a stored employer snapshot without rewriting it', () => {
@@ -218,6 +268,106 @@ describe('tax plate — what stayed put', () => {
       template
     )
     expect(employment.rows.map((r) => r.code)).toContain(CODE)
+  })
+})
+
+describe('tax plate — Germany cannot tell the map arrived', () => {
+  /**
+   * ADR-049b's acceptance condition, asked as a counterfactual rather than by
+   * spot checks: compose Germany again from the same inputs with the map taken
+   * off the definition, and the result must be the production composition minus
+   * that one field. Requirements, applicability, requiredness, order, contract
+   * keys, migration fallbacks, ownership and sources all ride on that equality.
+   */
+  const germany = compositionFor('DE')
+
+  const composeGermany = (practice: RequirementLayer) => {
+    const {
+      documentRequirements,
+      satisfactionGroups: _groups,
+      ...base
+    } = germany.template
+    return composeVisaTemplate({
+      base,
+      layers: [
+        commonSchengenLayer,
+        germanyDestinationLayer,
+        trFilingLayer,
+        practice,
+        deTrMissionLayer,
+      ],
+      requirementOrder: documentRequirements.map((r) => r.code),
+      migrationEntitlements: GERMANY_TOURISM_MIGRATION_ENTITLEMENTS,
+    })
+  }
+
+  const withoutMap: RequirementLayer = {
+    ...trMissionPracticeLayer,
+    offer: trMissionPracticeLayer.offer?.map((r) => {
+      if (r.code !== CODE) return r
+      const { ownerByOccupation: _map, ...rest } = r
+      return rest
+    }),
+  }
+  const before = composeGermany(withoutMap)
+
+  it('the harness reproduces production exactly', () => {
+    // Without this the comparison below could pass against a reconstruction
+    // that is not Germany.
+    expect(composeGermany(trMissionPracticeLayer)).toEqual(germany)
+  })
+
+  it('differs from the map-less composition by the map alone', () => {
+    const stripped = {
+      ...germany,
+      template: {
+        ...germany.template,
+        documentRequirements: germany.template.documentRequirements.map((r) => {
+          if (r.code !== CODE) return r
+          const { ownerByOccupation: _map, ...rest } = r
+          return rest
+        }),
+      },
+    }
+    expect(stripped).toEqual(before)
+  })
+
+  it('keeps its migration entitlement exactly as shipped', () => {
+    const req = template.documentRequirements.find((r) => r.code === CODE)
+    expect(req?.applicabilityMigration).toEqual(
+      before.template.documentRequirements.find((r) => r.code === CODE)
+        ?.applicabilityMigration
+    )
+    expect(req?.applicabilityMigration).toBeDefined()
+    expect(GERMANY_TOURISM_MIGRATION_ENTITLEMENTS).toContain(CODE)
+  })
+
+  it('answers every applicant state the same — applicability, requiredness, owner', () => {
+    const plateNow = template.documentRequirements.find((r) => r.code === CODE)
+    const plateBefore = before.template.documentRequirements.find(
+      (r) => r.code === CODE
+    )
+    if (!plateNow || !plateBefore) throw new Error('tax plate not composed')
+
+    const occupations = [undefined, ...KNOWN_OCCUPATION_CODES]
+    for (const status of EmploymentStatusSchema.options) {
+      for (const occupation of occupations) {
+        const at = `${status}/${occupation}`
+        const context = ctx(status, occupation)
+        const reached = isApplicable(plateNow, context)
+        expect(reached, at).toBe(isApplicable(plateBefore, context))
+        expect(requiredRequirementCodes(template, context), at).toEqual(
+          requiredRequirementCodes(before.template, context)
+        )
+        // Germany never reaches `employee`, so wherever the row applies the
+        // subject is exactly what it was.
+        if (reached) {
+          expect(effectiveOwner(plateNow, context), at).toBe(
+            effectiveOwner(plateBefore, context)
+          )
+        }
+      }
+    }
   })
 })
 

@@ -63,30 +63,12 @@ export const trMissionPracticeLayer: RequirementLayer = {
      * the key ([ADR-051b](../../../../docs/decisions.md), ADR-052d decision 7).
      *
      * **The subject is the applicant's own business** for the population this
-     * definition currently serves: a company owner's own firm and an
-     * independent professional's own practice, which is what section 4(c) of
-     * the German sheet — the only evidence any composition activates this on —
-     * describes. The static `ownerType` is truthful for that population and is
-     * not changed here.
-     *
-     * **IT IS NOT SUFFICIENT FOR AN EMPLOYEE, AND THAT CELL IS NOW EVIDENCED.**
-     * The argument at `2ebd877` was "there is no cell where the subject
-     * differs". ADR-047's fourth pass records otherwise for the Greek visa
-     * centre's company-document block, which carries this same document: on the
-     * *Çalışan* branch the block is the **employer's** company, and on *Şirket
-     * Sahibi* and *Serbest Meslek* it is the applicant's own. Spain's intake
-     * checklists put employees in the same block and name the subject outright
-     * — *"İş yerinin"*, the workplace's. Nothing in this repository composes
-     * that population for this code today, so nothing is wrong in production;
-     * what is wrong is the reasoning that no such cell could exist.
-     *
-     * The shape the answer will probably take is already in the tree twice:
-     * `EMPLOYER_TRADE_REGISTRY` and `EMPLOYER_SIGNATURE_CIRCULAR` both carry
-     * `ownerByOccupation: { employee: 'employer' }` from this same source and,
-     * in the circular's case, from this same sentence (ADR-049a, ADR-052b).
-     * **This file does not make that change**: widening the population,
-     * revising the owner model, and deciding whether delegated intake evidence
-     * may activate this identity are separate decisions on their own evidence.
+     * definition serves: a company owner's own firm and an independent
+     * professional's own practice, which is what section 4(c) of the German
+     * sheet — the only evidence any composition activates this on — describes.
+     * That is the declared `ownerType`, and it is also what an unclassified
+     * applicant gets: the only migration fallback holds unclassified
+     * **self-employed** German applicants, whose plate is their own.
      *
      * **The population is occupational**, and narrower than the coarse status
      * it once carried. `applicabilityMigration` is what keeps that correction
@@ -115,6 +97,27 @@ export const trMissionPracticeLayer: RequirementLayer = {
       descriptionKey: 'visa-domain:requirements.EMPLOYER_TAX_PLATE.description',
       category: 'employment',
       ownerType: 'applicant',
+      /**
+       * One identity, two subjects ([ADR-049b](../../../../docs/decisions.md)).
+       * On the Greek visa centre's *Çalışan* branch the company-document block
+       * carrying this plate is the **employer's** — the repository's reading,
+       * the one `EMPLOYER_TRADE_REGISTRY`, `COMPANY_ACTIVITY_CERTIFICATE` and
+       * `EMPLOYER_SIGNATURE_CIRCULAR` already apply to the same sentence.
+       *
+       * **This does not ask an employee for anything.** `employee` stays out of
+       * the condition below; it can reach this row only through a composition's
+       * own widening, and the map is here first so that no widening can ever
+       * tell an employee their own business files the plate (ADR-049b
+       * decision 7). No composition declares that widening today, so the entry
+       * is carried and never consulted — inert in Germany, which does not reach
+       * employees (ADR-052c decision 7). It has to live on the definition: an
+       * activation may not change the owner (ADR-052d decision 5).
+       *
+       * A map states the exceptions; the occupations that already are
+       * `applicant` are deliberately not listed. Owner metadata is not the
+       * acceptance bar, so the revision and the contract key do not move.
+       */
+      ownerByOccupation: { employee: 'employer' },
       required: true,
       conditionalOn: occupationOneOf([
         'company_owner',
