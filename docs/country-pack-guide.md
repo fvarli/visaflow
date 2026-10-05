@@ -667,13 +667,15 @@ evidence rather than as a list ([ADR-052d] decision 9):
 - **`EMPLOYER_TAX_PLATE`** — **relocated, not settled.** The pilot: its definition now lives in
   `tr-mission-practice` and Germany activates it. Nothing about Germany's composed output moved, and
   the relocation bumped no revision and no `templateVersion`. A second mission may activate the same
-  identity when it has its own evidence for it — but **not yet, for this row.** Its static
-  `ownerType: 'applicant'` describes the population Germany's section 4(c) names and nobody else:
-  the Greek visa centre and both Spanish intake checklists ask for the same document of *employees*,
-  where the plate belongs to the employer, not the applicant. Widening the population without an
-  owner model would tell an employee their own business files it. See [ADR-052d]'s 2026-09-20
-  amendments; the shape of the fix is probably `ownerByOccupation`, as on `EMPLOYER_TRADE_REGISTRY`
-  and `EMPLOYER_SIGNATURE_CIRCULAR`, and it is not decided.
+  identity when it has its own evidence for it — but **not yet, for this row.** The Greek visa
+  centre and both Spanish intake checklists ask for the same document of *employees*, where the
+  plate belongs to the employer, not the applicant. The owner model that gap needed is decided and
+  shipped ([ADR-049b]): the definition keeps `ownerType: 'applicant'` and carries
+  `ownerByOccupation: { employee: 'employer' }`, as `EMPLOYER_TRADE_REGISTRY` does. It asks no
+  employee for anything — `employee` stays outside the base population and reaches the row only
+  through a composition's own widening, which no composition declares. Any activation, widening or
+  requiredness for a second mission is still its own undecided question; see [ADR-052d]'s 2026-09-20
+  amendments.
 - **`EMPLOYER_SIGNATURE_CIRCULAR`** — same identity, but its base is `required: false` while Spain's
   checklists make it mandatory. Requiredness is not composition-scoped and activation must not make
   it so. **Unresolved.**
@@ -702,6 +704,7 @@ why identifiers are stable, requirements are keys-not-prose, and source honesty 
 [ADR-015]: ./decisions.md
 [ADR-047]: ./decisions.md#adr-047
 [ADR-049a]: ./decisions.md#adr-049a
+[ADR-049b]: ./decisions.md#adr-049b
 [ADR-051b]: ./decisions.md#adr-051b
 [ADR-051c]: ./decisions.md#adr-051c
 [ADR-052a]: ./decisions.md#adr-052a

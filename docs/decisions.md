@@ -4716,3 +4716,20 @@ it is not implementation authority:
 layer, activation, widening, ledger entry, test, translation, `revision`, `contractKey`,
 `templateVersion`, schema or storage moves. The implementing slice described under *Consequences*
 needs its own explicit authorisation.
+
+> **Implemented 2026-10-04 in `34dcabe`.** The owner map decisions 3 and 4 describe has shipped. This
+> note records the outcome beside the decision; it decides nothing, and nothing above was rewritten.
+>
+> - **The definition carries the map.** The canonical `EMPLOYER_TAX_PLATE` in `tr-mission-practice`
+>   keeps `ownerType: 'applicant'` and gains `ownerByOccupation: { employee: 'employer' }`. Its
+>   `conditionalOn` still names `company_owner` and `independent_professional` only (decision 5).
+> - **The tests.** The two static-subject assertions this record named are superseded:
+>   `contextual-owner.test.ts` counts the plate among Germany's inert carriers and pins the map, and
+>   `tax-plate.test.ts` pins the two subjects and the applicant default, and adds a German
+>   counterfactual — production equals the map-less composition except for the map itself.
+>
+> Germany's composed output is otherwise unchanged, and its `employee` entry is never consulted.
+> Greece composes the offer and activates nothing; no composition declares a widening to `employee`.
+> No requiredness was decided, no migration entitlement was created, extended or removed, and no
+> `revision`, `contractKey`, `templateVersion`, `schemaVersion` or `STORAGE_FORMAT_VERSION` moved. A
+> Greek activation, a Greek widening and Greek requiredness stay undecided and unauthorised.

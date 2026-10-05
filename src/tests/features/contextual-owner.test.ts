@@ -13,8 +13,7 @@ import type { CompositionError } from '@/config/composition'
 import { testCommonLayer } from '@/tests/fixtures/test-packs'
 
 /**
- * A requirement may say whose situation its evidence describes *per occupation*,
- * and nothing in production says it yet.
+ * A requirement may say whose situation its evidence describes *per occupation*.
  *
  * The case this exists for: the Greek visa centre asks an employee, a company
  * owner and a freelancer for the same `İmza Sirküleri` — the employer's company
@@ -22,7 +21,9 @@ import { testCommonLayer } from '@/tests/fixtures/test-packs'
  * the subject is not identity, so that is one code with two subjects rather than
  * two codes.
  *
- * Built here, used nowhere. The migration that uses it is its own slice.
+ * Production now carries it — the Greek company documents and, since ADR-049b,
+ * `EMPLOYER_TAX_PLATE`; which rows each pack carries is pinned by the census at
+ * the end of this file.
  */
 
 const CIRCULAR: DocumentRequirement = {

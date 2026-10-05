@@ -2768,3 +2768,76 @@ documentation reconciliation that adds this entry sits on top of it and changes 
 
 No production slice is queued, and none should be inferred from Iteration 33's *Next*. Each open
 decision above needs its own explicit authorisation.
+
+---
+
+# Iteration 35 — The tax plate's subject follows the occupation
+
+Covers ADR-049b and its owner-map implementation. Baseline `392eac5`, code checkpoint `34dcabe`, CI
+green on that exact SHA, 2177/2177 across 115 files. This entry is the **current-state record** and
+supersedes Iteration 34's figures; that entry, and its *Next*, are kept as written and are not a
+queue.
+
+### Where the numbers are
+
+| axis | value |
+|---|---|
+| app | `1.1.0` |
+| dossier `schemaVersion` | `1.4.0` (reads 1.0.0–1.4.0; writes 1.4.0) |
+| `STORAGE_FORMAT_VERSION` | `2` |
+| Greece `templateVersion` | `1.15.0` — **28** requirements, **24** verified, `partially_verified` |
+| Germany `templateVersion` | `1.13.0` — **27** requirements, **27** verified, `verified` |
+
+**Unchanged from Iteration 34.** Owner metadata is not the acceptance bar, so no revision, fragment,
+`contractKey`, `templateVersion`, `schemaVersion` or `STORAGE_FORMAT_VERSION` moved.
+
+### Development truth — what is in the code
+
+| commit | what it did |
+|---|---|
+| `7c29767` | Documentation reconciliation for ADR-053b's enforcement (Iteration 34). |
+| `9c208f1` | [ADR-049b](./decisions.md#adr-049b) accepted. Documentation only. |
+| `34dcabe` | The owner map: the canonical `EMPLOYER_TAX_PLATE` in `tr-mission-practice` keeps `ownerType: 'applicant'` and gains `ownerByOccupation: { employee: 'employer' }`. `contextual-owner.test.ts` and `tax-plate.test.ts` updated; a German counterfactual added. |
+
+**The map is carried and never consulted.** `employee` stays outside the row's `conditionalOn`, and
+no composition declares a widening to it, so no applicant anywhere resolves to the `employer` entry.
+Germany's composed output is unchanged apart from the map itself. Greece composes the offer and
+activates nothing. Requiredness and migration entitlements are untouched — the plate is still
+entitled in Germany alone.
+
+### Decision truth — what is decided
+
+- **ADR-049b** — `EMPLOYER_TAX_PLATE` is one identity with two subjects: the employer for
+  `employee`, the applicant for `company_owner` and `independent_professional`, the declared
+  `applicant` default for everyone else. An employee reaches the row only through a composition's own
+  widening, and the map must land with that widening or before it. Its implementation note in
+  `decisions.md` records `34dcabe`. It authorises no activation, no widening and no requiredness.
+
+### Release / remote truth
+
+`main` = `origin/main` = `34dcabe` at the close of the owner-map slice; exact-SHA CI run
+`37198789630` (workflow *CI*, job *Verify*) green. The documentation reconciliation that adds this
+entry sits on top of it and changes no executable logic.
+
+### Open decisions — none of these is authorised
+
+- **Greece activating `EMPLOYER_TAX_PLATE`** — unauthorised. The owner model no longer blocks it;
+  its own evidence and its requiredness still have to be decided, and a Greek activation would still
+  fail closed for an unclassified applicant (ADR-053b).
+- **A Greek widening of `EMPLOYER_TAX_PLATE` to `employee`** — undecided and unauthorised. ADR-049b
+  makes it admissible in principle; declaring it is part of a Greek activation.
+- **Greek requiredness for `EMPLOYER_TAX_PLATE`** — unresolved.
+- **`EMPLOYER_SIGNATURE_CIRCULAR`'s requiredness** — a separate question, still unresolved.
+- **Spain evidence retrieval** — explicitly unauthorised; no Spain authoring before it.
+- **ADR-052d decision 8** (composition-scoped evidence gaps) — unimplemented and unauthorised.
+- Iteration 33's carried-forward non-goals stand unchanged.
+
+### Gates
+
+`format:check` ✓ · `lint` **0 errors / 118 warnings** (the standing baseline) · `typecheck` ✓ ·
+`test` **2177/2177, 115 files**.
+
+### Next
+
+No production slice is queued, and none should be inferred from any earlier *Next*. Each open
+decision above needs its own explicit authorisation.
